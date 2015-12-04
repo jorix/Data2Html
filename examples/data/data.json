@@ -1,0 +1,39 @@
+{
+    "page": "1",
+    "total": "75",
+    "records": "1500", 
+    "rows": [
+        { "id": "1", "cell": [ "1", "Guy", "Erik", "guy58@mail.ru", "69112497380", "0.09" ] }, 
+        { "id": "2", "cell": [ "2", "Warren", "Clifford", "warren37@list.ru", "19135726045", "0.15" ] }, 
+        { "id": "3", "cell": [ "3", "Joseph", "Micheal", "joseph57@yandex.ru", "39026450319", "0.28" ] }, 
+        { "id": "4", "cell": [ "4", "Matthew", "Howard", "matthew34@yandex.ru", "49088452927", "0.13" ] }, 
+        { "id": "5", "cell": [ "5", "Kevin", "Davee", "kevin22@inbox.ru", "59251834465", "0.06" ] }, 
+        { "id": "6", "cell": [ "6", "Bobby", "Walter", "bobby13@inbox.ru", "19018349357", "0.00" ] }, 
+        { "id": "7", "cell": [ "7", "Jon", "Victor", "jon55@gmail.com", "29154246035", "0.24" ] }, 
+        { "id": "8", "cell": [ "8", "Brad", "Hugh", "brad16@list.ru", "59214592532", "0.29" ] }, 
+        { "id": "9", "cell": [ "9", "Marc", "Chad", "marc29@yandex.ru", "79207609109", "0.01" ] }, 
+        { "id": "10", "cell": [ "10", "Enrique", "Roger", "enrique36@mail.ru", "59226051444", "0.26" ] }, 
+        { "id": "11", "cell": [ "11", "Luis", "Jim", "luis99@yahoo.com", "69042189377", "0.07" ] }, 
+        { "id": "12", "cell": [ "12", "Dere&#039;dde&quot;k|\\n", "Victor", "derek45@list.ru", "29077337109", "0.13" ] }, 
+        { "id": "13", "cell": [ "13", "Christian", "Jesse", "christian92@gmail.com", "39163683721", "0.22" ] }, 
+        { "id": "14", "cell": [ "14", "Cody", "Dennis", "cody79@yahoo.com", "39229079400", "0.22" ] }, 
+        { "id": "15", "cell": [ "15", "Raul", "Jim", "raul68@list.ru", "39254206533", "0.01" ] }, 
+        { "id": "16", "cell": [ "16", "Dwight", "Ryan", "dwight65@yahoo.com", "19037827429", "0.15" ] }, 
+        { "id": "17", "cell": [ "17", "Neil", "Steven", "neil56@gmail.com", "49174720438", "0.27" ] }, 
+        { "id": "18", "cell": [ "18", "Brad", "Pedro", "brad64@yandex.ru", "79004906874", "0.01" ] }, 
+        { "id": "19", "cell": [ "19", "Carl", "Enrique", "carl29@inbox.ru", "69197505876", "0.09" ] }, 
+        { "id": "20", "cell": [ "20", "Gene", "William", "gene16@yandex.ru", "29229124460", "0.27" ] }
+    ],
+"userdata": { "agg": { "_count": "1500" } }, 
+"debug": { "query_agg": "\r\n
+\t\t\tSELECT count(*) AS _count\r\n
+\t\t\tFROM tbl_customer\r\n
+\t\t\tWHERE true\r\n
+\t\t", "query_rows": "\r\n
+\t\t\tSELECT id, first_name, last_name, email, phone, discount\r\n
+\t\t\tFROM tbl_customer\r\n
+\t\t\tWHERE true\r\n
+\t\tORDER BY id asc\n
+LIMIT 20 OFFSET 0\n
+" }
+}
