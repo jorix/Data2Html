@@ -22,6 +22,7 @@ abstract class Data2Html_Db
      * @param $query
      * @return resource
      */
+    abstract public function queryPage($sql, $pageNumber = 1, $pageSize= 0);
     abstract public function query($query);
 
     /**
@@ -69,6 +70,51 @@ abstract class Data2Html_Db
         }
     }
 
+    /**
+     * Execute a query and return the array result
+	 */
+	public function getQueryArray($query, $pageNumber=0, $pageSize=0) {
+        $rows = array();
+        $cols = array();
+        $colCount = 0;
+        
+        $pageStart = 0;
+        try {
+            $pageSize = intval($pageSize);
+            $pageNumber = intval($pageNumber);
+            if($pageSize > 0 and $pageNumber > 0) {
+                $pageStart = ($pageNumber - 1) * $pageSize;
+            }
+        } catch(Exception $e) {
+            throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
+        };
+        $result = $this->queryPage($query, $pageStart, $pageSize);
+        while($r = $this->fetch($result)) {
+            $row = array();
+            if ($colCount === 0) {
+                foreach($r as $k => $v) {
+                    $cols[] = $k;
+                    $row[] = $v;
+                }
+                $colCount = count($cols);
+            } else {
+                for($i=0; $i < $colCount; $i++) {
+                    $v = $r[$cols[$i]];
+                    $row[]= $v;
+                }
+            }
+            $rows[] = $row;
+        }
+        return array(
+            "method" => "DataArray",
+            "pageNumber" => $pageNumber,
+            "pageStart" => $pageStart,
+            "pageSize" => $pageSize,
+            "cols" => $cols,
+            "rows" => $rows
+        );
+    }
+    
     /**
      * INSERT query wrapper
      *
@@ -153,8 +199,7 @@ abstract class Data2Html_Db
      * @param mixed $cond - key => value pairs, integer (for id=) or string
      * @return resource
      */
-    public function delete($tblName, $cond)
-    {
+    public function delete($tblName, $cond) {
         $tblName = jqGrid_Utils::checkAlphanum($tblName);
         $where = array();
 
@@ -185,16 +230,6 @@ abstract class Data2Html_Db
         $result = $this->query($q);
 
         return $result;
-    }
-
-
-    /**
-     * Get database type
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->db_type;
     }
 
     /**

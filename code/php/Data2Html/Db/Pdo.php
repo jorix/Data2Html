@@ -9,6 +9,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db {
         $dsn = $parameters['dsn'];
         $this->db_type = substr($dsn, 0, strpos($dsn, ':') + 1);
     }
+    
 	protected function link($parameters) {
 		// Open link
         try {
@@ -24,6 +25,14 @@ class Data2Html_Db_Pdo extends Data2Html_Db {
         }
         $this->link = $link;
     }
+    
+    public function queryPage($sql, $pageStart=0, $pageSize=0) {
+        if($pageStart >= 0 && $pageSize > 0) {
+            $sql .= " LIMIT {$pageSize} OFFSET {$pageStart}";
+        }
+        return $this-> query($sql);
+    }
+    
     public function query($sql) {
         try {
             return $this->link->query($sql);
@@ -31,11 +40,11 @@ class Data2Html_Db_Pdo extends Data2Html_Db {
             throw new jqGrid_Exception_DB($e->getMessage(), array('query' => $sql), $e->getCode());
         };
     }
-
+    
     public function fetch($result) {
         return $result->fetch(PDO::FETCH_ASSOC);
     }
-
+    
     public function quote($val) {
         if(is_null($val)) {
             return null;
