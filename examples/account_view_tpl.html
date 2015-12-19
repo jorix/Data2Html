@@ -1,0 +1,63 @@
+<div id="d2h_aixada_account" class="ui-widget">
+    <div class="ui-widget-content ui-corner-all">
+        <h3 class="ui-widget-header ui-corner-all">
+            <span style="color:#777">Diners:</span>
+            <span id="d2h_aixada_account_h3">{account}</span>
+            <span style="float:right; margin-top:-4px;">
+                <img style="display:none" class="loadSpinner" src="img/ajax-loader.gif"/>
+            </span>
+        </h3>
+        <table id="td2h_aixada_account" class="tblListingDefault">
+            <thead>
+                <tr>
+                    <th>data</th>
+                    <th>operat</th>
+                    <th>description</th>
+                    <th>method</th>
+                    <th>quantity</th>
+                    <th>balance</th>
+                </tr>
+            </thead>
+            <tbody xxxstyle="display:none">
+                <tr>
+                    <td>{ts}</td>
+                    <td>{operator}</td>
+                    <td>{description}</td>
+                    <td>{method}</td>
+                    <td>{quantity}</td>
+                    <td class="textAlignRight formatQty">{balance}</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr><td colspan="2"></td></tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+<script>
+    var p_currency_sign = "€",
+        p_msg_err_nomovements = "p_msg_err_nomovements";
+    $("#td2h_aixada_account tbody")
+    .data2html("init",{
+        url:        "account_controller.php",
+        loadOnInit: true,
+        resultsPerPage : 20,
+        paginationNav : "#td2h_aixada_account tfoot td",
+        rowComplete : function (rowIndex, row){
+           //$.formatQuantity(row, p_currency_sign);
+        },
+        complete : function(rowCount){
+            $("#d2h_aixada_account .loadSpinner").hide();
+            if ($("#td2h_aixada_account tbody tr").length == 0 &&
+                    p_msg_err_nomovements){
+                $.showMsg({
+                    msg: p_msg_err_nomovements,
+                    type: "warning"
+                });
+            } else {
+                $("#td2h_aixada_account tbody tr:odd").addClass("rowHighlight"); 
+            }
+        }
+    })
+    .data2html("load");
+</script>

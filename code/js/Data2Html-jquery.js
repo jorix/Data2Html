@@ -21,9 +21,7 @@
                 loadAnim: true,							//show loading animation
                                                                 //a HTML string to be used as loading animation. automatically 
                                                                 //inserted before loading and removed after loading has finished
-                loadAnimHTMLStr: 
-                    '<p style="text-align:center"><img src="img/ajax-loader.gif"></p>',
-                beforeLoad	: function(){},
+                beforeSend: function(){},
                 complete	: function(row_count){},    //called, once loop through xml has finished
                 rowComplete : function(current_row_index, row){}//called, after each row 
             };
@@ -36,57 +34,38 @@
 					//if an offset is specified, then we look for a list header
 					//the container element can have a list header which can be specified with the lt(index) which counts
 					//back to 0. 
-					if (settings.offSet > 0){
-						var listHeader =  $this.children(':lt('+settings.offSet+')').detach(); 
-						if (listHeader.size()>0){
-							settings.listHeader = listHeader;
-						} 
-					}
+                if (settings.offSet > 0){
+                    var listHeader =  $this.children(':lt('+settings.offSet+')').detach(); 
+                    if (listHeader.size()>0){
+                        settings.listHeader = listHeader;
+                    } 
+                }
 
-					
-					//a template is either directly provided as string, if not, everything that 
-					//remains after a potential header is detached from the DOM and used as template. 
-					//set the template string
-					settings.tpl = (settings.tpl != '')? settings.tpl:$this.html();
-					
-					//delete all content / templates in the original DOM
-					$this.empty();
-				   
-					
-					//construct pagination nav if a selector has been specified
-					if (settings.paginationNav != ''){
-						_constructPagination.call($this,settings.paginationNav);
-						$('#selectResultsPP').val(settings.resultsPerPage);
-						
-					}
-                    // If the plugin hasn't been initialized yet
-					if ( ! data ) {		
-						$(this).data('data2html', {
-							url				: settings.url,
-							params 			: settings.params,
-							dataArray				: settings.dataArray,
-							offSet			: settings.offSet,
-							listHeader		: settings.listHeader,
-							tpl				: settings.tpl,	
-							type			: settings.type,
-							resultsPerPage	: settings.resultsPerPage,
-							paginationNav	: (settings.paginationNav == '')? false:true,
-							loadOnInit		: settings.loadOnInit,
-							rowCount		: settings.rowCount,
-							loadAnim 		: settings.loadAnim,
-							loadAnimHTMLStr : settings.loadAnimHTMLStr,
-							
-							autoReload		: settings.autoReload,
-							beforeLoad		: settings.beforeLoad,
-							complete 		: settings.complete,
-							rowComplete 	: settings.rowComplete,
-							_pageIndex		: 0
-							
-						});
-					}//end if
-					if (settings.loadOnInit) {
-                        $this.data2html("reload");
-                    }
+                
+                //a template is either directly provided as string, if not, everything that 
+                //remains after a potential header is detached from the DOM and used as template. 
+                //set the template string
+                settings.tpl = (settings.tpl != '')? settings.tpl:$this.html();
+                
+                //delete all content / templates in the original DOM
+                $this.empty();
+               
+                
+                //construct pagination nav if a selector has been specified
+                if (settings.paginationNav != ''){
+                    _constructPagination.call($this,settings.paginationNav);
+                    $('#selectResultsPP').val(settings.resultsPerPage);
+                    
+                }
+                // If the plugin hasn't been initialized yet
+                if ( ! data ) {		
+                    $(this).data('data2html', $.extend({
+                        _pageIndex: 0
+                    }, settings));
+                }
+                if (settings.loadOnInit) {
+                    $this.data2html("reload");
+                }
 				}); //end for each
  		}, //end init
         removeAll : function (){
@@ -101,6 +80,13 @@
 	  	getTemplate: function(){
             return $(this).data('data2html').tpl;
         },
+        setAutoReload: function(){
+            if (_data.autoReload > 1){
+                    setTimeout(function(){
+                        $this.data2html("reload");
+                    }, _data.autoReload);
+                }
+        },
         reload: function( options ) {
             if ( options ) {
                 $.extend( $(this).data('data2html'), options );
@@ -113,21 +99,7 @@
                     url: _data.url + "?" + _data.params,		
                     dataType: "json", 
                     beforeSend: function(jqXHR, settings){
-                        lstr = _data.loadAnimHTMLStr
-                        if ( _data.loadAnim){
-                            if ($this.parents('table').is('table')){
-                                $this.parents('table')
-                                     .after(lstr);
-                                $this.parents('table')
-                                     .next()
-                                     .addClass("loadAnimRemoveMe")
-                            } else {
-                                $this.append(lstr);
-                                $this.children(":last-child")
-                                     .addClass("loadAnimRemoveMe")
-                            }
-                        }
-                        _data.beforeLoad.call(this,0);
+                        _data.beforeSend.call(this,0);
                     },
                     success: function(jsonData){
                         //save xml result set
@@ -160,11 +132,6 @@
                     }
                 });	//end ajax
                 //alert("in "+rowIndex )
-                if (_data.autoReload > 1){
-                    setTimeout(function(){
-                        $this.data2html("reload");
-                    }, _data.autoReload);
-                }
             }); //end this.each
         } //end reload
     };	
@@ -258,24 +225,18 @@
         
         // loop rows
 		for (var i=startIndex; (i<xmlSize && i<nextSet); i++){
-			//get the current row in the xml result set
 			var row = dataArray.rows[i];
-			//reset the template string
 			var templateStr = data2htmlObj.tpl; 	
-
-			//for each tag	of the row
             for (var tagName in _indexCols) {
-				//get the actual value from the xml for the given tag
-				var xmlValue = row[_indexCols[tagName]];
-				//construct the string we are searching for
+				var value = row[_indexCols[tagName]];
 				var pattern = new RegExp('\{'+tagName+'\}','gi');		
-				templateStr = templateStr.replace(pattern, xmlValue);
+				templateStr = templateStr.replace(pattern, value);
 			}			
 			$(this).append(templateStr);
 			data2htmlObj.rowComplete.call(this,i,$(this).children(":last"));
 		}
         data2htmlObj.complete.call(this,startIndex+resultsPP);
-	} //end loop
+	}
     /**
      * Method calling logic
      */
