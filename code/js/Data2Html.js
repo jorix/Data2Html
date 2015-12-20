@@ -41,7 +41,8 @@
                         tpl: '', // template HTML string
                         rowCount: 0,       //nr of total result rows
                         listHeader: null,
-                        _pageIndex: 0
+                        _pageIndex: 0,
+                        _indexCols: {}
                     }, dataObj);
                     $thisData = $(dataObj.elementData, $this);
                     if (dataObj.offSet > 0){
@@ -78,9 +79,11 @@
                     success: function(jsonData){
                         _dataObj.dataArray = jsonData;
                         _dataObj.rowCount = jsonData.rows.length;
+                        var _indexCols = {};
                         for (var i=0, len= jsonData.cols.length; i <len; i++) {
                             _indexCols[jsonData.cols[i]] = i;
                         }
+                        _dataObj._indexCols = _indexCols;
                         _loopRows.call($this);
                     },//end success
                     error: function(XMLHttpRequest, textStatus, errorThrown){
@@ -107,9 +110,9 @@
         $thisData.empty();
         $thisData.append(listHeader);
     }
-    var _indexCols = {};
 	function _loopRows() {
         var dataObj = $(this).data('data2html'),
+            _indexCols = dataObj._indexCols,
             dataArray = dataObj.dataArray,
             rowCount = dataObj.rowCount,
             resultsPP = (dataObj.pageSize ? dataObj.pageSize : rowCount),
