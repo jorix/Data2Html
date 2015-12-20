@@ -1,0 +1,65 @@
+<div id="$${_id}_nav">
+    <span class="ui-icon ui-icon-seek-first"></span>
+    <span class="ui-icon ui-icon-seek-prev"></span>
+    <input type="text" size="2"
+        class="pageIndex ui-widget-content ui-corner-all"/>
+    <span class="totalResultPages"></span>
+    <span class="ui-icon ui-icon-seek-next"></span>
+    <span class="ui-icon ui-icon-seek-end"></span>
+    <input type="text" size="10"
+        class="pageSize ui-widget-content ui-corner-all"/>
+</div>
+<script>
+    $('#$${_id}_nav .ui-icon')
+        .bind('mouseenter', function(){
+            $(this).addClass('ui-highlight');
+        })
+        .bind('mouseleave', function(){
+            $(this).removeClass('ui-highlight');
+        });    
+    $('#$${_id}_nav .ui-icon-seek-first')
+        .bind('click', function(){
+            $this.data('data2html')._pageIndex = 0; 
+            _loopRows.call($this);
+        });
+
+    $('#$${_id}_nav .ui-icon-seek-prev')
+        .bind('click', function(){
+            if ($this.data('data2html')._pageIndex >=1) {
+                $this.data('data2html')._pageIndex--;
+            }
+            _loopRows.call($this);
+        });
+    
+    $('#$${_id}_nav .ui-icon-seek-next')
+        .bind('click', function(){
+            var totalPages = Math.floor($this.data('data2html').rowCount / $this.data('data2html').resultsPerPage); 
+            if ($this.data('data2html')._pageIndex < totalPages) $this.data('data2html')._pageIndex++;
+            _loopRows.call($this);
+        });
+    
+    $('#$${_id}_nav .ui-icon-seek-end')
+        .bind('click', function(){
+            var totalPages = Math.floor($this.data('data2html').rowCount / $this.data('data2html').resultsPerPage);
+            $this.data('data2html')._pageIndex = totalPages; 
+            _loopRows.call($this);
+        });
+    
+    $('##$${_id}_nav .pageSize').change(function(){
+        $this.data('data2html').resultsPerPage = parseInt($("option:selected", this).val()); 
+        _calcResultPages.call($this);
+        $this.data('data2html')._pageIndex = 0; 
+        _loopRows.call($this);
+        
+    });
+    
+    $('#$${_id}_nav .pageIndex').change(function(){
+        var totalPages = Math.floor($this.data('data2html').rowCount / $this.data('data2html').resultsPerPage);
+        var index = parseInt($(this).val())-1;
+        if (index > totalPages || isNaN(index)) return false; 
+        
+        $this.data('data2html')._pageIndex = index; //(index == totalPages)? index:(index-1);
+        _loopRows.call($this);
+        
+    });
+</script>

@@ -12,7 +12,7 @@
 </head>
 <body><div id="wrap">
 <?php
-    $tpl = file_get_contents("account_view_tpl.html");
+    $tpl = file_get_contents("templates/tableNav.html");
     require_once("config_db.php");
     require_once("account__.php");
     $a = new aixada_account($db_driver);

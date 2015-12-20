@@ -142,7 +142,9 @@ abstract class Data2Html {
         } 
         return str_replace(
             array('$${_id}', '$${_title}', '$${_thead}', '$${_tbody}'),
-            array($this->id, $this->title,     $thead,       $tbody),
+            array($this->id, $this->title, 
+                        '<tr>'.$thead.'</tr>',
+                        '<tr>'.$tbody.'</tr>'),
             $tpl
         );
     }
