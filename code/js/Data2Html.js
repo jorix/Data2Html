@@ -12,7 +12,7 @@
         elementData: 'table tbody',
         elementWaiting: '.d2h_waiting',
         beforeSend: function(){},
-        complete: function(row_count){}, //called, once loop through xml has finished
+        complete: function(row_count){}, //called, once loop through data has finished
         rowComplete: function(current_row_index, row){}//called, after each row 
     };
 	var methods = {
@@ -37,10 +37,10 @@
                     }
                     dataObj = $.extend({}, _options);
                     dataObj = $.extend({
-                        dataArray: null,        //the data once loaded/received
-                        tpl: '', // template HTML string
+                        _dataArray: null,        //the data once loaded/received
+                        _tpl: '', // template HTML string
                         rowCount: 0,       //nr of total result rows
-                        listHeader: null,
+                        _listHeader: null,
                         _pageIndex: 0,
                         _indexCols: {}
                     }, dataObj);
@@ -50,13 +50,13 @@
                             ':lt('+dataObj.offSet+')'
                         ).detach(); 
                         if (listHeader.size() > 0){
-                            dataObj.listHeader = listHeader;
+                            dataObj._listHeader = listHeader;
                         } 
                     }
-                    dataObj.tpl = $thisData.html();
+                    dataObj._tpl = $thisData.html();
                     $this.data('data2html', dataObj); // set dataObj
                 }
-                _removeAll($thisData, dataObj.listHeader);
+                _removeAll($thisData, dataObj._listHeader);
             });
  		},
         load: function( options ) {
@@ -77,7 +77,7 @@
                         _dataObj.beforeSend.call(this, 0);
                     },
                     success: function(jsonData){
-                        _dataObj.dataArray = jsonData;
+                        _dataObj._dataArray = jsonData;
                         _dataObj.rowCount = jsonData.rows.length;
                         var _indexCols = {};
                         for (var i=0, len= jsonData.cols.length; i <len; i++) {
@@ -113,7 +113,7 @@
 	function _loopRows() {
         var dataObj = $(this).data('data2html'),
             _indexCols = dataObj._indexCols,
-            dataArray = dataObj.dataArray,
+            dataArray = dataObj._dataArray,
             rowCount = dataObj.rowCount,
             resultsPP = (dataObj.pageSize ? dataObj.pageSize : rowCount),
             startIndex = dataObj._pageIndex * resultsPP; 
@@ -121,13 +121,13 @@
 
         // append header
         $thisData = $(dataObj.elementData, this);
-        _removeAll($thisData, dataObj.listHeader);
+        _removeAll($thisData, dataObj._listHeader);
 		$('.pageIndex').val(dataObj._pageIndex + 1);
         
         // loop rows
 		for (var i=startIndex; (i<rowCount && i<nextSet); i++){
 			var row = dataArray.rows[i];
-			var templateStr = dataObj.tpl; 	
+			var templateStr = dataObj._tpl; 	
             for (var tagName in _indexCols) {
 				var value = row[_indexCols[tagName]];
 				var pattern = new RegExp('\{'+tagName+'\}','gi');		
