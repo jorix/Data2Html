@@ -47,12 +47,29 @@ abstract class Data2Html {
      * @param $oper - operation name
      * @return void
      */
-    public function oper($oper) {
-        $id = $this->input('_id');
+    public function run() {
+        // Open db		
+        $db_driver = $this->db_params;
+        $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
+        $this->db = new $db_class($db_driver);
+        $oper = Data2Html_Utils::getItem_string('oper', $_REQUEST, 'list');
+        $this->oper($oper, array_merge($_GET, $_POST));
+    }
+    public function oper($oper, $request) {
         $oper = strval($oper);
-
-        switch($oper)
-        {
+        switch($oper) {
+            case '':
+            case 'list':
+                $pageNumber =   Data2Html_Utils::getItem_integer('pageNumber', $request, 1);
+                $pageSize =     Data2Html_Utils::getItem_integer('pageSize', $request, 12);
+                $orderBy =      Data2Html_Utils::getItem_string('orderBy', $request, 'id desc');
+                $query = "select * from {$this->table}";
+                $query .= " where account_id=-4";
+                $query .= " order by {$orderBy}";
+                $this->responseJson(
+                    $this->db->getQueryArray($query, $pageNumber, $pageSize)
+                );
+                return;
             case 'add':
                 $data = array_intersect_key($this->input, $this->cols);
                 $data = $this->operData($data);
@@ -107,12 +124,6 @@ abstract class Data2Html {
 
         $this->responseJson($this->response);
     }
-    public function run() {
-        // Open db		
-        $db_driver = $this->db_params;
-        $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
-        $this->db = new $db_class($db_driver);
-    }
     
     /**
      * MAIN ACTION (3): Render grid
@@ -148,86 +159,6 @@ abstract class Data2Html {
             $tpl
         );
     }
-    public function render() {
-        if(!is_array($render_data))
-        {
-            throw new jqGrid_Exception_Render('Render data must be an array');
-        }
-
-        $this->render_data = $render_data;
-
-        //------------------
-        // Basic data
-        //------------------
-
-        $data = array();
-
-        $data['extend'] = $this->render_extend;
-        $data['suffix'] = $this->renderGridSuffix($render_data);
-
-        //------------------
-        // Render ids
-        //------------------
-
-        $data['id'] = $this->grid_id . $data['suffix'];
-        $data['pager_id'] = $this->grid_id . $data['suffix'] . '_p';
-
-        //-----------------
-        // Render colModel
-        //-----------------
-
-        foreach($this->cols as $k => $c)
-        {
-            if(isset($c['unset']) and $c['unset']) continue;
-
-            #Remove internal column properties
-            $c = array_diff_key($c, array_flip($this->internal_col_prop));
-
-            $colModel[] = $this->renderColumn($c);
-        }
-
-        //-----------------
-        // Render options
-        //-----------------
-
-        $options = array(
-            'colModel' => $colModel,
-            'pager' => '#' . $data['pager_id'],
-        );
-
-        #URL's
-        $options['url'] = $options['editurl'] = $options['cellurl'] = $this->renderGridUrl();
-
-        #Any postData?
-        if($post_data = $this->renderPostData())
-        {
-            $options['postData'] = $post_data;
-        }
-
-        $data['options'] = $this->renderOptions(array_merge($this->default['options'], $options, $this->options));
-
-        //-----------------
-        // Render navigator
-        //-----------------
-
-        if(is_array($this->nav))
-        {
-            $data['nav'] = $this->renderNav(array_merge($this->default['nav'], $this->nav));
-        }
-
-        //------------------
-        // Render base html
-        //------------------
-
-        $data['html'] = $this->renderHtml($data);
-
-        //-----------------
-        // Compile the final string
-        //-----------------
-
-        return $this->renderComplete($data);
-    }
-
     /**
      * All `jqGrid_Exception` exceptions comes here
      * Override this method for custom exception handling
@@ -335,8 +266,8 @@ abstract class Data2Html {
      * @param  $obj object to send
      */
     protected function responseJson($obj) {
-       // echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
-        header("Content-type: application/responseJson; charset=utf-8;");
+        echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
+        //header("Content-type: application/responseJson; charset=utf-8;");
         echo Data2Html_Utils::jsonEncode($obj);
     }
     

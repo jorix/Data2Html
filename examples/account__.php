@@ -27,18 +27,9 @@ class aixada_account extends Data2Html {
                 ),
             )
         );
+        //$this->addFilter(
     }
-    /*
-    
-    <td>{ts}</td>
-					<td>{operator}</td>
-					<td>{description}</td>
-					<td>{method}</td>
-					<td class="textAlignRight formatQty">{quantity}</td>
-					<td class="textAlignRight formatQty">{balance}</td>
-    
-    
-    */
+
     protected function beforeInsert($values) {
         throw new Exception('Tablxxxxxxxxxxxxxe is not defined');
     }
