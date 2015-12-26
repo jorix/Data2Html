@@ -8,6 +8,7 @@ abstract class Data2Html {
     protected $table;
     protected $title;
     protected $colsDefs = array();
+    protected $filterDefs = array();
 
     /**
      * Class constructor, initializes basic properties
@@ -52,20 +53,28 @@ abstract class Data2Html {
         $db_driver = $this->db_params;
         $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
         $this->db = new $db_class($db_driver);
-        $oper = Data2Html_Utils::getItem_string('oper', $_REQUEST, 'list');
-        $this->oper($oper, array_merge($_GET, $_POST));
+        $this->oper(array_merge($_GET, $_POST));
     }
-    public function oper($oper, $request) {
-        $oper = strval($oper);
+    protected function oper($request) {
+        $r = new Data2Html_Values($request);
+        $oper = $r->getString('oper', 'list');
         switch($oper) {
             case '':
             case 'list':
-                $pageNumber =   Data2Html_Utils::getItem_integer('pageNumber', $request, 1);
-                $pageSize =     Data2Html_Utils::getItem_integer('pageSize', $request, 12);
-                $orderBy =      Data2Html_Utils::getItem_string('orderBy', $request, 'id desc');
+                $pageNumber =   $r->getInteger('pageNumber', 1);
+                $pageSize =     $r->getInteger('pageSize', 12);
+                $orderBy =      $r->getString('orderBy');
                 $query = "select * from {$this->table}";
-                $query .= " where account_id=-4";
-                $query .= " order by {$orderBy}";
+                $where = "";
+                foreach($this->filterDefs as $v) {
+                    $where .= " and {$v['name']} = {$v['value']}";
+                } 
+                if ($where !== "") {
+                    $query .= " where ".substr($where, 5);
+                }
+                if ($orderBy) {
+                    $query .= " order by {$orderBy}";
+                }
                 $this->responseJson(
                     $this->db->getQueryArray($query, $pageNumber, $pageSize)
                 );
@@ -133,8 +142,38 @@ abstract class Data2Html {
      * @param array $render_data
      * @return string
      */
-    protected function addCols($colArray) {
+    protected function setCols($colArray) {
         $this->colsDefs = $colArray;
+    }
+    protected function setFilter($filterArray) {
+        $this->filterDefs = $filterArray;
+    }
+    public function renderAngularTable($templatePath) {
+        if (substr($templatePath, -1, 1) !== '/') {
+            $templatePath .= '/';
+        }
+        $tpl = file_get_contents($templatePath."table_div.html");
+        $th_sortable = file_get_contents($templatePath."th_sortable.html");$colArray = $this->colsDefs;
+        $thead = "";
+        $tbody = "";
+        $i = 0;
+        $_v = new Data2Html_Values();
+        foreach ($colArray as $k => $v) {
+            $i++;
+            $_v->set($v);
+            $label = $_v->getString('label', $k);
+            $thead .= str_replace(
+                array('$${name}', '$${label}'),
+                array($k, $_v->getString('label', $k)),
+                $th_sortable
+            );
+            $tbody .= "<td>{{data.{$k}}}</td>\n";
+        } 
+        return str_replace(
+            array('$${id}', '$${title}', '$${thead}', '$${tbody}'),
+            array($this->id, $this->title, $thead, $tbody),
+            $tpl
+        );
     }
     public function renderHtmlTable($tpl) {
         $colArray = $this->colsDefs;
@@ -266,8 +305,8 @@ abstract class Data2Html {
      * @param  $obj object to send
      */
     protected function responseJson($obj) {
-        echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
-        //header("Content-type: application/responseJson; charset=utf-8;");
+       // echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
+        header("Content-type: application/responseJson; charset=utf-8;");
         echo Data2Html_Utils::jsonEncode($obj);
     }
     

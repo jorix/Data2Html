@@ -8,7 +8,7 @@ class aixada_account extends Data2Html {
         $this->title = 'Diners';
 
         #Set columns
-        $this->addCols(
+        $this->setCols(
             array(
                 'id' => array(
                     'type' => 'number',
@@ -19,7 +19,7 @@ class aixada_account extends Data2Html {
                 ),
                 "description" => array(),
                 "method" => array(),
-                "quantity" => array(),
+                "quantity" => array('type' => 'number'),
                 "quantity" => array(),
                 'ts' => array(
                     'label' => 'data',
@@ -27,7 +27,16 @@ class aixada_account extends Data2Html {
                 ),
             )
         );
-        //$this->addFilter(
+        $this->setFilter(
+            array(
+                array(
+                    'name' => 'account_id',
+                    'check' => 'EQ',
+                    'value' => -4,
+                    'display' => 'hidden'
+                )
+            )
+        );
     }
 
     protected function beforeInsert($values) {

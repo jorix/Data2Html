@@ -1,0 +1,12 @@
+<div class="col-md-12" id="$${id}">
+    <table class="table table-striped table-bordered">
+        <thead><tr>
+$${thead}</tr></thead>
+        <tbody ng-show="filteredItems > 0" ng-cloak><tr 
+            ng-repeat="data in filtered = (list | filter:search | orderBy :predicate :reverse)">
+$${tbody}</tr></tbody>
+    </table>
+</div>
+<div class="col-md-12" ng-show="filteredItems == 0" ng-cloak>
+  <div class="alert alert-warning" role="alert">No data found</div>
+</div>

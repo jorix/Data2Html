@@ -103,7 +103,7 @@ abstract class Data2Html_Db
                     $row[]= $v;
                 }
             }
-            $rows[] = $row;
+            $rows[] = $r;
         }
         return array(
             "method" => "DataArray",

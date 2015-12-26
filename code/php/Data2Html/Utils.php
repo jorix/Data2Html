@@ -1,5 +1,4 @@
 <?php
-
 class Data2Html_Utils {
     /**
      * Supports any encoding
@@ -123,32 +122,5 @@ class Data2Html_Utils {
                 return 'array( '.implode(', ', $result)." );\n";
             }
         }
-    }
-    public static function getItem_string($itemKey, $array, $default=null) {
-        if (!array_key_exists($itemKey, $array)) {
-            return ( is_null($default) ? null : strval($default) );
-        }
-        $val = $array[$itemKey];
-        return strval($val);
-    }
-    public static function getItem_number($itemKey, $array, $default=null) {
-        if (!array_key_exists($itemKey, $array)) {
-            return $default;
-        } 
-        $val = $array[$itemKey];
-        if (!is_numeric($val)) {
-            return ( is_numeric($default) ? $default + 0 : null );
-        }
-        return $val + 0;
-    }
-    public static function getItem_integer($itemKey, $array, $default=null) {
-        $val = Data2Html_Utils::getItem_number($itemKey, $array);
-        if (!is_int($val)) {
-            return (
-                is_numeric($default) && is_int($default+0) ? 
-                intval($default) : null
-            );
-        }
-        return $val;
     }
 }
