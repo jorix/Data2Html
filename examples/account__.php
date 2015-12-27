@@ -15,12 +15,11 @@ class aixada_account extends Data2Html {
                     'display' => 'hidden'
                 ),
                 "operator" => array(
-                    "label" => 'operat'
+                    "label" => 'Usuari'
                 ),
                 "description" => array(),
                 "method" => array(),
                 "quantity" => array('type' => 'number'),
-                "quantity" => array(),
                 'ts' => array(
                     'label' => 'data',
                     'type' => 'date'
