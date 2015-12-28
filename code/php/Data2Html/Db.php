@@ -73,7 +73,7 @@ abstract class Data2Html_Db
     /**
      * Execute a query and return the array result
 	 */
-	public function getQueryArray($query, $pageNumber=0, $pageSize=0) {
+	public function getQueryArray($query, $fieldDefs, $pageNumber=0, $pageSize=0) {
         $rows = array();
         $cols = array();
         $colCount = 0;
@@ -88,19 +88,35 @@ abstract class Data2Html_Db
         } catch(Exception $e) {
             throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
         };
+        $f = new Data2Html_Values($fieldDefs);
+        $fItem = new Data2Html_Values();
+        $types = array();
         $result = $this->queryPage($query, $pageStart, $pageSize);
         while($r = $this->fetch($result)) {
-            $row = array();
+            //$row = array();
             if ($colCount === 0) {
-                foreach($r as $k => $v) {
+                foreach ($r as $k => $v) {
                     $cols[] = $k;
-                    $row[] = $v;
+                    $itemDef = $f->get($k, array());
+                    $fItem->set($itemDef);
+                    $types[$k] = $fItem->getString('type');
                 }
                 $colCount = count($cols);
-            } else {
-                for($i=0; $i < $colCount; $i++) {
-                    $v = $r[$cols[$i]];
-                    $row[]= $v;
+            }
+            foreach ($r as $k => &$v) {
+                $fItem = $f->getString($k, array());
+                switch ($types[$k]) {
+                case 'integer':
+                case 'number':
+                case 'currency':
+                    $v = $v + 0; // convert to number
+                    break;
+                case 'date';
+                    $date = DateTime::createFromFormat('Y-m-d H:i:s', $v);
+                    // convert to a string as "2015-04-15T08:39:19+01:00"
+                    $v = date("c", $date->getTimestamp());
+                    unset($date);
+                    break;                
                 }
             }
             $rows[] = $r;
@@ -110,6 +126,7 @@ abstract class Data2Html_Db
             "pageNumber" => $pageNumber,
             "pageStart" => $pageStart,
             "pageSize" => $pageSize,
+            'types' => $types,
             "cols" => $cols,
             "rows" => $rows
         );

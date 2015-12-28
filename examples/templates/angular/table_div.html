@@ -3,7 +3,7 @@
         <thead><tr>
 $${thead}</tr></thead>
         <tbody ng-show="filteredItems > 0" ng-cloak><tr 
-            ng-repeat="data in filtered = (list | filter:search | orderBy :predicate :reverse)">
+            ng-repeat="item in filtered = (list | filter:search | orderBy :predicate :reverse)">
 $${tbody}</tr></tbody>
     </table>
 </div>

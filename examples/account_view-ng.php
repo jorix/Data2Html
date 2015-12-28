@@ -11,6 +11,7 @@
         https://docs.angularjs.org/api/ng/directive/ngCloak
     */
     [ng-cloak] {  display: none !important; }
+    .red {color:red}
     </style>
     <title>Simple Datagrid with search, sort and paging using AngularJS, PHP, MySQL</title>
 </head>
@@ -52,7 +53,8 @@
 </div>
 </div>
 <script src="angular/js/angular-1.4.8.min.js"></script>
+<script src="angular/js/i18n/angular-locale_ca.js"></script>       
 <script src="angular/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
-<script src="templates/tableAngular.js"></script>         
-    </body>
+<script src="templates/tableAngular.js"></script>
+</body>
 </html>

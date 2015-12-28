@@ -7,6 +7,12 @@ class Data2Html_Values {
     public function set(&$values) {
         $this->values = &$values;
     }
+    public function get($itemKey, $default=null) {
+        if (!array_key_exists($itemKey, $this->values)) {
+            return $default;
+        }
+        return $this->values[$itemKey];
+    }
     public function getString($itemKey, $default=null) {
         if (!array_key_exists($itemKey, $this->values)) {
             return ( is_null($default) ? null : strval($default) );
@@ -15,12 +21,9 @@ class Data2Html_Values {
         return strval($val);
     }
     public function getNumber($itemKey, $default=null) {
-        if (!array_key_exists($itemKey, $this->values)) {
-            return $default;
-        } 
-        $val = $this->values[$itemKey];
+        $val = $this->get($itemKey, $default);
         if (!is_numeric($val)) {
-            return ( is_numeric($default) ? $default + 0 : null );
+            return null;
         }
         return $val + 0;
     }
@@ -29,7 +32,7 @@ class Data2Html_Values {
         if (!is_int($val)) {
             return (
                 is_numeric($default) && is_int($default+0) ? 
-                intval($default) : null
+                    intval($default) : null
             );
         }
         return $val;

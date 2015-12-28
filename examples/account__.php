@@ -11,7 +11,7 @@ class aixada_account extends Data2Html {
         $this->setCols(
             array(
                 'id' => array(
-                    'type' => 'number',
+                    'type' => 'integer',
                     'display' => 'hidden'
                 ),
                 "operator" => array(
@@ -19,11 +19,19 @@ class aixada_account extends Data2Html {
                 ),
                 "description" => array(),
                 "method" => array(),
-                "quantity" => array('type' => 'number'),
+                "quantity" => array(
+                    'type' => 'number',
+                    'format' => 2,
+                    'visualClass' => 'red:<0'
+                ),
+                "balance" => array(
+                    'type' => 'currency'
+                ),
                 'ts' => array(
                     'label' => 'data',
-                    'type' => 'date'
-                ),
+                    'type' => 'date',
+                    'format' => 'dd-MM-yy HH:mm'// 'medium'
+                )
             )
         );
         $this->setFilter(

@@ -53,7 +53,14 @@ abstract class Data2Html {
         $db_driver = $this->db_params;
         $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
         $this->db = new $db_class($db_driver);
-        $this->oper(array_merge($_GET, $_POST));
+        $serverMethod = $_SERVER['REQUEST_METHOD'];
+        switch ($serverMethod) {
+        case 'GET': $the_request = &$_GET; break;
+        case 'POST': $the_request = &$_POST; break;
+        default:
+            throw new Exception("Server method {$serverMethod} is not supported.");
+        }
+        $this->oper($the_request);
     }
     protected function oper($request) {
         $r = new Data2Html_Values($request);
@@ -76,7 +83,8 @@ abstract class Data2Html {
                     $query .= " order by {$orderBy}";
                 }
                 $this->responseJson(
-                    $this->db->getQueryArray($query, $pageNumber, $pageSize)
+                    $this->db->getQueryArray($query, $this->colsDefs,
+                        $pageNumber, $pageSize)
                 );
                 return;
             case 'add':
@@ -167,7 +175,38 @@ abstract class Data2Html {
                 array($k, $_v->getString('label', $k)),
                 $th_sortable
             );
-            $tbody .= "<td>{{data.{$k}}}</td>\n";
+            $type = $_v->getString('type');
+            $tbody .= "<td";
+                $class = '';
+                $ngClass = '';
+                switch ($type) {
+                case 'integer':
+                case 'number':
+                case 'currency':
+                    $class .= 'text-right';
+                }
+                if ($visual =  $_v->getString('visualClass')) {
+                    if (strpos($visual, ':')!==false) {
+                        $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
+                    } else {
+                        $class .= ' '.$visual;
+                    }
+                }
+                if ($ngClass) {
+                    $tbody .= " ng-class=\"{$ngClass}\"";
+                }
+                if ($class) {
+                    $tbody .= " class=\"{$class}\"";
+                }
+            $tbody .= ">";
+            if ($type && $format =  $_v->getString('format')) {
+                $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
+            } elseif ($type === 'currency') {
+                $tbody .= "{{item.{$k} | {$type}}}";
+            } else {
+                $tbody .= "{{item.{$k}}}";
+            }
+            $tbody .= "</td>\n";
         } 
         return str_replace(
             array('$${id}', '$${title}', '$${thead}', '$${tbody}'),
@@ -269,14 +308,6 @@ abstract class Data2Html {
     //----------------
     // OUTPUT PART
     //----------------
-
-    /**
-     * 
-     */
-    public function getDataArray_Query($query, $pageNumber=0, $pageSize=0) {
-        $this->responseJson(
-            $this->db->getQueryArray($query, $pageNumber, $pageSize));
-    }
     /**
      * Export data using plugin
      */
@@ -307,7 +338,7 @@ abstract class Data2Html {
     protected function responseJson($obj) {
        // echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
         header("Content-type: application/responseJson; charset=utf-8;");
-        echo Data2Html_Utils::jsonEncode($obj);
+        echo json_encode($obj);
     }
     
     //----------------
