@@ -10,6 +10,7 @@ app.filter('startFrom', function() {
     }
 });
 app.controller('customersCrtl', function ($scope, $http, $timeout) {
+    $scope.filteredItems = -1;
     $http.get('account_controller.php').success(function(data){
         $scope.list = data.rows;
         $scope.pageNumber = 1; //current page

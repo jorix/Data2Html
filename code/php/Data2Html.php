@@ -164,6 +164,7 @@ abstract class Data2Html {
         $th_sortable = file_get_contents($templatePath."th_sortable.html");$colArray = $this->colsDefs;
         $thead = "";
         $tbody = "";
+        $colCount = 0;
         $i = 0;
         $_v = new Data2Html_Values();
         foreach ($colArray as $k => $v) {
@@ -176,6 +177,7 @@ abstract class Data2Html {
                 $th_sortable
             );
             $type = $_v->getString('type');
+            $colCount++;
             $tbody .= "<td";
                 $class = '';
                 $ngClass = '';
@@ -209,8 +211,8 @@ abstract class Data2Html {
             $tbody .= "</td>\n";
         } 
         return str_replace(
-            array('$${id}', '$${title}', '$${thead}', '$${tbody}'),
-            array($this->id, $this->title, $thead, $tbody),
+            array('$${id}', '$${title}', '$${thead}', '$${tbody}', '$${colCount}'),
+            array($this->id, $this->title, $thead, $tbody, $colCount),
             $tpl
         );
     }
