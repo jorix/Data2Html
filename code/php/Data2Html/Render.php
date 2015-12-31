@@ -14,7 +14,7 @@ class Data2Html_Render
 
     }
     
-    public function angularTable($data)
+    public function table($data)
     {
         $defs = $data->getDefs();
         $colArray = $defs['colsDefs'];

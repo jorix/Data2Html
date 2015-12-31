@@ -28,7 +28,7 @@
     require_once("account__.php");
     $a = new aixada_account();
     $render = new Data2Html_Render("templates/angular");
-    echo $render->angularTable($a);
+    echo $render->table($a);
 ?>
 </div>
 
