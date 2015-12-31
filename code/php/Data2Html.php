@@ -2,7 +2,7 @@
 
 abstract class Data2Html
 {
-    protected $db_params;
+    //protected $db_params;
     protected $root_path;
     protected $id;
     //
@@ -17,17 +17,17 @@ abstract class Data2Html
      *
      * @param jqGridLoader $loader
      */
-    public function __construct($db_params)
+    public function __construct()
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
-        // Params
+        
+        // Base
         //----------------
-        $this->db_params = $db_params;
         $this->root_path = dirname(__FILE__).DIRECTORY_SEPARATOR;
         $this->id = 'd2h_'.get_class($this);
-
+        
         // Register autoload
         //------------------
         spl_autoload_register(array($this, 'autoload'));
@@ -36,7 +36,24 @@ abstract class Data2Html
         //----------------
         $this->init();
     }
-
+    public function getRoot()
+    {
+        return $this->root_path;
+    }
+    public function getId()
+    {
+        return $this->id;
+    }
+    public function getDefs()
+    {
+        return array(
+            'colsDefs' => $this->colsDefs
+        );
+    }
+    public function getTitle()
+    {
+        return $this->title;
+    }
     /**
      * Abstract function for setting fields properties.
      *
@@ -49,12 +66,13 @@ abstract class Data2Html
      *
      * @param $oper - operation name
      */
-    public function run()
+    public function run($dbParams)
     {
         // Open db		
-        $db_driver = $this->db_params;
+        $db_driver = $dbParams;
         $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
         $this->db = new $db_class($db_driver);
+        
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
         case 'GET': $the_request = &$_GET; break;
@@ -138,7 +156,6 @@ abstract class Data2Html
         //----------------
         // Output result
         //----------------
-
         $this->responseJson($this->response);
     }
 
@@ -159,182 +176,6 @@ abstract class Data2Html
     {
         $this->filterDefs = $filterArray;
     }
-    public function renderAngularTable($templatePath)
-    {
-        if (substr($templatePath, -1, 1) !== '/') {
-            $templatePath .= '/';
-        }
-        $tpl = file_get_contents($templatePath.'table_div.html');
-        $th_sortable = file_get_contents($templatePath.'th_sortable.html');
-        $colArray = $this->colsDefs;
-        $thead = '';
-        $tbody = '';
-        $colCount = 0;
-        $i = 0;
-        $_v = new Data2Html_Values();
-        foreach ($colArray as $k => $v) {
-            ++$i;
-            $_v->set($v);
-            $label = $_v->getString('label', $k);
-            $thead .= str_replace(
-                array('$${name}', '$${label}'),
-                array($k, $_v->getString('label', $k)),
-                $th_sortable
-            );
-            $type = $_v->getString('type');
-            ++$colCount;
-            $tbody .= '<td';
-            $class = '';
-            $ngClass = '';
-            switch ($type) {
-                case 'integer':
-                case 'number':
-                case 'currency':
-                    $class .= 'text-right';
-                }
-            if ($visual = $_v->getString('visualClass')) {
-                if (strpos($visual, ':') !== false) {
-                    $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
-                } else {
-                    $class .= ' '.$visual;
-                }
-            }
-            if ($ngClass) {
-                $tbody .= " ng-class=\"{$ngClass}\"";
-            }
-            if ($class) {
-                $tbody .= " class=\"{$class}\"";
-            }
-            $tbody .= '>';
-            if ($type && $format = $_v->getString('format')) {
-                $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
-            } elseif ($type === 'currency') {
-                $tbody .= "{{item.{$k} | {$type}}}";
-            } else {
-                $tbody .= "{{item.{$k}}}";
-            }
-            $tbody .= "</td>\n";
-        }
-
-        return str_replace(
-            array('$${id}', '$${title}', '$${thead}', '$${tbody}', '$${colCount}'),
-            array($this->id, $this->title, $thead, $tbody, $colCount),
-            $tpl
-        );
-    }
-    public function renderHtmlTable($tpl)
-    {
-        $colArray = $this->colsDefs;
-        $tBody = '';
-        $thead = '';
-        $tbody = '';
-        $i = 0;
-        foreach ($colArray as $k => $v) {
-            ++$i;
-            $tbody .= "<td>{{$k}}</td>\n";
-            if (isset($v['label'])) {
-                $thead .= "<th>{$v['label']}</th>\n";
-            } else {
-                $thead .= "<th>{$k}</th>\n";
-            }
-        }
-
-        return str_replace(
-            array('$${_id}', '$${_title}', '$${_thead}', '$${_tbody}'),
-            array($this->id, $this->title,
-                        '<tr>'.$thead.'</tr>',
-                        '<tr>'.$tbody.'</tr>', ),
-            $tpl
-        );
-    }
-    /**
-     * All `jqGrid_Exception` exceptions comes here
-     * Override this method for custom exception handling.
-     *
-     * @param jqGrid_Exception $e
-     *
-     * @return mixed
-     */
-    public function catchException(jqGrid_Exception $e)
-    {
-        #More output types will be added
-        switch ($e->getOutputType()) {
-            case 'responseJson':
-                $r = array(
-                    'error' => 1,
-                    'error_msg' => $e->getMessage(),
-                    'error_code' => $e->getCode(),
-                    'error_data' => $e->getData(),
-                    'error_type' => $e->getExceptionType(),
-                );
-
-                if ($this->Loader->get('debug_output')) {
-                    $r['error_string'] = (string) $e;
-                } else {
-                    if ($e instanceof jqGrid_Exception_DB) {
-                        unset($r['error_data']['query']);
-                    }
-                }
-
-                $this->responseJson($r);
-                break;
-
-            case 'trigger_error':
-                trigger_error($e->getMessage(), E_USER_ERROR);
-                break;
-        }
-
-        return $e;
-    }
-    /**
-     * All exceptions except `jqGrid_Exception` comes here, it is unexpected 
-     *      failure so causing send a 500 HTTP error.
-     *
-     * Override this method for custom exception handling.
-     *
-     * @param Exception $e
-     *
-     * @return mixed
-     */
-    public function catchError(Exception $e)
-    {
-        #More output types will be added
-        $r = array(
-            'error' => 1,
-            'error_msg' => $e->getMessage(),
-            'error_code' => $e->getCode(),
-        );
-        if ($this->Loader->get('debug_output')) {
-            $r['error_string'] = (string) $e;
-        }
-        header('HTTP/1.1 500 '.$r['error_msg']);
-        $this->responseJson($r);
-
-        return $e;
-    }
-
-    //----------------
-    // OUTPUT PART
-    //----------------
-    /**
-     * Export data using plugin.
-     */
-    protected function outExport()
-    {
-        $type = jqGrid_Utils::checkAlphanum($this->input('export'));
-
-        $class = 'jqGrid_Export_'.ucfirst($type);
-
-        if (!class_exists($class)) {
-            throw new jqGrid_Exception("Export type $type does not exist");
-        }
-
-        #Weird >__<
-        $lib = new $class($this->Loader);
-        $this->setExportData($lib);
-        $lib->doExport();
-    }
-
     //----------------
     // HELPER PART
     //----------------
@@ -375,7 +216,7 @@ abstract class Data2Html
         // Transaction
         $this->startTransaction();
         try {
-            $new_id = $this->insert($values);
+            $new_id = $this->db->insert($this->table, $values, true);
         } catch (Exception $e) {
             $this->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
@@ -385,10 +226,6 @@ abstract class Data2Html
         $this->commit();
 
         return $new_id;
-    }
-    protected function insert($values)
-    {
-        return $this->db->insert($this->table, $values, true);
     }
     protected function beforeInsert($values)
     {
@@ -417,7 +254,7 @@ abstract class Data2Html
         // Transaction
         $this->startTransaction();
         try {
-            $this->update($values, $keyArray);
+            $this->db->update($this->table, $values, $keyArray);
         } catch (Exception $e) {
             $this->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
@@ -427,10 +264,6 @@ abstract class Data2Html
         $this->commit();
 
         return '1';
-    }
-    protected function update($values, $keyArray)
-    {
-        $this->db->update($this->table, $values, $keyArray);
     }
     protected function beforeUpdate($values, $keyArray)
     {
@@ -458,7 +291,10 @@ abstract class Data2Html
         // Transaction
         $this->startTransaction();
         try {
-            $this->delete($keyArray);
+            $this->db->delete(
+                $this->table,
+                $this->whereSql($keyArray)
+            );
         } catch (Exception $e) {
             $this->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
@@ -468,10 +304,6 @@ abstract class Data2Html
         $this->commit();
 
         return '1';
-    }
-    protected function delete($keyArray)
-    {
-        $this->db->delete($this->table, $this->whereSql($keyArray));
     }
     protected function beforeDelete($keyArray)
     {

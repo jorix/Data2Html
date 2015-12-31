@@ -26,8 +26,9 @@
 <?php
     require_once("config_db.php");
     require_once("account__.php");
-    $a = new aixada_account($db_driver);
-    echo $a->renderAngularTable("templates/angular");
+    $a = new aixada_account();
+    $render = new Data2Html_Render("templates/angular");
+    echo $render->angularTable($a);
 ?>
 </div>
 

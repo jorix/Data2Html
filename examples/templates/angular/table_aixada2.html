@@ -1,0 +1,29 @@
+<div class="row">
+    <h2>$${title}</h2>
+    <div class="section sec-1" id="$${id}">
+        <table class="table table-hover">
+            <thead><tr>
+                $${thead}
+            </tr></thead>
+            <tfoot
+            ng-show="filteredItems > 0" ng-cloak><tr>
+                <td colspan="$${colCount}">
+                    Filtered {{filtered.length}} of {{totalItems}}
+                </td>
+            </tr></thead>
+            <tbody
+            ng-show="filteredItems > 0" ng-cloak>
+                <tr 
+                ng-repeat="item in filtered = (list | filter:search | orderBy :predicate :reverse)">
+                    $${tbody}
+                </tr>
+            </tbody>
+            </tbody>            
+        </table>
+        <div
+        class="alert alert-warning" role="alert"
+        ng-show="filteredItems == 0" ng-cloak>
+            No data found
+        </div>
+    </div>
+</div>
