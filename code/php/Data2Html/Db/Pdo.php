@@ -28,12 +28,16 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         $this->link = $link;
     }
 
-    public function queryPage($sql, $pageStart = 0, $pageSize = 0)
+    public function queryPage($sql, $pageStart = 1, $pageSize = 0)
     {
-        if ($pageStart >= 0 && $pageSize > 0) {
-            $sql .= " LIMIT {$pageSize} OFFSET {$pageStart}";
+        if ($pageStart > 0) {
+            $offset = $pageStart - 1;
+        } else {
+            $offset = 0;
         }
-
+        if ($pageSize > 0) {
+            $sql .= " LIMIT {$pageSize} OFFSET {$offset}";
+        }
         return $this->query($sql);
     }
 

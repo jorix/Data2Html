@@ -1,34 +1,41 @@
 var app = angular.module('myApp', ['ui.bootstrap']);
 
-app.filter('startFrom', function() {
-    return function(input, start) {
-        if(input) {
-            start = +start; //parse to int
-            return input.slice(start);
-        }
-        return [];
+app.controller('customersCrtl', function ($scope, $http) {
+
+    // server
+    var _url = function() {
+        return 'account_controller.php' +
+            '?pageSize=' + $scope.pageSize.value +
+            '&pageStart=' + $scope.pageStart;
+    };
+    $scope.initialPage = function() {
+        $scope.pageStart = 1; //current page
+        $http.get(_url()).success(function(data) {
+            $scope.list = data.rows;
+        });
+    };
+    $scope.nextPage = function() {
+        $scope.pageStart += $scope.pageSize.value;
+        $http.get(_url()).success(function(data) {
+            Array.prototype.push.apply($scope.list, data.rows);
+        });
+    };
+    
+    // local
+    var pageSizes = [10, 20, 50, 100];
+    $scope.pageSizeOp = [];
+    for (i = 0, len = pageSizes.length; i < len; i++) {
+        $scope.pageSizeOp.push({
+            value: pageSizes[i],
+            label: pageSizes[i]+''
+        });
     }
-});
-app.controller('customersCrtl', function ($scope, $http, $timeout) {
-    $scope.filteredItems = -1;
-    $http.get('account_controller.php').success(function(data){
-        $scope.list = data.rows;
-        $scope.pageNumber = 1; //current page
-        $scope.pageSize = 5; //max no of items to display in a page
-        $scope.filteredItems = $scope.list.length; //Initially for no filter  
-        $scope.totalItems = $scope.list.length;
-    });
-    $scope.setPage = function(pageNumber) {
-        $scope.pageNumber = pageNumber;
-    };
-    $scope.filter = function() {
-        $timeout(function() { 
-            $scope.filteredItems = $scope.filtered.length;
-        }, 10);
-    };
     $scope.sortBy = function(predicate, reverse) {
         $scope.predicate = predicate;
         $scope.reverse = reverse;
     };
-    $scope.sortBy('id', true);
+    $scope.start = function() {
+        $scope.initialPage();
+        $scope.sortBy('id', true);
+    };
 });

@@ -89,7 +89,7 @@ abstract class Data2Html
         switch ($oper) {
             case '':
             case 'list':
-                $pageNumber = $r->getInteger('pageNumber', 1);
+                $pageStart = $r->getInteger('pageStart', 1);
                 $pageSize = $r->getInteger('pageSize', 12);
                 $orderBy = $r->getString('orderBy');
                 $query = "select * from {$this->table}";
@@ -105,7 +105,7 @@ abstract class Data2Html
                 }
                 $this->responseJson(
                     $this->db->getQueryArray($query, $this->colsDefs,
-                        $pageNumber, $pageSize)
+                        $pageStart, $pageSize)
                 );
 
                 return;

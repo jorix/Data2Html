@@ -20,7 +20,9 @@
 <div ng-controller="customersCrtl" class="container">
     <div class="row">
         <div class="col-md-3">Filter:
-            <input type="text" ng-model="search" ng-change="filter()" placeholder="Filter" class="form-control" />
+            <input type="text" placeholder="Filter" class="form-control" 
+                ng-model="search"
+            />
         </div>
     </div>
 <?php

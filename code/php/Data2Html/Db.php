@@ -23,7 +23,7 @@ abstract class Data2Html_Db
      *
      * @return resource
      */
-    abstract public function queryPage($sql, $pageNumber = 1, $pageSize = 0);
+    abstract public function queryPage($sql, $pageStart = 1, $pageSize = 0);
     abstract public function query($query);
 
     /**
@@ -84,19 +84,15 @@ abstract class Data2Html_Db
     /**
      * Execute a query and return the array result.
      */
-    public function getQueryArray($query, $fieldDefs, $pageNumber = 0, $pageSize = 0)
+    public function getQueryArray($query, $fieldDefs, $pageStart = 1, $pageSize = 0)
     {
         $rows = array();
         $cols = array();
         $colCount = 0;
 
-        $pageStart = 0;
         try {
             $pageSize = intval($pageSize);
-            $pageNumber = intval($pageNumber);
-            if ($pageSize > 0 and $pageNumber > 0) {
-                $pageStart = ($pageNumber - 1) * $pageSize;
-            }
+            $pageStart = intval($pageStart);
         } catch (Exception $e) {
             throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
         };
@@ -135,8 +131,6 @@ abstract class Data2Html_Db
         }
 
         return array(
-            'method' => 'DataArray',
-            'pageNumber' => $pageNumber,
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'types' => $types,
