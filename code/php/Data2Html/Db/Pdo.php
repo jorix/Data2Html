@@ -61,13 +61,12 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         return $result->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function quote($val)
+    public function toSql($val)
     {
         if (is_null($val)) {
-            return;
+            return 'null';
         }
-
-        return $this->link->quote($val);
+        return "'{$this->link->quote($val)}'";
     }
 
     public function rowCount($result)

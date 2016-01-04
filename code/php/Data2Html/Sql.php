@@ -58,16 +58,20 @@ class Data2Html_Sql
                     break;
                 default:
                     throw new Exception(
-                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not suported."
+                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
                     );
                     break;
                 }
                 $dbName = $def->getString('db', $fName); 
                 // forced value
-                $r = $def->getByType('value', $type);
+                $r = $def->toSql($this->db, 'value', $type, null);
                 if ($r === null) {
                     // requested value
-                    $r = $requestValues.getByType($fName.'_'.$fCheck, $type);
+                    $r = $requestValues.toSql(
+                        $this->db,
+                        $fName.'_'.$fCheck,
+                        $type
+                    );
                 }
                 if ($r !== null) {
                     array_push($c, "{$dbName} {$dbCheck} {$r}");

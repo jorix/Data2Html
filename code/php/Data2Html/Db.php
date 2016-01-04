@@ -38,7 +38,7 @@ abstract class Data2Html_Db
     abstract public function fetch($result);
 
     /**
-     * Like PDO::quote.
+     * 
      *
      * @abstract
      *
@@ -46,7 +46,7 @@ abstract class Data2Html_Db
      *
      * @return string
      */
-    abstract public function quote($value);
+    abstract public function toSql($value);
 
     /**
      * Like PDO::rowCount and *_affected_rows.
@@ -264,7 +264,7 @@ abstract class Data2Html_Db
             if (is_object($v) and $v instanceof jqGrid_Data) {
                 $val = strval($v); //no escaping on specififc field
             } else {
-                $val = is_null($v) ? 'NULL' : $this->quote($v);
+                $val = is_null($v) ? 'NULL' : $this->toSql($v);
             }
             $clean[$key] = $val;
         }

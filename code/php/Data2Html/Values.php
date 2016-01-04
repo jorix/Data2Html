@@ -34,10 +34,39 @@ class Data2Html_Values
             case 'date':
                 return $this->getDate($itemKey, $default);
             default:
-                return $this->get($itemKey, $default);
+                throw new Exception(
+                    "getByType(): type '{$type}' used to get '{$itemKey}' is not defined."
+                );
         }
     }
-    
+    public function toSql($db, $itemKey, $type, $default = 'null')
+    {
+        switch ($type) {
+            case 'number':
+            case 'currency':            
+                return $this->getNumber($itemKey, $default);
+            case 'integer':
+                return $this->getInteger($itemKey, $default);
+            case 'string':
+                $r = $this->getString($itemKey);
+                if ($r === null) {
+                    return $default;
+                } else {
+                    return $db->toSql($r);
+                }
+            case 'date':
+                $r = $this->getDate($itemKey, $default);
+                if ($r === null) {
+                    return $default;
+                } else {
+                    return "'{$r}'";
+                }
+            default:
+                throw new Exception(
+                    "toSql(): type '{$type}' used to get '{$itemKey}' is not defined."
+                );
+        }
+    }
     public function getString($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
