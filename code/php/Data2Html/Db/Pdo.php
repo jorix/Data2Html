@@ -46,7 +46,13 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         try {
             return $this->link->query($sql);
         } catch (PDOException $e) {
-            throw new jqGrid_Exception_DB($e->getMessage(), array('query' => $sql), $e->getCode());
+            throw new Data2Html_Exception(
+                $e->getMessage(),
+                array(
+                    'sql' => $sql
+                ),
+                $e->getCode()
+            );
         };
     }
 

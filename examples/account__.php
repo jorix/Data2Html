@@ -15,10 +15,13 @@ class aixada_account extends Data2Html {
                     'display' => 'hidden'
                 ),
                 "operator" => array(
-                    "label" => 'Usuari'
+                    "label" => 'Usuari',
+                    'db' => null
                 ),
                 "description" => array(),
-                "method" => array(),
+                "method" => array(
+                    'db' => null
+                ),
                 "quantity" => array(
                     'type' => 'number',
                     'format' => 2,
@@ -38,6 +41,7 @@ class aixada_account extends Data2Html {
             array(
                 array(
                     'name' => 'account_id',
+                    'type' => 'integer',
                     'check' => 'EQ',
                     'value' => -4,
                     'display' => 'hidden'

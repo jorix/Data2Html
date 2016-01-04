@@ -75,10 +75,13 @@ abstract class Data2Html
         
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
-        case 'GET': $the_request = &$_GET; break;
-        case 'POST': $the_request = &$_POST; break;
-        default:
-            throw new Exception("Server method {$serverMethod} is not supported.");
+            case 'GET':
+                $the_request = &$_GET; break;
+            case 'POST':
+                $the_request = &$_POST; break;
+            default:
+                throw new Exception(
+                    "Server method {$serverMethod} is not supported.");
         }
         $this->oper($the_request);
     }
@@ -89,48 +92,37 @@ abstract class Data2Html
         switch ($oper) {
             case '':
             case 'list':
-                $pageStart = $r->getInteger('pageStart', 1);
-                $pageSize = $r->getInteger('pageSize', 12);
-                $orderBy = $r->getString('orderBy');
-                $query = "select * from {$this->table}";
-                $where = '';
-                foreach ($this->filterDefs as $v) {
-                    $where .= " and {$v['name']} = {$v['value']}";
-                }
-                if ($where !== '') {
-                    $query .= ' where '.substr($where, 5);
-                }
-                if ($orderBy) {
-                    $query .= " order by {$orderBy}";
-                }
+                $sql = new Data2Html_Sql($this->db);
                 $this->responseJson(
-                    $this->db->getQueryArray($query, $this->colsDefs,
-                        $pageStart, $pageSize)
-                );
-
+                    $this->db->getQueryArray(
+                        $sql->getSelect(
+                            $this->table,
+                            $this->colsDefs,
+                            $this->filterDefs,
+                            $r->getString('orderBy')
+                        ),
+                        $this->colsDefs,
+                        $r->getInteger('pageStart', 1),
+                        $r->getInteger('pageSize', 0)
+                    )
+                ); 
                 return;
+
             case 'add':
                 $data = array_intersect_key($this->input, $this->cols);
                 $data = $this->operData($data);
-
                 $id = $this->opAdd($data);
-
-                #Not auto increment -> build new_id from data
                 if (empty($this->primary_key_auto_increment)) {
                     $id = $this->implodePrimaryKey($data);
                 }
-
                 $this->response['new_id'] = $id;
-
                 $this->operAfterAddEdit($id);
                 break;
 
             case 'edit':
                 $data = array_intersect_key($this->input, $this->cols);
                 $data = $this->operData($data);
-
                 $this->opEdit($id, $data);
-
                 $this->operAfterAddEdit($id);
                 break;
 
@@ -139,34 +131,14 @@ abstract class Data2Html
                 break;
 
             default:
-                $callback = array($this, jqGrid_Utils::uscore2camel('op', $oper));
-
-                if (is_callable($callback)) {
-                    call_user_func($callback);
-                } else {
-                    throw new jqGrid_Exception("Oper $oper is not defined");
-                }
+                throw new Exception("Oper {$oper} is not defined");
                 break;
         }
-
         $this->response = array_merge(array('success' => 1), $this->response);
-
-        $this->operComplete($oper);
-
-        //----------------
-        // Output result
-        //----------------
         $this->responseJson($this->response);
     }
 
     /**
-     * MAIN ACTION (3): Render grid.
-     *
-     * $jq_loader->render('jq_example');
-     *
-     * @param array $render_data
-     *
-     * @return string
      */
     protected function setCols($colArray)
     {
@@ -176,6 +148,7 @@ abstract class Data2Html
     {
         $this->filterDefs = $filterArray;
     }
+    
     //----------------
     // HELPER PART
     //----------------
