@@ -6,6 +6,7 @@ abstract class Data2Html_Db
     protected $link;
     protected $db_type = 'abstract_Db';
     protected $init_query = array();
+    protected $debug = false;
 
     /**
      * Establish connection to database.
@@ -64,6 +65,9 @@ abstract class Data2Html_Db
      */
     public function __construct($parameters)
     {
+        if (isset($parameters['debug'])) {
+            $this->debug = $parameters['debug'];
+        }
         $this->link($parameters);
         $this->queries($this->init_query);
         if (isset($parameters['init_query'])) {
@@ -136,6 +140,7 @@ abstract class Data2Html_Db
             'types' => $types,
             'cols' => $cols,
             'rows' => $rows,
+            'sql' => ($this->debug ? $query : null)
         );
     }
 

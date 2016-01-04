@@ -56,6 +56,9 @@ class Data2Html_Sql
                 case 'EQ':
                     $dbCheck = '=';
                     break;
+                case 'LK':
+                    $dbCheck = 'like';
+                    break;
                 default:
                     throw new Exception(
                         "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."

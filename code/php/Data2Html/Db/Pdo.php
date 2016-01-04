@@ -66,7 +66,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         if (is_null($val)) {
             return 'null';
         }
-        return "'{$this->link->quote($val)}'";
+        return $this->link->quote($val);
     }
 
     public function rowCount($result)

@@ -55,7 +55,7 @@ class Data2Html_Values
                     return $db->toSql($r);
                 }
             case 'date':
-                $r = $this->getDate($itemKey, $default);
+                $r = $this->getDate($itemKey);
                 if ($r === null) {
                     return $default;
                 } else {
