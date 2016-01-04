@@ -36,7 +36,6 @@ class Data2Html_Sql
     public function getWhere($filterDefs, $requestValues)
     {
         if ($filterDefs) {
-                    $colDef = new Data2Html_Values();
             $c = array();
             $def = new Data2Html_Values();
             foreach ($filterDefs as $k=>$v) {
@@ -50,18 +49,28 @@ class Data2Html_Sql
                     $fCheck === null
                 ) {
                     throw new Exception(
-                        'getWhere(): Any item on $filterDefs requires "type" "name" and "check"'
+                        "getWhere(): Item {$k}=>'{$fName}' requires 'type' 'name' and 'check'."
                     );
+                }
+                switch ($fCheck) {
+                case 'EQ':
+                    $dbCheck = '=';
+                    break;
+                default:
+                    throw new Exception(
+                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not suported."
+                    );
+                    break;
                 }
                 $dbName = $def->getString('db', $fName); 
                 // forced value
                 $r = $def->getByType('value', $type);
                 if ($r === null) {
-                    // request value
+                    // requested value
                     $r = $requestValues.getByType($fName.'_'.$fCheck, $type);
                 }
                 if ($r !== null) {
-                    array_push($c, "{$dbName} = {$r}");
+                    array_push($c, "{$dbName} {$dbCheck} {$r}");
                 }
             }
             if (count($c)) {
