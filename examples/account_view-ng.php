@@ -16,7 +16,6 @@
     <title>Simple Datagrid with search, sort and paging using AngularJS, PHP, MySQL</title>
 </head>
 <body>
-
 <div ng-controller="customersCrtl" class="container">
     <div class="row">
         <div class="col-md-3">Filter:

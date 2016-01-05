@@ -109,14 +109,13 @@ abstract class Data2Html_Db
             if ($colCount === 0) {
                 foreach ($r as $k => $v) {
                     $cols[] = $k;
-                    $itemDef = $f->get($k, array());
+                    $itemDef = $f->getArray($k, array());
                     $fItem->set($itemDef);
                     $types[$k] = $fItem->getString('type');
                 }
                 $colCount = count($cols);
             }
             foreach ($r as $k => &$v) {
-                $fItem = $f->getString($k, array());
                 switch ($types[$k]) {
                 case 'integer':
                 case 'number':

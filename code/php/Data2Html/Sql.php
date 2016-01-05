@@ -12,7 +12,7 @@ class Data2Html_Sql
         $dbfs = array();
         foreach ($colsDefs as $k=>$v) {
             $def->set($v);
-            $dbName = $def->get('db', $k); // Here don't use getString
+            $dbName = $def->getString('db', $k, true);
             if ($dbName !== null) {
                 array_push($dbfs, $dbName);
             }
