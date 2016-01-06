@@ -24,7 +24,6 @@
     </script>
     <div ng-controller="d2h_aixada_account" class="container">
     <?php
-        require_once("config_db.php");
         require_once("account__.php");
         $a = new aixada_account();
         $render = new Data2Html_Render("../code/templates/angular/table_paged.ini");

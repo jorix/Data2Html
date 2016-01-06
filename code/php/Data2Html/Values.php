@@ -23,6 +23,10 @@ class Data2Html_Values
             $this->values = &$values;
         }
     }
+    public function getValues() 
+    {
+        return $this->values;
+    }
     public function getValue($itemKey, $type, $default = null, $allowNull = false)
     {
         switch ($type) {
@@ -31,6 +35,8 @@ class Data2Html_Values
                 return $this->getNumber($itemKey, $default, $allowNull);
             case 'integer':
                 return $this->getInteger($itemKey, $default, $allowNull);
+            case 'boolean':
+                return $this->getBoolean($itemKey, $default, $allowNull);
             case 'string':
                 return $this->getString($itemKey, $default, $allowNull);
             case 'date':
@@ -54,6 +60,9 @@ class Data2Html_Values
             case 'integer':
                 $r = $this->getInteger($itemKey);
                 break;
+            case 'boolean':
+                $r = $this->getBoolean($itemKey);
+                break;
             case 'string':
                 $r = $this->getString($itemKey);
                 if ($r !== null) {
@@ -75,6 +84,18 @@ class Data2Html_Values
         return is_null($r) ? $default : $r;
     }
 
+    public function getBoolean($itemKey, $default = null, $allowNull = false)
+    {
+        if (!array_key_exists($itemKey, $this->values)) {
+            return is_null($default) ? null : !!$default;
+        }
+        $val = $this->values[$itemKey];
+        if (is_null($val) && $allowNull) {
+            return null;
+        }
+        return !!$val;
+    }
+    
     public function getString($itemKey, $default = null, $allowNull = false)
     {
         if (!array_key_exists($itemKey, $this->values)) {

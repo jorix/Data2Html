@@ -63,10 +63,10 @@ abstract class Data2Html_Db
     /**
      * @param jqGridLoader $loader
      */
-    public function __construct($parameters)
+    public function __construct($parameters, $options = array())
     {
-        if (isset($parameters['debug'])) {
-            $this->debug = $parameters['debug'];
+        if (isset($options['debug'])) {
+            $this->debug = $options['debug'];
         }
         $this->link($parameters);
         $this->queries($this->init_query);

@@ -4,9 +4,9 @@
  */
 class Data2Html_Db_Pdo extends Data2Html_Db
 {
-    public function __construct($parameters)
+    public function __construct($parameters, $options = array())
     {
-        parent::__construct($parameters);
+        parent::__construct($parameters, $options);
         $dsn = $parameters['dsn'];
         $this->db_type = substr($dsn, 0, strpos($dsn, ':') + 1);
     }

@@ -5,8 +5,9 @@ abstract class Data2Html
     //protected $db_params;
     protected $root_path;
     protected $id;
+    protected $configOptions = array();
+    protected $debug = false;
     //
-    protected $db;
     protected $table;
     protected $title;
     protected $colDefs = array();
@@ -32,6 +33,15 @@ abstract class Data2Html
         //------------------
         spl_autoload_register(array($this, 'autoload'));
 
+        // Load config if exists
+        //------------------
+        if (file_exists('d2h_config.ini')) {
+            $this->configOptions = parse_ini_file('d2h_config.ini', true);
+        }
+        $aux = new Data2Html_Values($this->configOptions);
+        $config = $aux->getArrayValues('config');
+        $this->debug = $config->getBoolean('debug');
+        
         // Init
         //----------------
         $this->init();
@@ -68,16 +78,20 @@ abstract class Data2Html
      *
      * @param $oper - operation name
      */
-    public function run($dbParams)
+    public function run($fileNameConfigDb)
     {
-        // Open db		
-        $db_driver = $dbParams;
-        $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
-        $this->db = new $db_class($db_driver);
+        // Open db
+        $c = parse_ini_file($fileNameConfigDb, true);
+        $dbConfig = $c['db'];
+        $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
+        $db = new $db_class(
+            $dbConfig,
+            array(
+                'debug' => $this->debug
+            )
+        );
         
         /*
-        
-        
         $the_request = array_merge($_GET, $_POST);
         print_r($_POST);
         $serverMethod = $_SERVER['REQUEST_METHOD'];
@@ -92,11 +106,11 @@ abstract class Data2Html
         }
         */
         $postdata = file_get_contents("php://input");
-        $request = json_decode($postdata);
+        $request = json_decode($postdata, true);
         // print_r($request);
-        $this->oper($request);
+        $this->oper($db, $request);
     }
-    protected function oper($request)
+    protected function oper($db, $request)
     {
         $r = new Data2Html_Values($request);
         $oper = $r->getString('d2h_oper', 'list');
@@ -104,9 +118,9 @@ abstract class Data2Html
             case '':
             case 'list':
                 $page = $r->getArrayValues('d2h_page', array());
-                $sql = new Data2Html_Sql($this->db);
+                $sql = new Data2Html_Sql($db);
                 $this->responseJson(
-                    $this->db->getQueryArray(
+                    $db->getQueryArray(
                         $sql->getSelect(
                             $this->table,
                             $this->colDefs,
@@ -163,6 +177,7 @@ abstract class Data2Html
             $_v->set($v);
             $name = $_v->getString('name', (is_int($k) ? null : $k));
             $check = $_v->getString('check');
+            $v['label'] = $_v->getString('label', $name, true);
             $v['name'] = $name.'_'.$check;
             $v['db'] = $_v->getString('db', $name, true);
         }
@@ -180,9 +195,15 @@ abstract class Data2Html
      */
     protected function responseJson($obj)
     {
-        // echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
         header('Content-type: application/responseJson; charset=utf-8;');
-        echo ")]}',\n".json_encode($obj);
+ 
+        $options = 0;
+        if ($this->debug && version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        // Prefix `")]}',\n"` is due to security considerations, see: 
+        //    * https://docs.angularjs.org/api/ng/service/$http
+        echo ")]}',\n".json_encode($obj, $options);
     }
 
     //----------------

@@ -6,7 +6,7 @@ class Data2Html_Render
     protected $tamplates;
     public function __construct($templateIni)
     {
-        $this->pathBase = dirname($templateIni).'/';
+        $this->pathBase = dirname($templateIni).DIRECTORY_SEPARATOR;
         $tamplates = parse_ini_file($templateIni, true);
         $this->tamplates = new Data2Html_Values($tamplates);
     }
