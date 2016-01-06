@@ -75,9 +75,12 @@ abstract class Data2Html
         $db_class = 'Data2Html_Db_'.$db_driver['db_class'];
         $this->db = new $db_class($db_driver);
         
-        $serverMethod = $_SERVER['REQUEST_METHOD'];
-        $the_request = array_merge($_GET, $_POST);
         /*
+        
+        
+        $the_request = array_merge($_GET, $_POST);
+        print_r($_POST);
+        $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
             case 'GET':
                 $the_request = &$_GET; break;
@@ -88,15 +91,19 @@ abstract class Data2Html
                     "Server method {$serverMethod} is not supported.");
         }
         */
-        $this->oper($the_request);
+        $postdata = file_get_contents("php://input");
+        $request = json_decode($postdata);
+        // print_r($request);
+        $this->oper($request);
     }
     protected function oper($request)
     {
         $r = new Data2Html_Values($request);
-        $oper = $r->getString('oper', 'list');
+        $oper = $r->getString('d2h_oper', 'list');
         switch ($oper) {
             case '':
             case 'list':
+                $page = $r->getArrayValues('d2h_page', array());
                 $sql = new Data2Html_Sql($this->db);
                 $this->responseJson(
                     $this->db->getQueryArray(
@@ -104,11 +111,11 @@ abstract class Data2Html
                             $this->table,
                             $this->colDefs,
                             $this->filterDefs,
-                            $r->getString('orderBy')
+                            $r->getArray('d2h_filter', array())
                         ),
                         $this->colDefs,
-                        $r->getInteger('pageStart', 1),
-                        $r->getInteger('pageSize', 0)
+                        $page->getInteger('pageStart', 1),
+                        $page->getInteger('pageSize', 0)
                     )
                 ); 
                 return;

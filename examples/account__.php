@@ -43,7 +43,7 @@ class aixada_account extends Data2Html {
                     'name' => 'account_id',
                     'type' => 'integer',
                     'check' => 'EQ',
-                    'value' => -4,
+                    //'value' => -4,
                     //'display' => 'hidden'
                 ),
                 /*

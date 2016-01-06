@@ -6,15 +6,23 @@ class Data2Html_Values
     protected $throwError = false;
     public function __construct(&$values = array(), $throwError = false)
     {
-        $this->values = &$values;
+        $this->set($values);
         $throwError = $throwError;
     }
     
     public function set(&$values)
     {
-        $this->values = &$values;
+        if (is_object($values)) {
+            // $this->values = get_object_vars($values);
+            $array = array();
+            foreach ($values as $k => $v) {
+                $array[$k] = $v;
+            }
+            $this->values = $array;
+        } else {
+            $this->values = &$values;
+        }
     }
-    
     public function getValue($itemKey, $type, $default = null, $allowNull = false)
     {
         switch ($type) {
@@ -177,7 +185,7 @@ class Data2Html_Values
                 return null;
             }
         }
-        if (!is_array($val)) {
+        if (!is_array($val) && !is_object($val)) {
             if ($this->throwError) {
                 throw new Exception(
                     "getArray(): The '{$itemKey}' is not a array."

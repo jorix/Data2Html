@@ -22,24 +22,49 @@ function ContactDirective(){
 d2h_App.controller('$${id}', function ($scope, $http) {
 
     // server
-    var _url = function() {
-        return 'account_controller.php' +
-            '?pageSize=' + $scope.pageSize.value +
-            '&pageStart=' + $scope.pageStart;
+    var _req = function() {
+        return {
+            method: 'POST',
+            url: 'account_controller.php?lang=ca',
+            headers: {
+                'Content-Type': undefined
+            },
+            data: {
+                d2h_oper: 'list',
+                d2h_filter: $scope.d2h_filter,
+                d2h_page: {
+                    pageSize: $scope.pageSize.value,
+                    pageStart: $scope.pageStart
+                }
+            }
+        };
     };
+    
     $scope.initialPage = function() {
         $scope.pageStart = 1; //current page
-        $http.post(_url(), $scope.d2h_filter)
-        .success(function(data) {
-            $scope.list = data.rows;
-        });
+        $http(_req()).then(
+            function(response) { // Ok
+                $scope.list = response.data.rows;
+                // $scope.status = response.status;
+            }, function(response) { // Error
+                // $scope.data = response.data || "Request failed";
+                // $scope.status = response.status;
+                console.log("IRROR");
+            }
+        );
     };
     $scope.nextPage = function() {
         $scope.pageStart += $scope.pageSize.value;
-        $http.post(_url(), $scope.d2h_filter)
-        .success(function(data) {
-            Array.prototype.push.apply($scope.list, data.rows);
-        });
+        $http(_req()).then(
+            function(response) { // Ok
+                Array.prototype.push.apply(
+                    $scope.list,
+                    response.data.rows
+                );
+            }, function(response) { // Error
+                console.log("IRROR");
+            }
+        );
     };
     
     // local

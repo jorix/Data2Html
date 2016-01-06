@@ -6,7 +6,13 @@ class Data2Html_Sql
     public function __construct($db) {
         $this->db = $db;
     }
-    public function getSelect($table, $colDefs, $filterDefs = null, $orderBy = null)
+    public function getSelect(
+        $table, 
+        $colDefs, 
+        $filterDefs = null,
+        $filterReq = array()
+        //$orderBy = null
+    )
     {
         $def = new Data2Html_Values();
         $dbfs = array();
@@ -23,18 +29,19 @@ class Data2Html_Sql
         $query = 'select ' . implode(',', $dbfs);
         $query .= " from {$table}";
         if ($filterDefs) {
-            $where = $this->getWhere($filterDefs, array());
-            if ($where !== '') {
+            $where = $this->getWhere($filterDefs, $filterReq);
+            if ($where) {
                 $query .= " where {$where}";
             }
         }
-        if ($orderBy) {
+        if (false) { //$orderBy) {
             $query .= " order by {$orderBy}";
         }
         return $query;
     }
-    public function getWhere($filterDefs, $requestValues)
+    public function getWhere($filterDefs, $request)
     {
+        $requestValues = new Data2Html_Values($request);
         if ($filterDefs) {
             $c = array();
             $def = new Data2Html_Values();
@@ -68,7 +75,7 @@ class Data2Html_Sql
                 $r = $def->toSql($this->db, 'value', $type, null);
                 if ($r === null) {
                     // requested value
-                    $r = $requestValues.toSql($this->db, $fName, $type);
+                    $r = $requestValues->toSql($this->db, $fName, $type, null);
                 }
                 if ($r !== null) {
                     array_push($c, "{$dbName} {$dbCheck} {$r}");
@@ -76,6 +83,8 @@ class Data2Html_Sql
             }
             if (count($c)) {
                 return implode(' and ', $c);
+            } else {
+                return null;
             }
         }
     }
