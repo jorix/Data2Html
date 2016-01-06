@@ -1,4 +1,25 @@
-d2h_App.controller('customersCrtl', function ($scope, $http) {
+/*
+function ContactDirective(){
+  return {
+    restrict: 'E',
+    templateUrl: 'my-contact-template.html',
+    controller: 'contactController',
+    controllerAs: 'contactCtrl',
+    scope: {
+      contact: '='
+    },
+    link:function(scope, elem, attrs, contactCtrl){
+      scope.$watch('contact', function(newContact){
+        //Still just initializing the contact using
+        // the controller
+        contactCtrl.setContact(newContact);
+      });
+    }
+  };
+}
+*/
+
+d2h_App.controller('$${id}', function ($scope, $http) {
 
     // server
     var _url = function() {
@@ -8,13 +29,15 @@ d2h_App.controller('customersCrtl', function ($scope, $http) {
     };
     $scope.initialPage = function() {
         $scope.pageStart = 1; //current page
-        $http.get(_url()).success(function(data) {
+        $http.post(_url(), $scope.d2h_filter)
+        .success(function(data) {
             $scope.list = data.rows;
         });
     };
     $scope.nextPage = function() {
         $scope.pageStart += $scope.pageSize.value;
-        $http.get(_url()).success(function(data) {
+        $http.post(_url(), $scope.d2h_filter)
+        .success(function(data) {
             Array.prototype.push.apply($scope.list, data.rows);
         });
     };

@@ -6,11 +6,11 @@ class Data2Html_Sql
     public function __construct($db) {
         $this->db = $db;
     }
-    public function getSelect($table, $colsDefs, $filterDefs = null, $orderBy = null)
+    public function getSelect($table, $colDefs, $filterDefs = null, $orderBy = null)
     {
         $def = new Data2Html_Values();
         $dbfs = array();
-        foreach ($colsDefs as $k=>$v) {
+        foreach ($colDefs as $k=>$v) {
             $def->set($v);
             $dbName = $def->getString('db', $k, true);
             if ($dbName !== null) {
@@ -40,17 +40,14 @@ class Data2Html_Sql
             $def = new Data2Html_Values();
             foreach ($filterDefs as $k=>$v) {
                 $def->set($v);
-                $fName = $def->getString('name');
-                $type = $def->getString('type');
+                $fName = $def->getString('name'); 
                 $fCheck = $def->getString('check');
+                $dbName = $def->getString('db'); 
                 if (
-                    $type === null ||
-                    $fName === null ||
+                    $dbName === null ||
                     $fCheck === null
                 ) {
-                    throw new Exception(
-                        "getWhere(): Item {$k}=>'{$fName}' requires 'type' 'name' and 'check'."
-                    );
+                    continue;
                 }
                 switch ($fCheck) {
                 case 'EQ':
@@ -65,16 +62,13 @@ class Data2Html_Sql
                     );
                     break;
                 }
-                $dbName = $def->getString('db', $fName); 
+                
+                $type = $def->getString('type', 'string');
                 // forced value
                 $r = $def->toSql($this->db, 'value', $type, null);
                 if ($r === null) {
                     // requested value
-                    $r = $requestValues.toSql(
-                        $this->db,
-                        $fName.'_'.$fCheck,
-                        $type
-                    );
+                    $r = $requestValues.toSql($this->db, $fName, $type);
                 }
                 if ($r !== null) {
                     array_push($c, "{$dbName} {$dbCheck} {$r}");

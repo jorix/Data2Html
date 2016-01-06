@@ -187,4 +187,13 @@ class Data2Html_Values
         }
         return $val;
     }
+    public function getArrayValues($itemKey, $default = null, $allowNull = false)
+    {
+        $val = $this->getArray($itemKey, $default, $allowNull);
+        if (is_null($val)) {
+            return null;
+        } else {
+            return new Data2Html_Values($val);
+        }
+    }
 }

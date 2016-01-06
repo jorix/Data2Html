@@ -44,8 +44,9 @@ class aixada_account extends Data2Html {
                     'type' => 'integer',
                     'check' => 'EQ',
                     'value' => -4,
-                    'display' => 'hidden'
+                    //'display' => 'hidden'
                 ),
+                /*
                 array(
                     'name' => 'description',
                     'type' => 'string',
@@ -53,6 +54,7 @@ class aixada_account extends Data2Html {
                     'value' => '%sit%',
                     'display' => 'hidden'
                 )
+                */
             )
         );
     }

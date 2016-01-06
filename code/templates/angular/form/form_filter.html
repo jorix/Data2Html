@@ -1,0 +1,31 @@
+<div class="row" 
+    form="form"
+    XXng-controller="$${id}"
+>
+    <form novalidate class="simple-form">
+    <div>
+        <div class="col-md-3">Filter:
+            <input type="text" placeholder="Filter" class="form-control" 
+                ng-model="search"
+            />
+        </div>
+        $${body}
+        <input type="button" ng-click="reset(form)" value="Reset" />
+        <input type="submit" ng-click="initialPage()" value="Filter" />
+    </div>
+    </form>
+</div>
+<!-- script>
+    d2h_App.controller('$${id}', ['$scope', function($scope) {
+        $scope.send = function() {
+            $scope.initialPage();
+        };
+        $scope.reset = function(form) {
+            if (form) {
+                form.$setPristine();
+                form.$setUntouched();
+            }
+        };
+        $scope.reset();
+    }]);
+</script -->

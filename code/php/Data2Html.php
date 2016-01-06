@@ -9,7 +9,7 @@ abstract class Data2Html
     protected $db;
     protected $table;
     protected $title;
-    protected $colsDefs = array();
+    protected $colDefs = array();
     protected $filterDefs = array();
 
     /**
@@ -44,11 +44,13 @@ abstract class Data2Html
     {
         return $this->id;
     }
-    public function getDefs()
+    public function getColDefs()
     {
-        return array(
-            'colsDefs' => $this->colsDefs
-        );
+        return $this->colDefs;
+    }
+    public function getFilterDefs()
+    {
+        return $this->filterDefs;
     }
     public function getTitle()
     {
@@ -74,6 +76,8 @@ abstract class Data2Html
         $this->db = new $db_class($db_driver);
         
         $serverMethod = $_SERVER['REQUEST_METHOD'];
+        $the_request = array_merge($_GET, $_POST);
+        /*
         switch ($serverMethod) {
             case 'GET':
                 $the_request = &$_GET; break;
@@ -83,6 +87,7 @@ abstract class Data2Html
                 throw new Exception(
                     "Server method {$serverMethod} is not supported.");
         }
+        */
         $this->oper($the_request);
     }
     protected function oper($request)
@@ -97,11 +102,11 @@ abstract class Data2Html
                     $this->db->getQueryArray(
                         $sql->getSelect(
                             $this->table,
-                            $this->colsDefs,
+                            $this->colDefs,
                             $this->filterDefs,
                             $r->getString('orderBy')
                         ),
-                        $this->colsDefs,
+                        $this->colDefs,
                         $r->getInteger('pageStart', 1),
                         $r->getInteger('pageSize', 0)
                     )
@@ -142,10 +147,18 @@ abstract class Data2Html
      */
     protected function setCols($colArray)
     {
-        $this->colsDefs = $colArray;
+        $this->colDefs = $colArray;
     }
     protected function setFilter($filterArray)
     {
+        $_v = new Data2Html_Values();
+        foreach ($filterArray as $k => &$v) {
+            $_v->set($v);
+            $name = $_v->getString('name', (is_int($k) ? null : $k));
+            $check = $_v->getString('check');
+            $v['name'] = $name.'_'.$check;
+            $v['db'] = $_v->getString('db', $name, true);
+        }
         $this->filterDefs = $filterArray;
     }
     
@@ -162,7 +175,7 @@ abstract class Data2Html
     {
         // echo '<pre>'.Data2Html_Utils::jsonEncode($obj).'</pre>'; return;
         header('Content-type: application/responseJson; charset=utf-8;');
-        echo json_encode($obj);
+        echo ")]}',\n".json_encode($obj);
     }
 
     //----------------

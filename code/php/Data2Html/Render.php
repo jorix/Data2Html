@@ -2,38 +2,50 @@
 
 class Data2Html_Render
 {
-    protected $tableTpl;
-    protected $thSortable;
-    public function __construct($templatePath)
+    protected $pathBase;
+    protected $tamplates;
+    public function __construct($templateIni)
     {
-        if (substr($templatePath, -1, 1) !== '/') {
-            $templatePath .= '/';
-        }
-        $this->tableTpl = file_get_contents($templatePath.'table_div.html');
-        $this->thSortable = file_get_contents($templatePath.'th_sortable.html');
-
+        $this->pathBase = dirname($templateIni).'/';
+        $tamplates = parse_ini_file($templateIni, true);
+        $this->tamplates = new Data2Html_Values($tamplates);
     }
     
     public function table($data)
     {
-        $defs = $data->getDefs();
-        $colArray = $defs['colsDefs'];
+        // templates
+        $t = $this->tamplates->getArrayValues('table');
+        if (!$t) {
+            return '';
+        }
+        $tableTpl = file_get_contents(
+            $this->pathBase.$t->getString('table')
+        );
+        $tableJsTpl = file_get_contents(
+            $this->pathBase.$t->getString('table_js')
+        );
+        $thSortableTpl = file_get_contents(
+            $this->pathBase.$t->getString('col_sortable')
+        );
+        //
+        $defs = $data->getColDefs();
         $thead = '';
         $tbody = '';
-        $colCount = 0;
+        $renderCount = 0;
         $i = 0;
         $_v = new Data2Html_Values();
-        foreach ($colArray as $k => $v) {
+        foreach ($defs as $k => $v) {
             ++$i;
             $_v->set($v);
-            $label = $_v->getString('label', $k);
+            $name = $_v->getString('name', $k);
+            $label = $_v->getString('label', $name);
             $thead .= str_replace(
                 array('$${name}', '$${label}'),
-                array($k, $_v->getString('label', $k)),
-                $this->thSortable
+                array($name, $label),
+                $thSortableTpl
             );
             $type = $_v->getString('type');
-            ++$colCount;
+            ++$renderCount;
             $tbody .= '<td';
             $class = '';
             $ngClass = '';
@@ -66,36 +78,53 @@ class Data2Html_Render
             }
             $tbody .= "</td>\n";
         }
-
-        return str_replace(
+        $tableHtml = str_replace(
             array('$${id}', '$${title}', '$${thead}', '$${tbody}', '$${colCount}'),
-            array($data->getId(), $data->getTitle(), $thead, $tbody, $colCount),
-            $this->tableTpl
+            array($data->getId(), $data->getTitle(), $thead, $tbody, $renderCount),
+            $tableTpl
         );
+        $tableJs = 
+            "\n<script>\n".
+            str_replace(
+                array('$${id}'),
+                array($data->getId()),
+                $tableJsTpl
+            ).
+            "\n</script>\n";
+        return $tableHtml . $tableJs;
     }
-    public function renderHtmlTable($tpl)
+    public function filterForm($data)
     {
-        $colArray = $this->colsDefs;
-        $tBody = '';
-        $thead = '';
-        $tbody = '';
+        $t = $this->tamplates->getArrayValues('filter');
+        $formTpl = file_get_contents(
+            $this->pathBase.$t->getString('form')
+        );
+        $inputTextTpl = file_get_contents(
+            $this->pathBase.$t->getString('input_text')
+        );
+        
+        $defs = $data->getFilterDefs();
+        $body = '';
+        $renderCount = 0;
         $i = 0;
-        foreach ($colArray as $k => $v) {
+        $_v = new Data2Html_Values();
+        foreach ($defs as $k => $v) {
             ++$i;
-            $tbody .= "<td>{{$k}}</td>\n";
-            if (isset($v['label'])) {
-                $thead .= "<th>{$v['label']}</th>\n";
-            } else {
-                $thead .= "<th>{$k}</th>\n";
-            }
+            $_v->set($v);            
+            $name = $_v->getString('name');
+            $label = $_v->getString('label', $name);
+            $body .= str_replace(
+                array('$${group}', '$${name}', '$${label}'),
+                array('d2h_filter', $name, $label),
+                $inputTextTpl
+            );
+            ++$renderCount;
         }
-
+        $filterId = $data->getId() . '_filter';
         return str_replace(
-            array('$${_id}', '$${_title}', '$${_thead}', '$${_tbody}'),
-            array($this->id, $this->title,
-                        '<tr>'.$thead.'</tr>',
-                        '<tr>'.$tbody.'</tr>', ),
-            $tpl
+            array('$${id}', '$${title}', '$${body}', '$${colCount}'),
+            array($filterId, $data->getTitle(), $body, $renderCount),
+            $formTpl
         );
     }
 }

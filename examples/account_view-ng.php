@@ -16,26 +16,22 @@
     <title>Simple Datagrid with search, sort and paging using AngularJS, PHP, MySQL</title>
 </head>
 <body>
-<div ng-controller="customersCrtl" class="container">
-    <div class="row">
-        <div class="col-md-3">Filter:
-            <input type="text" placeholder="Filter" class="form-control" 
-                ng-model="search"
-            />
-        </div>
+    <script src="angular/js/angular-1.4.8.min.js"></script>
+    <script src="angular/js/i18n/angular-locale_ca.js"></script>       
+    <script src="angular/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
+    <script>
+        var d2h_App = angular.module('myApp', ['ui.bootstrap']);
+    </script>
+    <div ng-controller="d2h_aixada_account" class="container">
+    <?php
+        require_once("config_db.php");
+        require_once("account__.php");
+        $a = new aixada_account();
+        $render = new Data2Html_Render("../code/templates/angular/table_paged.ini");
+        echo $render->filterForm($a);
+        echo $render->table($a);
+    ?>
     </div>
-<?php
-    require_once("config_db.php");
-    require_once("account__.php");
-    $a = new aixada_account();
-    $render = new Data2Html_Render("templates/angular");
-    echo $render->table($a);
-?>
-</div>
 
-<script src="angular/js/angular-1.4.8.min.js"></script>
-<script src="angular/js/i18n/angular-locale_ca.js"></script>       
-<script src="angular/js/ui-bootstrap-tpls-0.10.0.min.js"></script>
-<script src="templates/tableAngular.js"></script>
 </body>
 </html>

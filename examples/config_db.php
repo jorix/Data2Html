@@ -4,5 +4,5 @@ $db_driver = array(
         'dsn' =>  'mysql:dbname=lacistella2;host=127.0.0.1',
         'user' => 'xavier',
         'pass' => 'xavier',
-        'debug' => false // Server shows SQL code to the client!
+        'debug' => true // Server shows SQL code to the client!
 );
