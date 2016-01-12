@@ -12,11 +12,18 @@ class aixada_account extends Data2Html {
             array(
                 'id' => array(
                     'type' => 'integer',
-                    'display' => 'hidden'
+                    'display' => 'hidden',
+                    'isKey' => true
                 ),
                 "operator" => array(
                     "label" => 'Usuari',
-                    'db' => null
+                    'db' => null, //'operator_id',
+                    'list' => array(
+                        'table' => 'aixada_member',
+                        'key' => 'id',
+                        'description' => 'name',
+                        'default' => '(nobody)'
+                    )
                 ),
                 "description" => array(),
                 "method" => array(
@@ -41,10 +48,25 @@ class aixada_account extends Data2Html {
             array(
                 array(
                     'name' => 'account_id',
+                    'label' => 'Cuenta',
                     'type' => 'integer',
+                    'validations' => 'required',
                     'check' => 'EQ',
+                    'list' => array(
+                        'table' => 'aixada_account_desc',
+                        'key' => 'id',
+                        'description' => 'description',
+                        'filter' => 'active'
+                    ),
                     //'value' => -4,
                     //'display' => 'hidden'
+                ),
+                array(
+                    'name' => 'active',
+                    'type' => 'boolean',
+                    'default' => true,
+                    'check' => 'EQ',
+                    'target' => 'list:account_id'
                 ),
                 /*
                 array(
