@@ -1,2 +1,0 @@
-https://github.com/angular/angular.js/tree/master/src/ngLocale
-https://github.com/angular/angular.js/tree/v1.4.8/src/ngLocale

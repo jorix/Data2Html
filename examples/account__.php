@@ -54,8 +54,8 @@ class aixada_account extends Data2Html {
                     'check' => 'EQ',
                     'list' => array(
                         'table' => 'aixada_account_desc',
-                        'key' => 'id',
-                        'description' => 'description',
+                        'value' => 'id',
+                        'text' => 'description',
                         'filter' => 'active'
                     ),
                     //'value' => -4,

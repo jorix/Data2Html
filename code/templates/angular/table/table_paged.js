@@ -33,7 +33,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
                 d2h_oper: 'list',
                 d2h_filter: $scope.d2h_filter,
                 d2h_page: {
-                    pageSize: $scope.pageSize.value,
+                    pageSize: $scope.pageSize,
                     pageStart: $scope.pageStart
                 }
             }
@@ -54,7 +54,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         );
     };
     $scope.nextPage = function() {
-        $scope.pageStart += $scope.pageSize.value;
+        $scope.pageStart += $scope.pageSize;
         $http(_req()).then(
             function(response) { // Ok
                 Array.prototype.push.apply(
@@ -68,12 +68,12 @@ d2h_App.controller('$${id}', function ($scope, $http) {
     };
     
     // local
-    var pageSizes = [10, 20, 50, 100];
+    var pageSizes = [10, 20, -4, 50, 100];
     $scope.pageSizeOp = [];
     for (i = 0, len = pageSizes.length; i < len; i++) {
         $scope.pageSizeOp.push({
             value: pageSizes[i],
-            label: pageSizes[i]+''
+            'text': pageSizes[i]+''
         });
     }
     $scope.sortBy = function(predicate, reverse) {

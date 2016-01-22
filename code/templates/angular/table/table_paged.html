@@ -8,7 +8,7 @@
             </tr></thead>
             <tfoot ng-show="filtered.length > 0" ng-cloak><tr>
                 <td colspan="$${colCount}">
-                    <div class="form-inline visible-xs-inline-block">
+                    <div class="form-inline">
                         <button class="btn btn-default hidden-xs "
                             title="Refresh data"
                             ng-click="initialPage()"
@@ -20,9 +20,9 @@
                         <select class="form-control" style="padding:0;"
                             title="Rows per page"
                             ng-model="pageSize"
-                            ng-init="pageSize=pageSizeOp[0]"
+                            ng-init="pageSize=pageSizeOp[0].value"
                             ng-change="initialPage()"
-                            ng-options="opt as opt.label for opt in pageSizeOp"
+                            ng-options="opt.value as opt.text for opt in pageSizeOp"
                         ></select>
                         <button class="btn btn-default"
                             title="Next page"
@@ -36,7 +36,7 @@
                         </button>
                         <span
                             ng-init="start()"
-                        >
+                        ng-cloak>
                             Filtered {{filtered.length}} of {{list.length}}
                         </span>
                     </div>

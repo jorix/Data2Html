@@ -102,6 +102,9 @@ class Data2Html_Render
         $inputTextTpl = file_get_contents(
             $this->pathBase.$t->getString('input_text')
         );
+        $inputSelectTpl = file_get_contents(
+            $this->pathBase.$t->getString('input_select')
+        );
         
         $defs = $data->getFilterDefs();
         $body = '';
@@ -113,11 +116,20 @@ class Data2Html_Render
             $_v->set($v);            
             $name = $_v->getString('name');
             $label = $_v->getString('label', $name);
-            $body .= str_replace(
-                array('$${group}', '$${name}', '$${label}'),
-                array('d2h_filter', $name, $label),
-                $inputTextTpl
-            );
+            $list = $_v->getArray('list');
+            if ($list) {
+                $body .= str_replace(
+                    array('$${name}', '$${label}'),
+                    array('d2h_filter.'.$name, $label),
+                    $inputSelectTpl
+                );
+            } else {
+                $body .= str_replace(
+                    array('$${name}', '$${label}'),
+                    array('d2h_filter.'.$name, $label),
+                    $inputTextTpl
+                );
+            }
             ++$renderCount;
         }
         $filterId = $data->getId() . '_filter';

@@ -2,12 +2,11 @@
 <html ng-app="myApp" ng-app lang="en">
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" 
-        href="../outside/bootstrap-3.3.6-dist/css/bootstrap.min.css"
-    >
-    <link rel="stylesheet"
-        href="../outside/angular-ui/ui-select-0.13.2/dist/select.min.css"
-    >
+    <link href="../outside/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../outside/angular-ui/ui-select-0.13.2/dist/select.min.css" rel="stylesheet">
+    <!-- Select2 theme -->
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css">
+
     <style type="text/css">
     a {cursor: pointer;}
     span.glyphicon.d2h_sortActivated {color:red}
@@ -22,11 +21,12 @@
 </head>
 <body>
     <script src="../outside/angular-1.4.8/angular.min.js"></script>
-    <script src="../outside/angular-1.4.8/i18n/angular-locale_ca.js"></script>       
+    <script src="../outside/angular-1.4.8/angular-sanitize.min.js"></script>
+    <script src="../outside/angular-1.4.8/i18n/angular-locale_ca.js"></script>
     <script src="../outside/angular-ui/ui-bootstrap-tpls-1.0.3.min.js"></script>
     <script src="../outside/angular-ui/ui-select-0.13.2/dist/select.min.js"></script>
     <script>
-        var d2h_App = angular.module('myApp', ['ui.bootstrap']);
+        var d2h_App = angular.module('myApp', ['ui.bootstrap', 'ngSanitize', 'ui.select']);
     </script>
     <div ng-controller="d2h_aixada_account" class="container">
     <div class="row" 
@@ -45,6 +45,24 @@
     class="form-control" 
     ng-model="d2h_filter.account_id_EQ"
 >
+
+
+<!------------------------------>
+<span ng-controller="d2h_sss">sss
+  <ui-select ng-model="country.selected" theme="bootstrap" ng-disabled="disabled" style="width: 300px;">
+    <ui-select-match placeholder="Select or search a country in the list...">{{$select.selected.name}}</ui-select-match>
+    <ui-select-choices repeat="country in countries | filter: $select.search">
+      <span ng-bind-html="country.name | highlight: $select.search"></span>
+      <small ng-bind-html="country.code | highlight: $select.search"></small>
+    </ui-select-choices>
+  </ui-select>
+</span>
+
+<!------------------------------>
+
+
+
+
 </div>
 <div class="col-md-3">active:
 <input type="text" 
@@ -167,7 +185,7 @@
             </tr></thead>
             <tfoot ng-show="filtered.length > 0" ng-cloak><tr>
                 <td colspan="7">
-                    <div class="form-inline visible-xs-inline-block">
+                    <div class="form-inline">
                         <button class="btn btn-default hidden-xs "
                             title="Refresh data"
                             ng-click="initialPage()"
@@ -195,7 +213,7 @@
                         </button>
                         <span
                             ng-init="start()"
-                        >
+                        ng-cloak>
                             Filtered {{filtered.length}} of {{list.length}}
                         </span>
                     </div>
@@ -309,6 +327,36 @@ d2h_App.controller('d2h_aixada_account', function ($scope, $http) {
     };
 });
 </script>
+
+  <script>
+d2h_App.controller('d2h_sss', function($scope, $http) {
+  $scope.disabled = undefined;
+
+  $scope.enable = function() {
+    $scope.disabled = false;
+  };
+
+  $scope.disable = function() {
+    $scope.disabled = true;
+  };
+
+  $scope.clear = function() {
+    $scope.country.selected = undefined;
+  };
+  $scope.country = {};
+  $scope.countries = [ // Taken from https://gist.github.com/unceus/6501985
+    {name: 'Afghanistan', code: 'AF'},
+    {name: 'Åland Islands', code: 'AX'},
+    {name: 'Albania', code: 'AL'},
+    {name: 'Algeria', code: 'DZ'},
+    {name: 'American Samoa', code: 'AS'},
+    {name: 'Andorra', code: 'AD'},
+    {name: 'Angola', code: 'AO'},
+    {name: 'Anguilla', code: 'AI'},
+    {name: 'Antarctica', code: 'AQ'}];
+});  
+  </script>
+
     </div>
 
 </body>
