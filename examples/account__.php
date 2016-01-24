@@ -5,6 +5,7 @@ class aixada_account extends Data2Html {
     protected function init() {
         #Set database table
         $this->table = 'aixada_account';
+        $this->controller = 'account_controller.php';
         $this->title = 'Diners';
 
         #Set columns
@@ -52,13 +53,13 @@ class aixada_account extends Data2Html {
                     'type' => 'integer',
                     'validations' => 'required',
                     'check' => 'EQ',
+                    'default' => -4,
                     'list' => array(
                         'table' => 'aixada_account_desc',
                         'value' => 'id',
                         'text' => 'description',
                         'filter' => 'active'
                     ),
-                    //'value' => -4,
                     //'display' => 'hidden'
                 ),
                 array(

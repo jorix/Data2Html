@@ -79,8 +79,22 @@ class Data2Html_Render
             $tbody .= "</td>\n";
         }
         $tableHtml = str_replace(
-            array('$${id}', '$${title}', '$${thead}', '$${tbody}', '$${colCount}'),
-            array($data->getId(), $data->getTitle(), $thead, $tbody, $renderCount),
+            array(
+                '$${id}',
+                '$${title}',
+                '$${d2h_localJs}',
+                '$${thead}',
+                '$${tbody}',
+                '$${colCount}'
+            ),
+            array(
+                $data->getId(),
+                $data->getTitle(),
+                $data->getLocalJs(),
+                $thead,
+                $tbody,
+                $renderCount
+            ),
             $tableTpl
         );
         $tableJs = 
@@ -116,17 +130,18 @@ class Data2Html_Render
             $_v->set($v);            
             $name = $_v->getString('name');
             $label = $_v->getString('label', $name);
+            $default = $_v->getString('default', 'undefined');
             $list = $_v->getArray('list');
             if ($list) {
                 $body .= str_replace(
-                    array('$${name}', '$${label}'),
-                    array('d2h_filter.'.$name, $label),
+                    array('$${name}', '$${label}', '$${default}'),
+                    array('d2h_filter.'.$name, $label, $default),
                     $inputSelectTpl
                 );
             } else {
                 $body .= str_replace(
-                    array('$${name}', '$${label}'),
-                    array('d2h_filter.'.$name, $label),
+                    array('$${name}', '$${label}', '$${default}'),
+                    array('d2h_filter.'.$name, $label, $default),
                     $inputTextTpl
                 );
             }
@@ -134,8 +149,8 @@ class Data2Html_Render
         }
         $filterId = $data->getId() . '_filter';
         return str_replace(
-            array('$${id}', '$${title}', '$${body}', '$${colCount}'),
-            array($filterId, $data->getTitle(), $body, $renderCount),
+            array('$${id}', '$${title}', '$${body}'),
+            array($filterId, $data->getTitle(), $body),
             $formTpl
         );
     }

@@ -25,7 +25,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
     var _req = function() {
         return {
             method: 'POST',
-            url: 'account_controller.php?lang=ca',
+            url: d2h_local['$${id}'].controller + '?lang=ca',
             headers: {
                 'Content-Type': undefined
             },
@@ -68,7 +68,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
     };
     
     // local
-    var pageSizes = [10, 20, -4, 50, 100];
+    var pageSizes = [10, 20, -4, -3, 50, 100];
     $scope.pageSizeOp = [];
     for (i = 0, len = pageSizes.length; i < len; i++) {
         $scope.pageSizeOp.push({

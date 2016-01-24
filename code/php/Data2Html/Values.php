@@ -12,7 +12,9 @@ class Data2Html_Values
     
     public function set(&$values)
     {
-        if (is_object($values)) {
+        if (!$values) {
+            $this->values = array();
+        } elseif (is_object($values)) {
             // $this->values = get_object_vars($values);
             $array = array();
             foreach ($values as $k => $v) {

@@ -8,7 +8,8 @@ abstract class Data2Html
     protected $configOptions = array();
     protected $debug = false;
     //
-    protected $table;
+    protected $table = '';
+    protected $sql = '';
     protected $title;
     protected $colDefs = array();
     protected $filterDefs = array();
@@ -45,6 +46,10 @@ abstract class Data2Html
         // Init
         //----------------
         $this->init();
+        
+        if ($this->table !== '' && $this->sql !== '') {
+            throw new Exception("At `init()` can't be simultaneously set `\$this->table` and `\$this->sql`.");
+        }
     }
     public function getRoot()
     {
@@ -65,6 +70,12 @@ abstract class Data2Html
     public function getTitle()
     {
         return $this->title;
+    }
+    public function getLocalJs()
+    {
+        return $this->toJson(array(
+                'controller' => $this->controller
+        ));
     }
     /**
      * Abstract function for setting fields properties.
@@ -113,25 +124,32 @@ abstract class Data2Html
     protected function oper($db, $request)
     {
         $r = new Data2Html_Values($request);
-        $oper = $r->getString('d2h_oper', 'list');
+        $oper = $r->getString('d2h_oper', '');
         switch ($oper) {
             case '':
             case 'list':
                 $page = $r->getArrayValues('d2h_page', array());
-                $sql = new Data2Html_Sql($db);
-                $this->responseJson(
-                    $db->getQueryArray(
-                        $sql->getSelect(
-                            $this->table,
-                            $this->colDefs,
-                            $this->filterDefs,
-                            $r->getArray('d2h_filter', array())
-                        ),
+                $sql = $this->sql;
+                if (!$sql) {
+                    $sqlObj = new Data2Html_Sql($db);
+                    $sql = $sqlObj->getSelect(
+                        $this->table,
                         $this->colDefs,
-                        $page->getInteger('pageStart', 1),
-                        $page->getInteger('pageSize', 0)
-                    )
-                ); 
+                        $this->filterDefs,
+                        $r->getArray('d2h_filter', array())
+                    );
+                }
+                $ra = $db->getQueryArray(
+                    $sql,
+                    $this->colDefs,
+                    $page->getInteger('pageStart', 1),
+                    $page->getInteger('pageSize', 0)
+                );
+                if ($oper === '') {
+                    echo $this->toJsonDocs($ra);
+                } else {    
+                    $this->responseJson($ra); 
+                }
                 return;
 
             case 'add':
@@ -193,19 +211,25 @@ abstract class Data2Html
      *
      * @param  $obj object to send
      */
-    protected function responseJson($obj)
+    protected function toJson($obj)
     {
-        header('Content-type: application/responseJson; charset=utf-8;');
- 
         $options = 0;
         if ($this->debug && version_compare(PHP_VERSION, '5.4.0', '>=')) {
             $options |= JSON_PRETTY_PRINT;
         }
+        return json_encode($obj, $options);
+    }
+    protected function toJsonDocs($obj)
+    {
+        return "<pre>\n".$this->toJson($obj)."\n</pre>\n";
+    }
+    protected function responseJson($obj)
+    {
+        header('Content-type: application/responseJson; charset=utf-8;');
         // Prefix `")]}',\n"` is due to security considerations, see: 
         //    * https://docs.angularjs.org/api/ng/service/$http
-        echo ")]}',\n".json_encode($obj, $options);
+        echo ")]}',\n".$this->toJson($obj);
     }
-
     //----------------
     // OPERATIONS PART
     //----------------
@@ -257,9 +281,6 @@ abstract class Data2Html
      */
     protected function opEdit($id, $values)
     {
-        if (empty($this->table)) {
-            throw new jqGrid_Exception('Table is not defined', $this->table);
-        }
 
         $keyArray = $this->explodePrimaryKey($id);
         if ($this->beforeUpdate($values, $keyArray) === false) {
