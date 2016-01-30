@@ -26,6 +26,21 @@
         var d2h_App = angular.module('myApp', ['ui.bootstrap', 'ngSanitize', 'ui.select']);
     </script>
     <div ng-controller="d2h_aixada_account" class="container">
+    
+    
+    <!------------------------------>
+<span ng-controller="d2h_sss">sss
+  <ui-select ng-model="country.selected" theme="bootstrap" ng-disabled="disabled" style="width: 300px;">
+    <ui-select-match placeholder="Select or search a country in the list...">{{$select.selected.name}}</ui-select-match>
+    <ui-select-choices repeat="country in countries | filter: $select.search">
+      <span ng-bind-html="country.name | highlight: $select.search"></span>
+      <small ng-bind-html="country.code | highlight: $select.search"></small>
+    </ui-select-choices>
+  </ui-select>
+</span>
+
+<!------------------------------>
+    
     <div class="row" 
     form="form"
     XXng-controller="d2h_aixada_account_filter"
@@ -309,6 +324,36 @@ d2h_App.controller('d2h_aixada_account', function ($scope, $http) {
     };
 });
 </script>
+
+  <script>
+d2h_App.controller('d2h_sss', function($scope, $http) {
+  $scope.disabled = undefined;
+
+  $scope.enable = function() {
+    $scope.disabled = false;
+  };
+
+  $scope.disable = function() {
+    $scope.disabled = true;
+  };
+
+  $scope.clear = function() {
+    $scope.country.selected = undefined;
+  };
+  $scope.country = {};
+  $scope.countries = [ // Taken from https://gist.github.com/unceus/6501985
+    {name: 'Afghanistan', code: 'AF'},
+    {name: 'Åland Islands', code: 'AX'},
+    {name: 'Albania', code: 'AL'},
+    {name: 'Algeria', code: 'DZ'},
+    {name: 'American Samoa', code: 'AS'},
+    {name: 'Andorra', code: 'AD'},
+    {name: 'Angola', code: 'AO'},
+    {name: 'Anguilla', code: 'AI'},
+    {name: 'Antarctica', code: 'AQ'}];
+});  
+  </script>
+
     </div>
 
 </body>
