@@ -30,11 +30,10 @@
     
     <!------------------------------>
 <span ng-controller="d2h_sss">sss
-  <ui-select ng-model="country.selected" theme="bootstrap" ng-disabled="disabled" style="width: 300px;">
-    <ui-select-match placeholder="Select or search a country in the list...">{{$select.selected.name}}</ui-select-match>
-    <ui-select-choices repeat="country in countries | filter: $select.search">
-      <span ng-bind-html="country.name | highlight: $select.search"></span>
-      <small ng-bind-html="country.code | highlight: $select.search"></small>
+  <ui-select ng-model="d2h_filter.account_id_EQ" theme="bootstrap" ng-disabled="disabled" style="width: 300px;">
+    <ui-select-match placeholder="Select or search a country in the list...">{{$select.selected.text}}</ui-select-match>
+    <ui-select-choices repeat="item in data | filter: $select.search">
+      <span ng-bind-html="item.text | highlight: $select.search"></span>
     </ui-select-choices>
   </ui-select>
 </span>
@@ -55,7 +54,7 @@
         <div class="col-md-3">Cuenta:
 <select class="form-control" style="padding:0;"
     title="Cuenta"
-    ng-model="d2h_filter.account_id_EQ"
+    ng-model="d2h_filter.account_id_EQ2"
     ng-init="pageSize=pageSizeOp[0].value"
     ng-change="initialPage()"
     ng-options="opt.value as opt.text for opt in pageSizeOp"
@@ -258,7 +257,7 @@ function ContactDirective(){
 */
 
 d2h_App.controller('d2h_aixada_account', function ($scope, $http) {
-
+$scope.d2h_filter={};
     // server
     var _req = function() {
         return {
@@ -327,30 +326,47 @@ d2h_App.controller('d2h_aixada_account', function ($scope, $http) {
 
   <script>
 d2h_App.controller('d2h_sss', function($scope, $http) {
-  $scope.disabled = undefined;
+    $scope.disabled = undefined;
 
-  $scope.enable = function() {
+    $scope.enable = function() {
     $scope.disabled = false;
-  };
+    };
 
-  $scope.disable = function() {
+    $scope.disable = function() {
     $scope.disabled = true;
-  };
+    };
 
-  $scope.clear = function() {
-    $scope.country.selected = undefined;
-  };
-  $scope.country = {};
-  $scope.countries = [ // Taken from https://gist.github.com/unceus/6501985
-    {name: 'Afghanistan', code: 'AF'},
-    {name: 'Åland Islands', code: 'AX'},
-    {name: 'Albania', code: 'AL'},
-    {name: 'Algeria', code: 'DZ'},
-    {name: 'American Samoa', code: 'AS'},
-    {name: 'Andorra', code: 'AD'},
-    {name: 'Angola', code: 'AO'},
-    {name: 'Anguilla', code: 'AI'},
-    {name: 'Antarctica', code: 'AQ'}];
+    $scope.clear = function() {
+    $scope.item.selected = undefined;
+    };
+    $scope.item = {};
+    $http({
+        method: 'POST',
+        url: 'accountid_controller.php?lang=ca',
+        headers: {
+            'Content-Type': undefined
+        },
+        data: {
+            d2h_oper: 'list' 
+            /*
+            ,
+            d2h_filter: $scope.d2h_filter,
+            d2h_page: {
+                pageSize: $scope.pageSize,
+                pageStart: $scope.pageStart
+            }
+            */
+        }
+    }).then(
+        function(response) { // Ok
+            $scope.data = response.data.rows;
+            // $scope.status = response.status;
+        }, function(response) { // Error
+            // $scope.data = response.data || "Request failed";
+            // $scope.status = response.status;
+            console.log("IRROR");
+        }
+    );
 });  
   </script>
 
