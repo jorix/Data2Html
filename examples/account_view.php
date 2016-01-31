@@ -28,12 +28,11 @@
     <title>Simple Datagrid with search, sort and paging using AngularJS, PHP, MySQL</title>
 </head>
 <body>
-    <div ng-controller="d2h_aixada_account" class="container">
+    <div class="container">
     <?php
         require_once("account__.php");
         $a = new aixada_account();
         $render = new Data2Html_Render("../code/templates/angular/table_paged.ini");
-        echo $render->filterForm($a);
         echo $render->table($a);
     ?>
     </div>

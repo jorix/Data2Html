@@ -1,0 +1,45 @@
+<span class="col-md-3" ng-controller="$${id}">$${label}:
+    <ui-select
+        ng-model="$${name}"
+        theme="bootstrap"
+        ng-disabled="disabled"
+    >
+        <ui-select-match 
+            placeholder="$${placeholder}"
+        >{{$select.selected.text}}</ui-select-match>
+        <ui-select-choices 
+            repeat="item.id as item in data | filter: $select.search">
+            <span ng-bind-html="item.text | highlight: $select.search"></span>
+        </ui-select-choices>
+    </ui-select>
+</span>
+<script>
+    d2h_App.controller('$${id}', function($scope, $http) {
+        $scope.disabled = undefined;
+
+        $scope.enable = function() {
+            $scope.disabled = false;
+        };
+        $scope.disable = function() {
+            $scope.disabled = true;
+        };
+        $scope.clear = function() {
+            $scope.selected = undefined;
+        };
+        $scope.item = {};
+        $http({
+            method: 'POST',
+            url: '$${controller}?lang=ca',
+            headers: {
+                'Content-Type': undefined
+            },
+            data: {d2h_oper: 'list'}
+        }).then(
+            function(response) { // Ok
+                $scope.data = response.data.rows;
+            }, function(response) { // Error
+                console.log(response.status);
+            }
+        );
+    });  
+</script>

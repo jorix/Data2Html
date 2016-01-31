@@ -10,7 +10,6 @@ class Data2Html_Render
         $tamplates = parse_ini_file($templateIni, true);
         $this->tamplates = new Data2Html_Values($tamplates);
     }
-    
     public function table($data)
     {
         // templates
@@ -83,6 +82,7 @@ class Data2Html_Render
                 '$${id}',
                 '$${title}',
                 '$${d2h_localJs}',
+                '$${filter}',
                 '$${thead}',
                 '$${tbody}',
                 '$${colCount}'
@@ -91,6 +91,7 @@ class Data2Html_Render
                 $data->getId(),
                 $data->getTitle(),
                 $data->getLocalJs(),
+                $this->filterForm($data),
                 $thead,
                 $tbody,
                 $renderCount
@@ -117,7 +118,7 @@ class Data2Html_Render
             $this->pathBase.$t->getString('input_text')
         );
         $inputSelectTpl = file_get_contents(
-            $this->pathBase.$t->getString('input_select')
+            $this->pathBase.$t->getString('input_ui-select')
         );
         
         $defs = $data->getFilterDefs();
@@ -130,21 +131,31 @@ class Data2Html_Render
             $_v->set($v);            
             $name = $_v->getString('name');
             $label = $_v->getString('label', $name);
+            $placeholder = $_v->getString('placeholder', $label);
             $default = $_v->getString('default', 'undefined');
+            $controller = $_v->getString('controller', '');
             $list = $_v->getArray('list');
+            $itemId = $data->createId($name);
             if ($list) {
-                $body .= str_replace(
-                    array('$${name}', '$${label}', '$${default}'),
-                    array('d2h_filter.'.$name, $label, $default),
-                    $inputSelectTpl
-                );
+                $template = $inputSelectTpl;
             } else {
-                $body .= str_replace(
-                    array('$${name}', '$${label}', '$${default}'),
-                    array('d2h_filter.'.$name, $label, $default),
-                    $inputTextTpl
-                );
+                $template = $inputTextTpl;
             }
+            $body .= "\n".str_replace(
+                array(
+                    '$${id}',
+                    '$${name}', '$${label}', '$${placeholder}',
+                    '$${default}',
+                    '$${controller}'
+                ), 
+                array(
+                    $itemId,
+                    'd2h_filter.'.$name, $label, $placeholder,
+                    $default,
+                    $controller
+                ),
+                $template
+            );
             ++$renderCount;
         }
         $filterId = $data->getId() . '_filter';

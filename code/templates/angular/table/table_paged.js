@@ -20,7 +20,7 @@ function ContactDirective(){
 */
 
 d2h_App.controller('$${id}', function ($scope, $http) {
-
+    $scope.d2h_filter={};
     // server
     var _req = function() {
         return {

@@ -13,6 +13,7 @@ abstract class Data2Html
     protected $title;
     protected $colDefs = array();
     protected $filterDefs = array();
+    private static $idCount = 0;
 
     /**
      * Class constructor, initializes basic properties.
@@ -28,7 +29,7 @@ abstract class Data2Html
         // Base
         //----------------
         $this->root_path = dirname(__FILE__).DIRECTORY_SEPARATOR;
-        $this->id = 'd2h_'.get_class($this);
+        $this->id = $this->createId(get_class($this));
         
         // Register autoload
         //------------------
@@ -54,6 +55,10 @@ abstract class Data2Html
     public function getRoot()
     {
         return $this->root_path;
+    }
+    public function createId($name) {
+        self::$idCount++;
+        return 'd2h_'.self::$idCount.'_'.$name;
     }
     public function getId()
     {
