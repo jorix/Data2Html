@@ -267,7 +267,7 @@ $scope.d2h_filter={};
                 'Content-Type': undefined
             },
             data: {
-                d2h_oper: 'list',
+                d2h_oper: 'read',
                 d2h_filter: $scope.d2h_filter,
                 d2h_page: {
                     pageSize: $scope.pageSize,
@@ -347,7 +347,7 @@ d2h_App.controller('d2h_sss', function($scope, $http) {
             'Content-Type': undefined
         },
         data: {
-            d2h_oper: 'list' 
+            d2h_oper: 'read' 
             /*
             ,
             d2h_filter: $scope.d2h_filter,

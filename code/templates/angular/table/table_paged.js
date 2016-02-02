@@ -30,7 +30,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
                 'Content-Type': undefined
             },
             data: {
-                d2h_oper: 'list',
+                d2h_oper: 'read',
                 d2h_filter: $scope.d2h_filter,
                 d2h_page: {
                     pageSize: $scope.pageSize,
@@ -44,7 +44,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         $scope.pageStart = 1; //current page
         $http(_req()).then(
             function(response) { // Ok
-                $scope.list = response.data.rows;
+                $scope.data = response.data.rows;
                 // $scope.status = response.status;
             }, function(response) { // Error
                 // $scope.data = response.data || "Request failed";
@@ -58,7 +58,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         $http(_req()).then(
             function(response) { // Ok
                 Array.prototype.push.apply(
-                    $scope.list,
+                    $scope.data,
                     response.data.rows
                 );
             }, function(response) { // Error

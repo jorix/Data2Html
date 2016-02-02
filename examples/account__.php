@@ -21,8 +21,8 @@ class aixada_account extends Data2Html {
                     'db' => null, //'operator_id',
                     'list' => array(
                         'table' => 'aixada_member',
-                        'key' => 'id',
-                        'description' => 'name',
+                        'value' => 'id',
+                        'text' => 'name',
                         'default' => '(nobody)'
                     )
                 ),
@@ -49,17 +49,20 @@ class aixada_account extends Data2Html {
             array(
                 array(
                     'name' => 'account_id',
+                    'type' => 'integer',
                     'controller' => 'accountid_controller.php',
                     'label' => 'Cuenta',
-                    'type' => 'integer',
                     'validations' => 'required',
                     'check' => 'EQ',
                     'default' => -4,
-                    'list' => array(
+
+                    'list' => array(1
+                    /*
                         'table' => 'aixada_account_desc',
                         'value' => 'id',
                         'text' => 'description',
                         'filter' => 'active'
+                    */
                     ),
                     //'display' => 'hidden'
                 ),

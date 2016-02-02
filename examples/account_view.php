@@ -30,6 +30,15 @@
 <body>
     <div class="container">
     <?php
+        $matches = null;
+        $subject = 'aaa$${aa.se:integer} s$${+}.sak s$${sxx}';
+        preg_match_all(
+            '/\$\$\{([\w.:]+)\}/',
+            $subject,
+            $matches
+        );
+        print_r($matches[1]);
+        ECHO '<HR>';
         require_once("account__.php");
         $a = new aixada_account();
         $render = new Data2Html_Render("../code/templates/angular/table_paged.ini");

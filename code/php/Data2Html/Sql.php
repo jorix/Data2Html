@@ -18,9 +18,14 @@ class Data2Html_Sql
         $dbfs = array();
         foreach ($colDefs as $k=>$v) {
             $def->set($v);
-            $dbName = $def->getString('db', $k, true);
+            $name = $def->getString('name', $k);
+            $dbName = $def->getString('db', $name, true);
             if ($dbName !== null) {
-                array_push($dbfs, $dbName);
+                if ($name === $dbName) {
+                    array_push($dbfs, $dbName);
+                } else {
+                    array_push($dbfs, $dbName.' '.$name);
+                }
             }
         }
         if (count($dbfs) === 0) {

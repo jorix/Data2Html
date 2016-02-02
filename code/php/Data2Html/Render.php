@@ -27,23 +27,23 @@ class Data2Html_Render
             $this->pathBase.$t->getString('col_sortable')
         );
         //
-        $defs = $data->getColDefs();
+        $colDefs = $data->getColDefs();
         $thead = '';
         $tbody = '';
         $renderCount = 0;
         $i = 0;
-        $_v = new Data2Html_Values();
-        foreach ($defs as $k => $v) {
+        $def = new Data2Html_Values();
+        foreach ($colDefs as $k => $v) {
             ++$i;
-            $_v->set($v);
-            $name = $_v->getString('name', $k);
-            $label = $_v->getString('label', $name);
+            $def->set($v);
+            $name = $def->getString('name', $k);
+            $label = $def->getString('label', $name);
             $thead .= str_replace(
                 array('$${name}', '$${label}'),
                 array($name, $label),
                 $thSortableTpl
             );
-            $type = $_v->getString('type');
+            $type = $def->getString('type');
             ++$renderCount;
             $tbody .= '<td';
             $class = '';
@@ -53,8 +53,8 @@ class Data2Html_Render
                 case 'number':
                 case 'currency':
                     $class .= 'text-right';
-                }
-            if ($visual = $_v->getString('visualClass')) {
+            }
+            if ($visual = $def->getString('visualClass')) {
                 if (strpos($visual, ':') !== false) {
                     $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
                 } else {
@@ -68,7 +68,7 @@ class Data2Html_Render
                 $tbody .= " class=\"{$class}\"";
             }
             $tbody .= '>';
-            if ($type && $format = $_v->getString('format')) {
+            if ($type && $format = $def->getString('format')) {
                 $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
             } elseif ($type === 'currency') {
                 $tbody .= "{{item.{$k} | {$type}}}";
@@ -125,16 +125,16 @@ class Data2Html_Render
         $body = '';
         $renderCount = 0;
         $i = 0;
-        $_v = new Data2Html_Values();
+        $def = new Data2Html_Values();
         foreach ($defs as $k => $v) {
             ++$i;
-            $_v->set($v);            
-            $name = $_v->getString('name');
-            $label = $_v->getString('label', $name);
-            $placeholder = $_v->getString('placeholder', $label);
-            $default = $_v->getString('default', 'undefined');
-            $controller = $_v->getString('controller', '');
-            $list = $_v->getArray('list');
+            $def->set($v);            
+            $name = $def->getString('name');
+            $label = $def->getString('label', $name);
+            $placeholder = $def->getString('placeholder', $label);
+            $default = $def->getString('default', 'undefined');
+            $controller = $def->getString('controller', '');
+            $list = $def->getArray('list');
             $itemId = $data->createId($name);
             if ($list) {
                 $template = $inputSelectTpl;

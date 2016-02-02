@@ -6,13 +6,13 @@ abstract class Data2Html
     protected $root_path;
     protected $id;
     protected $configOptions = array();
-    protected $debug = false;
+    public $debug = false;
     //
-    protected $table = '';
-    protected $sql = '';
+    public $table = '';
+    public $sql = '';
     protected $title;
-    protected $colDefs = array();
-    protected $filterDefs = array();
+    public $colDefs = array();
+    public $filterDefs = array();
     private static $idCount = 0;
 
     /**
@@ -88,109 +88,17 @@ abstract class Data2Html
      * @abstract
      */
     abstract protected function init();
-
-    /**
-     * MAIN ACTION (2): Perform operation to change data is any way.
-     *
-     * @param $oper - operation name
-     */
-    public function run($fileNameConfigDb)
-    {
-        // Open db
-        $c = parse_ini_file($fileNameConfigDb, true);
-        $dbConfig = $c['db'];
-        $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
-        $db = new $db_class(
-            $dbConfig,
-            array(
-                'debug' => $this->debug
-            )
-        );
-        
-        /*
-        $the_request = array_merge($_GET, $_POST);
-        print_r($_POST);
-        $serverMethod = $_SERVER['REQUEST_METHOD'];
-        switch ($serverMethod) {
-            case 'GET':
-                $the_request = &$_GET; break;
-            case 'POST':
-                $the_request = &$_POST; break;
-            default:
-                throw new Exception(
-                    "Server method {$serverMethod} is not supported.");
-        }
-        */
-        $postdata = file_get_contents("php://input");
-        $request = json_decode($postdata, true);
-        // print_r($request);
-        $this->oper($db, $request);
-    }
-    protected function oper($db, $request)
-    {
-        $r = new Data2Html_Values($request);
-        $oper = $r->getString('d2h_oper', '');
-        switch ($oper) {
-            case '':
-            case 'list':
-                $page = $r->getArrayValues('d2h_page', array());
-                $sql = $this->sql;
-                if (!$sql) {
-                    $sqlObj = new Data2Html_Sql($db);
-                    $sql = $sqlObj->getSelect(
-                        $this->table,
-                        $this->colDefs,
-                        $this->filterDefs,
-                        $r->getArray('d2h_filter', array())
-                    );
-                }
-                $ra = $db->getQueryArray(
-                    $sql,
-                    $this->colDefs,
-                    $page->getInteger('pageStart', 1),
-                    $page->getInteger('pageSize', 0)
-                );
-                if ($oper === '') {
-                    echo $this->toJsonDocs($ra);
-                } else {    
-                    $this->responseJson($ra); 
-                }
-                return;
-
-            case 'add':
-                $data = array_intersect_key($this->input, $this->cols);
-                $data = $this->operData($data);
-                $id = $this->opAdd($data);
-                if (empty($this->primary_key_auto_increment)) {
-                    $id = $this->implodePrimaryKey($data);
-                }
-                $this->response['new_id'] = $id;
-                $this->operAfterAddEdit($id);
-                break;
-
-            case 'edit':
-                $data = array_intersect_key($this->input, $this->cols);
-                $data = $this->operData($data);
-                $this->opEdit($id, $data);
-                $this->operAfterAddEdit($id);
-                break;
-
-            case 'del':
-                $this->opDel($id);
-                break;
-
-            default:
-                throw new Exception("Oper {$oper} is not defined");
-                break;
-        }
-        $this->response = array_merge(array('success' => 1), $this->response);
-        $this->responseJson($this->response);
-    }
-
     /**
      */
     protected function setCols($colArray)
     {
+        $matches = null;
+        preg_match_all(
+            '/\$\$\{([\w.:]+)\}/',
+            '$subject',
+            $matches
+        );
+        $matches = $matches[1];
         $this->colDefs = $colArray;
     }
     protected function setFilter($filterArray)
@@ -207,69 +115,21 @@ abstract class Data2Html
         $this->filterDefs = $filterArray;
     }
     
-    //----------------
-    // HELPER PART
-    //----------------
+    //-----------------
+    // Operation executor and events
+    //-----------------
+    /**
+     * Operation executor
+     */
+    public function run($fileNameConfigDb)
+    {
+        $controller = new Data2Html_Controller($this, $fileNameConfigDb);
+        $controller->run();
+    }        
 
     /**
-     * Send to browser a JSON from a php object.
-     *
-     * @param  $obj object to send
+     * Insert events
      */
-    protected function toJson($obj)
-    {
-        $options = 0;
-        if ($this->debug && version_compare(PHP_VERSION, '5.4.0', '>=')) {
-            $options |= JSON_PRETTY_PRINT;
-        }
-        return json_encode($obj, $options);
-    }
-    protected function toJsonDocs($obj)
-    {
-        return "<pre>\n".$this->toJson($obj)."\n</pre>\n";
-    }
-    protected function responseJson($obj)
-    {
-        header('Content-type: application/responseJson; charset=utf-8;');
-        // Prefix `")]}',\n"` is due to security considerations, see: 
-        //    * https://docs.angularjs.org/api/ng/service/$http
-        echo ")]}',\n".$this->toJson($obj);
-    }
-    //----------------
-    // OPERATIONS PART
-    //----------------
-
-    /**
-     * (Oper) Insert.
-     *
-     * Please note: this is the only "Oper" function, which must return new row id
-     *
-     * @param array $ins - form data
-     *
-     * @return int - new_id
-     */
-    protected function opAdd($values)
-    {
-        if (empty($this->table)) {
-            throw new jqGrid_Exception('Table is not defined');
-        }
-        if ($this->beforeInsert($values) === false) {
-            exit;
-        }
-        // Transaction
-        $this->startTransaction();
-        try {
-            $new_id = $this->db->insert($this->table, $values, true);
-        } catch (Exception $e) {
-            $this->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
-        }
-        $this->afterInsert($values, $new_id);
-        $this->commit();
-
-        return $new_id;
-    }
     protected function beforeInsert($values)
     {
         return true;
@@ -279,32 +139,8 @@ abstract class Data2Html
     }
 
     /**
-     * (Oper) Update.
-     *
-     * @param int   $id  - id to update
-     * @param array $upd - form data
+     * Update events
      */
-    protected function opEdit($id, $values)
-    {
-
-        $keyArray = $this->explodePrimaryKey($id);
-        if ($this->beforeUpdate($values, $keyArray) === false) {
-            exit;
-        }
-        // Transaction
-        $this->startTransaction();
-        try {
-            $this->db->update($this->table, $values, $keyArray);
-        } catch (Exception $e) {
-            $this->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
-        }
-        $this->afterUpdate($values, $keyArray);
-        $this->commit();
-
-        return '1';
-    }
     protected function beforeUpdate($values, $keyArray)
     {
         return true;
@@ -314,37 +150,8 @@ abstract class Data2Html
     }
 
     /**
-     * (Oper) Delete.
-     *
-     * @param int|string $id - one or multiple id's to delete
+     * Delete events
      */
-    protected function opDel($id)
-    {
-        if (empty($this->table)) {
-            throw new jqGrid_Exception('Table is not defined');
-        }
-
-        $keyArray = $this->explodePrimaryKey($id);
-        if ($this->beforeDelete($keyArray) === false) {
-            exit;
-        }
-        // Transaction
-        $this->startTransaction();
-        try {
-            $this->db->delete(
-                $this->table,
-                $this->whereSql($keyArray)
-            );
-        } catch (Exception $e) {
-            $this->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
-        }
-        $this->afterDelete($keyArray);
-        $this->commit();
-
-        return '1';
-    }
     protected function beforeDelete($keyArray)
     {
         return true;
@@ -375,5 +182,16 @@ abstract class Data2Html
             throw new Exception(
                 "->autoload({$class}): File \"{$path}\" does not exist");
         }
+    }
+    /**
+     * PHP object to a JSON text
+     */
+    public function toJson($obj)
+    {
+        $options = 0;
+        if ($this->debug && version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        return json_encode($obj, $options);
     }
 }

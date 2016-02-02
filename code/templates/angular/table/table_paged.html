@@ -42,13 +42,13 @@ $${filter}
                         <span
                             ng-init="start()"
                         ng-cloak>
-                            Filtered {{filtered.length}} of {{list.length}}
+                            Filtered {{filtered.length}} of {{data.length}}
                         </span>
                     </div>
                 </td>
                 </tr></tfoot>
             <tbody ng-show="filtered.length > 0" ng-cloak><tr 
-                   ng-repeat="item in filtered = (list | filter:search | orderBy :predicate :reverse)">
+                   ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
                 $${tbody}
             </tr></tbody>
         </table>
