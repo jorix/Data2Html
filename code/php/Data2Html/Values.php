@@ -63,12 +63,12 @@ class Data2Html_Values
                 $r = $this->getInteger($itemKey);
                 break;
             case 'boolean':
-                $r = $this->getBoolean($itemKey);
+                $r = $this->getInteger($itemKey);
                 break;
             case 'string':
                 $r = $this->getString($itemKey);
                 if ($r !== null) {
-                    $r = $db->toSql($r);
+                    $r = $db->stringToSql($r);
                 }
                 break;
             case 'date':

@@ -47,7 +47,7 @@ abstract class Data2Html_Db
      *
      * @return string
      */
-    abstract public function toSql($value);
+    abstract public function stringToSql($value);
 
     /**
      * Like PDO::rowCount and *_affected_rows.
@@ -119,6 +119,7 @@ abstract class Data2Html_Db
                 switch ($types[$k]) {
                 case 'integer':
                 case 'number':
+                case 'boolean':
                 case 'currency':
                     $v = $v + 0; // convert to number
                     break;
@@ -251,28 +252,5 @@ abstract class Data2Html_Db
         $result = $this->query($q);
 
         return $result;
-    }
-
-    /**
-     * Clean array keys and values for later use in SQL.
-     *
-     * @param array $arr
-     *
-     * @return array
-     */
-    protected function cleanArray(array $arr)
-    {
-        $clean = array();
-        foreach ($arr as $k => $v) {
-            $key = jqGrid_Utils::checkAlphanum($k);
-            if (is_object($v) and $v instanceof jqGrid_Data) {
-                $val = strval($v); //no escaping on specififc field
-            } else {
-                $val = is_null($v) ? 'NULL' : $this->toSql($v);
-            }
-            $clean[$key] = $val;
-        }
-
-        return $clean;
     }
 }

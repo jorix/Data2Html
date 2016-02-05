@@ -25,7 +25,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
     var _req = function() {
         return {
             method: 'POST',
-            url: d2h_local['$${id}'].controller + '?lang=ca',
+            url: d2h_local['$${id}'].controller + 'lang=ca',
             headers: {
                 'Content-Type': undefined
             },

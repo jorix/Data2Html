@@ -69,7 +69,7 @@ class Data2Html_Controller
                     $page->getInteger('pageSize', 0)
                 );
                 if ($oper === '') {
-                    echo $data->toJsonDocs($ra);
+                    echo $this->toJsonDocs($ra);
                 } else {    
                     $this->responseJson($ra); 
                 }
@@ -89,6 +89,7 @@ class Data2Html_Controller
                     $sql,
                     $data->colDefs
                 );
+                $this->responseJson($ra);
                 return;
 
             case 'insert':

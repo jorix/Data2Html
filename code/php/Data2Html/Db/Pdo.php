@@ -61,7 +61,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         return $result->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function toSql($val)
+    public function stringToSql($val)
     {
         if (is_null($val)) {
             return 'null';

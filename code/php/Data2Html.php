@@ -7,6 +7,8 @@ abstract class Data2Html
     protected $id;
     protected $configOptions = array();
     public $debug = false;
+    public $model;
+    public $controller;
     //
     public $table = '';
     public $sql = '';
@@ -14,13 +16,43 @@ abstract class Data2Html
     public $colDefs = array();
     public $filterDefs = array();
     private static $idCount = 0;
-
+    
+    protected $keywords = array(
+        'autoKey' => 'constraints',
+        'boolean' => 'type',
+        'currency' => 'type',
+        'date' => 'type',
+        'db' => 'db',
+        'default' => 'default',
+        'email' => 'type',
+        'emails' => 'type',
+        'foreignKey' => 'constraints',
+        'format' => 'format',
+        'integer' => 'type',
+        'label' => 'label',
+        'maxLength' => 'validation',
+        'name' => 'name',
+        'number' => 'type',
+        'required' => 'validation',
+        'string' => 'type',
+        'uniqueKey' => 'constraints',
+    );
+    protected $keywordsDefaultTypes = array(
+        'autoKey' => 'integer',
+        'email' => 'string',
+        'emails' => 'string',
+        'foreignKey' => 'integer',
+        'maxLength' => 'string',
+    );
+    protected $keywordsSingle = array(
+        'type', 'label', 'name', 'default', 'db'
+    );
     /**
      * Class constructor, initializes basic properties.
      *
      * @param jqGridLoader $loader
      */
-    public function __construct()
+    public function __construct($controllerURL = '')
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
@@ -46,10 +78,15 @@ abstract class Data2Html
         
         // Init
         //----------------
+        if ($controllerURL) {
+            $this->controller = $controllerURL;
+        }
         $this->init();
         
         if ($this->table !== '' && $this->sql !== '') {
-            throw new Exception("At `init()` can't be simultaneously set `\$this->table` and `\$this->sql`.");
+            throw new Exception(
+                "Can't be simultaneously set `\$this->table` and `\$this->sql`."
+            );
         }
     }
     public function getRoot()
@@ -90,6 +127,93 @@ abstract class Data2Html
     abstract protected function init();
     /**
      */
+    public function setModel($model)
+    {
+        $matches = null;
+        preg_match_all(
+            '/\$\$\{([\w.:]+)\}/',
+            '$subject',
+            $matches
+        );
+        $matches = $matches[1];
+    }
+    protected function parse()
+    {
+        $aux = $this->definitions();
+        $def = new Data2Html_Values($aux);
+        $this->table = $def->getString('table');
+        $this->title = $def->getString('title', $this->table);
+        
+        $fields = $this->parseFields($def->getArray('fields'));
+        $this->colDefs = $fields;
+        $this->filterDefs = $this->parseFilter($def->getArray('filter'), $fields);
+    }
+
+    protected function parseFilter($filter, $fields)
+    {
+        $colArray = array();
+        $_v = new Data2Html_Values();
+        foreach ($filter as $name => $check) {
+            $field = $fields[$name];
+            $_v->set($field);
+            $nameNew = $name.'_'.$check;
+            $field['check'] = $check;
+            $field['name'] = $nameNew;
+            $field['db'] = $_v->getString('db', $name, true);
+            $colArray[$nameNew] = $field;
+        }
+        return $colArray;
+    }
+
+    protected function parseFields($fields)
+    {    
+        $colArray = array();
+        $_v = new Data2Html_Values();
+        $defTypes = new Data2Html_Values($this->keywordsDefaultTypes);
+        foreach ($fields as $k => &$v) {
+            $_v->set($v);
+            $name = $_v->getString('name', (is_int($k) ? null : $k));
+            $def = array('name' => $name);
+            $defaultType = null;
+            foreach ($v as $kk => $vv) {
+                $isValue = is_int($kk);
+                if ($isValue) {
+                    $word = $vv;
+                } else {
+                    $word = $kk;
+                }
+                if (!isset($this->keywords[$word])) {
+                    throw new Exception(
+                        "paseFiels(): Word \"{$word}\" on field \"{$name}\" is not supported."
+                    );
+                }
+                $kwGroup = $this->keywords[$word];
+                if ($kwGroup === $word) {
+                    $def[$word] = $vv; 
+                } elseif (in_array($kwGroup, $this->keywordsSingle)) {
+                    $def[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
+                } else {
+                    if (!isset($def[$kwGroup])) {
+                        $def[$kwGroup] = array();
+                    }
+                    if ($isValue) {
+                        array_push($def[$kwGroup], $vv);
+                    } else {
+                        $def[$kwGroup][$kk] = $vv;
+                    }
+                }
+                if (!$defaultType) {
+                    $defaultType = $defTypes->getString($word);
+                }
+            }
+            if (!isset($def['type']) && $defaultType) {
+                $def['type'] = $defaultType;
+            }
+            $colArray[$name] = $def;
+        }
+        return $colArray;
+    }
+
     protected function setCols($colArray)
     {
         $matches = null;
@@ -120,12 +244,17 @@ abstract class Data2Html
     //-----------------
     /**
      * Operation executor
-     */
-    public function run($fileNameConfigDb)
+     */    
+    public function render($template)
+    {
+        $render = new Data2Html_Render($template);
+        echo $render->render($this);
+    }
+    public function run($fileNameConfigDb = 'd2h_config_db.ini')
     {
         $controller = new Data2Html_Controller($this, $fileNameConfigDb);
         $controller->run();
-    }        
+    }
 
     /**
      * Insert events
@@ -173,14 +302,14 @@ abstract class Data2Html
         if (strpos($class, 'Data2Html_') !== 0) {
             return;
         }
-        $path = str_replace('_', '/', $class).'.php';
-        $phisicalPath = $this->root_path.$path;
+        $file = str_replace('_', '/', $class).'.php';
+        $phisicalFile = $this->root_path.$file;
         #Do not interfere with other autoloads
-        if (file_exists($phisicalPath)) {
-            require $phisicalPath;
+        if (file_exists($phisicalFile)) {
+            require $phisicalFile;
         } else {
             throw new Exception(
-                "->autoload({$class}): File \"{$path}\" does not exist");
+                "->autoload({$class}): File \"{$file}\" does not exist");
         }
     }
     /**
@@ -193,5 +322,33 @@ abstract class Data2Html
             $options |= JSON_PRETTY_PRINT;
         }
         return json_encode($obj, $options);
+    }
+    
+    public static function create($loaderFileName, $prefix = '', $folder = null)
+    {
+        if (isset($_REQUEST['model'])) {
+            $_ds = DIRECTORY_SEPARATOR;
+            $path = dirname($loaderFileName).$_ds;
+            
+            $model = $_REQUEST['model'];
+            $file = $model.'.php';
+            if ($folder) {
+                $file = $folder.$_ds.$file;
+            }
+            $phisicalFile = $path.$file;
+            if (file_exists($phisicalFile)) {
+                require $phisicalFile;
+                $class = $prefix.$model;
+                $data = new $class(
+                    basename($loaderFileName).'?model='.$model.'&'
+                );
+                return $data;
+            } else {
+                throw new Exception(
+                    "->load({$model}): File \"{$file}\" does not exist.");
+            }
+        } else {
+            throw new Exception('The URL paramenter `&model=` is not set.');
+        }
     }
 }

@@ -10,7 +10,7 @@ class Data2Html_Render
         $tamplates = parse_ini_file($templateIni, true);
         $this->tamplates = new Data2Html_Values($tamplates);
     }
-    public function table($data)
+    public function render($data)
     {
         // templates
         $t = $this->tamplates->getArrayValues('table');
