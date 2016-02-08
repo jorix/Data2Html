@@ -135,9 +135,13 @@ class Data2Html_Render
             $default = $def->getString('default', 'undefined');
             $controller = $def->getString('controller', '');
             $list = $def->getArray('list');
-            $itemId = $data->createId($name);
+            $foreignKey = $def->getString('foreignKey');
             if ($list) {
                 $template = $inputSelectTpl;
+            } elseif ($foreignKey) {
+                $template = $inputSelectTpl;
+                $aaa = explode('?', $data->controller);
+                $controller = $aaa[0].'?model='.$foreignKey;
             } else {
                 $template = $inputTextTpl;
             }
@@ -149,7 +153,7 @@ class Data2Html_Render
                     '$${controller}'
                 ), 
                 array(
-                    $itemId,
+                    $data->createId($name),
                     'd2h_filter.'.$name, $label, $placeholder,
                     $default,
                     $controller

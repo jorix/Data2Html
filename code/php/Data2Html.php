@@ -15,6 +15,7 @@ abstract class Data2Html
     protected $title;
     public $colDefs = array();
     public $filterDefs = array();
+    public $servicesDefs = array();
     private static $idCount = 0;
     
     protected $keywords = array(
@@ -147,10 +148,49 @@ abstract class Data2Html
         $fields = $this->parseFields($def->getArray('fields'));
         $this->colDefs = $fields;
         $this->filterDefs = $this->parseFilter($def->getArray('filter'), $fields);
+        
+        $services = $def->getArray('services', array());
+        $this->servicesDefs = array();
+        foreach ($services as $k => &$s) {
+            $this->parseService($s, $fields);
+        }
+    }
+
+    protected function parseService(&$service, $fields)
+    {
+        $servV = new Data2Html_Values($service);
+        $service['filter'] = 
+            $this->parseFilter($servV->getArray('filter'), $fields);
+        $service['columns'] = 
+            $this->parseColumns($servV->getArray('columns'), $fields);
+    }
+
+    protected function parseColumns($colums, $fields)
+    {
+        if (!$colums) {
+            return array();
+        }
+        $_f = new Data2Html_Values($fields);
+        $colArray = array();
+        $_v = new Data2Html_Values();
+        foreach ($colums as $k => $v) {
+            if (is_int($k)) {  // name =  $v;
+                $colArray[$v] = $_f->getArray($v, array());
+            } else { // name =  $k;
+                $colArray[$k] = $_f->getArray($k, array());
+                if (is_array($v)) {
+                    $colArray[$k] = array_merge($colArray[$k], $v);
+                }
+            }
+        }
+        return $colArray;
     }
 
     protected function parseFilter($filter, $fields)
     {
+        if (!$filter) {
+            return array();
+        }
         $colArray = array();
         $_v = new Data2Html_Values();
         foreach ($filter as $name => $check) {
@@ -213,7 +253,7 @@ abstract class Data2Html
         }
         return $colArray;
     }
-
+  
     protected function setCols($colArray)
     {
         $matches = null;
@@ -331,14 +371,15 @@ abstract class Data2Html
             $path = dirname($loaderFileName).$_ds;
             
             $model = $_REQUEST['model'];
-            $file = $model.'.php';
+            $modelX = explode(':', $model);
+            $file = $modelX[0].'.php';
             if ($folder) {
                 $file = $folder.$_ds.$file;
             }
             $phisicalFile = $path.$file;
             if (file_exists($phisicalFile)) {
                 require $phisicalFile;
-                $class = $prefix.$model;
+                $class = $prefix.$modelX[0];
                 $data = new $class(
                     basename($loaderFileName).'?model='.$model.'&'
                 );

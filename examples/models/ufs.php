@@ -21,7 +21,7 @@ class aixada_ufs extends Data2Html {
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array('label' => 'UF mentora',
-                    'foreignKey' => 'ufs'
+                    'foreignKey' => 'ufs:list'
                 ),
             ),
             'constraints' => (
@@ -32,7 +32,26 @@ class aixada_ufs extends Data2Html {
                 'active' => 'EQ',
                 'mentor_uf' => 'EQ',
             ),
-            'list' => array('id', '$${name} #$${id}', 'active'),
+            'services' => array(
+                'list' => array('type' => 'list',
+                    'columns' => array('id', '$${name} #$${id}', 'active'),
+                    'filter' => array('active' => 'EQ'),
+                    'filterValues' => array(
+                        'is null', '=(sense valor)', null,
+                        'in not null', '=(té valor)', null
+                    ),
+                ),
+                'account' => array('type' => 'groupedList',
+                    'columns' => array(
+                        'id', '=UF', '$${name} #$${account_id}', 'active'
+                    ),
+                    'filter' => array('active' => 'EQ'),
+                    'filterValues' => array(
+                        'is null', null, '=(sense valor)', null,
+                        'in not null', null, '=(té valor)', null
+                    ),
+                )
+            )
         );
 /*
 
