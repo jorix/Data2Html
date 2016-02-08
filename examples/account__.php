@@ -5,7 +5,7 @@ class aixada_account extends Data2Html {
     protected function init() {
         #Set database table
         $this->table = 'aixada_account';
-        $this->controller = 'account_controller.php?';
+        $this->serviceUrl = 'account_controller.php?';
         $this->title = 'Diners';
 
         #Set columns

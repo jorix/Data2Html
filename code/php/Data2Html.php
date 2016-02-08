@@ -8,7 +8,7 @@ abstract class Data2Html
     protected $configOptions = array();
     public $debug = false;
     public $model;
-    public $controller;
+    public $serviceUrl;
     //
     public $table = '';
     public $sql = '';
@@ -53,7 +53,7 @@ abstract class Data2Html
      *
      * @param jqGridLoader $loader
      */
-    public function __construct($controllerURL = '')
+    public function __construct($serviceUrl = '')
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
@@ -79,8 +79,8 @@ abstract class Data2Html
         
         // Init
         //----------------
-        if ($controllerURL) {
-            $this->controller = $controllerURL;
+        if ($serviceUrl) {
+            $this->serviceUrl = $serviceUrl;
         }
         $this->init();
         
@@ -117,7 +117,7 @@ abstract class Data2Html
     public function getLocalJs()
     {
         return $this->toJson(array(
-                'controller' => $this->controller
+                'controller' => $this->serviceUrl
         ));
     }
     /**

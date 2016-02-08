@@ -140,7 +140,7 @@ class Data2Html_Render
                 $template = $inputSelectTpl;
             } elseif ($foreignKey) {
                 $template = $inputSelectTpl;
-                $aaa = explode('?', $data->controller);
+                $aaa = explode('?', $data->serviceUrl);
                 $controller = $aaa[0].'?model='.$foreignKey;
             } else {
                 $template = $inputTextTpl;
