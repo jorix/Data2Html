@@ -4,7 +4,7 @@ class accountId extends Data2Html {
 
     protected function init() {
         $this->sql = 
-            "SELECT id+1000 id, concat(name, ' #', id) text, active FROM aixada_uf";
+            "SELECT id+1000 value, concat(name, ' #', id) text, active FROM aixada_uf";
         $this->serviceUrl = 'accountId_controller.php?';
         
         /*
@@ -34,7 +34,7 @@ class accountId extends Data2Html {
         #Set columns
         $this->setCols(
             array(
-                'id' => array(
+                'value' => array(
                     'type' => 'integer',
                     'isKey' => true
                 ),

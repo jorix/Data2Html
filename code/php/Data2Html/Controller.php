@@ -39,10 +39,13 @@ class Data2Html_Controller
         */
         $postdata = file_get_contents("php://input");
         $request = json_decode($postdata, true);
-        // print_r($request);
-        $this->oper($db, $request);
+        $model = '';
+        if (isset($_REQUEST['model'])) {
+            $model = $_REQUEST['model'];
+        }
+        $this->oper($db, $model, $request);
     }
-    protected function oper($db, $request)
+    protected function oper($db, $model, $request)
     {
         $data = $this->data;
         $r = new Data2Html_Values($request);
@@ -53,18 +56,28 @@ class Data2Html_Controller
             case 'read':
                 $page = $r->getArrayValues('d2h_page', array());
                 $sql = $data->sql;
+                if ($model && strpos(':',$model) !== false ) {
+                    
+                    $aux = explode(':', $model);
+                    $aux2 = $data->servicesDefs[$aux[1]];
+                    $table = $aux2['table'];
+                    $colDefs = $aux2['columns'];
+                } else {
+                    $colDefs = $data->colDefs;
+                    $table = $data->table;
+                }
                 if (!$sql) {
                     $sqlObj = new Data2Html_Sql($db);
                     $sql = $sqlObj->getSelect(
-                        $data->table,
-                        $data->colDefs,
+                        $table,
+                        $colDefs,
                         $data->filterDefs,
                         $r->getArray('d2h_filter', array())
                     );
                 }
                 $ra = $db->getQueryArray(
                     $sql,
-                    $data->colDefs,
+                    $colDefs,
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
@@ -74,24 +87,6 @@ class Data2Html_Controller
                     $this->responseJson($ra); 
                 }
                 return;
-            case 'list':
-                $sql = $data->sql;
-                if (!$sql) {
-                    $sqlObj = new Data2Html_Sql($db);
-                    $sql = $sqlObj->getSelect(
-                        $data->table,
-                        $data->colDefs,
-                        $data->filterDefs,
-                        $r->getArray('d2h_filter', array())
-                    );
-                }
-                $ra = $db->getQueryArray(
-                    $sql,
-                    $data->colDefs
-                );
-                $this->responseJson($ra);
-                return;
-
             case 'insert':
                 $response['new_id'] = $this->opInsert($data);
                 break;

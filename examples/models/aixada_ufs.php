@@ -33,7 +33,8 @@ class aixada_ufs extends Data2Html {
                 'mentor_uf' => 'EQ',
             ),
             'services' => array(
-                'list' => array('type' => 'list',
+                'list' => array(
+                    'type' => 'list',
                     'columns' => array('id', '$${name} #$${id}', 'active'),
                     'filter' => array('active' => 'EQ'),
                     'filterValues' => array(
@@ -41,7 +42,8 @@ class aixada_ufs extends Data2Html {
                         'in not null', '=(té valor)', null
                     ),
                 ),
-                'account' => array('type' => 'groupedList',
+                'account' => array(
+                    'type' => 'groupedList',
                     'columns' => array(
                         'id', '=UF', '$${name} #$${account_id}', 'active'
                     ),

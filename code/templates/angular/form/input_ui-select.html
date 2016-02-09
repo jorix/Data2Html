@@ -8,7 +8,7 @@
             placeholder="$${placeholder}"
         >{{$select.selected.text}}</ui-select-match>
         <ui-select-choices 
-            repeat="item.id as item in data | filter: $select.search">
+            repeat="item.value as item in data | filter: $select.search">
             <span ng-bind-html="item.text | highlight: $select.search"></span>
         </ui-select-choices>
     </ui-select>
