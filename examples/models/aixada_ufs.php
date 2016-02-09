@@ -21,7 +21,7 @@ class aixada_ufs extends Data2Html {
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array('label' => 'UF mentora',
-                    'foreignKey' => 'ufs:list'
+                    'foreignKey' => 'aixada_ufs:list'
                 ),
             ),
             'constraints' => (

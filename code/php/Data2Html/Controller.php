@@ -10,7 +10,7 @@ class Data2Html_Controller
         $this->fileNameConfigDb = $fileNameConfigDb;
         $this->debug = $data->debug;
     }
-    public function run()
+    public function manage()
     {
         // Open db
         $c = parse_ini_file($this->fileNameConfigDb, true);

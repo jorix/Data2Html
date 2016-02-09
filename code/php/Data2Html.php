@@ -290,10 +290,10 @@ abstract class Data2Html
         $render = new Data2Html_Render($template);
         echo $render->render($this);
     }
-    public function run($fileNameConfigDb = 'd2h_config_db.ini')
+    public function manage($fileNameConfigDb = 'd2h_config_db.ini')
     {
         $controller = new Data2Html_Controller($this, $fileNameConfigDb);
-        $controller->run();
+        $controller->manage();
     }
 
     /**
@@ -364,7 +364,7 @@ abstract class Data2Html
         return json_encode($obj, $options);
     }
     
-    public static function create($loaderFileName, $prefix = '', $folder = null)
+    public static function create($loaderFileName, $folder = null)
     {
         if (isset($_REQUEST['model'])) {
             $_ds = DIRECTORY_SEPARATOR;
@@ -379,7 +379,7 @@ abstract class Data2Html
             $phisicalFile = $path.$file;
             if (file_exists($phisicalFile)) {
                 require $phisicalFile;
-                $class = $prefix.$modelX[0];
+                $class =$modelX[0];
                 $data = new $class(
                     basename($loaderFileName).'?model='.$model.'&'
                 );

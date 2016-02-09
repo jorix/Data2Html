@@ -31,7 +31,7 @@
     <div class="container">
     <?php
         require_once("../code/php/Data2Html.php");
-        $data = Data2Html::create('_controller.php', 'aixada_', 'models');
+        $data = Data2Html::create('_controller.php', 'models');
         $data->render("../code/templates/angular/table_paged.ini");
     ?>
     </div>
