@@ -114,12 +114,6 @@ abstract class Data2Html
     {
         return $this->title;
     }
-    public function getLocalJs()
-    {
-        return $this->toJson(array(
-                'controller' => $this->serviceUrl
-        ));
-    }
     /**
      * Abstract function for setting fields properties.
      *

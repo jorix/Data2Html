@@ -5,7 +5,7 @@ class accountId extends Data2Html {
     protected function init() {
         $this->sql = 
             "SELECT id+1000 id, concat(name, ' #', id) text, active FROM aixada_uf";
-        $this->controller = 'accountId_controller.php?';
+        $this->serviceUrl = 'accountId_controller.php?';
         
         /*
         // UF accounts

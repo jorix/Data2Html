@@ -81,7 +81,6 @@ class Data2Html_Render
             array(
                 '$${id}',
                 '$${title}',
-                '$${d2h_localJs}',
                 '$${filter}',
                 '$${thead}',
                 '$${tbody}',
@@ -90,7 +89,6 @@ class Data2Html_Render
             array(
                 $data->getId(),
                 $data->getTitle(),
-                $data->getLocalJs(),
                 $this->filterForm($data),
                 $thead,
                 $tbody,
@@ -101,8 +99,8 @@ class Data2Html_Render
         $tableJs = 
             "\n<script>\n".
             str_replace(
-                array('$${id}'),
-                array($data->getId()),
+                array('$${id}', '$${serviceUrl}'),
+                array($data->getId(), $data->serviceUrl),
                 $tableJsTpl
             ).
             "\n</script>\n";
@@ -133,7 +131,7 @@ class Data2Html_Render
             $label = $def->getString('label', $name);
             $placeholder = $def->getString('placeholder', $label);
             $default = $def->getString('default', 'undefined');
-            $controller = $def->getString('controller', '');
+            $serviceUrl = $def->getString('serviceUrl', '');
             $list = $def->getArray('list');
             $foreignKey = $def->getString('foreignKey');
             if ($list) {
@@ -141,7 +139,7 @@ class Data2Html_Render
             } elseif ($foreignKey) {
                 $template = $inputSelectTpl;
                 $aaa = explode('?', $data->serviceUrl);
-                $controller = $aaa[0].'?model='.$foreignKey;
+                $serviceUrl = $aaa[0].'?model='.$foreignKey;
             } else {
                 $template = $inputTextTpl;
             }
@@ -150,13 +148,13 @@ class Data2Html_Render
                     '$${id}',
                     '$${name}', '$${label}', '$${placeholder}',
                     '$${default}',
-                    '$${controller}'
+                    '$${serviceUrl}'
                 ), 
                 array(
                     $data->createId($name),
                     'd2h_filter.'.$name, $label, $placeholder,
                     $default,
-                    $controller
+                    $serviceUrl
                 ),
                 $template
             );

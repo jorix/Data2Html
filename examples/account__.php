@@ -50,7 +50,7 @@ class aixada_account extends Data2Html {
                 array(
                     'name' => 'account_id',
                     'type' => 'integer',
-                    'controller' => 'accountid_controller.php?',
+                    'serviceUrl' => 'accountid_controller.php?',
                     'label' => 'Cuenta',
                     'validations' => 'required',
                     'check' => 'EQ',
