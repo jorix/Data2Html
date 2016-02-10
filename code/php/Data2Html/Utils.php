@@ -1,5 +1,4 @@
 <?php
-
 class Data2Html_Utils
 {
     public static function readFileJson($fileName)

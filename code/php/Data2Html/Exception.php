@@ -18,11 +18,4 @@ class Data2Html_Exception extends Exception
     {
         return $this->data;
     }
-    public function __toString () 
-    {
-        $string = parent::__toString();
-        $data = Data2Html_Utils::jsonEncode($this->data);
-        // TODO: fix this
-        return "Data2Html_Exception(data):<pre>\n{$data}\n</pre>{$string}";
-    }
 }

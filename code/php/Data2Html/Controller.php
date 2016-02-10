@@ -12,17 +12,6 @@ class Data2Html_Controller
     }
     public function manage()
     {
-        // Open db
-        $c = parse_ini_file($this->fileNameConfigDb, true);
-        $dbConfig = $c['db'];
-        $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
-        $db = new $db_class(
-            $dbConfig,
-            array(
-                'debug' => $this->debug
-            )
-        );
-        
         /*
         $the_request = array_merge($_GET, $_POST);
         print_r($_POST);
@@ -37,13 +26,47 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported.");
         }
         */
-        $postdata = file_get_contents("php://input");
-        $request = json_decode($postdata, true);
-        $model = '';
-        if (isset($_REQUEST['model'])) {
-            $model = $_REQUEST['model'];
+        try {
+            $c = parse_ini_file($this->fileNameConfigDb, true);
+            $dbConfig = $c['db'];
+            $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
+            $db = new $db_class(
+                $dbConfig,
+                array(
+                    'debug' => $this->debug
+                )
+            );
+            $postData = file_get_contents("php://input");
+            $request = json_decode($postData, true);
+            $model = '';
+            if (isset($_REQUEST['model'])) {
+                $model = $_REQUEST['model'];
+            }
+            $this->oper($db, $model, $request);
+        } catch(Exception $e) {
+            // Message to user
+            $response = array();
+            if ($e instanceof Data2Html_Exception_User) {
+                header('HTTP/1.1 409 Conflict');
+                $response['message'] = $e->getUserMsg();
+            } else {
+                header('HTTP/1.1 500 Error');
+            }
+            // Error message
+            $errData = array();
+            if ($this->debug) {
+                $errData['message'] = $e->getMessage();
+                $errData['code'] = $e->getCode();
+                if ($e instanceof Data2Html_Exception) {
+                    $errData['dh2_data'] = $e->getData();
+                }
+                $errData['trace'] = explode("\n", $e->getTraceAsString());
+            } else {
+                $errData['message'] = 'No further details of the error.';
+            }
+            $response['error'] = $errData;
+            $this->responseJson($response);
         }
-        $this->oper($db, $model, $request);
     }
     protected function oper($db, $model, $request)
     {
@@ -55,16 +78,17 @@ class Data2Html_Controller
             case '':
             case 'read':
                 $page = $r->getArrayValues('d2h_page', array());
+                $table = $data->table;
                 $sql = $data->sql;
-                if ($model && strpos(':',$model) !== false ) {
-                    
+
+                print_r(strpos($model, ':'));
+                print_r($model);
+                if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
-                    $aux2 = $data->servicesDefs[$aux[1]];
-                    $table = $aux2['table'];
-                    $colDefs = $aux2['columns'];
+                    $serviceDef = $data->servicesDefs[$aux[1]];
+                    $colDefs = $serviceDef['columns'];
                 } else {
                     $colDefs = $data->colDefs;
-                    $table = $data->table;
                 }
                 if (!$sql) {
                     $sqlObj = new Data2Html_Sql($db);
@@ -81,11 +105,7 @@ class Data2Html_Controller
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
-                if ($oper === '') {
-                    echo $this->toJsonDocs($ra);
-                } else {    
-                    $this->responseJson($ra); 
-                }
+                $this->responseJson($ra); 
                 return;
             case 'insert':
                 $response['new_id'] = $this->opInsert($data);
@@ -182,15 +202,15 @@ class Data2Html_Controller
      *
      * @param  $obj object to send
      */
-    protected function toJsonDocs($obj)
-    {
-        return "<pre>\n".$this->data->toJson($obj)."\n</pre>\n";
-    }
     protected function responseJson($obj)
     {
-        header('Content-type: application/responseJson; charset=utf-8;');
-        // Prefix `")]}',\n"` is due to security considerations, see: 
-        //    * https://docs.angularjs.org/api/ng/service/$http
-        echo ")]}',\n".$this->data->toJson($obj);
+        if ($this->debug && isset($_REQUEST['debug'])) {
+            echo "<pre>\n".$this->data->toJson($obj)."\n</pre>\n";
+        } else {
+            header('Content-type: application/responseJson; charset=utf-8;');
+            // Prefix `")]}',\n"` is due to security considerations, see: 
+            //    * https://docs.angularjs.org/api/ng/service/$http
+            echo ")]}',\n".$this->data->toJson($obj);
+        }
     }
 }

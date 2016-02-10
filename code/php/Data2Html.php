@@ -4,6 +4,7 @@ abstract class Data2Html
 {
     //protected $db_params;
     protected static $modelServices = array();
+    protected static $modelFolder = null;
     protected $root_path;
     protected $id;
     protected $configOptions = array();
@@ -366,31 +367,36 @@ abstract class Data2Html
         }
         return json_encode($obj, $options);
     }
-    
-    public static function create($serviceFileName, $folderModels = null)
+    public function createService($model)
+    {    
+        $aux = explode('?', $this->serviceUrl);
+        return self::createFromModel($model, $aux[0]);
+    }
+    public static function create($serviceFileName, $modelFolder = null)
     {
         if (isset($_REQUEST['model'])) {
             $model = $_REQUEST['model'];
             $modelElements = explode(':', $model);
             $modelBase = $modelElements[0];
             if (!isset(self::$modelServices[$modelBase])) {
+                self::$modelFolder = $modelFolder;
                 self::$modelServices[$modelBase] =
-                    self::createService($model, $serviceFileName, $folderModels);
+                    self::createFromModel($model, $serviceFileName);
             }
             return self::$modelServices[$modelBase];
         } else {
             throw new Exception('The URL parameter `&model=` is not set.');
         }
     }
-    private static function createService($model, $serviceFileName, $folderModels = null)
+    private static function createFromModel($model, $serviceFileName)
     {
             $_ds = DIRECTORY_SEPARATOR;
             $path = dirname($serviceFileName).$_ds;
             
             $modelX = explode(':', $model);
             $file = $modelX[0].'.php';
-            if ($folderModels) {
-                $file = $folderModels.$_ds.$file;
+            if (self::$modelFolder) {
+                $file = self::$modelFolder.$_ds.$file;
             }
             $phisicalFile = $path.$file;
             if (file_exists($phisicalFile)) {
