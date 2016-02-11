@@ -14,7 +14,6 @@ class Data2Html_Controller
     {
         /*
         $the_request = array_merge($_GET, $_POST);
-        print_r($_POST);
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
             case 'GET':
@@ -80,22 +79,21 @@ class Data2Html_Controller
                 $page = $r->getArrayValues('d2h_page', array());
                 $table = $data->table;
                 $sql = $data->sql;
-
-                print_r(strpos($model, ':'));
-                print_r($model);
                 if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
                     $serviceDef = $data->servicesDefs[$aux[1]];
                     $colDefs = $serviceDef['columns'];
+                    $filterDefs = null;
                 } else {
                     $colDefs = $data->colDefs;
+                    $filterDefs = $data->filterDefs;
                 }
                 if (!$sql) {
                     $sqlObj = new Data2Html_Sql($db);
                     $sql = $sqlObj->getSelect(
                         $table,
                         $colDefs,
-                        $data->filterDefs,
+                        $filterDefs,
                         $r->getArray('d2h_filter', array())
                     );
                 }

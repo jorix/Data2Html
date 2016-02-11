@@ -124,16 +124,6 @@ abstract class Data2Html
     abstract protected function init();
     /**
      */
-    public function setModel($model)
-    {
-        $matches = null;
-        preg_match_all(
-            '/\$\$\{([\w.:]+)\}/',
-            '$subject',
-            $matches
-        );
-        $matches = $matches[1];
-    }
     protected function parse()
     {
         $aux = $this->definitions();
@@ -142,21 +132,21 @@ abstract class Data2Html
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
-        $this->colDefs = $fields;
         $this->filterDefs = $this->parseFilter($def->getArray('filter'), $fields);
-        
         $services = $def->getArray('services', array());
-        $_s = new Data2Html_Values($aux);
+        $dvServ = new Data2Html_Values($aux);
         foreach ($services as $k => &$s) {
             $this->parseService($s, $fields);
-            $_s->set($s);
-            switch ($_s->getString('type')) {
+            $dvServ->set($s);
+            $kkl = array_keys($s['columns']);
+            switch ($dvServ->getString('type')) {
                 case 'list':
-                    $s['columns'][0]['name'] = 'value';
-                    $s['columns'][1]['name'] = 'text';
+                    $s['columns'][$kkl[0]]['name'] = 'value';
+                    $s['columns'][$kkl[1]]['name'] = 'text';
                     break;
             }
         }
+        $this->colDefs = $fields;
         $this->servicesDefs = $services;
     }
 
@@ -179,7 +169,14 @@ abstract class Data2Html
         $_v = new Data2Html_Values();
         foreach ($colums as $k => $v) {
             if (is_int($k)) {  // name =  $v;
-                $colArray[$v] = $_f->getArray($v, array());
+                if (substr($v, 0, 1) === '=') {
+                    $colArray['d2h_i'.$k] = array( 
+                        'value' => substr($v, 1),
+                        'db' => null
+                    );
+                } else {
+                    $colArray[$v] = $_f->getArray($v, array());
+                }
             } else { // name =  $k;
                 $colArray[$k] = $_f->getArray($k, array());
                 if (is_array($v)) {
@@ -213,11 +210,16 @@ abstract class Data2Html
     {    
         $colArray = array();
         $_v = new Data2Html_Values();
+        $dvNewDef = new Data2Html_Values();
         $defTypes = new Data2Html_Values($this->keywordsDefaultTypes);
         foreach ($fields as $k => &$v) {
             $_v->set($v);
             $name = $_v->getString('name', (is_int($k) ? null : $k));
-            $def = array('name' => $name);
+            $newDef = array(
+                'name' => $name,
+                'db' => $_v->getString('db', $name, true)
+            );
+            $dvNewDef->set($newDef);
             $defaultType = null;
             foreach ($v as $kk => $vv) {
                 $isValue = is_int($kk);
@@ -228,32 +230,51 @@ abstract class Data2Html
                 }
                 if (!isset($this->keywords[$word])) {
                     throw new Exception(
-                        "paseFiels(): Word \"{$word}\" on field \"{$name}\" is not supported."
+                        "Word \"{$word}\" on field \"{$name}\" is not supported."
                     );
                 }
                 $kwGroup = $this->keywords[$word];
                 if ($kwGroup === $word) {
-                    $def[$word] = $vv; 
+                    $newDef[$word] = $vv; 
                 } elseif (in_array($kwGroup, $this->keywordsSingle)) {
-                    $def[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
+                    $newDef[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
                 } else {
-                    if (!isset($def[$kwGroup])) {
-                        $def[$kwGroup] = array();
+                    if (!isset($newDef[$kwGroup])) {
+                        $newDef[$kwGroup] = array();
                     }
                     if ($isValue) {
-                        array_push($def[$kwGroup], $vv);
+                        array_push($newDef[$kwGroup], $vv);
                     } else {
-                        $def[$kwGroup][$kk] = $vv;
+                        $newDef[$kwGroup][$kk] = $vv;
                     }
                 }
                 if (!$defaultType) {
                     $defaultType = $defTypes->getString($word);
                 }
             }
-            if (!isset($def['type']) && $defaultType) {
-                $def['type'] = $defaultType;
+            if (!isset($newDef['type']) && $defaultType) {
+                $newDef['type'] = $defaultType;
             }
-            $colArray[$name] = $def;
+            $template = $dvNewDef->getString('value');
+            if ($template) {
+                $matches = null;
+                preg_match_all(
+                    '/\$\$\{([\w.:]+)\}/',
+                    $template,
+                    $matches
+                );
+                if (count($matches[1]) > 0) {
+                    foreach ($matches[1] as $mv) {
+                        if (!isset($fields[$mv])) {
+                            throw new Exception(
+                                "At \"{$k}\" field the match \"{$mv}\" not exist on fields."
+                            );
+                        }
+                    }
+                    $newDef['serverMatches'] = $matches;
+                }
+            }
+            $colArray[$name] = $newDef;
         }
         return $colArray;
     }

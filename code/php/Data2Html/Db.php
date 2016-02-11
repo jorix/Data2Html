@@ -90,28 +90,33 @@ abstract class Data2Html_Db
      */
     public function getQueryArray($query, $fieldDefs, $pageStart = 1, $pageSize = 0)
     {
-        $rows = array();
-        $cols = array();
-        $colCount = 0;
-
         try {
             $pageSize = intval($pageSize);
             $pageStart = intval($pageStart);
         } catch (Exception $e) {
             throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
         };
-        $f = new Data2Html_Values($fieldDefs);
-        $fItem = new Data2Html_Values();
+        $dvDefs = new Data2Html_Values($fieldDefs);
+        $dvItem = new Data2Html_Values();
         $types = array();
+        $serverMatches = array();
+        foreach ($fieldDefs as $k => $v) {
+            $dvItem->set($v);
+            $name = $dvItem->getString('name', $k);
+            $types[$name] = $dvItem->getString('type');
+            $serverMatches[$name] = $dvItem->getArray('serverMatches');
+        }
+        //echo '<pre>'; print_r($types); echo '</pre>';
+        
+        // Read rs
+        $rows = array();
+        $cols = array();
+        $colCount = 0;
         $result = $this->queryPage($query, $pageStart, $pageSize);
         while ($r = $this->fetch($result)) {
-            //$row = array();
             if ($colCount === 0) {
                 foreach ($r as $k => $v) {
                     $cols[] = $k;
-                    $itemDef = $f->getArray($k, array());
-                    $fItem->set($itemDef);
-                    $types[$k] = $fItem->getString('type');
                 }
                 $colCount = count($cols);
             }
@@ -130,18 +135,27 @@ abstract class Data2Html_Db
                     unset($date);
                     break;
                 }
+                if ($serverMatches[$k]) {
+                    $matches = $serverMatches[$k];
+                    for ($i = 0; $i < count($matches[0]); $i++) {
+                        str_replace($v, $matches[0][$i], $r[$matches[1][$i]]);
+                    }
+                }
             }
             $rows[] = $r;
         }
-
-        return array(
+        $response = array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'types' => $types,
             'cols' => $cols,
-            'rows' => $rows,
-            'sql' => ($this->debug ? $query : null)
+            'types' => $types,
+            'rows' => $rows
         );
+        if ($this->debug) {
+            $response['sql'] = $query;
+            $response['serverMatches'] = $serverMatches;
+        }
+        return $response;
     }
 
     /**

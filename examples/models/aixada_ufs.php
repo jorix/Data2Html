@@ -35,7 +35,7 @@ class aixada_ufs extends Data2Html {
             'services' => array(
                 'list' => array(
                     'type' => 'list',
-                    'columns' => array('id', '$${name} #$${id}', 'active'),
+                    'columns' => array('id', '=$${name} #$${id}', 'active'),
                     'filter' => array('active' => 'EQ'),
                     'filterValues' => array(
                         'is null', '=(sense valor)', null,
@@ -45,7 +45,7 @@ class aixada_ufs extends Data2Html {
                 'account' => array(
                     'type' => 'groupedList',
                     'columns' => array(
-                        'id', '=UF', '$${name} #$${account_id}', 'active'
+                        'id', '=UFx', '=$${name} #$${account_id}', 'active'
                     ),
                     'filter' => array('active' => 'EQ'),
                     'filterValues' => array(
