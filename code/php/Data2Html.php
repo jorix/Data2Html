@@ -31,6 +31,7 @@ abstract class Data2Html
         'emails' => 'type',
         'foreignKey' => 'foreignKey',
         'format' => 'format',
+        'hidden' => 'display',
         'integer' => 'type',
         'label' => 'label',
         'maxLength' => 'validation',
@@ -39,6 +40,8 @@ abstract class Data2Html
         'required' => 'validation',
         'string' => 'type',
         'uniqueKey' => 'constraints',
+        'value' => 'value',
+        'visualClass' => 'visualClass',
     );
     protected $keywordsDefaultTypes = array(
         'autoKey' => 'integer',
@@ -48,7 +51,7 @@ abstract class Data2Html
         'maxLength' => 'string',
     );
     protected $keywordsSingle = array(
-        'type', 'label', 'name', 'default', 'db'
+        'type', 'label', 'name', 'default', 'db', 'value'
     );
     /**
      * Class constructor, initializes basic properties.
@@ -84,13 +87,6 @@ abstract class Data2Html
         if ($serviceUrl) {
             $this->serviceUrl = $serviceUrl;
         }
-        $this->init();
-        
-        if ($this->table !== '' && $this->sql !== '') {
-            throw new Exception(
-                "Can't be simultaneously set `\$this->table` and `\$this->sql`."
-            );
-        }
     }
     public function getRoot()
     {
@@ -117,15 +113,14 @@ abstract class Data2Html
         return $this->title;
     }
     /**
-     * Abstract function for setting fields properties.
-     *
-     * @abstract
      */
-    abstract protected function init();
-    /**
-     */
-    protected function parse()
+    public function parse()
     {
+        if ($this->table !== '' && $this->sql !== '') {
+            throw new Exception(
+                "Can't be simultaneously set `\$this->table` and `\$this->sql`."
+            );
+        }
         $aux = $this->definitions();
         $def = new Data2Html_Values($aux);
         $this->table = $def->getString('table');
@@ -166,14 +161,15 @@ abstract class Data2Html
         }
         $_f = new Data2Html_Values($fields);
         $colArray = array();
-        $_v = new Data2Html_Values();
         foreach ($colums as $k => $v) {
             if (is_int($k)) {  // name =  $v;
                 if (substr($v, 0, 1) === '=') {
-                    $colArray['d2h_i'.$k] = array( 
+                    $name = 'd2h_i'.$k; 
+                    $field = array( 
                         'value' => substr($v, 1),
                         'db' => null
                     );
+                    $colArray += $this->parseField($name, $field);
                 } else {
                     $colArray[$v] = $_f->getArray($v, array());
                 }
@@ -184,6 +180,28 @@ abstract class Data2Html
                 }
             }
         }
+        $matchedFields = array();
+        foreach ($colArray as $v) {
+            if (isset($v['serverMatches'])) {
+                $matchedFields = array_merge(
+                    $matchedFields,
+                    $v['serverMatches'][1]
+                );
+            }
+        }
+        if (count($matchedFields) > 0) {
+            foreach ($matchedFields as $name) {
+                if (!isset($colArray[$name])) {
+                    if (isset($fields[$name])) {
+                        $colArray[$name] = $fields[$name];
+                    } else {
+                        throw new Exception(
+                            "Match `\$\${{$name}}` is used in a service but not exist on fields."
+                        );
+                    }
+                }
+            }
+        } 
         return $colArray;
     }
 
@@ -195,6 +213,11 @@ abstract class Data2Html
         $colArray = array();
         $_v = new Data2Html_Values();
         foreach ($filter as $name => $check) {
+            if (!isset($fields[$name])) {
+                throw new Exception(
+                    "Filter field `{$name}` is used in a filter but not exist on fields."
+                );
+            }
             $field = $fields[$name];
             $_v->set($field);
             $nameNew = $name.'_'.$check;
@@ -209,97 +232,102 @@ abstract class Data2Html
     protected function parseFields($fields)
     {    
         $colArray = array();
-        $_v = new Data2Html_Values();
-        $dvNewDef = new Data2Html_Values();
-        $defTypes = new Data2Html_Values($this->keywordsDefaultTypes);
+        $matchedFields = array();
         foreach ($fields as $k => &$v) {
-            $_v->set($v);
-            $name = $_v->getString('name', (is_int($k) ? null : $k));
-            $newDef = array(
-                'name' => $name,
-                'db' => $_v->getString('db', $name, true)
-            );
-            $dvNewDef->set($newDef);
-            $defaultType = null;
-            foreach ($v as $kk => $vv) {
-                $isValue = is_int($kk);
-                if ($isValue) {
-                    $word = $vv;
-                } else {
-                    $word = $kk;
-                }
-                if (!isset($this->keywords[$word])) {
-                    throw new Exception(
-                        "Word \"{$word}\" on field \"{$name}\" is not supported."
+            $newField = $this->parseField($k, $v);
+            foreach ($newField as $nv) {
+                if (isset($nv['serverMatches'])) {
+                    $matchedFields = array_merge(
+                        $matchedFields,
+                        $nv['serverMatches'][1]
                     );
                 }
-                $kwGroup = $this->keywords[$word];
-                if ($kwGroup === $word) {
-                    $newDef[$word] = $vv; 
-                } elseif (in_array($kwGroup, $this->keywordsSingle)) {
-                    $newDef[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
-                } else {
-                    if (!isset($newDef[$kwGroup])) {
-                        $newDef[$kwGroup] = array();
-                    }
-                    if ($isValue) {
-                        array_push($newDef[$kwGroup], $vv);
-                    } else {
-                        $newDef[$kwGroup][$kk] = $vv;
-                    }
-                }
-                if (!$defaultType) {
-                    $defaultType = $defTypes->getString($word);
-                }
             }
-            if (!isset($newDef['type']) && $defaultType) {
-                $newDef['type'] = $defaultType;
-            }
-            $template = $dvNewDef->getString('value');
-            if ($template) {
-                $matches = null;
-                preg_match_all(
-                    '/\$\$\{([\w.:]+)\}/',
-                    $template,
-                    $matches
-                );
-                if (count($matches[1]) > 0) {
-                    foreach ($matches[1] as $mv) {
-                        if (!isset($fields[$mv])) {
-                            throw new Exception(
-                                "At \"{$k}\" field the match \"{$mv}\" not exist on fields."
-                            );
-                        }
-                    }
-                    $newDef['serverMatches'] = $matches;
-                }
-            }
-            $colArray[$name] = $newDef;
+            $colArray += $newField;
         }
+        if (count($matchedFields) > 0) {
+            foreach ($matchedFields as $v) {
+                if (!isset($colArray[$v])) {
+                    throw new Exception(
+                        "Match \"\$\${{$v}}\" not exist on fields."
+                    );
+                }
+            }
+        } 
         return $colArray;
     }
-  
-    protected function setCols($colArray)
-    {
-        $matches = null;
-        preg_match_all(
-            '/\$\$\{([\w.:]+)\}/',
-            '$subject',
-            $matches
+
+    protected function parseField($key, $field)
+    {    
+        $dvField = new Data2Html_Values($field);
+        $name = $dvField->getString('name', (is_int($key) ? null : $key));
+        if (!$name) {
+            $name = $this->createId('field');
+        }
+        $dvNewDef = new Data2Html_Values();
+        $defTypes = new Data2Html_Values($this->keywordsDefaultTypes);
+        $newField = array(
+            'name' => $name,
+            'db' => $dvField->getString('db', $name, true)
         );
-        $matches = $matches[1];
-        $this->colDefs = $colArray;
+        $dvNewDef->set($newField);
+        $defaultType = null;
+        foreach ($field as $kk => $vv) {
+            $isValue = is_int($kk);
+            if ($isValue) {
+                $word = $vv;
+            } else {
+                $word = $kk;
+            }
+            if (!isset($this->keywords[$word])) {
+                throw new Exception(
+                    "Word \"{$word}\" on field \"{$name}\" is not supported."
+                );
+            }
+            $kwGroup = $this->keywords[$word];
+            if ($kwGroup === $word) {
+                $newField[$word] = $vv; 
+            } elseif (in_array($kwGroup, $this->keywordsSingle)) {
+                $newField[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
+            } else {
+                if (!isset($newField[$kwGroup])) {
+                    $newField[$kwGroup] = array();
+                }
+                if ($isValue) {
+                    array_push($newField[$kwGroup], $vv);
+                } else {
+                    $newField[$kwGroup][$kk] = $vv;
+                }
+            }
+            if (!$defaultType) {
+                $defaultType = $defTypes->getString($word);
+            }
+        }
+        if (!isset($newField['type']) && $defaultType) {
+            $newField['type'] = $defaultType;
+        }
+        $value = $dvNewDef->getString('value');
+        if ($value) {
+            $newField['db'] = null;
+            $matches = null;
+            preg_match_all('/\$\$\{([\w.:]+)\}/', $value, $matches);
+            if (count($matches[0]) > 0) {
+                $newField['serverMatches'] = $matches;
+            }
+        }
+        return array($name => $newField);
     }
+
     protected function setFilter($filterArray)
     {
-        $_v = new Data2Html_Values();
+        $dvField = new Data2Html_Values();
         foreach ($filterArray as $k => &$v) {
-            $_v->set($v);
-            $name = $_v->getString('name', (is_int($k) ? null : $k));
-            $check = $_v->getString('check');
-            $v['label'] = $_v->getString('label', $name, true);
+            $dvField->set($v);
+            $name = $dvField->getString('name', (is_int($k) ? null : $k));
+            $check = $dvField->getString('check');
+            $v['label'] = $dvField->getString('label', $name, true);
             $v['name'] = $name.'_'.$check;
-            $v['db'] = $_v->getString('db', $name, true);
+            $v['db'] = $dvField->getString('db', $name, true);
         }
         $this->filterDefs = $filterArray;
     }

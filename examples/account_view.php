@@ -30,10 +30,10 @@
 <body>
     <div class="container">
     <?php
-        require_once("account__.php");
-        $a = new aixada_account();
-        $render = new Data2Html_Render("../code/templates/angular/table_paged.ini");
-        echo $render->render($a);
+        require_once("../code/php/Data2Html.php");
+        require_once("models/aixada_accounts.php");
+        $a = new aixada_accounts('account_controller.php');
+        $a->render("../code/templates/angular/table_paged.ini");
     ?>
     </div>
 </body>

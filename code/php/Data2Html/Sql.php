@@ -20,16 +20,15 @@ class Data2Html_Sql
             $def->set($v);
             $name = $def->getString('name', $k);
             $dbName = $def->getString('db', $name, true);
-            $value = $def->getString('value');
+            //$value = $def->getString('value');
             if ($dbName !== null) {
                 if ($name === $dbName) {
                     array_push($dbfs, $dbName);
                 } else {
                     array_push($dbfs, $dbName.' '.$name);
                 }
-            } elseif ($value) {
-                array_push($dbfs, $this->db->stringToSql($value).' '.$name);
-                
+            //} elseif ($value) {
+            //    array_push($dbfs, $this->db->stringToSql($value).' '.$name);
             }
         }
         if (count($dbfs) === 0) {

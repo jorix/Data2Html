@@ -26,6 +26,7 @@ class Data2Html_Controller
         }
         */
         try {
+            $this->data->parse();
             $c = parse_ini_file($this->fileNameConfigDb, true);
             $dbConfig = $c['db'];
             $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];

@@ -13,6 +13,7 @@ class Data2Html_Render
     public function render($data)
     {
         // templates
+        $data->parse();
         $t = $this->tamplates->getArrayValues('table');
         if (!$t) {
             return '';

@@ -99,15 +99,23 @@ abstract class Data2Html_Db
         $dvDefs = new Data2Html_Values($fieldDefs);
         $dvItem = new Data2Html_Values();
         $types = array();
+        $values = array();
+        $fielsNames = array();
         $serverMatches = array();
         foreach ($fieldDefs as $k => $v) {
             $dvItem->set($v);
             $name = $dvItem->getString('name', $k);
             $types[$name] = $dvItem->getString('type');
-            $serverMatches[$name] = $dvItem->getArray('serverMatches');
+            $fielsNames[$k] = $name;
+            $value = $dvItem->getString('value');
+            if ($value) {
+                $values[$name] = $value;
+                $matches = $dvItem->getArray('serverMatches');
+                if ($matches) {
+                    $serverMatches[$name] = $matches;
+                }
+            }
         }
-        //echo '<pre>'; print_r($types); echo '</pre>';
-        
         // Read rs
         $rows = array();
         $cols = array();
@@ -135,11 +143,16 @@ abstract class Data2Html_Db
                     unset($date);
                     break;
                 }
-                if ($serverMatches[$k]) {
-                    $matches = $serverMatches[$k];
-                    for ($i = 0; $i < count($matches[0]); $i++) {
-                        str_replace($v, $matches[0][$i], $r[$matches[1][$i]]);
-                    }
+            }
+            $r += $values;
+            foreach ($serverMatches as $mk => $mv) {
+                $marches = $serverMatches[$mk];
+                for ($i = 0; $i < count($matches[0]); $i++) {
+                    $r[$mk] = str_replace(
+                        $matches[0][$i],
+                        $r[$fielsNames[$matches[1][$i]]],
+                        $r[$mk]
+                    );
                 }
             }
             $rows[] = $r;

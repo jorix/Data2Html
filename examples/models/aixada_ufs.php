@@ -1,11 +1,6 @@
 <?php
 class aixada_ufs extends Data2Html {
 
-    protected function init()
-    {
-        $this->parse();
-    }
-
     protected function definitions()
     {
         #Set database table
@@ -43,9 +38,9 @@ class aixada_ufs extends Data2Html {
                     ),
                 ),
                 'account' => array(
-                    'type' => 'groupedList',
+                    'type' => 'list',
                     'columns' => array(
-                        'id', '=UFx', '=$${name} #$${account_id}', 'active'
+                        'id', '=$${name} #$${account_id}', 'active'
                     ),
                     'filter' => array('active' => 'EQ'),
                     'filterValues' => array(
