@@ -28,228 +28,232 @@
     <title>Simple Datagrid with search, sort and paging using AngularJS, PHP, MySQL</title>
 </head>
 <body>
-    <div class="container">
-    <div 
-    ng-controller="d2h_1_aixada_ufs"
->
-<div class="row" 
-    form="form"
-    XXng-controller="d2h_1_aixada_ufs_filter"
->
-    <form novalidate class="simple-form">
-    <div>
-        <div class="col-md-3">Filter:
-            <input type="text" placeholder="Filter" class="form-control" 
-                ng-model="search"
-            />
+<div class="container">
+<div ng-controller="d2h_1_aixada_accounts">
+    <div class="row"  form="form" ng-controller="d2h_1_aixada_accounts_filter">
+        <form novalidate class="simple-form">
+        <div>
+            <div class="col-md-3">Filter:
+                <input type="text" placeholder="Filter" class="form-control" 
+                    ng-model="search"
+                />
+            </div>
+            <span class="col-md-3" ng-controller="d2h_2_account_id_EQ">account_id_EQ:
+                <ui-select
+                    ng-model="d2h_filter.account_id_EQ"
+                    theme="bootstrap"
+                    ng-disabled="disabled"
+                >
+                    <ui-select-match 
+                        placeholder="account_id_EQ"
+                    >{{$select.selected.text}}</ui-select-match>
+                    <ui-select-choices 
+                        repeat="item.value as item in data | filter: $select.search">
+                        <span ng-bind-html="item.text | highlight: $select.search"></span>
+                    </ui-select-choices>
+                </ui-select>
+            </span>
+            <script>
+                d2h_App.controller('d2h_2_account_id_EQ', function($scope, $http) {
+                    $scope.disabled = undefined;
+
+                    $scope.enable = function() {
+                        $scope.disabled = false;
+                    };
+                    $scope.disable = function() {
+                        $scope.disabled = true;
+                    };
+                    $scope.clear = function() {
+                        $scope.selected = undefined;
+                    };
+                    $scope.item = {};
+                    $http({
+                        method: 'POST',
+                        url: '_controller.php?model=aixada_ufs:account&lang=ca',
+                        headers: {
+                            'Content-Type': undefined
+                        },
+                        data: {d2h_oper: 'read'}
+                    }).then(
+                        function(response) { // Ok
+                            $scope.data = response.data.rows;
+                        }, function(response) { // Error
+                            console.log(response.status);
+                        }
+                    );
+                });  
+            </script>
+            <div class="col-md-3">description_EQ:
+                <input type="text" 
+                    placeholder="description_EQ"
+                    class="form-control" 
+                    ng-model="d2h_filter.description_EQ"
+                >
+            </div>
+            <input type="button" ng-click="reset(form)" value="Reset" />
+            <input type="submit" ng-click="initialPage()" value="Filter" />
         </div>
-        
-<div class="col-md-3">Nom:
-<input type="text" 
-    placeholder="Nom"
-    class="form-control" 
-    ng-model="d2h_filter."
->
-</div>
-
-<div class="col-md-3">:
-<input type="text" 
-    placeholder=""
-    class="form-control" 
-    ng-model="d2h_filter."
->
-</div>
-
-        <input type="button" ng-click="reset(form)" value="Reset" />
-        <input type="submit" ng-click="initialPage()" value="Filter" />
+        </form>
     </div>
-    </form>
-</div>
-<!-- script>
-    d2h_App.controller('d2h_1_aixada_ufs_filter', ['$scope', function($scope) {
-        $scope.send = function() {
-            $scope.initialPage();
-        };
-        $scope.reset = function(form) {
-            if (form) {
-                form.$setPristine();
-                form.$setUntouched();
-            }
-        };
-        $scope.reset();
-    }]);
-</script -->
-
-<div class="row"
->
-    <div class="col-md-12" id="d2h_1_aixada_ufs"
-    >
-        <h3>aixada_uf</h3>
-        <table class="table table-striped table-bordered">
-            <thead><tr>
-                <th>id <a
-    title="ordre creixent"
-    ng-click="sortBy('id', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='id' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('id', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='id' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>account_id <a
-    title="ordre creixent"
-    ng-click="sortBy('account_id', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='account_id' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('account_id', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='account_id' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>Nom <a
-    title="ordre creixent"
-    ng-click="sortBy('name', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='name' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('name', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='name' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>active <a
-    title="ordre creixent"
-    ng-click="sortBy('active', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='active' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('active', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='active' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>created <a
-    title="ordre creixent"
-    ng-click="sortBy('created', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='created' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('created', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='created' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>mentor_uf <a
-    title="ordre creixent"
-    ng-click="sortBy('mentor_uf', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='mentor_uf' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('mentor_uf', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='mentor_uf' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-
-            </tr></thead>
-            <tfoot ng-show="filtered.length > 0" ng-cloak><tr>
-                <td colspan="6">
-                    <div class="form-inline">
-                        <button class="btn btn-default hidden-xs "
-                            title="Refresh data"
-                            ng-click="initialPage()"
-                        >
-                            <span class="glyphicon glyphicon-refresh"
-                                aria-label="Refresh data"
-                                aria-hidden="true"></span>
-                        </button>
-                        <select class="form-control" style="padding:0;"
-                            title="Rows per page"
-                            ng-model="pageSize"
-                            ng-init="pageSize=pageSizeOp[0].value"
-                            ng-change="initialPage()"
-                            ng-options="opt.value as opt.text for opt in pageSizeOp"
-                        ></select>
-                        <button class="btn btn-default"
-                            title="Next page"
-                            ng-click="nextPage()"
-                        >
-                            <span class="glyphicon glyphicon-forward"
-                                aria-hidden="true"></span>
-                            <span class="hidden-xs hidden-sm">
-                                Next page
+    <div class="row">
+        <div class="col-md-12" id="d2h_1_aixada_accounts">
+            <h3>Diners</h3>
+            <table class="table table-striped table-bordered">
+                <thead>
+                <tr>
+                    <th>id <a
+                        title="ordre creixent"
+                        ng-click="sortBy('id', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='id' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('id', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='id' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>Usuari <a
+                        title="ordre creixent"
+                        ng-click="sortBy('operator', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='operator' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('operator', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='operator' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>description <a
+                        title="ordre creixent"
+                        ng-click="sortBy('description', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='description' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('description', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='description' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>method <a
+                        title="ordre creixent"
+                        ng-click="sortBy('method', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='method' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('method', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='method' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>quantity <a
+                        title="ordre creixent"
+                        ng-click="sortBy('quantity', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='quantity' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('quantity', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='quantity' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>balance <a
+                        title="ordre creixent"
+                        ng-click="sortBy('balance', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='balance' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('balance', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='balance' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                    <th>data <a
+                        title="ordre creixent"
+                        ng-click="sortBy('ts', false);"><span
+                        aria-label="ordre creixent" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='ts' && !reverse}"
+                        class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+                        title="ordre invers"
+                        ng-click="sortBy('ts', true);"><span
+                        aria-label="ordre invers" aria-hidden="true"
+                        ng-class="{d2h_sortActivated: predicate=='ts' && reverse}"
+                        aria-hidden="true"
+                        class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+                </tr>
+                </thead>
+                <tfoot ng-show="filtered.length > 0" ng-cloak>
+                <tr>
+                    <td colspan="8">
+                        <div class="form-inline">
+                            <button class="btn btn-default hidden-xs "
+                                title="Refresh data"
+                                ng-click="initialPage()"
+                            >
+                                <span class="glyphicon glyphicon-refresh"
+                                    aria-label="Refresh data"
+                                    aria-hidden="true"></span>
+                            </button>
+                            <select class="form-control" style="padding:0;"
+                                title="Rows per page"
+                                ng-model="pageSize"
+                                ng-init="pageSize=pageSizeOp[0].value"
+                                ng-change="initialPage()"
+                                ng-options="opt.value as opt.text for opt in pageSizeOp"
+                            ></select>
+                            <button class="btn btn-default"
+                                title="Next page"
+                                ng-click="nextPage()"
+                            >
+                                <span class="glyphicon glyphicon-forward"
+                                    aria-hidden="true"></span>
+                                <span class="hidden-xs hidden-sm">
+                                    Next page
+                                </span>
+                            </button>
+                            <span
+                                ng-init="start()"
+                            ng-cloak>
+                                Filtered {{filtered.length}} of {{data.length}}
                             </span>
-                        </button>
-                        <span
-                            ng-init="start()"
-                        ng-cloak>
-                            Filtered {{filtered.length}} of {{data.length}}
-                        </span>
-                    </div>
-                </td>
-                </tr></tfoot>
-            <tbody ng-show="filtered.length > 0" ng-cloak><tr 
-                   ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
-                <td class="text-right">{{item.id}}</td>
-<td class="text-right">{{item.account_id}}</td>
-<td>{{item.name}}</td>
-<td>{{item.active}}</td>
-<td>{{item.created | date:'dd-MM-yy HH:mm'}}</td>
-<td class="text-right">{{item.mentor_uf}}</td>
-
-            </tr></tbody>
-        </table>
-        <div
-        class="alert alert-warning" role="alert"
-        ng-show="filtered.length == 0" ng-cloak>
-            No data found
+                        </div>
+                    </td>
+                </tr>
+                </tfoot>
+                <tbody ng-show="filtered.length > 0" ng-cloak>
+                <tr 
+                       ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
+                    <td class="text-right">{{item.id}}</td>
+                    <td>{{item.operator}}</td>
+                    <td>{{item.description}}</td>
+                    <td>{{item.method}}</td>
+                    <td ng-class="{red:item.quantity<0}" class="text-right">{{item.quantity | number:'2'}}</td>
+                    <td ng-class="{red:item.balance<0}" class="text-right">{{item.balance | currency}}</td>
+                    <td>{{item.ts | date:'dd-MM-yy HH:mm'}}</td>
+                </tr>
+                </tbody>
+            </table>
+            <div
+            class="alert alert-warning" role="alert"
+            ng-show="filtered.length == 0" ng-cloak>
+                No data found
+            </div>
         </div>
     </div>
 </div>
 <script>
-    d2h_local['d2h_1_aixada_ufs'] = {
-    "controller": "_view.php?model=ufs&"
-};
-</script>
-</div>
-<script>
-/*
-function ContactDirective(){
-  return {
-    restrict: 'E',
-    templateUrl: 'my-contact-template.html',
-    controller: 'contactController',
-    controllerAs: 'contactCtrl',
-    scope: {
-      contact: '='
-    },
-    link:function(scope, elem, attrs, contactCtrl){
-      scope.$watch('contact', function(newContact){
-        //Still just initializing the contact using
-        // the controller
-        contactCtrl.setContact(newContact);
-      });
-    }
-  };
-}
-*/
-
-d2h_App.controller('d2h_1_aixada_ufs', function ($scope, $http) {
+d2h_App.controller('d2h_1_aixada_accounts', function ($scope, $http) {
     $scope.d2h_filter={};
     // server
     var _req = function() {
         return {
             method: 'POST',
-            url: d2h_local['d2h_1_aixada_ufs'].controller + 'lang=ca',
+            url: '_controller.php?model=aixada_accounts&lang=ca',
             headers: {
                 'Content-Type': undefined
             },
@@ -310,6 +314,6 @@ d2h_App.controller('d2h_1_aixada_ufs', function ($scope, $http) {
     };
 });
 </script>
-    </div>
+</div>
 </body>
 </html>

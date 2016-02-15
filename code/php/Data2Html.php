@@ -196,7 +196,7 @@ abstract class Data2Html
                         $colArray[$name] = $fields[$name];
                     } else {
                         throw new Exception(
-                            "Match `\$\${{$name}}` is used in a service but not exist on fields."
+                            "Match `\$\${{$name}}` used in a service not exist on `fields`."
                         );
                     }
                 }
@@ -215,7 +215,7 @@ abstract class Data2Html
         foreach ($filter as $name => $check) {
             if (!isset($fields[$name])) {
                 throw new Exception(
-                    "Filter field `{$name}` is used in a filter but not exist on fields."
+                    "Filter field `{$name}` used in a filter not exist on `fields`."
                 );
             }
             $field = $fields[$name];
@@ -249,7 +249,7 @@ abstract class Data2Html
             foreach ($matchedFields as $v) {
                 if (!isset($colArray[$v])) {
                     throw new Exception(
-                        "Match \"\$\${{$v}}\" not exist on fields."
+                        "Match `\$\${{$v}}` not exist on `fields`."
                     );
                 }
             }
@@ -332,23 +332,52 @@ abstract class Data2Html
         $this->filterDefs = $filterArray;
     }
     
-    //-----------------
-    // Operation executor and events
-    //-----------------
+    // ========================
+    // Server
+    // ========================
     /**
-     * Operation executor
+     * Render
      */    
     public function render($template)
     {
-        $render = new Data2Html_Render($template);
-        echo $render->render($this);
+        try {
+            $this->parse();
+            $render = new Data2Html_Render($template);
+            echo $render->render($this);
+        } catch(Exception $e) {
+            // Message to user
+            $exData = $this->exception2Data($e);
+            $html = '<h3>Error: <span style="color:red">'.
+                $exData['error'].'</span></h3>';
+            if (isset($exData['exception'])) {
+                $html .= '<div style="margin-left:1em">Exception:<pre>'.
+                    $this->toJson($exData['exception']).'</pre></div>';
+            }
+            echo $html;
+        }
     }
+    /**
+     * Controller
+     */    
     public function manage($fileNameConfigDb = 'd2h_config_db.ini')
     {
-        $controller = new Data2Html_Controller($this, $fileNameConfigDb);
-        $controller->manage();
+        try {$this->parse();
+            $controller = new Data2Html_Controller($this, $fileNameConfigDb);
+            $this->responseJson($controller->manage());
+        } catch(Exception $e) {
+            // Message to user
+            if ($e instanceof Data2Html_Exception_User) {
+                header('HTTP/1.1 409 Conflict');
+            } else {
+                header('HTTP/1.1 500 Error');
+            }
+            $this->responseJson($this->exception2Data($e));
+        }
     }
 
+    // ========================
+    // Events
+    // ========================
     /**
      * Insert events
      */
@@ -379,12 +408,40 @@ abstract class Data2Html
         return true;
     }
     protected function afterDelete($keyArray)
-    {
-    }
+    {    }
 
-    //----------------
+    // ========================
     // Utils
-    //----------------
+    // ========================
+    // -------------
+    /**
+     * Exception to data structure
+     */
+    protected function exception2Data($exception)
+    {
+        $response = array();
+        if ($this->debug) {
+            // Error
+            $response['error'] = $exception->getMessage();
+            if ($exception->getCode()) {
+                $response['error'] .= ' [ code: '.$exception->getCode().' ]';
+            }
+            // Exception to debug
+            $exeptionData = array();
+            if ($exception instanceof Data2Html_Exception) {
+                $exeptionData['data'] = $exception->getData();
+            }
+            $exeptionData['fileLine'] = $exception->getFile().
+                ' [ line: '.$exception->getLine().' ]';
+            $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
+            $response['exception'] = $exeptionData;
+        } else {
+            $response['error'] =
+                'An unexpected error has stopped the execution on the server.';
+        }
+        return $response;
+    }
+    // -------------
     /**
      * Auto load.
      */
@@ -405,8 +462,9 @@ abstract class Data2Html
                 "->autoload({$class}): File \"{$file}\" does not exist");
         }
     }
+    // -------------
     /**
-     * PHP object to a JSON text
+     * PHP-object to a JSON text
      */
     public function toJson($obj)
     {
@@ -416,11 +474,32 @@ abstract class Data2Html
         }
         return json_encode($obj, $options);
     }
+    /**
+     * @param $obj object to send
+     */
+    protected function responseJson($obj)
+    {
+        if ($this->debug && isset($_REQUEST['debug'])) {
+            echo "<pre>\n".$this->toJson($obj)."\n</pre>\n";
+        } else {
+            header('Content-type: application/responseJson; charset=utf-8;');
+            // Prefix `")]}',\n"` is due to security considerations, see: 
+            //    * https://docs.angularjs.org/api/ng/service/$http
+            echo ")]}',\n".$this->toJson($obj);
+        }
+    }
+    // -------------
+    /**
+     * Load and create one model
+     */
     public function createService($model)
     {    
         $aux = explode('?', $this->serviceUrl);
         return self::createFromModel($model, $aux[0]);
     }
+    /**
+     * Load and create one model
+     */
     public static function create($serviceFileName, $modelFolder = null)
     {
         if (isset($_REQUEST['model'])) {

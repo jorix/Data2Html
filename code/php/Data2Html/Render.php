@@ -11,9 +11,7 @@ class Data2Html_Render
         $this->tamplates = new Data2Html_Values($tamplates);
     }
     public function render($data)
-    {
-        // templates
-        $data->parse();
+    {        // templates
         $t = $this->tamplates->getArrayValues('table');
         if (!$t) {
             return '';

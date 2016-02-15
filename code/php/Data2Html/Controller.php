@@ -25,48 +25,25 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported.");
         }
         */
-        try {
-            $this->data->parse();
-            $c = parse_ini_file($this->fileNameConfigDb, true);
-            $dbConfig = $c['db'];
-            $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
-            $db = new $db_class(
-                $dbConfig,
-                array(
-                    'debug' => $this->debug
-                )
-            );
-            $postData = file_get_contents("php://input");
-            $request = json_decode($postData, true);
-            $model = '';
-            if (isset($_REQUEST['model'])) {
-                $model = $_REQUEST['model'];
-            }
-            $this->oper($db, $model, $request);
-        } catch(Exception $e) {
-            // Message to user
-            $response = array();
-            if ($e instanceof Data2Html_Exception_User) {
-                header('HTTP/1.1 409 Conflict');
-                $response['message'] = $e->getUserMsg();
-            } else {
-                header('HTTP/1.1 500 Error');
-            }
-            // Error message
-            $errData = array();
-            if ($this->debug) {
-                $errData['message'] = $e->getMessage();
-                $errData['code'] = $e->getCode();
-                if ($e instanceof Data2Html_Exception) {
-                    $errData['dh2_data'] = $e->getData();
-                }
-                $errData['trace'] = explode("\n", $e->getTraceAsString());
-            } else {
-                $errData['message'] = 'No further details of the error.';
-            }
-            $response['error'] = $errData;
-            $this->responseJson($response);
+
+        
+        $this->data->parse();
+        $c = parse_ini_file($this->fileNameConfigDb, true);
+        $dbConfig = $c['db'];
+        $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
+        $db = new $db_class(
+            $dbConfig,
+            array(
+                'debug' => $this->debug
+            )
+        );
+        $postData = file_get_contents("php://input");
+        $request = json_decode($postData, true);
+        $model = '';
+        if (isset($_REQUEST['model'])) {
+            $model = $_REQUEST['model'];
         }
+        return $this->oper($db, $model, $request);
     }
     protected function oper($db, $model, $request)
     {
@@ -104,8 +81,7 @@ class Data2Html_Controller
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
-                $this->responseJson($ra); 
-                return;
+                return $ra;
             case 'insert':
                 $response['new_id'] = $this->opInsert($data);
                 break;
@@ -123,7 +99,7 @@ class Data2Html_Controller
                 break;
         }
         $response['success'] = 1;
-        $this->responseJson($response);
+        return $response;
     }
     protected function opAdd($values)
     {
@@ -195,21 +171,5 @@ class Data2Html_Controller
         $this->commit();
 
         return '1';
-    }
-    /**
-     * Send JSON from a php object.
-     *
-     * @param  $obj object to send
-     */
-    protected function responseJson($obj)
-    {
-        if ($this->debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n".$this->data->toJson($obj)."\n</pre>\n";
-        } else {
-            header('Content-type: application/responseJson; charset=utf-8;');
-            // Prefix `")]}',\n"` is due to security considerations, see: 
-            //    * https://docs.angularjs.org/api/ng/service/$http
-            echo ")]}',\n".$this->data->toJson($obj);
-        }
     }
 }
