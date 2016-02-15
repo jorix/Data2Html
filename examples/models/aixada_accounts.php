@@ -28,7 +28,7 @@ class aixada_accounts extends Data2Html {
             ),
             'filter' => array(
                 'account_id' => 'EQ',
-                'description' => 'EQ',
+                'description' => 'LK',
             )
         );
     }

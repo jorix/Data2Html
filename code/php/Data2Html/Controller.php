@@ -48,7 +48,7 @@ class Data2Html_Controller
     protected function oper($db, $model, $request)
     {
         $data = $this->data;
-        $r = new Data2Html_Values($request);
+        $r = new Data2Html_Collection($request);
         $oper = $r->getString('d2h_oper', '');
         $response = array();
         switch ($oper) {

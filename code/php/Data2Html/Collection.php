@@ -1,15 +1,15 @@
 <?php
 
-class Data2Html_Values
+class Data2Html_Collection
 {
     protected $values = null;
-    protected $throwError = false;
-    public function __construct(&$values = array(), $throwError = false)
+    protected $strict = false;
+    public function __construct(&$values = array(), $strict = false)
     {
         $this->set($values);
-        $throwError = $throwError;
+        $this->strict = $strict;
     }
-    
+
     public function set(&$values)
     {
         if (!$values) {
@@ -29,22 +29,22 @@ class Data2Html_Values
     {
         return $this->values;
     }
-    public function getValue($itemKey, $type, $default = null, $allowNull = false)
+    public function getValue($itemKey, $type, $default = null)
     {
         switch ($type) {
             case 'number':
             case 'currency':            
-                return $this->getNumber($itemKey, $default, $allowNull);
+                return $this->getNumber($itemKey, $default);
             case 'integer':
-                return $this->getInteger($itemKey, $default, $allowNull);
+                return $this->getInteger($itemKey, $default);
             case 'boolean':
-                return $this->getBoolean($itemKey, $default, $allowNull);
+                return $this->getBoolean($itemKey, $default);
             case 'string':
-                return $this->getString($itemKey, $default, $allowNull);
+                return $this->getString($itemKey, $default);
             case 'date':
-                return $this->getDate($itemKey, $default, $allowNull);
+                return $this->getDate($itemKey, $default);
             case 'array':
-                return $this->getArray($itemKey, $default, $allowNull);
+                return $this->getArray($itemKey, $default);
             default:
                 throw new Exception(
                     "getValue(): type '{$type}' used to get '{$itemKey}' is not defined."
@@ -60,8 +60,6 @@ class Data2Html_Values
                 $r = $this->getNumber($itemKey);
                 break;
             case 'integer':
-                $r = $this->getInteger($itemKey);
-                break;
             case 'boolean':
                 $r = $this->getInteger($itemKey);
                 break;
@@ -79,38 +77,38 @@ class Data2Html_Values
                 break;
             default:
                 throw new Exception(
-                    "toSql(): type '{$type}' used to get '{$itemKey}' is not defined."
+                    "Type `{$type}` is not supported."
                 );
                 break;
         }
         return is_null($r) ? $default : $r;
     }
 
-    public function getBoolean($itemKey, $default = null, $allowNull = false)
+    public function getBoolean($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
             return is_null($default) ? null : !!$default;
         }
         $val = $this->values[$itemKey];
-        if (is_null($val) && $allowNull) {
+        if (is_null($val)) {
             return null;
         }
         return !!$val;
     }
     
-    public function getString($itemKey, $default = null, $allowNull = false)
+    public function getString($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
             return is_null($default) ? null : strval($default);
         }
         $val = $this->values[$itemKey];
-        if (is_null($val) && $allowNull) {
+        if (is_null($val)) {
             return null;
         }
-        return strval($val);
+        return Data2Html_Value::parseString($val, $this->strict);
     }
     
-    public function getNumber($itemKey, $default = null, $allowNull = false)
+    public function getNumber($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
             if (is_null($default)) {
@@ -119,23 +117,14 @@ class Data2Html_Values
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val) && $allowNull) {
+            if (is_null($val)) {
                 return null;
             }
         }
-        if (!is_numeric($val)) {
-            if ($this->throwError) {
-                throw new Exception(
-                    "getNumber(): The '{$itemKey}' is not a number."
-                );
-            }
-            return null;
-        }
-
-        return $val + 0;
+        return Data2Html_Value::parseNumber($val, $this->strict);
     }
     
-    public function getInteger($itemKey, $default = null, $allowNull = false)
+    public function getInteger($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
             if (is_null($default)) {
@@ -144,26 +133,16 @@ class Data2Html_Values
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val) && $allowNull) {
+            if (is_null($val)) {
                 return null;
             }
         }
-        if (!is_numeric($val) || !is_int($val+0)) {
-            if ($this->throwError) {
-                throw new Exception(
-                    "getInteger(): The '{$itemKey}' is not a integer."
-                );
-            }
-            return null;
-        }
-
-        return $val + 0;
+        return Data2Html_Value::parseInteger($val, $this->strict);
     }
 
     public function getDate(
         $itemKey,
         $default = null,
-        $allowNull = false,
         $input_format = 'Y-m-d H:i:s'
     ) {
         if (!array_key_exists($itemKey, $this->values)) {
@@ -173,29 +152,14 @@ class Data2Html_Values
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val) && $allowNull) {
+            if (is_null($val)) {
                 return null;
             }
         }
-        if ($val) {
-            $d = date_parse_from_format($input_format, $val);
-        }
-        if (!$val || $d['error_count'] !== 0) {
-            if ($this->throwError) {
-                throw new Exception(
-                    "getDate(): The '{$itemKey}' is not a date."
-                );
-            }
-            return null;
-        }
-        $date = new DateTime();
-        $date->setDate($d['year'], $d['month'], $d['day']);
-        $date->setTime($d['hour'], $d['minute'], $d['second']);
-        return $date;
-        //return $date_o->format('Y-m-d');
+        return Data2Html_Value::parseDate($val, $input_format, $this->strict);
     }
         
-    public function getArray($itemKey, $default = null, $allowNull = false)
+    public function getArray($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
             if (is_null($default)) {
@@ -204,12 +168,12 @@ class Data2Html_Values
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val) && $allowNull) {
+            if (is_null($val)) {
                 return null;
             }
         }
         if (!is_array($val) && !is_object($val)) {
-            if ($this->throwError) {
+            if ($this->strict) {
                 throw new Exception(
                     "getArray(): The '{$itemKey}' is not a array."
                 );
@@ -218,13 +182,13 @@ class Data2Html_Values
         }
         return $val;
     }
-    public function getArrayValues($itemKey, $default = null, $allowNull = false)
+    public function getArrayValues($itemKey, $default = null)
     {
-        $val = $this->getArray($itemKey, $default, $allowNull);
+        $val = $this->getArray($itemKey, $default);
         if (is_null($val)) {
             return null;
         } else {
-            return new Data2Html_Values($val);
+            return new Data2Html_Collection($val);
         }
     }
 }

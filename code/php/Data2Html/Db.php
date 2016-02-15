@@ -96,8 +96,8 @@ abstract class Data2Html_Db
         } catch (Exception $e) {
             throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
         };
-        $dvDefs = new Data2Html_Values($fieldDefs);
-        $dvItem = new Data2Html_Values();
+        $dvDefs = new Data2Html_Collection($fieldDefs);
+        $dvItem = new Data2Html_Collection();
         $types = array();
         $values = array();
         $fielsNames = array();
@@ -118,16 +118,8 @@ abstract class Data2Html_Db
         }
         // Read rs
         $rows = array();
-        $cols = array();
-        $colCount = 0;
         $result = $this->queryPage($query, $pageStart, $pageSize);
         while ($r = $this->fetch($result)) {
-            if ($colCount === 0) {
-                foreach ($r as $k => $v) {
-                    $cols[] = $k;
-                }
-                $colCount = count($cols);
-            }
             foreach ($r as $k => &$v) {
                 switch ($types[$k]) {
                 case 'integer':
@@ -160,7 +152,6 @@ abstract class Data2Html_Db
         $response = array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'cols' => $cols,
             'types' => $types,
             'rows' => $rows
         );

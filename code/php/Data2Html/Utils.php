@@ -2,10 +2,8 @@
 class Data2Html_Utils
 {
     public static function readFileJson($fileName)
-    {    
-        $configObj = json_decode(file_get_contents($fileName), true);
-        $configVals = new Data2Html_Values($configObj);
-        return $configVals->getValues();
+    {
+        return json_decode(file_get_contents($fileName), true);
     }
     /**
      * Supports any encoding

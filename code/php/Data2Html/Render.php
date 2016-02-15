@@ -8,7 +8,7 @@ class Data2Html_Render
     {
         $this->pathBase = dirname($templateIni).DIRECTORY_SEPARATOR;
         $tamplates = parse_ini_file($templateIni, true);
-        $this->tamplates = new Data2Html_Values($tamplates);
+        $this->tamplates = new Data2Html_Collection($tamplates);
     }
     public function render($data)
     {        // templates
@@ -31,7 +31,7 @@ class Data2Html_Render
         $tbody = '';
         $renderCount = 0;
         $i = 0;
-        $def = new Data2Html_Values();
+        $def = new Data2Html_Collection();
         foreach ($colDefs as $k => $v) {
             ++$i;
             $def->set($v);
@@ -122,7 +122,7 @@ class Data2Html_Render
         $body = '';
         $renderCount = 0;
         $i = 0;
-        $def = new Data2Html_Values();
+        $def = new Data2Html_Collection();
         foreach ($defs as $k => $v) {
             ++$i;
             $def->set($v);            

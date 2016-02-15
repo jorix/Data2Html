@@ -78,7 +78,7 @@ abstract class Data2Html
         if (file_exists('d2h_config.ini')) {
             $this->configOptions = parse_ini_file('d2h_config.ini', true);
         }
-        $aux = new Data2Html_Values($this->configOptions);
+        $aux = new Data2Html_Collection($this->configOptions);
         $config = $aux->getArrayValues('config');
         $this->debug = $config->getBoolean('debug');
         
@@ -122,14 +122,14 @@ abstract class Data2Html
             );
         }
         $aux = $this->definitions();
-        $def = new Data2Html_Values($aux);
+        $def = new Data2Html_Collection($aux);
         $this->table = $def->getString('table');
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
         $this->filterDefs = $this->parseFilter($def->getArray('filter'), $fields);
         $services = $def->getArray('services', array());
-        $dvServ = new Data2Html_Values($aux);
+        $dvServ = new Data2Html_Collection($aux);
         foreach ($services as $k => &$s) {
             $this->parseService($s, $fields);
             $dvServ->set($s);
@@ -147,7 +147,7 @@ abstract class Data2Html
 
     protected function parseService(&$service, $fields)
     {
-        $servV = new Data2Html_Values($service);
+        $servV = new Data2Html_Collection($service);
         $service['filter'] = 
             $this->parseFilter($servV->getArray('filter'), $fields);
         $service['columns'] = 
@@ -159,7 +159,7 @@ abstract class Data2Html
         if (!$colums) {
             return array();
         }
-        $_f = new Data2Html_Values($fields);
+        $_f = new Data2Html_Collection($fields);
         $colArray = array();
         foreach ($colums as $k => $v) {
             if (is_int($k)) {  // name =  $v;
@@ -211,7 +211,7 @@ abstract class Data2Html
             return array();
         }
         $colArray = array();
-        $_v = new Data2Html_Values();
+        $_v = new Data2Html_Collection();
         foreach ($filter as $name => $check) {
             if (!isset($fields[$name])) {
                 throw new Exception(
@@ -259,13 +259,13 @@ abstract class Data2Html
 
     protected function parseField($key, $field)
     {    
-        $dvField = new Data2Html_Values($field);
+        $dvField = new Data2Html_Collection($field);
         $name = $dvField->getString('name', (is_int($key) ? null : $key));
         if (!$name) {
             $name = $this->createId('field');
         }
-        $dvNewDef = new Data2Html_Values();
-        $defTypes = new Data2Html_Values($this->keywordsDefaultTypes);
+        $dvNewDef = new Data2Html_Collection();
+        $defTypes = new Data2Html_Collection($this->keywordsDefaultTypes);
         $newField = array(
             'name' => $name,
             'db' => $dvField->getString('db', $name, true)
@@ -320,14 +320,14 @@ abstract class Data2Html
 
     protected function setFilter($filterArray)
     {
-        $dvField = new Data2Html_Values();
+        $dvField = new Data2Html_Collection();
         foreach ($filterArray as $k => &$v) {
             $dvField->set($v);
             $name = $dvField->getString('name', (is_int($k) ? null : $k));
             $check = $dvField->getString('check');
-            $v['label'] = $dvField->getString('label', $name, true);
+            $v['label'] = $dvField->getString('label', $name);
             $v['name'] = $name.'_'.$check;
-            $v['db'] = $dvField->getString('db', $name, true);
+            $v['db'] = $dvField->getString('db', $name);
         }
         $this->filterDefs = $filterArray;
     }

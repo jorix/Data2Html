@@ -14,12 +14,12 @@ class Data2Html_Sql
         //$orderBy = null
     )
     {
-        $def = new Data2Html_Values();
+        $def = new Data2Html_Collection();
         $dbfs = array();
         foreach ($colDefs as $k=>$v) {
             $def->set($v);
             $name = $def->getString('name', $k);
-            $dbName = $def->getString('db', $name, true);
+            $dbName = $def->getString('db', $name);
             //$value = $def->getString('value');
             if ($dbName !== null) {
                 if ($name === $dbName) {
@@ -49,10 +49,10 @@ class Data2Html_Sql
     }
     public function getWhere($filterDefs, $request)
     {
-        $requestValues = new Data2Html_Values($request);
+        $requestValues = new Data2Html_Collection($request);
         if ($filterDefs) {
             $c = array();
-            $def = new Data2Html_Values();
+            $def = new Data2Html_Collection();
             foreach ($filterDefs as $k=>$v) {
                 $def->set($v);
                 $fName = $def->getString('name'); 
@@ -64,19 +64,7 @@ class Data2Html_Sql
                 ) {
                     continue;
                 }
-                switch ($fCheck) {
-                case 'EQ':
-                    $dbCheck = '=';
-                    break;
-                case 'LK':
-                    $dbCheck = 'like';
-                    break;
-                default:
-                    throw new Exception(
-                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
-                    );
-                    break;
-                }
+
                 
                 $type = $def->getString('type', 'string');
                 // forced value
@@ -86,6 +74,19 @@ class Data2Html_Sql
                     $r = $requestValues->toSql($this->db, $fName, $type, null);
                 }
                 if ($r !== null) {
+                    switch ($fCheck) {
+                    case 'EQ':
+                        $dbCheck = '=';
+                        break;
+                    case 'LK':
+                        $dbCheck = 'like';
+                        break;
+                    default:
+                        throw new Exception(
+                            "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
+                        );
+                        break;
+                    }
                     array_push($c, "{$dbName} {$dbCheck} {$r}");
                 }
             }
@@ -240,6 +241,4 @@ class Data2Html_Sql
         }
         return $pos;
     }
-    
-    
 }
