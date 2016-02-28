@@ -9,8 +9,17 @@
             />
         </div>
         $${body}
-        <input type="button" ng-click="clear()" value="$$Reset" />
-        <input type="submit" ng-click="readPage()" value="$$Filter" />
+        <span class="col-md-1 form-group">
+            <br>
+            <button class="btn btn-default"
+                title="$$Clear filter"
+                ng-click="clear()"
+            >
+                <span class="glyphicon glyphicon-remove"
+                    aria-hidden="true"></span>
+                <!-- span class="hidden-xs hidden-sm">$$Clear filter</span -->
+            </button>
+        </span>
     </div>
     </form>
     <div>$$Vallid {{$${id}.$valid}}</div>
@@ -19,6 +28,9 @@
     d2h_App.controller('$${id}', ['$scope', function($scope) {
         $scope.clear = function() {
             $scope.d2h_filter={};
+        };
+        $scope.changed = function() {
+            $scope.readPage();
         };
     }]);
 </script>

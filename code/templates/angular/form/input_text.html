@@ -3,6 +3,7 @@
 ><lavel control-label>$${label}:</lavel>
 <input type="text" class="form-control" 
     ng-model="$${name}" ng-init="$${name}=$${default}"
+    ng-change="changed()"
     placeholder="$${label}"
     name="$${id}"
     $${validations}
