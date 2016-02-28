@@ -40,6 +40,8 @@ class Data2Html_Collection
             case 'boolean':
                 return $this->getBoolean($itemKey, $default);
             case 'string':
+            case 'email':
+            case 'url':
                 return $this->getString($itemKey, $default);
             case 'date':
                 return $this->getDate($itemKey, $default);
@@ -64,6 +66,8 @@ class Data2Html_Collection
                 $r = $this->getInteger($itemKey);
                 break;
             case 'string':
+            case 'email':
+            case 'url':
                 $r = $this->getString($itemKey);
                 if ($r !== null) {
                     $r = $db->stringToSql($r);

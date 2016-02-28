@@ -14,6 +14,17 @@
     */
     [ng-cloak] {  display: none !important; }
     .red {color:red}
+    
+    /**
+     * Validations colors
+    .ng-invalid.ng-dirty {
+        border-color: red
+    }
+    .ng-valid.ng-dirty {
+        border-color: green
+    }
+     */
+    
     </style>
     <script src="../outside/angular-1.4.8/angular.min.js"></script>
     <script src="../outside/angular-1.4.8/angular-sanitize.min.js"></script>

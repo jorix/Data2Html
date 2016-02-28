@@ -40,7 +40,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         };
     };
     
-    $scope.initialPage = function() {
+    $scope.readPage = function() {
         $scope.pageStart = 1; //current page
         $http(_req()).then(
             function(response) { // Ok
@@ -81,7 +81,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         $scope.reverse = reverse;
     };
     $scope.start = function() {
-        $scope.initialPage();
+        $scope.readPage();
         $scope.sortBy('id', true);
     };
 });

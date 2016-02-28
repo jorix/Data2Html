@@ -1,7 +1,10 @@
-<div class="col-md-3">$${label}:
-<input type="text" 
+<span class="col-md-3 form-group" 
+    ng-class="{'has-error': $${form-id}.$${id}.$invalid}"
+><lavel control-label>$${label}:</lavel>
+<input type="text" class="form-control" 
+    ng-model="$${name}" ng-init="$${name}=$${default}"
     placeholder="$${label}"
-    class="form-control" 
-    ng-model="$${name}"
+    name="$${id}"
+    $${validations}
 >
-</div>
+</span>

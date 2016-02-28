@@ -1,31 +1,25 @@
-<span class="col-md-3" ng-controller="$${id}">$${label}:
+<span class="col-md-3 form-group" 
+    ng-controller="$${id}_ctr"
+    ng-class="{'has-error': $${form-id}.$${id}.$invalid}"
+><lavel control-label>$${label}:</lavel>
     <ui-select
-        ng-model="$${name}"
+        ng-model="$${name}" ng-init="$${name}=$${default}"
+        name="$${id}"
         theme="bootstrap"
-        ng-disabled="disabled"
-    >
-        <ui-select-match 
+        ng-change="readPage()"
+        $${validations}
+    >   <ui-select-match
+            allow-clear="true"
             placeholder="$${placeholder}"
         >{{$select.selected.text}}</ui-select-match>
         <ui-select-choices 
-            repeat="item.value as item in data | filter: $select.search">
+            repeat="item.value as item in data | filter: {text: $select.search}">
             <span ng-bind-html="item.text | highlight: $select.search"></span>
         </ui-select-choices>
     </ui-select>
 </span>
 <script>
-    d2h_App.controller('$${id}', function($scope, $http) {
-        $scope.disabled = undefined;
-
-        $scope.enable = function() {
-            $scope.disabled = false;
-        };
-        $scope.disable = function() {
-            $scope.disabled = true;
-        };
-        $scope.clear = function() {
-            $scope.selected = undefined;
-        };
+    d2h_App.controller('$${id}_ctr', function($scope, $http) {
         $scope.item = {};
         $http({
             method: 'POST',
@@ -41,5 +35,5 @@
                 console.log(response.status);
             }
         );
-    });  
+    });
 </script>

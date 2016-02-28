@@ -123,6 +123,7 @@ class Data2Html_Render
         $renderCount = 0;
         $i = 0;
         $def = new Data2Html_Collection();
+        $filterId = $data->createId();
         foreach ($defs as $k => $v) {
             ++$i;
             $def->set($v);            
@@ -131,11 +132,9 @@ class Data2Html_Render
             $placeholder = $def->getString('placeholder', $label);
             $default = $def->getString('default', 'undefined');
             $serviceUrl = $def->getString('serviceUrl', '');
-            $list = $def->getArray('list');
             $foreignKey = $def->getString('foreignKey');
-            if ($list) {
-                $template = $inputSelectTpl;
-            } elseif ($foreignKey) {
+            $validations = $def->getArray('validations', array());
+            if ($foreignKey) {
                 $template = $inputSelectTpl;
                 $aaa = explode('?', $data->serviceUrl);
                 $serviceUrl = $aaa[0].'?model='.$foreignKey.'&';
@@ -145,21 +144,24 @@ class Data2Html_Render
             $body .= "\n".str_replace(
                 array(
                     '$${id}',
+                    '$${form-id}',
                     '$${name}', '$${label}', '$${placeholder}',
                     '$${default}',
-                    '$${serviceUrl}'
+                    '$${serviceUrl}',
+                    '$${validations}'
                 ), 
                 array(
-                    $data->createId($name),
+                    $data->createId(),
+                    $filterId,
                     'd2h_filter.'.$name, $label, $placeholder,
                     $default,
-                    $serviceUrl
+                    $serviceUrl,
+                    implode(' ', $validations),
                 ),
                 $template
             );
             ++$renderCount;
         }
-        $filterId = $data->getId() . '_filter';
         return str_replace(
             array('$${id}', '$${title}', '$${body}'),
             array($filterId, $data->getTitle(), $body),

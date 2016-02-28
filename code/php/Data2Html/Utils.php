@@ -6,13 +6,6 @@ class Data2Html_Utils
         return json_decode(file_get_contents($fileName), true);
     }
     /**
-     * Supports any encoding
-     * Not only utf-8, as official json_encode does.
-     *
-     * Based on original 'php2js' function of Dmitry Koterov
-     *
-     * @static
-     *
      * @param mixed $a
      *
      * @return string
@@ -40,10 +33,6 @@ class Data2Html_Utils
                     array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'),
                     $a).'"';
         }
-/*    case "array"
-    case "object"
-    case "resource"
-    case     "unknown type" */
         $isList = true;
         for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
             if (key($a) !== $i) {

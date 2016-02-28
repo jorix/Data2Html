@@ -24,6 +24,7 @@ abstract class Data2Html
         'autoKey' => 'autoKey',
         'boolean' => 'type',
         'currency' => 'type',
+        'check' => 'check',
         'date' => 'type',
         'db' => 'db',
         'default' => 'default',
@@ -34,24 +35,35 @@ abstract class Data2Html
         'hidden' => 'display',
         'integer' => 'type',
         'label' => 'label',
-        'maxLength' => 'validation',
+        'maxLength' => 'xxxxx',
         'name' => 'name',
         'number' => 'type',
-        'required' => 'validation',
+        'required' => 'validations',
         'string' => 'type',
+        'type' => 'type',
         'uniqueKey' => 'constraints',
+        'url' => 'type',
         'value' => 'value',
         'visualClass' => 'visualClass',
     );
-    protected $keywordsDefaultTypes = array(
+    protected $keywordsToDbTypes = array(
         'autoKey' => 'integer',
-        'email' => 'string',
-        'emails' => 'string',
         'foreignKey' => 'integer',
         'maxLength' => 'string',
     );
+     protected $typesToDbTypes = array(
+        // 'boolean' => 'type',
+        // 'currency' => 'type',
+        // 'date' => 'type',
+        'email' => 'string',
+        // 'emails' => 'type',
+        // 'integer' => 'type',
+        // 'number' => 'number',
+        //'string' => 'type',
+        'url' => 'string',
+    );
     protected $keywordsSingle = array(
-        'type', 'label', 'name', 'default', 'db', 'value'
+        'check', 'default', 'db', 'label', 'name', 'type', 'value'
     );
     /**
      * Class constructor, initializes basic properties.
@@ -92,9 +104,9 @@ abstract class Data2Html
     {
         return $this->root_path;
     }
-    public function createId($name) {
+    public function createId($name = '') {
         self::$idCount++;
-        return 'd2h_'.self::$idCount.'_'.$name;
+        return 'd2h_'.self::$idCount; //.'_'.$name;
     }
     public function getId()
     {
@@ -212,18 +224,23 @@ abstract class Data2Html
         }
         $colArray = array();
         $_v = new Data2Html_Collection();
-        foreach ($filter as $name => $check) {
+        foreach ($filter as $name => $v) {
             if (!isset($fields[$name])) {
                 throw new Exception(
                     "Filter field `{$name}` used in a filter not exist on `fields`."
                 );
             }
             $field = $fields[$name];
+            if (is_array($v)) {
+                $fieldArr = $this->parseField($name, array_merge($field, $v));
+                $field = $fieldArr[$name];
+            } else {
+                $field['check'] = $v;
+            }
             $_v->set($field);
-            $nameNew = $name.'_'.$check;
-            $field['check'] = $check;
+            $field['db'] = $_v->getString('db', $name);
+            $nameNew = $name.'_'.$_v->getString('check', '');
             $field['name'] = $nameNew;
-            $field['db'] = $_v->getString('db', $name, true);
             $colArray[$nameNew] = $field;
         }
         return $colArray;
@@ -265,7 +282,7 @@ abstract class Data2Html
             $name = $this->createId('field');
         }
         $dvNewDef = new Data2Html_Collection();
-        $defTypes = new Data2Html_Collection($this->keywordsDefaultTypes);
+        $defTypes = new Data2Html_Collection($this->keywordsToDbTypes);
         $newField = array(
             'name' => $name,
             'db' => $dvField->getString('db', $name, true)
@@ -307,6 +324,11 @@ abstract class Data2Html
             $newField['type'] = $defaultType;
         }
         $value = $dvNewDef->getString('value');
+        /*
+'/>\$\$([\w.]+)</'
+'/\'\$\$([\w.]+)\'/'
+'/"\$\$([\w.]+)"/'
+         */
         if ($value) {
             $newField['db'] = null;
             $matches = null;
