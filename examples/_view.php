@@ -8,10 +8,11 @@
     <style type="text/css">
     a {cursor: pointer;}
     span.glyphicon.d2h_sortActivated {color:red}
-    /* 
-    [ng-cloak] is used to prevent show templates, see:
-        https://docs.angularjs.org/api/ng/directive/ngCloak
-    */
+    label {font-weight:	normal;} /* remove font-weight:bold form Bootstrap */
+    /**
+     * [ng-cloak] is used to prevent show templates, see:
+     * https://docs.angularjs.org/api/ng/directive/ngCloak
+     */
     [ng-cloak] {  display: none !important; }
     .red {color:red}
     
