@@ -21,6 +21,7 @@ function ContactDirective(){
 
 d2h_App.controller('$${id}', function ($scope, $http) {
     $scope.d2h_filter={};
+    $scope.d2h_page={};
     // server
     var _req = function() {
         return {
@@ -32,16 +33,13 @@ d2h_App.controller('$${id}', function ($scope, $http) {
             data: {
                 d2h_oper: 'read',
                 d2h_filter: $scope.d2h_filter,
-                d2h_page: {
-                    pageSize: $scope.pageSize,
-                    pageStart: $scope.pageStart
-                }
+                d2h_page: $scope.d2h_page
             }
         };
     };
     
     $scope.readPage = function() {
-        $scope.pageStart = 1; //current page
+        $scope.d2h_page.pageStart = 1; //current page
         $http(_req()).then(
             function(response) { // Ok
                 $scope.data = response.data.rows;
@@ -54,7 +52,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         );
     };
     $scope.nextPage = function() {
-        $scope.pageStart += $scope.pageSize;
+        $scope.d2h_page.pageStart += $scope.pageSize;
         $http(_req()).then(
             function(response) { // Ok
                 Array.prototype.push.apply(
@@ -66,16 +64,6 @@ d2h_App.controller('$${id}', function ($scope, $http) {
             }
         );
     };
-    
-    // local
-    var pageSizes = [10, 20, -4, -3, 50, 100];
-    $scope.pageSizeOp = [];
-    for (i = 0, len = pageSizes.length; i < len; i++) {
-        $scope.pageSizeOp.push({
-            value: pageSizes[i],
-            'text': pageSizes[i]+''
-        });
-    }
     $scope.sortBy = function(predicate, reverse) {
         $scope.predicate = predicate;
         $scope.reverse = reverse;

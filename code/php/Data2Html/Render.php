@@ -80,6 +80,7 @@ class Data2Html_Render
             array(
                 '$${id}',
                 '$${title}',
+                '$${page}',
                 '$${filter}',
                 '$${thead}',
                 '$${tbody}',
@@ -88,6 +89,7 @@ class Data2Html_Render
             array(
                 $data->getId(),
                 $data->getTitle(),
+                $this->pageForm($data),
                 $this->filterForm($data),
                 $thead,
                 $tbody,
@@ -104,6 +106,18 @@ class Data2Html_Render
             ).
             "\n</script>\n";
         return $tableHtml . $tableJs;
+    }
+    public function pageForm($data)
+    {
+        $t = $this->tamplates->getArrayValues('page');
+        $formTpl = file_get_contents(
+            $this->pathBase.$t->getString('form')
+        );
+        return str_replace(
+            array('$${id}'),
+            array($data->createId()),
+            $formTpl
+        );
     }
     public function filterForm($data)
     {
