@@ -9,7 +9,11 @@ class Data2Html_Collection
         $this->set($values);
         $this->strict = $strict;
     }
-
+    public static function create($values, $strict = false)
+    {
+        $c = new Data2Html_Collection($values, $strict);
+        return $c;
+    }
     public function set(&$values)
     {
         if (!$values) {
@@ -186,7 +190,7 @@ class Data2Html_Collection
         }
         return $val;
     }
-    public function getArrayValues($itemKey, $default = null)
+    public function getCollection($itemKey, $default = null)
     {
         $val = $this->getArray($itemKey, $default);
         if (is_null($val)) {

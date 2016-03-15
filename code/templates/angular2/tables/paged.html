@@ -14,7 +14,7 @@ $${filter}
             </tr></tfoot>
             <tbody 
                 ng-show="filtered.length > 0" ng-cloak><tr 
-                    ng-repeat="item in filtered = (data | filter :search | orderBy :predicate :reverse)">
+                    ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
                 $${tbody}
             </tr></tbody>
         </table>

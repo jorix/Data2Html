@@ -1,0 +1,19 @@
+<?
+[grid] => Array(
+    [table] => ../code/templates/angular2\tables\.\paged.html
+    [table.js] => ../code/templates/angular2\tables\.\paged.js
+    [columns] => Array(
+        [sortable] => ../code/templates/angular2\tables\columns\sortable.html
+    )
+)
+
+[form_page] => ../code/templates/angular2\forms\page.html
+[form_filter] => Array(
+    [form] => ../code/templates/angular2\.\forms\filter.html
+    [inputs] => Array(
+        [text] => ../code/templates/angular2\.\forms/inputs\.\text.html
+        [select] => ../code/templates/angular2\.\forms/inputs\.\select.html
+        [ui-select] => ../code/templates/angular2\.\forms/inputs\.\ui-select.html
+    )
+)
+

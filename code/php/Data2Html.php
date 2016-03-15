@@ -91,7 +91,7 @@ abstract class Data2Html
             $this->configOptions = parse_ini_file('d2h_config.ini', true);
         }
         $aux = new Data2Html_Collection($this->configOptions);
-        $config = $aux->getArrayValues('config');
+        $config = $aux->getCollection('config');
         $this->debug = $config->getBoolean('debug');
         
         // Init
@@ -540,13 +540,13 @@ abstract class Data2Html
     }
     private static function createFromModel($model, $serviceFileName)
     {
-            $_ds = DIRECTORY_SEPARATOR;
-            $path = dirname($serviceFileName).$_ds;
+            $ds = DIRECTORY_SEPARATOR;
+            $path = dirname($serviceFileName).$ds;
             
             $modelX = explode(':', $model);
             $file = $modelX[0].'.php';
             if (self::$modelFolder) {
-                $file = self::$modelFolder.$_ds.$file;
+                $file = self::$modelFolder.$ds.$file;
             }
             $phisicalFile = $path.$file;
             if (file_exists($phisicalFile)) {

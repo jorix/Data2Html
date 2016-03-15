@@ -4,26 +4,52 @@ class Data2Html_Render
 {
     protected $pathBase;
     protected $tamplates;
+    protected $tamplatesFilenames;
     public function __construct($templateIni)
     {
         $this->pathBase = dirname($templateIni).DIRECTORY_SEPARATOR;
-        $tamplates = parse_ini_file($templateIni, true);
-        $this->tamplates = new Data2Html_Collection($tamplates);
+        $this->templates = array();
+        $this->tamplatesFilenames = array();
+        $this->loadTemplates(
+            $this->templates,
+            $this->tamplatesFilenames,
+            $templateIni
+        );
+        print_r($this->tamplatesFilenames);
     }
     public function render($data)
     {        // templates
-        $t = $this->tamplates->getArrayValues('table');
-        if (!$t) {
-            return '';
+        $templColl = new Data2Html_Collection($this->templates);
+        $gridTmpl = $templColl->getCollection('grid');
+        if (!$gridTmpl) {
+            throw new Exception("The template must have a `grid` key");
         }
-        $tableTpl = file_get_contents(
-            $this->pathBase.$t->getString('table')
+        $gridHtml = '';
+        if ($gridTmpl->getArray('table')) {
+            $gridHtml = $this->table($gridTmpl, $data);
+        }
+        return str_replace(
+            array(
+                '$${page}',
+                '$${filter}'
+            ),
+            array(
+                $this->pageForm($data),
+                $this->filterForm($data)
+            ),
+            $gridHtml
         );
-        $tableJsTpl = file_get_contents(
-            $this->pathBase.$t->getString('table_js')
+    }
+    public function table($templateArray, $data)
+    { 
+        $tableTpl = Data2Html_Collection::get_string(
+            $templateArray, array('table', 'html'), ''
         );
-        $thSortableTpl = file_get_contents(
-            $this->pathBase.$t->getString('col_sortable')
+        $tableJsTpl = Data2Html_Collection::get_string(
+            $templateArray, array('table.js', 'js')
+        );
+        $columnsTemplates = Data2Html_Collection::get_collection(
+            $templateArray, 'columns', array()
         );
         //
         $colDefs = $data->getColDefs();
@@ -40,7 +66,7 @@ class Data2Html_Render
             $thead .= str_replace(
                 array('$${name}', '$${label}'),
                 array($name, $label),
-                $thSortableTpl
+                $columnsTemplates->getString('sortable', '')
             );
             $type = $def->getString('type');
             ++$renderCount;
@@ -80,8 +106,6 @@ class Data2Html_Render
             array(
                 '$${id}',
                 '$${title}',
-                '$${page}',
-                '$${filter}',
                 '$${thead}',
                 '$${tbody}',
                 '$${colCount}'
@@ -89,27 +113,29 @@ class Data2Html_Render
             array(
                 $data->getId(),
                 $data->getTitle(),
-                $this->pageForm($data),
-                $this->filterForm($data),
                 $thead,
                 $tbody,
                 $renderCount
             ),
             $tableTpl
         );
-        $tableJs = 
-            "\n<script>\n".
-            str_replace(
-                array('$${id}', '$${serviceUrl}'),
-                array($data->getId(), $data->serviceUrl),
-                $tableJsTpl
-            ).
-            "\n</script>\n";
+        if ($tableJsTpl) {
+            $tableJs = 
+                "\n<script>\n".
+                str_replace(
+                    array('$${id}', '$${serviceUrl}'),
+                    array($data->getId(), $data->serviceUrl),
+                    $tableJsTpl
+                ).
+                "\n</script>\n";
+        } else {
+            $tableJs = '';
+        }
         return $tableHtml . $tableJs;
     }
     public function pageForm($data)
     {
-        $t = $this->tamplates->getArrayValues('page');
+        $t = $this->tamplates->getCollection('page');
         $formTpl = file_get_contents(
             $this->pathBase.$t->getString('form')
         );
@@ -121,7 +147,7 @@ class Data2Html_Render
     }
     public function filterForm($data)
     {
-        $t = $this->tamplates->getArrayValues('filter');
+        $t = $this->tamplates->getCollection('filter');
         $formTpl = file_get_contents(
             $this->pathBase.$t->getString('form')
         );
@@ -181,5 +207,81 @@ class Data2Html_Render
             array($filterId, $data->getTitle(), $body),
             $formTpl
         );
+    }
+    protected function loadTemplates(
+        &$templatesArray,
+        &$templatesFnArray,
+        $template
+    ) {
+        if (!file_exists($template)) {
+            throw new Exception(
+                "Template ini file `{$template}` does not exist."
+            );
+        }
+        $tamplates = parse_ini_file($template, true);
+        $tmpls = new Data2Html_Collection($tamplates);
+        $this->loadTemplatesElem(
+            $templatesArray,
+            $templatesFnArray,
+            dirname($template) . DIRECTORY_SEPARATOR,
+            $tmpls,
+            'elements'
+        );
+    }    
+    protected function loadTemplatesElem(
+        &$templatesArray,
+        &$templatesFnArray,
+        $folderBase,
+        $tmpls,
+        $key
+    ) {
+        $elements = $tmpls->getArray($key, array());
+        $ds = DIRECTORY_SEPARATOR;
+        foreach($elements as $k => $v) {
+            $path = Data2Html_Collection::create(pathinfo($v));
+            $dirname = $path->getString('dirname','');
+            if ($dirname) {
+                $dirname = $folderBase . $dirname . $ds;
+            } else {
+                $dirname = $folderBase;
+            }
+            $basename = $path->getString('basename','');
+            switch ($path->getString('extension')) {
+                case 'ini':
+                    $subElems = array();
+                    $subFnElems = array();
+                    $this->loadTemplates(
+                        $subElems, $subFnElems,
+                        $dirname . $basename
+                    );
+                    $templatesArray[$k] = $subElems;
+                    $templatesFnArray[$k] = $subFnElems;
+                    break;
+                case 'html':
+                    if (!file_exists($dirname . $basename)) {
+                        throw new Exception(
+                            "Parsing on folder `{$folderBase}` on element \"{$k}\"=>\"{$v}\" does not exist `{$basename}` on forder `{$dirname}`."
+                        );
+                    }
+                    $templatesArray[$k] = file_get_contents($dirname . $basename);
+                    $templatesFnArray[$k] = $dirname . $basename;
+                    $fileJs = $dirname . $path->getString('filename', '') . '.js';
+                    if (file_exists($fileJs)) {
+                        $templatesArray[$k . '.js'] = file_get_contents($fileJs);
+                        $templatesFnArray[$k . '.js'] = $fileJs;
+                    }
+                    break;
+                default:
+                    $subElems = array();
+                    $subFnElems = array();
+                    $this->loadTemplatesElem(
+                        $subElems, $subFnElems,
+                        $folderBase, $tmpls, $k
+                    );
+                    $templatesArray[$k] = $subElems;
+                    $templatesFnArray[$k] = $subFnElems;
+                    break;
+            }
+        }
     }
 }

@@ -54,7 +54,7 @@ class Data2Html_Controller
         switch ($oper) {
             case '':
             case 'read':
-                $page = $r->getArrayValues('d2h_page', array());
+                $page = $r->getCollection('d2h_page', array());
                 $table = $data->table;
                 $sql = $data->sql;
                 if ($model && strpos($model, ':') !== false ) {
