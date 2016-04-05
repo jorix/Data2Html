@@ -6,7 +6,6 @@ abstract class Data2Html
     protected static $modelServices = array();
     protected static $modelFolder = null;
     protected $root_path;
-    protected $id;
     protected $configOptions = array();
     public $debug = false;
     public $model;
@@ -18,7 +17,7 @@ abstract class Data2Html
     public $colDefs = array();
     public $filterDefs = array();
     public $servicesDefs = array();
-    private static $idCount = 0;
+    private static $idParseCount = 0;
     
     protected $keywords = array(
         'autoKey' => 'autoKey',
@@ -79,7 +78,6 @@ abstract class Data2Html
         // Base
         //----------------
         $this->root_path = dirname(__FILE__).DIRECTORY_SEPARATOR;
-        $this->id = $this->createId(get_class($this));
         
         // Register autoload
         //------------------
@@ -104,13 +102,9 @@ abstract class Data2Html
     {
         return $this->root_path;
     }
-    public function createId($name = '') {
-        self::$idCount++;
-        return 'd2h_'.self::$idCount; //.'_'.$name;
-    }
-    public function getId()
-    {
-        return $this->id;
+    public function createIdParse() {
+        self::$idParseCount++;
+        return 'd2h_'.self::$idParseCount;
     }
     public function getColDefs()
     {
@@ -279,7 +273,7 @@ abstract class Data2Html
         $dvField = new Data2Html_Collection($field);
         $name = $dvField->getString('name', (is_int($key) ? null : $key));
         if (!$name) {
-            $name = $this->createId('field');
+            $name = $this->createIdParse();
         }
         $dvNewDef = new Data2Html_Collection();
         $defTypes = new Data2Html_Collection($this->keywordsToDbTypes);

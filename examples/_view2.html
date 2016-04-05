@@ -8,10 +8,11 @@
     <style type="text/css">
     a {cursor: pointer;}
     span.glyphicon.d2h_sortActivated {color:red}
-    /* 
-    [ng-cloak] is used to prevent show templates, see:
-        https://docs.angularjs.org/api/ng/directive/ngCloak
-    */
+    label {font-weight:	normal;} /* remove font-weight:bold form Bootstrap */
+    /**
+     * [ng-cloak] is used to prevent show templates, see:
+     * https://docs.angularjs.org/api/ng/directive/ngCloak
+     */
     [ng-cloak] {  display: none !important; }
     .red {color:red}
     
@@ -40,9 +41,36 @@
 </head>
 <body>
     <div class="container">
-    <div ng-controller="d2h_1">
-<div class="row" ng-controller="d2h_2">
-    <form name="d2h_2" class="simple-form" novalidate>
+    <pre>{
+    "grid": {
+        "table": "..\/code\/templates\/angular2\\tables\\.\\paged.html",
+        "table.js": "..\/code\/templates\/angular2\\tables\\.\\paged.js",
+        "form_page": {
+            "form": "..\/code\/templates\/angular2\\tables\\..\\forms\\page.html",
+            "inputs": {
+                "text": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\text.html",
+                "select": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\select.html",
+                "ui-select": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\ui-select.html"
+            }
+        },
+        "form_filter": {
+            "form": "..\/code\/templates\/angular2\\tables\\..\\forms\\filter.html",
+            "inputs": {
+                "text": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\text.html",
+                "select": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\select.html",
+                "ui-select": "..\/code\/templates\/angular2\\tables\\..\\forms\/inputs\\.\\ui-select.html"
+            }
+        },
+        "columns": {
+            "sortable": "..\/code\/templates\/angular2\\tables\\columns\\sortable.html"
+        }
+    }
+}</pre><div ng-controller="d2h_1">
+
+<!-- START renderForm({"form_filter") formId="d2h_5" -->
+<!-- ======================================== -->
+<div class="row" ng-controller="d2h_5">
+    <form name="d2h_5" class="simple-form" xx-class="form-horizontal"  novalidate>
     <div>
         <div class="col-md-3">$$Filter:
             <input type="text" placeholder="Filter" 
@@ -51,16 +79,15 @@
                 required
             />
         </div>
-        <span class="col-md-3 form-group" ng-controller="d2h_3">
-            <lavel control-label>account_id_EQ:</lavel>
+        
             <ui-select
                 ng-model="d2h_filter.account_id_EQ"
-                name="d2h_3_f"
-                ng-claxss="{'has-error': d2h_2.d2h_3_f.$invalid}"
+                name="d2h_6
+                ng-controller="d2h_6"
                 theme="bootstrap"
-                ng-change="readPage()"
+                ng-change="changed()"
                 ng-init="d2h_filter.account_id_EQ=1005"
-                ng-required="true" 
+    required
             >   <ui-select-match
                     allow-clear="true"
                     placeholder="account_id_EQ"
@@ -70,9 +97,8 @@
                     <span ng-bind-html="item.text | highlight: $select.search"></span>
                 </ui-select-choices>
             </ui-select>
-        </span>
 <script>
-    d2h_App.controller('d2h_3', function($scope, $http) {
+    d2h_App.controller('d2h_6', function($scope, $http) {
         $scope.item = {};
         $http({
             method: 'POST',
@@ -90,30 +116,43 @@
         );
     });
 </script>
-<div class="col-md-3">description_LK:
-<input
-    type="text" 
-    placeholder="description_LK"
-    class="form-control" 
-    ng-model="d2h_filter.description_LK"
-    
->
-</div>
 
-        <input type="button" ng-click="clear()" value="Reset" />
-        <input type="submit" ng-click="readPage()" value="Filter" />
+<input type="text" class="form-control" 
+    ng-model="d2h_filter.description_LK" ng-init="d2h_filter.description_LK=undefined"
+    ng-change="changed()"
+    placeholder="description_LK"
+    name="d2h_7"
+    required
+>
+
+        <span class="col-md-1 form-group">
+            <br>
+            <button class="btn btn-default"
+                title="$$Clear filter"
+                ng-click="clear()"
+            >
+                <span class="glyphicon glyphicon-remove"
+                    aria-hidden="true"></span>
+                <!-- span class="hidden-xs hidden-sm">$$Clear filter</span -->
+            </button>
+        </span>
     </div>
     </form>
-    <div>Vallid {{d2h_2.$valid}}</div>
+    <div>$$Vallid {{d2h_5.$valid}}</div>
 </div>
 <script>
-    d2h_App.controller('d2h_2', ['$scope', function($scope) {
+    d2h_App.controller('d2h_5', ['$scope', function($scope) {
         $scope.clear = function() {
             $scope.d2h_filter={};
+        };
+        $scope.changed = function() {
+            $scope.readPage();
         };
     }]);
 </script>
 
+
+<!-- END renderForm({"form_filter") formId="d2h_5" -->
 
 <div class="row">
     <div class="col-md-12" id="d2h_1">
@@ -220,42 +259,80 @@
             </tr></thead>
             <tfoot ng-show="filtered.length > 0" ng-cloak><tr>
                 <td colspan="8">
-                    <div class="form-inline">
-                        <button class="btn btn-default hidden-xs "
-                            title="Refresh data"
-                            ng-click="readPage()"
-                        >
-                            <span class="glyphicon glyphicon-refresh"
-                                aria-label="Refresh data"
-                                aria-hidden="true"></span>
-                        </button>
-                        <select class="form-control" style="padding:0;"
-                            title="Rows per page"
-                            ng-model="pageSize"
-                            ng-init="pageSize=pageSizeOp[0].value"
-                            ng-change="readPage()"
-                            ng-options="opt.value as opt.text for opt in pageSizeOp"
-                        ></select>
-                        <button class="btn btn-default"
-                            title="Next page"
-                            ng-click="nextPage()"
-                        >
-                            <span class="glyphicon glyphicon-forward"
-                                aria-hidden="true"></span>
-                            <span class="hidden-xs hidden-sm">
-                                Next page
-                            </span>
-                        </button>
-                        <span
-                            ng-init="start()"
-                        ng-cloak>
-                            Filtered {{filtered.length}} of {{data.length}}
-                        </span>
-                    </div>
+                    
+<!-- START renderForm({"form_page") formId="d2h_2" -->
+<!-- ======================================== -->
+<div class="row" ng-controller="d2h_2">
+    <form name="d2h_2" class="simple-form"  novalidate>
+        <div>
+<ui-select
+    ng-controller="d2h_3"
+    ng-model="d2h_filter.account_id_EQ" ng-init="d2h_filter.account_id_EQ=1005"
+    name="d2h_3"
+    theme="bootstrap"
+    ng-change="changed()"
+    required
+>   <ui-select-match
+        allow-clear="true"
+        placeholder="account_id_EQ"
+    >{{$select.selected.text}}</ui-select-match>
+    <ui-select-choices 
+        repeat="item.value as item in data | filter: {text: $select.search}">
+        <span ng-bind-html="item.text | highlight: $select.search"></span>
+    </ui-select-choices>
+</ui-select>
+<script>
+    d2h_App.controller('d2h_3', function($scope, $http) {
+        $scope.item = {};
+        $http({
+            method: 'POST',
+            url: '_controller.php?model=aixada_ufs:account&lang=ca',
+            headers: {
+                'Content-Type': undefined
+            },
+            data: {d2h_oper: 'read'}
+        }).then(
+            function(response) { // Ok
+                $scope.data = response.data.rows;
+            }, function(response) { // Error
+                console.log(response.status);
+            }
+        );
+    });
+</script>
+
+<input type="text" class="form-control" 
+    ng-model="d2h_filter.description_LK" ng-init="d2h_filter.description_LK=undefined"
+    ng-change="changed()"
+    placeholder="description_LK"
+    name="d2h_4"
+    required
+>
+</div>
+    </form>
+</div>
+<script>
+    d2h_App.controller('d2h_2', ['$scope', function ($scope) {
+        var pageSizes = [10, 20, 50, 100];
+        $scope.pageSizeOp = [];
+        for (i = 0, len = pageSizes.length; i < len; i++) {
+            $scope.pageSizeOp.push({
+                value: pageSizes[i],
+                'text': pageSizes[i]+''
+            });
+        }
+        $scope.changed = function() {
+            $scope.readPage();
+        };
+    }]);
+</script>
+<!-- END renderForm({"form_page") formId="d2h_2" -->
+
                 </td>
-                </tr></tfoot>
-            <tbody ng-show="filtered.length > 0" ng-cloak><tr 
-                   ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
+            </tr></tfoot>
+            <tbody 
+                ng-show="filtered.length > 0" ng-cloak><tr 
+                    ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
                 <td class="text-right">{{item.id}}</td>
 <td class="text-right">{{item.account_id}}</td>
 <td>{{item.operator}}</td>
@@ -267,38 +344,19 @@
 
             </tr></tbody>
         </table>
-        <div
-        class="alert alert-warning" role="alert"
-        ng-show="filtered.length == 0" ng-cloak>
+        <div class="alert alert-warning" role="alert"
+            ng-show="filtered.length == 0"
+        ng-cloak>
             No data found
         </div>
     </div>
 </div>
+<span ng-init="start()"></span>
 </div>
 <script>
-/*
-function ContactDirective(){
-  return {
-    restrict: 'E',
-    templateUrl: 'my-contact-template.html',
-    controller: 'contactController',
-    controllerAs: 'contactCtrl',
-    scope: {
-      contact: '='
-    },
-    link:function(scope, elem, attrs, contactCtrl){
-      scope.$watch('contact', function(newContact){
-        //Still just initializing the contact using
-        // the controller
-        contactCtrl.setContact(newContact);
-      });
-    }
-  };
-}
-*/
-
 d2h_App.controller('d2h_1', function ($scope, $http) {
     $scope.d2h_filter={};
+    $scope.d2h_page={};
     // server
     var _req = function() {
         return {
@@ -310,16 +368,13 @@ d2h_App.controller('d2h_1', function ($scope, $http) {
             data: {
                 d2h_oper: 'read',
                 d2h_filter: $scope.d2h_filter,
-                d2h_page: {
-                    pageSize: $scope.pageSize,
-                    pageStart: $scope.pageStart
-                }
+                d2h_page: $scope.d2h_page
             }
         };
     };
     
     $scope.readPage = function() {
-        $scope.pageStart = 1; //current page
+        $scope.d2h_page.pageStart = 1; //current page
         $http(_req()).then(
             function(response) { // Ok
                 $scope.data = response.data.rows;
@@ -332,7 +387,7 @@ d2h_App.controller('d2h_1', function ($scope, $http) {
         );
     };
     $scope.nextPage = function() {
-        $scope.pageStart += $scope.pageSize;
+        $scope.d2h_page.pageStart += $scope.d2h_page.pageSize;
         $http(_req()).then(
             function(response) { // Ok
                 Array.prototype.push.apply(
@@ -344,16 +399,6 @@ d2h_App.controller('d2h_1', function ($scope, $http) {
             }
         );
     };
-    
-    // local
-    var pageSizes = [10, 20, -4, -3, 50, 100];
-    $scope.pageSizeOp = [];
-    for (i = 0, len = pageSizes.length; i < len; i++) {
-        $scope.pageSizeOp.push({
-            value: pageSizes[i],
-            'text': pageSizes[i]+''
-        });
-    }
     $scope.sortBy = function(predicate, reverse) {
         $scope.predicate = predicate;
         $scope.reverse = reverse;

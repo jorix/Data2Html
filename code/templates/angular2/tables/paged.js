@@ -1,24 +1,3 @@
-/*
-function ContactDirective(){
-  return {
-    restrict: 'E',
-    templateUrl: 'my-contact-template.html',
-    controller: 'contactController',
-    controllerAs: 'contactCtrl',
-    scope: {
-      contact: '='
-    },
-    link:function(scope, elem, attrs, contactCtrl){
-      scope.$watch('contact', function(newContact){
-        //Still just initializing the contact using
-        // the controller
-        contactCtrl.setContact(newContact);
-      });
-    }
-  };
-}
-*/
-
 d2h_App.controller('$${id}', function ($scope, $http) {
     $scope.d2h_filter={};
     $scope.d2h_page={};
