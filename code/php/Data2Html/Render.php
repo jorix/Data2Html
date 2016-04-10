@@ -40,6 +40,26 @@ class Data2Html_Render
         }
         $gridColl = new Data2Html_Collection($gridTemplate);
         $gridHtml = $this->renderTable($gridTemplate, $data);
+        $pageDef = array(
+            array(
+                'input' => 'button',
+                'icon' => 'refresh',
+                'label' => '$$Refresh data',
+                'placeholder' => null,
+                'action' => 'readPage()'
+            ),
+            array(
+                'name' => 'pageSize',
+                'default' => 10,
+                'type' => 'integer'
+            ),
+            array(
+                'input' => 'button',
+                'icon' => 'forward',
+                'label' => '$$Next page',
+                'action' => 'nextPage()',
+            )
+        );
         return str_replace(
             array(
                 '$${page}',
@@ -47,12 +67,14 @@ class Data2Html_Render
             ),
             array(
                 $this->renderForm('form_page',
-                    null, //$gridColl->getArray('form_page'),
-                    $data->getFilterDefs(),
+                    'd2h_page.',
+                    $gridColl->getArray('form_page'),
+                    $pageDef,
                     $data->serviceUrl,
                     $data->getTitle()
                 ),
                 $this->renderForm('form_filter',
+                    'd2h_filter.',
                     $gridColl->getArray('form_filter'),
                     $data->getFilterDefs(),
                     $data->serviceUrl,
@@ -152,6 +174,7 @@ class Data2Html_Render
     }
     protected function renderForm(
         $templateName,
+        $fieldPrefix,
         $template,
         $defs,
         $formServiceUrl,
@@ -167,43 +190,14 @@ class Data2Html_Render
             // Apply template
             $body = '';
             $renderCount = 0;
-            $i = 0;
             $def = new Data2Html_Collection();
             foreach ($defs as $k => $v) {
-                ++$i;
-                $def->set($v);            
-                $name = $def->getString('name');
-                $label = $def->getString('label', $name);
-                $placeholder = $def->getString('placeholder', $label);
-                $default = $def->getString('default', 'undefined');
-                $serviceUrl = $def->getString('serviceUrl', '');
-                $foreignKey = $def->getString('foreignKey');
-                $validations = $def->getArray('validations', array());
-                if ($foreignKey) {
-                    $template = $inputsColl->getString('ui-select');
-                    $aaa = explode('?', $formServiceUrl);
-                    $serviceUrl = $aaa[0].'?model='.$foreignKey.'&';
-                } else {
-                    $template = $inputsColl->getString('text');
-                }
-                $body .= "\n".str_replace(
-                    array(
-                        '$${id}',
-                        '$${form-id}',
-                        '$${name}', '$${label}', '$${placeholder}',
-                        '$${default}',
-                        '$${serviceUrl}',
-                        '$${validations}'
-                    ), 
-                    array(
-                        $this->createIdRender(),
-                        $formId,
-                        'd2h_filter.'.$name, $label, $placeholder,
-                        $default,
-                        $serviceUrl,
-                        implode(' ', $validations),
-                    ),
-                    $template
+                $body .= $this->renderInput(
+                    $inputsColl,
+                    $formId,
+                    $fieldPrefix,
+                    $formServiceUrl,
+                    $v
                 );
                 ++$renderCount;
             }
@@ -223,6 +217,66 @@ class Data2Html_Render
         }
         return $html;
     }
+    
+    protected function renderInput(
+        $inputsColl,
+        $formId,
+        $fieldPrefix,
+        $formServiceUrl,
+        $defs
+    ) {
+        $def = new Data2Html_Collection($defs);
+            
+        $input = $def->getString('input');
+        $validations = $def->getArray('validations', array());
+        
+        $name = $def->getString('name', '');
+        $label = $def->getString('label', $name);
+        $placeholder = $def->getString('placeholder', $label);
+        $default = $def->getString('default', 'undefined');
+        $serviceUrl = $def->getString('serviceUrl', '');
+        $foreignKey = $def->getString('foreignKey');
+        if ($foreignKey) {
+            $template = $inputsColl->getString('ui-select');
+            $baseUrl = explode('?', $formServiceUrl);
+            $serviceUrl = $baseUrl[0].'?model='.$foreignKey.'&';
+        } elseif ($input) {
+            $template = $inputsColl->getString($input);
+        } else {
+            $template = $inputsColl->getString('text');
+        }
+        $body = "\n".str_replace(
+            array(
+                '$${id}',
+                '$${form-id}',
+                '$${name}', '$${label}', '$${placeholder}',
+                '$${default}',
+                '$${serviceUrl}',
+                '$${validations}'
+            ), 
+            array(
+                $this->createIdRender(),
+                $formId,
+                $fieldPrefix.$name, $label, $placeholder,
+                $default,
+                $serviceUrl,
+                implode(' ', $validations),
+            ),
+            $template
+        );
+        // Other matches
+        $matches = null;
+        preg_match_all('/\$\$\{([\w.:]+)\}/', $body, $matches);
+        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            $body = str_replace(
+                $matches[0][$i],
+                $def->getString($matches[1][$i], ''),
+                $body
+            );
+        }
+        return $body;
+    }
+    
     protected function loadTemplates(
         &$templatesArray,
         &$templatesFnArray,

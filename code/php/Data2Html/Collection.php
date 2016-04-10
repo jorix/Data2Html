@@ -3,7 +3,7 @@
 class Data2Html_Collection
 {
     protected $values = null;
-    protected $strict = false;
+    protected $strict = true;
     public function __construct(&$values = array(), $strict = false)
     {
         $this->set($values);
