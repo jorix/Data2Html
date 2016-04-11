@@ -27,18 +27,19 @@ abstract class Data2Html
         'date' => 'type',
         'db' => 'db',
         'default' => 'default',
+        'description' => 'description',
         'email' => 'type',
         'emails' => 'type',
         'foreignKey' => 'foreignKey',
         'format' => 'format',
         'hidden' => 'display',
         'integer' => 'type',
-        'label' => 'label',
         'maxLength' => 'xxxxx',
         'name' => 'name',
         'number' => 'type',
         'required' => 'validations',
         'string' => 'type',
+        'title' => 'title',
         'type' => 'type',
         'uniqueKey' => 'constraints',
         'url' => 'type',
@@ -62,7 +63,7 @@ abstract class Data2Html
         'url' => 'string',
     );
     protected $keywordsSingle = array(
-        'check', 'default', 'db', 'label', 'name', 'type', 'value'
+        'check', 'default', 'db', 'description', 'name', 'title', 'type', 'value'
     );
     /**
      * Class constructor, initializes basic properties.
@@ -341,7 +342,8 @@ abstract class Data2Html
             $dvField->set($v);
             $name = $dvField->getString('name', (is_int($k) ? null : $k));
             $check = $dvField->getString('check');
-            $v['label'] = $dvField->getString('label', $name);
+            $v['title'] = $dvField->getString('title', $name);
+            $v['description'] = $dvField->getString('description', $name);
             $v['name'] = $name.'_'.$check;
             $v['db'] = $dvField->getString('db', $name);
         }

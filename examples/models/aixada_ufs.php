@@ -10,12 +10,12 @@ class aixada_ufs extends Data2Html {
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
                 'account_id'=> array('db' => '1000+id', 'integer'),
-                'name'      => array('label' => 'Nom',
+                'name'      => array('title' => 'Nom',
                     'maxLength' => 255, 'required'
                 ),
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
-                'mentor_uf' => array('label' => 'UF mentora',
+                'mentor_uf' => array('title' => 'UF mentora',
                     'foreignKey' => 'aixada_ufs:list'
                 ),
             ),

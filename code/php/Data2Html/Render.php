@@ -44,8 +44,8 @@ class Data2Html_Render
             array(
                 'input' => 'button',
                 'icon' => 'refresh',
-                'label' => '$$Refresh data',
-                'placeholder' => null,
+                'title' => '$$Refres>"hàdata',
+                'description' => null,
                 'action' => 'readPage()'
             ),
             array(
@@ -56,7 +56,7 @@ class Data2Html_Render
             array(
                 'input' => 'button',
                 'icon' => 'forward',
-                'label' => '$$Next page',
+                'title' => '$$Ne.>xtàpage',
                 'action' => 'nextPage()',
             )
         );
@@ -101,10 +101,12 @@ class Data2Html_Render
             ++$i;
             $def->set($v);
             $name = $def->getString('name', $k);
-            $label = $def->getString('label', $name);
-            $thead .= str_replace(
-                array('$${name}', '$${label}'),
-                array($name, $label),
+            $label = $def->getString('title', $name);
+            $thead .= $this->renderHtmlDefs(
+                array(
+                    'name' => $name,
+                    'title' => $label
+                ),
                 $columnsTemplates->getString('sortable', '')
             );
             $type = $def->getString('type');
@@ -141,20 +143,15 @@ class Data2Html_Render
             }
             $tbody .= "</td>\n";
         }
-        $tableHtml = str_replace(
+        $tableHtml = $this->renderHtmlDefs(
             array(
-                '$${id}',
-                '$${title}',
-                '$${thead}',
-                '$${tbody}',
-                '$${colCount}'
-            ),
-            array(
-                $this->getId(),
-                $data->getTitle(),
-                $thead,
-                $tbody,
-                $renderCount
+                'page' => '$${page}', // exclude replace
+                'filter' => '$${filter}', // exclude replace 
+                'id' => $this->getId(),
+                'title' => $data->getTitle(),
+                'thead' => $thead,
+                'tbody' => $tbody,
+                'colCount' => $renderCount
             ),
             $tableTpl
         );
@@ -201,9 +198,12 @@ class Data2Html_Render
                 );
                 ++$renderCount;
             }
-            $html = str_replace(
-                array('$${id}', '$${title}', '$${body}'),
-                array($formId, $title, $body),
+            $html = $this->renderHtmlDefs(
+                array(
+                    'id' => $formId,
+                    'title' => $title,
+                    'body' => $body
+                ),
                 $formTpl
             );
         }
@@ -228,13 +228,12 @@ class Data2Html_Render
         $def = new Data2Html_Collection($defs);
             
         $input = $def->getString('input');
-        $validations = $def->getArray('validations', array());
         
         $name = $def->getString('name', '');
-        $label = $def->getString('label', $name);
-        $placeholder = $def->getString('placeholder', $label);
         $default = $def->getString('default', 'undefined');
         $serviceUrl = $def->getString('serviceUrl', '');
+        $validations = $def->getArray('validations', array());
+        
         $foreignKey = $def->getString('foreignKey');
         if ($foreignKey) {
             $template = $inputsColl->getString('ui-select');
@@ -249,7 +248,7 @@ class Data2Html_Render
             array(
                 '$${id}',
                 '$${form-id}',
-                '$${name}', '$${label}', '$${placeholder}',
+                '$${name}',
                 '$${default}',
                 '$${serviceUrl}',
                 '$${validations}'
@@ -257,7 +256,7 @@ class Data2Html_Render
             array(
                 $this->createIdRender(),
                 $formId,
-                $fieldPrefix.$name, $label, $placeholder,
+                $fieldPrefix.$name,
                 $default,
                 $serviceUrl,
                 implode(' ', $validations),
@@ -265,6 +264,26 @@ class Data2Html_Render
             $template
         );
         // Other matches
+        return $this->renderHtmlDefs($defs, $body);
+    }
+    protected function renderHtmlDefs($defs, $template)
+    {
+        $body = $template;
+        $def = new Data2Html_Collection($defs);
+        $matches = null;
+        preg_match_all('/\=\"\$\$\{([\w.:]+)\}\"/', $body, $matches);
+        //htmlentities($str, ENT_SUBSTITUTE, "UTF-8")
+        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            $body = str_replace(
+                $matches[0][$i],
+                '="' . htmlspecialchars(
+                    $def->getString($matches[1][$i], ''),
+                    ENT_COMPAT | ENT_SUBSTITUTE,
+                    'UTF-8'
+                ) . '"',
+                $body
+            );
+        }
         $matches = null;
         preg_match_all('/\$\$\{([\w.:]+)\}/', $body, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
@@ -276,7 +295,6 @@ class Data2Html_Render
         }
         return $body;
     }
-    
     protected function loadTemplates(
         &$templatesArray,
         &$templatesFnArray,

@@ -7,7 +7,7 @@
     $${validations}
 >   <ui-select-match
         allow-clear="true"
-        placeholder="$${placeholder}"
+        placeholder="$${description}"
     >{{$select.selected.text}}</ui-select-match>
     <ui-select-choices 
         repeat="item.value as item in data | filter: {text: $select.search}">

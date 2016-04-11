@@ -11,7 +11,7 @@ class aixada_accounts extends Data2Html {
                 'id' => array('autoKey', 'required', 'hidden'),
                 'account_id' => array('foreignKey' => 'aixada_ufs:account'),
                 'operator' => array(
-                    "label" => 'Usuari',
+                    'title' => 'Usuari',
                     'db' => null, //'operator_id',
                 ),
                 'description' => array(),
@@ -22,7 +22,7 @@ class aixada_accounts extends Data2Html {
                     'format' => 2, 'visualClass' => 'red:<0'),
                 'balance' => array('currency', 'visualClass' => 'red:<0'),
                 'ts' => array(
-                    'label' => 'data', 'date',
+                    'title' => 'data', 'date',
                     'format' => 'dd-MM-yy HH:mm'// 'medium'
                 )
             ),
