@@ -27,8 +27,15 @@ class aixada_accounts extends Data2Html {
                 )
             ),
             'filter' => array(
-                'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
-                'description' => array('check'=>'LK', 'required'),
+                    'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
+                    'description' => array('check'=>'LK', 'required'),
+            ),
+            'filter2' => array(
+                'layout' => 'inline',
+                'fields' => array(
+                    'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
+                    'description' => array('check'=>'LK', 'required'),
+                )
             )
         );
     }
