@@ -9,7 +9,7 @@ class aixada_accounts extends Data2Html {
             'title' => 'Diners',
             'fields' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
-                'account_id' => array('foreignKey' => 'aixada_ufs:account'),
+                'account_id' => array('foreignKey' => 'aixada_ufs:account', 'title' => 'Compte'),
                 'operator' => array(
                     'title' => 'Usuari',
                     'db' => null, //'operator_id',
@@ -26,16 +26,20 @@ class aixada_accounts extends Data2Html {
                     'format' => 'dd-MM-yy HH:mm'// 'medium'
                 )
             ),
-            'filter' => array(
-                    'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
-                    'description' => array('check'=>'LK', 'required'),
-            ),
-            'filter2' => array(
-                'layout' => 'inline',
-                'fields' => array(
-                    'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
-                    'description' => array('check'=>'LK', 'required'),
+            'services' => array(
+                'default' => array(
+                    'columns' => array(
+                        'id', 'account_id', 'operator', 
+                        'description', 'method', 'quantity', 'balance'),
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array(
+                            'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
+                            'description' => array('check'=>'LK', 'required')
+                        )
+                    )
                 )
+            
             )
         );
     }

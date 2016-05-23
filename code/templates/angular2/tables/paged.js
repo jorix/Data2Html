@@ -31,7 +31,9 @@ d2h_App.controller('$${id}', function ($scope, $http) {
         );
     };
     $scope.nextPage = function() {
-        $scope.d2h_page.pageStart += $scope.d2h_page.pageSize;
+        $scope.d2h_page.pageStart = 
+            parseInt($scope.d2h_page.pageStart, 10) +
+            parseInt($scope.d2h_page.pageSize, 10);
         $http(_req()).then(
             function(response) { // Ok
                 Array.prototype.push.apply(

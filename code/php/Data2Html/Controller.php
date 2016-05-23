@@ -59,19 +59,24 @@ class Data2Html_Controller
                 $sql = $data->sql;
                 if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
-                    $serviceDef = $data->servicesDefs[$aux[1]];
-                    $colDefs = $serviceDef['columns'];
-                    $filterDefs = null;
+                    $service = $aux[1];
                 } else {
-                    $colDefs = $data->colDefs;
-                    $filterDefs = $data->filterDefs;
+                    $service = 'default';
+                }
+                $serviceDefsColl = $data->getServiceDefsColl($service);
+                $colDefs = $serviceDefsColl->getArray('columns');
+                $filterDefsColl = $serviceDefsColl->getCollection('filter', false);
+                if ($filterDefsColl) {
+                    $filterCols = $filterDefsColl->getArray('fields');
+                } else {
+                    $filterCols = null;
                 }
                 if (!$sql) {
                     $sqlObj = new Data2Html_Sql($db);
                     $sql = $sqlObj->getSelect(
                         $table,
                         $colDefs,
-                        $filterDefs,
+                        $filterCols,
                         $r->getArray('d2h_filter', array())
                     );
                 }

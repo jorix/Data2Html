@@ -31,7 +31,10 @@ class aixada_ufs extends Data2Html {
                 'list' => array(
                     'type' => 'list',
                     'columns' => array('id', '=$${name}#$${id}', 'active'),
-                    'filter' => array('active' => 'EQ'),
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array('active' => 'EQ')
+                    ),
                     'filterValues' => array(
                         'is null', '=(sense valor)', null,
                         'in not null', '=(té valor)', null
@@ -42,7 +45,10 @@ class aixada_ufs extends Data2Html {
                     'columns' => array(
                         'account_id', '=$${name}#$${account_id}', 'active'
                     ),
-                    'filter' => array('active' => 'EQ'),
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array('active' => 'EQ')
+                    ),
                     'filterValues' => array(
                         'is null', null, '=(sense valor)', null,
                         'in not null', null, '=(té valor)', null

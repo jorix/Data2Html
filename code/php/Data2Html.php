@@ -14,9 +14,8 @@ abstract class Data2Html
     public $table = '';
     public $sql = '';
     protected $title;
-    public $colDefs = array();
-    public $filterDefs = array();
-    public $servicesDefs = array();
+    private $colDefs = array();
+    private $servicesDefsColl = null;
     private static $idParseCount = 0;
     
     protected $keywords = array(
@@ -111,9 +110,9 @@ abstract class Data2Html
     {
         return $this->colDefs;
     }
-    public function getFilterDefs()
+    public function getServiceDefsColl($serviceName)
     {
-        return $this->filterDefs;
+        return $this->servicesDefsColl->getCollection($serviceName);
     }
     public function getTitle()
     {
@@ -134,7 +133,6 @@ abstract class Data2Html
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
-        $this->filterDefs = $this->parseFilter($def->getArray('filter'), $fields);
         $services = $def->getArray('services', array());
         $dvServ = new Data2Html_Collection($aux);
         foreach ($services as $k => &$s) {
@@ -149,14 +147,17 @@ abstract class Data2Html
             }
         }
         $this->colDefs = $fields;
-        $this->servicesDefs = $services;
+        $this->servicesDefsColl = new Data2Html_Collection($services, true);
     }
 
     protected function parseService(&$service, $fields)
     {
         $servV = new Data2Html_Collection($service);
-        $service['filter'] = 
-            $this->parseFilter($servV->getArray('filter'), $fields);
+        $flV = $servV->getCollection('filter');
+        $service['filter'] = array(
+            'layout' => $flV->getString('layout'),
+            'fields' => $this->parseFilter($flV->getArray('fields'), $fields)
+        );
         $service['columns'] = 
             $this->parseColumns($servV->getArray('columns'), $fields);
     }
@@ -334,21 +335,6 @@ abstract class Data2Html
         }
         return array($name => $newField);
     }
-
-    protected function setFilter($filterArray)
-    {
-        $dvField = new Data2Html_Collection();
-        foreach ($filterArray as $k => &$v) {
-            $dvField->set($v);
-            $name = $dvField->getString('name', (is_int($k) ? null : $k));
-            $check = $dvField->getString('check');
-            $v['title'] = $dvField->getString('title', $name);
-            $v['description'] = $dvField->getString('description', $name);
-            $v['name'] = $name.'_'.$check;
-            $v['db'] = $dvField->getString('db', $name);
-        }
-        $this->filterDefs = $filterArray;
-    }
     
     // ========================
     // Server
@@ -356,12 +342,12 @@ abstract class Data2Html
     /**
      * Render
      */    
-    public function render($template)
+    public function render($template, $serviceName)
     {
         try {
             $this->parse();
             $render = new Data2Html_Render($template);
-            echo $render->render($this);
+            echo $render->render($this, $serviceName);
         } catch(Exception $e) {
             // Message to user
             $exData = $this->exception2Data($e);
@@ -446,12 +432,12 @@ abstract class Data2Html
             }
             // Exception to debug
             $exeptionData = array();
-            if ($exception instanceof Data2Html_Exception) {
-                $exeptionData['data'] = $exception->getData();
-            }
             $exeptionData['fileLine'] = $exception->getFile().
                 ' [ line: '.$exception->getLine().' ]';
             $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
+            if ($exception instanceof Data2Html_Exception) {
+                $exeptionData['data'] = $exception->getData();
+            }
             $response['exception'] = $exeptionData;
         } else {
             $response['error'] =

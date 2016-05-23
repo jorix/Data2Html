@@ -29,35 +29,45 @@ class Data2Html_Render
     {
         return $this->id;
     }
-    public function render($data)
+    public function render($data, $serviceName)
     {        // templates
         $this->debug = $data->debug;
-    echo '<pre>'.$data->toJson($this->tamplatesFilenames).'</pre>';
+//echo '<pre>'.$data->toJson($this->tamplatesFilenames).'</pre>';
         $templColl = new Data2Html_Collection($this->templates);
-        $gridTemplate = $templColl->getArray('grid');
-        if (!$gridTemplate) {
+        $templGridColl = $templColl->getCollection('grid');
+        if (!$templGridColl) {
             throw new Exception("The template must have a `grid` key");
         }
-        $gridColl = new Data2Html_Collection($gridTemplate);
-        $gridHtml = $this->renderTable($gridTemplate, $data);
+        $serviceDefColl = $data->getServiceDefsColl($serviceName);
+//echo '<pre>'.$data->toJson($serviceDefColl->getValues()).'</pre>';
+        $gridHtml = $this->renderTable(
+            $templGridColl,
+            'table', 
+            $serviceDefColl->getArray('columns'),
+            $data->serviceUrl,
+            $data->getTitle()
+        );
         $pageDef = array(
-            array(
-                'input' => 'button',
-                'icon' => 'refresh',
-                'title' => '$$Refres>"hàdata',
-                'description' => null,
-                'action' => 'readPage()'
-            ),
-            array(
-                'name' => 'pageSize',
-                'default' => 10,
-                'type' => 'integer'
-            ),
-            array(
-                'input' => 'button',
-                'icon' => 'forward',
-                'title' => '$$Ne.>xtàpage',
-                'action' => 'nextPage()',
+            'layout' => 'inline',
+            'fields' => array(
+                array(
+                    'input' => 'button',
+                    'icon' => 'refresh',
+                    'title' => '$$Refres>"hàdata',
+                    'description' => null,
+                    'action' => 'readPage()'
+                ),
+                array(
+                    'name' => 'pageSize',
+                    'default' => 10,
+                    'type' => 'integer'
+                ),
+                array(
+                    'input' => 'button',
+                    'icon' => 'forward',
+                    'title' => '$$Ne.>xtàpage',
+                    'action' => 'nextPage()',
+                )
             )
         );
         return str_replace(
@@ -66,17 +76,16 @@ class Data2Html_Render
                 '$${filter}'
             ),
             array(
-                $this->renderForm('form_page',
-                    'd2h_page.',
-                    $gridColl->getArray('form_page'),
+                $this->renderFormByDefs('form_page',
+                    $templGridColl->getArray('form_page'),
                     $pageDef,
+                    'd2h_page.',
                     $data->serviceUrl,
                     $data->getTitle()
                 ),
-                $this->renderForm('form_filter',
+                $this->renderForm($templGridColl, 'form_filter',
+                    $serviceDefColl->getArray('filter'),
                     'd2h_filter.',
-                    $gridColl->getArray('form_filter'),
-                    $data->getFilterDefs(),
                     $data->serviceUrl,
                     $data->getTitle()
                 )
@@ -84,14 +93,20 @@ class Data2Html_Render
             $gridHtml
         );
     }
-    protected function renderTable($template, $data)
-    { 
-        $tableColl = new Data2Html_Collection($template);
-        $tableTpl = $tableColl->getString('table', '');
-        $tableJsTpl = $tableColl->getString('table.js', '');
-        $columnsTemplates = $tableColl->getCollection('columns');
+    protected function renderTable(
+        $templateColl,
+        $elemName,
+        $colDefs,
+        $serviceUrl,
+        $title
+    ) {
+        if (!$colDefs) {
+            throw new Exception("\$colDefs parameter is empty.");
+        }
+        $tableTpl = $templateColl->getString($elemName, '');
+        $tableJsTpl = $templateColl->getString($elemName . '.js', '');
+        $columnsTemplates = $templateColl->getCollection('columns');
         //
-        $colDefs = $data->getColDefs();
         $thead = '';
         $tbody = '';
         $renderCount = 0;
@@ -148,7 +163,7 @@ class Data2Html_Render
                 'page' => '$${page}', // exclude replace
                 'filter' => '$${filter}', // exclude replace 
                 'id' => $this->getId(),
-                'title' => $data->getTitle(),
+                'title' => $title,
                 'thead' => $thead,
                 'tbody' => $tbody,
                 'colCount' => $renderCount
@@ -160,7 +175,7 @@ class Data2Html_Render
                 "\n<script>\n".
                 str_replace(
                     array('$${id}', '$${serviceUrl}'),
-                    array($this->getId(), $data->serviceUrl),
+                    array($this->getId(), $serviceUrl),
                     $tableJsTpl
                 ).
                 "\n</script>\n";
@@ -170,13 +185,33 @@ class Data2Html_Render
         return $tableHtml . $tableJs;
     }
     protected function renderForm(
-        $templateName,
-        $fieldPrefix,
-        $template,
+        $templateColl,
+        $formName,
         $defs,
+        $fieldPrefix,
+        $formServiceUrl,
+        $title
+    ){  
+        return $this->renderFormByDefs(
+            $formName,
+            $templateColl->getArray($formName),
+            $defs,
+            $fieldPrefix,
+            $formServiceUrl,
+            $title
+        );
+    }
+    protected function renderFormByDefs(
+        $templateName,
+        $template,
+        $formDefs,
+        $fieldPrefix,
         $formServiceUrl,
         $title
     ){
+        if (!$formDefs) {
+            throw new Exception("\$formDefs parameter is empty.");
+        }
         $formId = $this->createIdRender();
         if (!$template) {
             $html = '';
@@ -184,13 +219,22 @@ class Data2Html_Render
             $templateColl = new Data2Html_Collection($template);
             $formTpl = $templateColl->getString('form');
             $inputsColl = $templateColl->getCollection('inputs');
+            $layoutsColl = $templateColl->getCollection('layouts');
             // Apply template
             $body = '';
             $renderCount = 0;
-            $def = new Data2Html_Collection();
-            foreach ($defs as $k => $v) {
+            $formDefsColl = new Data2Html_Collection($formDefs, true);
+            $fieldsDefs = $formDefsColl->getArray('fields');
+            $defLayoutTpl = '';
+            if ($layoutsColl) {
+                $defLayoutTpl = $layoutsColl->getString(
+                    $formDefsColl->getString('layout', '')
+                );
+            }
+            foreach ($fieldsDefs as $k => $v) {
                 $body .= $this->renderInput(
                     $inputsColl,
+                    $defLayoutTpl,
                     $formId,
                     $fieldPrefix,
                     $formServiceUrl,
@@ -210,7 +254,7 @@ class Data2Html_Render
         if ($this->debug) {
             $html = 
                 "\n<!-- START renderForm({\"{$templateName}\") formId=\"{$formId}\" -->" .
-                // $data->toJson($defs) .
+                // $data->toJson($$fieldsDefs) .
                 "\n<!-- ======================================== -->\n" .
                 $html .
                 "\n<!-- END renderForm({\"{$templateName}\") formId=\"{$formId}\" -->\n";
@@ -220,15 +264,14 @@ class Data2Html_Render
     
     protected function renderInput(
         $inputsColl,
+        $layoutTpl,
         $formId,
         $fieldPrefix,
         $formServiceUrl,
         $defs
     ) {
         $def = new Data2Html_Collection($defs);
-            
-        $input = $def->getString('input');
-        
+        $input = $def->getString('input', 'text');
         $name = $def->getString('name', '');
         $default = $def->getString('default', 'undefined');
         $serviceUrl = $def->getString('serviceUrl', '');
@@ -241,8 +284,9 @@ class Data2Html_Render
             $serviceUrl = $baseUrl[0].'?model='.$foreignKey.'&';
         } elseif ($input) {
             $template = $inputsColl->getString($input);
-        } else {
-            $template = $inputsColl->getString('text');
+        }
+        if ($layoutTpl) {
+            $template = str_replace('$${html}', $template, $layoutTpl);
         }
         $body = "\n".str_replace(
             array(

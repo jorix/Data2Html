@@ -3,15 +3,16 @@
 class Data2Html_Collection
 {
     protected $values = null;
-    protected $strict = true;
-    public function __construct(&$values = array(), $strict = false)
+    protected $strict = false;
+    protected $required = false;
+    public function __construct(&$values = array(), $required = false)
     {
         $this->set($values);
-        $this->strict = $strict;
+        $this->required = $required;
     }
-    public static function create($values, $strict = false)
+    public static function create($values, $required = false)
     {
-        $c = new Data2Html_Collection($values, $strict);
+        $c = new Data2Html_Collection($values, $required);
         return $c;
     }
     public function set(&$values)
@@ -95,6 +96,7 @@ class Data2Html_Collection
     public function getBoolean($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
             return is_null($default) ? null : !!$default;
         }
         $val = $this->values[$itemKey];
@@ -103,10 +105,10 @@ class Data2Html_Collection
         }
         return !!$val;
     }
-    
     public function getString($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
             return is_null($default) ? null : strval($default);
         }
         $val = $this->values[$itemKey];
@@ -119,6 +121,7 @@ class Data2Html_Collection
     public function getNumber($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
             if (is_null($default)) {
                 return null;
             }
@@ -154,6 +157,7 @@ class Data2Html_Collection
         $input_format = 'Y-m-d H:i:s'
     ) {
         if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
             if (is_null($default)) {
                 return null;
             }
@@ -170,6 +174,7 @@ class Data2Html_Collection
     public function getArray($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
             if (is_null($default)) {
                 return null;
             }
@@ -196,7 +201,19 @@ class Data2Html_Collection
         if (is_null($val)) {
             return null;
         } else {
-            return new Data2Html_Collection($val);
+            return new Data2Html_Collection($val, $this->required);
+        }
+    }
+    protected function throwNotExist($itemKey, $default) 
+    {
+        if ($this->required && $default === null) {
+            throw new Data2Html_Exception(
+                "Key '{$itemKey}' don't exist on collection.",
+                array(
+                    'key' => $itemKey,
+                    'collection' => $this->values
+                )
+            );
         }
     }
 }
