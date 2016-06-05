@@ -1,5 +1,11 @@
 <?php
-
+/**
+ * Nomenclature
+ *  * Variable name suffixes:
+ *      * ..Dx: Definitions as a `Data2Html_Collection`.
+ *      * ..Ds: Definitions as a array.
+ */
+ 
 abstract class Data2Html
 {
     //protected $db_params;
@@ -9,13 +15,13 @@ abstract class Data2Html
     protected $configOptions = array();
     public $debug = false;
     public $model;
-    public $serviceUrl;
+    public $url;
     //
     public $table = '';
     public $sql = '';
     protected $title;
-    private $colDefs = array();
-    private $servicesDefsColl = null;
+    private $colDs = array();
+    private $gridsDx = null;
     private static $idParseCount = 0;
     
     protected $keywords = array(
@@ -69,7 +75,7 @@ abstract class Data2Html
      *
      * @param jqGridLoader $loader
      */
-    public function __construct($serviceUrl = '')
+    public function __construct($url = '')
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
@@ -94,8 +100,8 @@ abstract class Data2Html
         
         // Init
         //----------------
-        if ($serviceUrl) {
-            $this->serviceUrl = $serviceUrl;
+        if ($url) {
+            $this->url = $url;
         }
     }
     public function getRoot()
@@ -106,13 +112,13 @@ abstract class Data2Html
         self::$idParseCount++;
         return 'd2h_'.self::$idParseCount;
     }
-    public function getColDefs()
+    public function getColDs()
     {
-        return $this->colDefs;
+        return $this->colDs;
     }
-    public function getServiceDefsColl($serviceName)
+    public function getGridDx($grid)
     {
-        return $this->servicesDefsColl->getCollection($serviceName);
+        return $this->gridsDx->getCollection($grid);
     }
     public function getTitle()
     {
@@ -133,10 +139,10 @@ abstract class Data2Html
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
-        $services = $def->getArray('services', array());
+        $grids = $def->getArray('grids', array());
         $dvServ = new Data2Html_Collection($aux);
-        foreach ($services as $k => &$s) {
-            $this->parseService($s, $fields);
+        foreach ($grids as $k => &$s) {
+            $this->parseGrid($s, $fields);
             $dvServ->set($s);
             $kkl = array_keys($s['columns']);
             switch ($dvServ->getString('type')) {
@@ -146,19 +152,19 @@ abstract class Data2Html
                     break;
             }
         }
-        $this->colDefs = $fields;
-        $this->servicesDefsColl = new Data2Html_Collection($services, true);
+        $this->colDs = $fields;
+        $this->gridsDx = new Data2Html_Collection($grids, true);
     }
 
-    protected function parseService(&$service, $fields)
+    protected function parseGrid(&$grid, $fields)
     {
-        $servV = new Data2Html_Collection($service);
+        $servV = new Data2Html_Collection($grid);
         $flV = $servV->getCollection('filter');
-        $service['filter'] = array(
+        $grid['filter'] = array(
             'layout' => $flV->getString('layout'),
             'fields' => $this->parseFilter($flV->getArray('fields'), $fields)
         );
-        $service['columns'] = 
+        $grid['columns'] = 
             $this->parseColumns($servV->getArray('columns'), $fields);
     }
 
@@ -204,7 +210,7 @@ abstract class Data2Html
                         $colArray[$name] = $fields[$name];
                     } else {
                         throw new Exception(
-                            "Match `\$\${{$name}}` used in a service not exist on `fields`."
+                            "Match `\$\${{$name}}` used in a grid not exist on `fields`."
                         );
                     }
                 }
@@ -342,12 +348,12 @@ abstract class Data2Html
     /**
      * Render
      */    
-    public function render($template, $serviceName)
+    public function render($template, $grid)
     {
         try {
             $this->parse();
             $render = new Data2Html_Render($template);
-            echo $render->render($this, $serviceName);
+            echo $render->render($this, $grid);
         } catch(Exception $e) {
             // Message to user
             $exData = $this->exception2Data($e);
@@ -492,19 +498,10 @@ abstract class Data2Html
             echo ")]}',\n".$this->toJson($obj);
         }
     }
-    // -------------
     /**
      * Load and create one model
      */
-    public function createService($model)
-    {    
-        $aux = explode('?', $this->serviceUrl);
-        return self::createFromModel($model, $aux[0]);
-    }
-    /**
-     * Load and create one model
-     */
-    public static function create($serviceFileName, $modelFolder = null)
+    public static function create($controllerUrl, $modelFolder = null)
     {
         if (isset($_REQUEST['model'])) {
             $model = $_REQUEST['model'];
@@ -513,17 +510,17 @@ abstract class Data2Html
             if (!isset(self::$modelServices[$modelBase])) {
                 self::$modelFolder = $modelFolder;
                 self::$modelServices[$modelBase] =
-                    self::createFromModel($model, $serviceFileName);
+                    self::createFromModel($model, $controllerUrl);
             }
             return self::$modelServices[$modelBase];
         } else {
             throw new Exception('The URL parameter `&model=` is not set.');
         }
     }
-    private static function createFromModel($model, $serviceFileName)
+    private static function createFromModel($model, $controllerUrl)
     {
             $ds = DIRECTORY_SEPARATOR;
-            $path = dirname($serviceFileName).$ds;
+            $path = dirname($controllerUrl).$ds;
             
             $modelX = explode(':', $model);
             $file = $modelX[0].'.php';
@@ -535,7 +532,7 @@ abstract class Data2Html
                 require $phisicalFile;
                 $class =$modelX[0];
                 $data = new $class(
-                    basename($serviceFileName).'?model='.$model.'&'
+                    basename($controllerUrl).'?model='.$model.'&'
                 );
                 return $data;
             } else {

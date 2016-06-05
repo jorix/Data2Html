@@ -27,7 +27,7 @@ class aixada_ufs extends Data2Html {
                 'active' => 'EQ',
                 'mentor_uf' => 'EQ',
             ),
-            'services' => array(
+            'grids' => array(
                 'list' => array(
                     'type' => 'list',
                     'columns' => array('id', '=$${name}#$${id}', 'active'),

@@ -26,7 +26,7 @@ class aixada_accounts extends Data2Html {
                     'format' => 'dd-MM-yy HH:mm'// 'medium'
                 )
             ),
-            'services' => array(
+            'grids' => array(
                 'default' => array(
                     'columns' => array(
                         'id', 'account_id', 'operator', 

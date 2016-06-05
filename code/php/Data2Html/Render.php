@@ -29,7 +29,7 @@ class Data2Html_Render
     {
         return $this->id;
     }
-    public function render($data, $serviceName)
+    public function render($data, $gridName)
     {        // templates
         $this->debug = $data->debug;
 //echo '<pre>'.$data->toJson($this->tamplatesFilenames).'</pre>';
@@ -38,13 +38,13 @@ class Data2Html_Render
         if (!$templGridColl) {
             throw new Exception("The template must have a `grid` key");
         }
-        $serviceDefColl = $data->getServiceDefsColl($serviceName);
+        $serviceDefColl = $data->getGridDx($gridName);
 //echo '<pre>'.$data->toJson($serviceDefColl->getValues()).'</pre>';
         $gridHtml = $this->renderTable(
             $templGridColl,
             'table', 
             $serviceDefColl->getArray('columns'),
-            $data->serviceUrl,
+            $data->url,
             $data->getTitle()
         );
         $pageDef = array(
@@ -76,17 +76,17 @@ class Data2Html_Render
                 '$${filter}'
             ),
             array(
-                $this->renderFormByDefs('form_page',
+                $this->renderFormByDs('form_page',
                     $templGridColl->getArray('form_page'),
                     $pageDef,
                     'd2h_page.',
-                    $data->serviceUrl,
+                    $data->url,
                     $data->getTitle()
                 ),
                 $this->renderForm($templGridColl, 'form_filter',
                     $serviceDefColl->getArray('filter'),
                     'd2h_filter.',
-                    $data->serviceUrl,
+                    $data->url,
                     $data->getTitle()
                 )
             ),
@@ -96,12 +96,12 @@ class Data2Html_Render
     protected function renderTable(
         $templateColl,
         $elemName,
-        $colDefs,
-        $serviceUrl,
+        $colDs,
+        $url,
         $title
     ) {
-        if (!$colDefs) {
-            throw new Exception("\$colDefs parameter is empty.");
+        if (!$colDs) {
+            throw new Exception("\$colDs parameter is empty.");
         }
         $tableTpl = $templateColl->getString($elemName, '');
         $tableJsTpl = $templateColl->getString($elemName . '.js', '');
@@ -112,12 +112,12 @@ class Data2Html_Render
         $renderCount = 0;
         $i = 0;
         $def = new Data2Html_Collection();
-        foreach ($colDefs as $k => $v) {
+        foreach ($colDs as $k => $v) {
             ++$i;
             $def->set($v);
             $name = $def->getString('name', $k);
             $label = $def->getString('title', $name);
-            $thead .= $this->renderHtmlDefs(
+            $thead .= $this->renderHtmlDs(
                 array(
                     'name' => $name,
                     'title' => $label
@@ -158,7 +158,7 @@ class Data2Html_Render
             }
             $tbody .= "</td>\n";
         }
-        $tableHtml = $this->renderHtmlDefs(
+        $tableHtml = $this->renderHtmlDs(
             array(
                 'page' => '$${page}', // exclude replace
                 'filter' => '$${filter}', // exclude replace 
@@ -174,8 +174,8 @@ class Data2Html_Render
             $tableJs = 
                 "\n<script>\n".
                 str_replace(
-                    array('$${id}', '$${serviceUrl}'),
-                    array($this->getId(), $serviceUrl),
+                    array('$${id}', '$${url}'),
+                    array($this->getId(), $url),
                     $tableJsTpl
                 ).
                 "\n</script>\n";
@@ -189,28 +189,28 @@ class Data2Html_Render
         $formName,
         $defs,
         $fieldPrefix,
-        $formServiceUrl,
+        $formUrl,
         $title
     ){  
-        return $this->renderFormByDefs(
+        return $this->renderFormByDs(
             $formName,
             $templateColl->getArray($formName),
             $defs,
             $fieldPrefix,
-            $formServiceUrl,
+            $formUrl,
             $title
         );
     }
-    protected function renderFormByDefs(
+    protected function renderFormByDs(
         $templateName,
         $template,
-        $formDefs,
+        $formDs,
         $fieldPrefix,
-        $formServiceUrl,
+        $formUrl,
         $title
     ){
-        if (!$formDefs) {
-            throw new Exception("\$formDefs parameter is empty.");
+        if (!$formDs) {
+            throw new Exception("\$formDs parameter is empty.");
         }
         $formId = $this->createIdRender();
         if (!$template) {
@@ -223,26 +223,26 @@ class Data2Html_Render
             // Apply template
             $body = '';
             $renderCount = 0;
-            $formDefsColl = new Data2Html_Collection($formDefs, true);
-            $fieldsDefs = $formDefsColl->getArray('fields');
+            $formDx = new Data2Html_Collection($formDs, true);
+            $fieldsDs = $formDx->getArray('fields');
             $defLayoutTpl = '';
             if ($layoutsColl) {
                 $defLayoutTpl = $layoutsColl->getString(
-                    $formDefsColl->getString('layout', '')
+                    $formDx->getString('layout', '')
                 );
             }
-            foreach ($fieldsDefs as $k => $v) {
+            foreach ($fieldsDs as $k => $v) {
                 $body .= $this->renderInput(
                     $inputsColl,
                     $defLayoutTpl,
                     $formId,
                     $fieldPrefix,
-                    $formServiceUrl,
+                    $formUrl,
                     $v
                 );
                 ++$renderCount;
             }
-            $html = $this->renderHtmlDefs(
+            $html = $this->renderHtmlDs(
                 array(
                     'id' => $formId,
                     'title' => $title,
@@ -254,7 +254,7 @@ class Data2Html_Render
         if ($this->debug) {
             $html = 
                 "\n<!-- START renderForm({\"{$templateName}\") formId=\"{$formId}\" -->" .
-                // $data->toJson($$fieldsDefs) .
+                // $data->toJson($$fieldsDs) .
                 "\n<!-- ======================================== -->\n" .
                 $html .
                 "\n<!-- END renderForm({\"{$templateName}\") formId=\"{$formId}\" -->\n";
@@ -267,21 +267,21 @@ class Data2Html_Render
         $layoutTpl,
         $formId,
         $fieldPrefix,
-        $formServiceUrl,
+        $formUrl,
         $defs
     ) {
         $def = new Data2Html_Collection($defs);
         $input = $def->getString('input', 'text');
         $name = $def->getString('name', '');
         $default = $def->getString('default', 'undefined');
-        $serviceUrl = $def->getString('serviceUrl', '');
+        $url = $def->getString('url', '');
         $validations = $def->getArray('validations', array());
         
         $foreignKey = $def->getString('foreignKey');
         if ($foreignKey) {
             $template = $inputsColl->getString('ui-select');
-            $baseUrl = explode('?', $formServiceUrl);
-            $serviceUrl = $baseUrl[0].'?model='.$foreignKey.'&';
+            $baseUrl = explode('?', $formUrl);
+            $url = $baseUrl[0].'?model='.$foreignKey.'&';
         } elseif ($input) {
             $template = $inputsColl->getString($input);
         }
@@ -294,7 +294,7 @@ class Data2Html_Render
                 '$${form-id}',
                 '$${name}',
                 '$${default}',
-                '$${serviceUrl}',
+                '$${url}',
                 '$${validations}'
             ), 
             array(
@@ -302,15 +302,15 @@ class Data2Html_Render
                 $formId,
                 $fieldPrefix.$name,
                 $default,
-                $serviceUrl,
+                $url,
                 implode(' ', $validations),
             ),
             $template
         );
         // Other matches
-        return $this->renderHtmlDefs($defs, $body);
+        return $this->renderHtmlDs($defs, $body);
     }
-    protected function renderHtmlDefs($defs, $template)
+    protected function renderHtmlDs($defs, $template)
     {
         $body = $template;
         $def = new Data2Html_Collection($defs);

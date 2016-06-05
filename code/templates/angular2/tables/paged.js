@@ -5,7 +5,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
     var _req = function() {
         return {
             method: 'POST',
-            url: '$${serviceUrl}lang=ca',
+            url: '$${url}lang=ca',
             headers: {
                 'Content-Type': undefined
             },

@@ -59,15 +59,15 @@ class Data2Html_Controller
                 $sql = $data->sql;
                 if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
-                    $service = $aux[1];
+                    $grid = $aux[1];
                 } else {
-                    $service = 'default';
+                    $grid = 'default';
                 }
-                $serviceDefsColl = $data->getServiceDefsColl($service);
-                $colDefs = $serviceDefsColl->getArray('columns');
-                $filterDefsColl = $serviceDefsColl->getCollection('filter', false);
-                if ($filterDefsColl) {
-                    $filterCols = $filterDefsColl->getArray('fields');
+                $serviceDx = $data->getGridDx($grid);
+                $colDs = $serviceDx->getArray('columns');
+                $filterDx = $serviceDx->getCollection('filter', false);
+                if ($filterDx) {
+                    $filterCols = $filterDx->getArray('fields');
                 } else {
                     $filterCols = null;
                 }
@@ -75,14 +75,14 @@ class Data2Html_Controller
                     $sqlObj = new Data2Html_Sql($db);
                     $sql = $sqlObj->getSelect(
                         $table,
-                        $colDefs,
+                        $colDs,
                         $filterCols,
                         $r->getArray('d2h_filter', array())
                     );
                 }
                 $ra = $db->getQueryArray(
                     $sql,
-                    $colDefs,
+                    $colDs,
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
