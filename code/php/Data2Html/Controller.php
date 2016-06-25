@@ -63,13 +63,17 @@ class Data2Html_Controller
                 } else {
                     $grid = 'default';
                 }
-                $serviceDx = $data->getGridDx($grid);
-                $colDs = $serviceDx->getArray('columns');
-                $filterDx = $serviceDx->getCollection('filter', false);
+                $gridDx = $data->getGridDx($grid);
+                $colDs = $gridDx->getArray('columns');
+                $filterDx = $gridDx->getCollection('filter', false);
                 if ($filterDx) {
                     $filterCols = $filterDx->getArray('fields');
                 } else {
                     $filterCols = null;
+                }
+                $sortReq = $r->getString('d2h_sort');
+                if (!$sortReq) { // use default sort
+                    $sortReq = $gridDx->getString('sort');
                 }
                 if (!$sql) {
                     $sqlObj = new Data2Html_Sql($db);
@@ -77,7 +81,8 @@ class Data2Html_Controller
                         $table,
                         $colDs,
                         $filterCols,
-                        $r->getArray('d2h_filter', array())
+                        $r->getArray('d2h_filter', array()),
+                        $sortReq
                     );
                 }
                 $ra = $db->getQueryArray(

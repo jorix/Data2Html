@@ -10,8 +10,8 @@ class Data2Html_Sql
         $table, 
         $colDefs, 
         $filterDefs = null,
-        $filterReq = array()
-        //$orderBy = null
+        $filterReq = array(),
+        $sortColReq = null
     )
     {
         $def = new Data2Html_Collection();
@@ -20,82 +20,104 @@ class Data2Html_Sql
             $def->set($v);
             $name = $def->getString('name', $k);
             $dbName = $def->getString('db', $name);
-            //$value = $def->getString('value');
             if ($dbName !== null) {
                 if ($name === $dbName) {
                     array_push($dbfs, $dbName);
                 } else {
-                    array_push($dbfs, $dbName.' '.$name);
+                    array_push($dbfs, $dbName.' '.$name); // db-field with alias
                 }
-            //} elseif ($value) {
-            //    array_push($dbfs, $this->db->stringToSql($value).' '.$name);
             }
         }
         if (count($dbfs) === 0) {
-            throw new Exception("No dada base fields defined.");
+            throw new Exception("No data base fields defined.");
         }
         $query = 'select ' . implode(',', $dbfs);
         $query .= " from {$table}";
-        if ($filterDefs) {
-            $where = $this->getWhere($filterDefs, $filterReq);
-            if ($where) {
-                $query .= " where {$where}";
-            }
+        $where = $this->getWhere($filterDefs, $filterReq);
+        if ($where) {
+            $query .= " where {$where}";
         }
-        if (false) { //$orderBy) {
+        $orderBy = $this->getOrderBy($colDefs, $sortColReq);
+        if ($orderBy) {
             $query .= " order by {$orderBy}";
         }
         return $query;
     }
-    public function getWhere($filterDefs, $request)
+    protected function getOrderBy($colDefs, $colNameRequest)
     {
+        if (!$colNameRequest) {
+            return '';
+        }
+        if (substr($colNameRequest, 0, 1) === '!') {
+            $nakedColName = substr($colNameRequest, 1);
+            $ascending = false;
+        } else {
+            $nakedColName = $colNameRequest;
+            $ascending = true;
+        }
+        $orderByDef = Data2Html_Array::get(
+            $colDefs,
+            array($nakedColName, 'orderBy')
+        );
+        $c = array();
+        if ($orderByDef) {
+            foreach ($orderByDef as $v) {
+                if (substr($v, 0, 1) === '!') {
+                    $dbField = substr($v, 1);
+                    $dbAscen = !$ascending;
+                } else {
+                    $dbField = $v;
+                    $dbAscen = $ascending;
+                }
+                array_push($c, $dbField . ($dbAscen ? ' ASC' : ' DESC'));
+            }    
+        }
+        return implode(', ', $c);
+    }
+    protected function getWhere($filterDefs, $request)
+    {
+        if (!$filterDefs) {
+            return '';
+        }
         $requestValues = new Data2Html_Collection($request);
-        if ($filterDefs) {
-            $c = array();
-            $def = new Data2Html_Collection();
-            foreach ($filterDefs as $k=>$v) {
-                $def->set($v);
-                $fName = $def->getString('name'); 
-                $fCheck = $def->getString('check');
-                $dbName = $def->getString('db'); 
-                if (
-                    $dbName === null ||
-                    $fCheck === null
-                ) {
-                    continue;
-                }
-
-                
-                $type = $def->getString('type', 'string');
-                // forced value
-                $r = $def->toSql($this->db, 'value', $type, null);
-                if ($r === null) {
-                    // requested value
-                    $r = $requestValues->toSql($this->db, $fName, $type, null);
-                }
-                if ($r !== null) {
-                    switch ($fCheck) {
-                    case 'EQ':
-                        $dbCheck = '=';
-                        break;
-                    case 'LK':
-                        $dbCheck = 'like';
-                        break;
-                    default:
-                        throw new Exception(
-                            "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
-                        );
-                        break;
-                    }
-                    array_push($c, "{$dbName} {$dbCheck} {$r}");
-                }
+        $c = array();
+        $def = new Data2Html_Collection();
+        foreach ($filterDefs as $k => $v) {
+            $def->set($v);
+            $fName = $def->getString('name'); 
+            $fCheck = $def->getString('check');
+            $dbName = $def->getString('db'); 
+            if (
+                $dbName === null ||
+                $fCheck === null
+            ) {
+                continue;
             }
-            if (count($c)) {
-                return implode(' and ', $c);
-            } else {
-                return null;
+            $type = $def->getString('type', 'string');
+            // forced value
+            $r = $def->toSql($this->db, 'value', $type, null);
+            if ($r === null) {
+                // requested value
+                $r = $requestValues->toSql($this->db, $fName, $type, null);
+            }
+            if ($r !== null) {
+                switch ($fCheck) {
+                case 'EQ':
+                    $dbCheck = '=';
+                    break;
+                case 'LK':
+                    $dbCheck = 'like';
+                    break;
+                default:
+                    throw new Exception(
+                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
+                    );
+                    break;
+                }
+                array_push($c, "{$dbName} {$dbCheck} {$r}");
             }
         }
+        return implode(' and ', $c);
     }
     
     public function parseSelect($sql) {

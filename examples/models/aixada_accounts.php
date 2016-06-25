@@ -9,7 +9,11 @@ class aixada_accounts extends Data2Html {
             'title' => 'Diners',
             'fields' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
-                'account_id' => array('foreignKey' => 'aixada_ufs:account', 'title' => 'Compte'),
+                'account_id' => array(
+                    'foreignKey' => 'aixada_ufs:account',
+                    'title' => 'Compte',
+                    'orderBy' => array('account_id','!id') // TODO detectar no existeix
+                ),
                 'operator' => array(
                     'title' => 'Usuari',
                     'db' => null, //'operator_id',
@@ -28,6 +32,7 @@ class aixada_accounts extends Data2Html {
             ),
             'grids' => array(
                 'default' => array(
+                    'sort' => 'account_id', // TODO detectar no existeix
                     'columns' => array(
                         'id', 'account_id', 'operator', 
                         'description', 'method', 'quantity', 'balance'),

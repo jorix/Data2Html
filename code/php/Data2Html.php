@@ -43,6 +43,7 @@ abstract class Data2Html
         'name' => 'name',
         'number' => 'type',
         'required' => 'validations',
+        'orderBy' => 'orderBy',
         'string' => 'type',
         'title' => 'title',
         'type' => 'type',
@@ -57,18 +58,11 @@ abstract class Data2Html
         'maxLength' => 'string',
     );
      protected $typesToDbTypes = array(
-        // 'boolean' => 'type',
-        // 'currency' => 'type',
-        // 'date' => 'type',
         'email' => 'string',
-        // 'emails' => 'type',
-        // 'integer' => 'type',
-        // 'number' => 'number',
-        //'string' => 'type',
         'url' => 'string',
     );
     protected $keywordsSingle = array(
-        'check', 'default', 'db', 'description', 'name', 'title', 'type', 'value'
+        'check', 'default', 'db', 'description', 'name', 'orderBy', 'title', 'type', 'value'
     );
     /**
      * Class constructor, initializes basic properties.
@@ -167,14 +161,13 @@ abstract class Data2Html
         $grid['columns'] = 
             $this->parseColumns($servV->getArray('columns'), $fields);
     }
-
     protected function parseColumns($colums, $fields)
     {
         if (!$colums) {
             return array();
         }
         $_f = new Data2Html_Collection($fields);
-        $colArray = array();
+        $pColumns = array();
         foreach ($colums as $k => $v) {
             if (is_int($k)) {  // name =  $v;
                 if (substr($v, 0, 1) === '=') {
@@ -183,19 +176,19 @@ abstract class Data2Html
                         'value' => substr($v, 1),
                         'db' => null
                     );
-                    $colArray += $this->parseField($name, $field);
+                    $pColumns += $this->parseField($name, $field);
                 } else {
-                    $colArray[$v] = $_f->getArray($v, array());
+                    $pColumns[$v] = $_f->getArray($v, array());
                 }
             } else { // name =  $k;
-                $colArray[$k] = $_f->getArray($k, array());
+                $pColumns[$k] = $_f->getArray($k, array());
                 if (is_array($v)) {
-                    $colArray[$k] = array_merge($colArray[$k], $v);
+                    $pColumns[$k] = array_merge($pColumns[$k], $v);
                 }
             }
         }
         $matchedFields = array();
-        foreach ($colArray as $v) {
+        foreach ($pColumns as $v) {
             if (isset($v['serverMatches'])) {
                 $matchedFields = array_merge(
                     $matchedFields,
@@ -205,9 +198,9 @@ abstract class Data2Html
         }
         if (count($matchedFields) > 0) {
             foreach ($matchedFields as $name) {
-                if (!isset($colArray[$name])) {
+                if (!isset($pColumns[$name])) {
                     if (isset($fields[$name])) {
-                        $colArray[$name] = $fields[$name];
+                        $pColumns[$name] = $fields[$name];
                     } else {
                         throw new Exception(
                             "Match `\$\${{$name}}` used in a grid not exist on `fields`."
@@ -216,7 +209,7 @@ abstract class Data2Html
                 }
             }
         } 
-        return $colArray;
+        return $pColumns;
     }
 
     protected function parseFilter($filter, $fields)
@@ -224,7 +217,7 @@ abstract class Data2Html
         if (!$filter) {
             return array();
         }
-        $colArray = array();
+        $pFields = array();
         $_v = new Data2Html_Collection();
         foreach ($filter as $name => $v) {
             if (!isset($fields[$name])) {
@@ -243,17 +236,21 @@ abstract class Data2Html
             $field['db'] = $_v->getString('db', $name);
             $nameNew = $name.'_'.$_v->getString('check', '');
             $field['name'] = $nameNew;
-            $colArray[$nameNew] = $field;
+            $pFields[$nameNew] = $field;
         }
-        return $colArray;
+        return $pFields;
     }
 
     protected function parseFields($fields)
     {    
-        $colArray = array();
+        $pFields = array();
+        $fSorts = array();
         $matchedFields = array();
         foreach ($fields as $k => &$v) {
             $newField = $this->parseField($k, $v);
+            if (isset($newField['orderBy'])) {
+                $fSorts += array($newField['name'] => $newField['orderBy']);
+            }
             foreach ($newField as $nv) {
                 if (isset($nv['serverMatches'])) {
                     $matchedFields = array_merge(
@@ -262,18 +259,31 @@ abstract class Data2Html
                     );
                 }
             }
-            $colArray += $newField;
+            $pFields += $newField;
         }
         if (count($matchedFields) > 0) {
             foreach ($matchedFields as $v) {
-                if (!isset($colArray[$v])) {
+                if (!isset($pFields[$v])) {
                     throw new Exception(
                         "Match `\$\${{$v}}` not exist on `fields`."
                     );
                 }
             }
-        } 
-        return $colArray;
+        }
+        foreach ($fSorts as $orderFiels) {
+            foreach ($orderFiels as $k => $v) {
+                $f = $v;
+                if (substr($f, 0, 1) === '!') {
+                   $f = substr($f, 1);
+                }
+                if (!isset($fields[$f])) {
+                    throw new Exception(
+                        "'orderBy' item `{$f}}` on `{$k}}` not exist on `fields`."
+                    );
+                }
+            }
+        }
+        return $pFields;
     }
 
     protected function parseField($key, $field)

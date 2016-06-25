@@ -149,16 +149,19 @@ abstract class Data2Html_Db
             }
             $rows[] = $r;
         }
-        $response = array(
+        $response = array();
+        if ($this->debug) {
+            $response += array(
+                'sql' => $query,
+                'serverMatches' => $serverMatches
+            );
+        }
+        $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'types' => $types,
             'rows' => $rows
         );
-        if ($this->debug) {
-            $response['sql'] = $query;
-            $response['serverMatches'] = $serverMatches;
-        }
         return $response;
     }
 

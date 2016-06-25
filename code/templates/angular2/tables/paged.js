@@ -1,5 +1,6 @@
 d2h_App.controller('$${id}', function ($scope, $http) {
     $scope.d2h_filter={};
+    $scope.d2h_sort='account_id'; // TODO ignorar columnes si no existeix
     $scope.d2h_page={};
     // server
     var _req = function() {
@@ -12,6 +13,7 @@ d2h_App.controller('$${id}', function ($scope, $http) {
             data: {
                 d2h_oper: 'read',
                 d2h_filter: $scope.d2h_filter,
+                d2h_sort: $scope.d2h_sort,
                 d2h_page: $scope.d2h_page
             }
         };

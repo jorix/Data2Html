@@ -34,10 +34,20 @@ class Data2Html_Value
     
     public static function parseString($value, $strict = false)
     {
+        if (is_array($value)) {
+            throw new Exception(
+                "Value is not a string, is a array."
+            );
+        }
+        if (is_object($value)) {
+            throw new Exception(
+                "Value is not a string, is a object."
+            );
+        }
         if (is_null($value)) {
             if ($strict) {
                 throw new Exception(
-                    "Value is nor a string, is null."
+                    "Value is not a string, is null."
                 );
             }
             return null;
