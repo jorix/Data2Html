@@ -273,7 +273,7 @@ class Data2Html_Render
         $def = new Data2Html_Collection($defs);
         $input = $def->getString('input', 'text');
         $name = $def->getString('name', '');
-        $default = $def->getString('default', 'undefined');
+        // $default = $def->getString('default', 'undefined');
         $url = $def->getString('url', '');
         $validations = $def->getArray('validations', array());
         
@@ -293,7 +293,7 @@ class Data2Html_Render
                 '$${id}',
                 '$${form-id}',
                 '$${name}',
-                '$${default}',
+                //'$${default}',
                 '$${url}',
                 '$${validations}'
             ), 
@@ -301,7 +301,7 @@ class Data2Html_Render
                 $this->createIdRender(),
                 $formId,
                 $fieldPrefix.$name,
-                $default,
+               // $default,
                 $url,
                 implode(' ', $validations),
             ),

@@ -8,10 +8,11 @@
     <style type="text/css">
     a {cursor: pointer;}
     span.glyphicon.d2h_sortActivated {color:red}
-    /* 
-    [ng-cloak] is used to prevent show templates, see:
-        https://docs.angularjs.org/api/ng/directive/ngCloak
-    */
+    label {font-weight:	normal;} /* remove font-weight:bold form Bootstrap */
+    /**
+     * [ng-cloak] is used to prevent show templates, see:
+     * https://docs.angularjs.org/api/ng/directive/ngCloak
+     */
     [ng-cloak] {  display: none !important; }
     .red {color:red}
     
@@ -41,8 +42,11 @@
 <body>
     <div class="container">
     <div ng-controller="d2h_1">
-<div class="row" ng-controller="d2h_2">
-    <form name="d2h_2" class="simple-form" novalidate>
+
+<!-- START renderForm({"form_filter") formId="d2h_6" -->
+<!-- ======================================== -->
+<div class="row" ng-controller="d2h_6">
+    <form name="d2h_6" class="simple-form" xx-class="form-horizontal"  novalidate>
     <div>
         <div class="col-md-3">$$Filter:
             <input type="text" placeholder="Filter" 
@@ -51,28 +55,28 @@
                 required
             />
         </div>
-        <span class="col-md-3 form-group" ng-controller="d2h_3">
-            <lavel control-label>account_id_EQ:</lavel>
-            <ui-select
-                ng-model="d2h_filter.account_id_EQ"
-                name="d2h_3_f"
-                ng-claxss="{'has-error': d2h_2.d2h_3_f.$invalid}"
-                theme="bootstrap"
-                ng-change="readPage()"
-                ng-init="d2h_filter.account_id_EQ=1005"
-                ng-required="true" 
-            >   <ui-select-match
-                    allow-clear="true"
-                    placeholder="account_id_EQ"
-                >{{$select.selected.text}}</ui-select-match>
-                <ui-select-choices 
-                    repeat="item.value as item in data | filter: {text: $select.search}">
-                    <span ng-bind-html="item.text | highlight: $select.search"></span>
-                </ui-select-choices>
-            </ui-select>
-        </span>
+        
+<label class="col-md-3 form-group" 
+    ng-class="{'has-error': d2h_6.d2h_7.$invalid}"
+>[Compte:]
+<ui-select
+    ng-controller="d2h_7"
+    ng-model="d2h_filter.account_id_EQ"
+    name="d2h_7"
+    theme="bootstrap"
+    ng-change="changed()"
+    required
+>   <ui-select-match
+        allow-clear="true"
+        placeholder=""
+    >{{$select.selected.text}}</ui-select-match>
+    <ui-select-choices 
+        repeat="item.value as item in data | filter: {text: $select.search}">
+        <span ng-bind-html="item.text | highlight: $select.search"></span>
+    </ui-select-choices>
+</ui-select>
 <script>
-    d2h_App.controller('d2h_3', function($scope, $http) {
+    d2h_App.controller('d2h_7', function($scope, $http) {
         $scope.item = {};
         $http({
             method: 'POST',
@@ -90,30 +94,50 @@
         );
     });
 </script>
-<div class="col-md-3">description_LK:
-<input
-    type="text" 
-    placeholder="description_LK"
-    class="form-control" 
-    ng-model="d2h_filter.description_LK"
-    
->
-</div>
 
-        <input type="button" ng-click="clear()" value="Reset" />
-        <input type="submit" ng-click="readPage()" value="Filter" />
+</label>
+
+<label class="col-md-3 form-group" 
+    ng-class="{'has-error': d2h_6.d2h_8.$invalid}"
+>[:]
+<input type="text" class="form-control" 
+    ng-model="d2h_filter.description_LK" ng-init="d2h_filter.description_LK=undefined"
+    ng-change="changed()"
+    placeholder=""
+    name="d2h_8"
+    required
+>
+
+</label>
+
+        <span class="col-md-1 form-group">
+            <br>
+            <button class="btn btn-default"
+                title="$$Clear filter"
+                ng-click="clear()"
+            >
+                <span class="glyphicon glyphicon-remove"
+                    aria-hidden="true"></span>
+                <!-- span class="hidden-xs hidden-sm">$$Clear filter</span -->
+            </button>
+        </span>
     </div>
     </form>
-    <div>Vallid {{d2h_2.$valid}}</div>
+    <div>$$Vallid {{d2h_6.$valid}}</div>
 </div>
 <script>
-    d2h_App.controller('d2h_2', ['$scope', function($scope) {
+    d2h_App.controller('d2h_6', ['$scope', function($scope) {
         $scope.clear = function() {
             $scope.d2h_filter={};
+        };
+        $scope.changed = function() {
+            $scope.readPage();
         };
     }]);
 </script>
 
+
+<!-- END renderForm({"form_filter") formId="d2h_6" -->
 
 <div class="row">
     <div class="col-md-12" id="d2h_1">
@@ -132,7 +156,7 @@
     ng-class="{d2h_sortActivated: predicate=='id' && reverse}"
     aria-hidden="true"
     class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>account_id <a
+<th>Compte <a
     title="ordre creixent"
     ng-click="sortBy('account_id', false);"><span
     aria-label="ordre creixent" aria-hidden="true"
@@ -154,6 +178,18 @@
     ng-click="sortBy('operator', true);"><span
     aria-label="ordre invers" aria-hidden="true"
     ng-class="{d2h_sortActivated: predicate=='operator' && reverse}"
+    aria-hidden="true"
+    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
+<th>data <a
+    title="ordre creixent"
+    ng-click="sortBy('ts', false);"><span
+    aria-label="ordre creixent" aria-hidden="true"
+    ng-class="{d2h_sortActivated: predicate=='ts' && !reverse}"
+    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
+    title="ordre invers"
+    ng-click="sortBy('ts', true);"><span
+    aria-label="ordre invers" aria-hidden="true"
+    ng-class="{d2h_sortActivated: predicate=='ts' && reverse}"
     aria-hidden="true"
     class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
 <th>description <a
@@ -204,164 +240,156 @@
     ng-class="{d2h_sortActivated: predicate=='balance' && reverse}"
     aria-hidden="true"
     class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
-<th>data <a
-    title="ordre creixent"
-    ng-click="sortBy('ts', false);"><span
-    aria-label="ordre creixent" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='ts' && !reverse}"
-    class="glyphicon glyphicon-sort-by-alphabet"></span></a><a
-    title="ordre invers"
-    ng-click="sortBy('ts', true);"><span
-    aria-label="ordre invers" aria-hidden="true"
-    ng-class="{d2h_sortActivated: predicate=='ts' && reverse}"
-    aria-hidden="true"
-    class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a></th>
 
             </tr></thead>
             <tfoot ng-show="filtered.length > 0" ng-cloak><tr>
                 <td colspan="8">
-                    <div class="form-inline">
-                        <button class="btn btn-default hidden-xs "
-                            title="Refresh data"
-                            ng-click="readPage()"
-                        >
-                            <span class="glyphicon glyphicon-refresh"
-                                aria-label="Refresh data"
-                                aria-hidden="true"></span>
-                        </button>
-                        <select class="form-control" style="padding:0;"
-                            title="Rows per page"
-                            ng-model="pageSize"
-                            ng-init="pageSize=pageSizeOp[0].value"
-                            ng-change="readPage()"
-                            ng-options="opt.value as opt.text for opt in pageSizeOp"
-                        ></select>
-                        <button class="btn btn-default"
-                            title="Next page"
-                            ng-click="nextPage()"
-                        >
-                            <span class="glyphicon glyphicon-forward"
-                                aria-hidden="true"></span>
-                            <span class="hidden-xs hidden-sm">
-                                Next page
-                            </span>
-                        </button>
-                        <span
-                            ng-init="start()"
-                        ng-cloak>
-                            Filtered {{filtered.length}} of {{data.length}}
-                        </span>
-                    </div>
+                    
+<!-- START renderForm({"form_page") formId="d2h_2" -->
+<!-- ======================================== -->
+<div class="row" ng-controller="d2h_2">
+    <form name="d2h_2" class="simple-form"  novalidate>
+        <div class="form-inline">
+<button class="btn btn-default hidden-xs "
+    title="$$Refres&gt;&quot;hàdata"
+    ng-click="readPage()">
+    <span class="glyphicon glyphicon-refresh"
+        aria-label="$$Refres&gt;&quot;hàdata"
+        aria-hidden="true"></span>
+    <span class="hidden-xs hidden-sm"></span>
+</button>
+<input type="text" class="form-control" 
+    ng-model="d2h_page.pageSize" ng-init="d2h_page.pageSize=10"
+    ng-change="changed()"
+    placeholder=""
+    name="d2h_4"
+    
+>
+
+<button class="btn btn-default hidden-xs "
+    title="$$Ne.&gt;xtàpage"
+    ng-click="nextPage()">
+    <span class="glyphicon glyphicon-forward"
+        aria-label="$$Ne.&gt;xtàpage"
+        aria-hidden="true"></span>
+    <span class="hidden-xs hidden-sm"></span>
+</button></div>
+    </form>
+    <span ng-init="start()" ng-cloak>
+        Filtered {{filtered.length}} of {{data.length}}
+    </span>
+</div>
+<script>
+    d2h_App.controller('d2h_2', ['$scope', function ($scope) {
+        var pageSizes = [10, 20, 50, 100];
+        $scope.pageSizeOp = [];
+        for (i = 0, len = pageSizes.length; i < len; i++) {
+            $scope.pageSizeOp.push({
+                value: pageSizes[i],
+                'text': pageSizes[i]+''
+            });
+        }
+        $scope.changed = function() {
+            $scope.readPage();
+        };
+    }]);
+</script>
+<!-- END renderForm({"form_page") formId="d2h_2" -->
+
                 </td>
-                </tr></tfoot>
-            <tbody ng-show="filtered.length > 0" ng-cloak><tr 
-                   ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
+            </tr></tfoot>
+            <tbody 
+                ng-show="filtered.length > 0" ng-cloak><tr 
+                    ng-repeat="item in filtered = (data | filter:search | orderBy :predicate :reverse)">
                 <td class="text-right">{{item.id}}</td>
 <td class="text-right">{{item.account_id}}</td>
 <td>{{item.operator}}</td>
+<td>{{item.ts | date:'dd-MM-yy HH:mm'}}</td>
 <td>{{item.description}}</td>
 <td>{{item.method}}</td>
 <td ng-class="{red:item.quantity<0}" class="text-right">{{item.quantity | number:'2'}}</td>
 <td ng-class="{red:item.balance<0}" class="text-right">{{item.balance | currency}}</td>
-<td>{{item.ts | date:'dd-MM-yy HH:mm'}}</td>
 
             </tr></tbody>
         </table>
-        <div
-        class="alert alert-warning" role="alert"
-        ng-show="filtered.length == 0" ng-cloak>
+        <div class="alert alert-warning" role="alert"
+            ng-show="filtered.length == 0"
+        ng-cloak>
             No data found
         </div>
     </div>
 </div>
-</div>
+<span ng-init="start()"></span>
+</div><!-- ng-controller="d2h_1" -->
 <script>
-/*
-function ContactDirective(){
-  return {
-    restrict: 'E',
-    templateUrl: 'my-contact-template.html',
-    controller: 'contactController',
-    controllerAs: 'contactCtrl',
-    scope: {
-      contact: '='
-    },
-    link:function(scope, elem, attrs, contactCtrl){
-      scope.$watch('contact', function(newContact){
-        //Still just initializing the contact using
-        // the controller
-        contactCtrl.setContact(newContact);
-      });
-    }
-  };
-}
-*/
 
-d2h_App.controller('d2h_1', function ($scope, $http) {
-    $scope.d2h_filter={};
-    // server
-    var _req = function() {
-        return {
-            method: 'POST',
-            url: '_controller.php?model=aixada_accounts&lang=ca',
-            headers: {
-                'Content-Type': undefined
-            },
-            data: {
-                d2h_oper: 'read',
-                d2h_filter: $scope.d2h_filter,
-                d2h_page: {
-                    pageSize: $scope.pageSize,
-                    pageStart: $scope.pageStart
+
+function d2h_paged_init(app, ctlName, vRender) {
+    app.controller(ctlName, function($scope, $http) {
+        $scope.d2h_filter = vRender.d2h_filter;
+        $scope.d2h_sort = vRender.d2h_sort
+        $scope.d2h_page = {};
+        // server
+        var _req = function() {
+            return {
+                method: 'POST',
+                url: vRender.urlRequest,
+                headers: {
+                    'Content-Type': undefined
+                },
+                data: {
+                    d2h_oper: 'read',
+                    d2h_filter: $scope.d2h_filter,
+                    d2h_sort: $scope.d2h_sort,
+                    d2h_page: $scope.d2h_page
                 }
-            }
+            };
         };
-    };
-    
-    $scope.readPage = function() {
-        $scope.pageStart = 1; //current page
-        $http(_req()).then(
-            function(response) { // Ok
-                $scope.data = response.data.rows;
-                // $scope.status = response.status;
-            }, function(response) { // Error
-                // $scope.data = response.data || "Request failed";
-                // $scope.status = response.status;
-                console.log("IRROR");
-            }
-        );
-    };
-    $scope.nextPage = function() {
-        $scope.pageStart += $scope.pageSize;
-        $http(_req()).then(
-            function(response) { // Ok
-                Array.prototype.push.apply(
-                    $scope.data,
-                    response.data.rows
-                );
-            }, function(response) { // Error
-                console.log("IRROR");
-            }
-        );
-    };
-    
-    // local
-    var pageSizes = [10, 20, -4, -3, 50, 100];
-    $scope.pageSizeOp = [];
-    for (i = 0, len = pageSizes.length; i < len; i++) {
-        $scope.pageSizeOp.push({
-            value: pageSizes[i],
-            'text': pageSizes[i]+''
-        });
-    }
-    $scope.sortBy = function(predicate, reverse) {
-        $scope.predicate = predicate;
-        $scope.reverse = reverse;
-    };
-    $scope.start = function() {
-        $scope.readPage();
-        $scope.sortBy('id', true);
-    };
+        
+        $scope.readPage = function() {
+            $scope.d2h_page.pageStart = 1; //current page
+            $http(_req()).then(
+                function(response) { // Ok
+                    $scope.data = response.data.rows;
+                    // $scope.status = response.status;
+                }, function(response) { // Error
+                    // $scope.data = response.data || "Request failed";
+                    // $scope.status = response.status;
+                    console.log("IRROR");
+                }
+            );
+        };
+        $scope.nextPage = function() {
+            $scope.d2h_page.pageStart = 
+                parseInt($scope.d2h_page.pageStart, 10) +
+                parseInt($scope.d2h_page.pageSize, 10);
+            $http(_req()).then(
+                function(response) { // Ok
+                    Array.prototype.push.apply(
+                        $scope.data,
+                        response.data.rows
+                    );
+                }, function(response) { // Error
+                    console.log("IRROR");
+                }
+            );
+        };
+        $scope.sortBy = function(predicate, reverse) {
+            $scope.predicate = predicate;
+            $scope.reverse = reverse;
+        };
+        $scope.start = function() {
+            $scope.readPage();
+           //$scope.sortBy('id', true);
+        };
+    });
+}
+
+
+d2h_paged_init(d2h_App, 'd2h_1', {
+        urlRequest:'_controller.php?model=aixada_accounts&lang=ca',
+        d2h_filter:{"account_id_EQ":1014},
+        d2h_sort:'account_id'
 });
 </script>
     </div>
