@@ -34,7 +34,7 @@ class aixada_accounts extends Data2Html {
                 'default' => array(
                     'sort' => 'account_id', // TODO detectar no existeix
                     'columns' => array(
-                        'id', 'account_id', 'operator', 
+                        'id', 'account_id', 'operator', 'ts',
                         'description', 'method', 'quantity', 'balance'),
                     'filter' => array(
                         'layout' => 'inline',
