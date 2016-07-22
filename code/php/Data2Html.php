@@ -554,7 +554,7 @@ abstract class Data2Html
             }
             return self::$modelObjects[$modelBase];
         } else {
-            throw new Exception('The URL parameter `&model=` is not set.');
+            throw new Exception('The URL parameter `?model=` is not set.');
         }
     }
     private static function createFromModel($model, $controllerUrl)
@@ -577,7 +577,7 @@ abstract class Data2Html
                 return $data;
             } else {
                 throw new Exception(
-                    "->load({$model}): File \"{$file}\" does not exist.");
+                    "load('{$model}'): File \"{$file}\" does not exist.");
             }
     }
 }

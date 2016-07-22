@@ -8,7 +8,13 @@
     <div class="container">
     <?php
         require_once("../code/php/Data2Html.php");
-        $data = Data2Html::create('_controller.php', 'models');
+        try {
+            $data = Data2Html::create('_controller.php', 'models');
+        } catch(Exception $e) {
+            echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
+            '</span></h3>';
+            die();
+        }
         if (!$data->debug) {
             echo '<h2 style="color:red">Debug mode is required!</h2>';
         } else {
