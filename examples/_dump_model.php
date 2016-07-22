@@ -16,11 +16,11 @@
                 $data->parse();
 
                 echo "<h2>getColDs():</h2>\n<pre>";
-                echo $data->toJson($data->getColDs());
+                echo Data2Html_Utils::toPhp($data->getColDs());
                 echo "</pre><hr>\n";
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";
-                echo $data->toJson($data->getGridsDs());
+                echo Data2Html_Utils::toPhp($data->getGridsDs());
                 echo "<pre><hr>\n";
 
             } catch(Exception $e) {
@@ -28,7 +28,7 @@
                 echo Data2Html_Exception::toHtml($e, $data->debug);
                 
                 echo "<hr><h2>->getColDs()</h2>\n<pre>";
-                echo $data->toJson($data->getColDs());
+                echo Data2Html_Utils::toPhp($data->getColDs());
                 echo "<pre>\n";
             }
         }

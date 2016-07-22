@@ -9,7 +9,7 @@
 abstract class Data2Html
 {
     //protected $db_params;
-    protected static $modelServices = array();
+    protected static $modelObjects = array();
     protected static $modelFolder = null;
     protected $root_path;
     protected $configOptions = array();
@@ -547,12 +547,12 @@ abstract class Data2Html
             $model = $_REQUEST['model'];
             $modelElements = explode(':', $model);
             $modelBase = $modelElements[0];
-            if (!isset(self::$modelServices[$modelBase])) {
+            if (!isset(self::$modelObjects[$modelBase])) {
                 self::$modelFolder = $modelFolder;
-                self::$modelServices[$modelBase] =
+                self::$modelObjects[$modelBase] =
                     self::createFromModel($model, $controllerUrl);
             }
-            return self::$modelServices[$modelBase];
+            return self::$modelObjects[$modelBase];
         } else {
             throw new Exception('The URL parameter `&model=` is not set.');
         }
@@ -565,7 +565,7 @@ abstract class Data2Html
             $modelX = explode(':', $model);
             $file = $modelX[0].'.php';
             if (self::$modelFolder) {
-                $file = self::$modelFolder.$ds.$file;
+                $file = self::$modelFolder . $ds . $file;
             }
             $phisicalFile = $path.$file;
             if (file_exists($phisicalFile)) {

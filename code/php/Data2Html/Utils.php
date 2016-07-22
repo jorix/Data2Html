@@ -10,9 +10,9 @@ class Data2Html_Utils
      *
      * @return string
      */
-    public static function jsonEncode($a, $level = 0)
+    public static function toJs($a, $level = 0)
     {
-        $indent = ' ';
+        $indent = '    ';
         switch (gettype($a)) {
             case 'NULL':
                 return 'null';
@@ -23,11 +23,13 @@ class Data2Html_Utils
             case 'float':
                 return str_replace(',', '.', strval($a));
             case 'string':
-                if (substr($a, 0, 4) === '<?js' &&
+                if (substr($a, 0, 5) === '<?js ' &&
                     substr($a, -2, 2) === '?>') {
                     return substr($a, 5, -2);
+                } elseif (substr($a, 0, 7) === '<?code ' &&
+                    substr($a, -2, 2) === '?>') {
+                    return substr($a, 7, -2);
                 }
-
                 return '"'.str_replace(
                     array('\\',   '/',   "\n",  "\t",  "\r",  "\b",  "\f",  '"'),
                     array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'),
@@ -43,37 +45,38 @@ class Data2Html_Utils
         $result = array();
         if ($isList) {
             foreach ($a as $v) {
-                $result[] = self::jsonEncode($v, $level + 1);
+                $result[] = self::toJs($v, $level + 1);
             }
-
-            return
-                "\n".str_repeat($indent, $level).
-                '[ '.implode(', ', $result).' ]';
+            return "[\n" . str_repeat($indent, $level + 1) .
+                    implode(
+                        ",\n" . str_repeat($indent, $level + 1),
+                        $result
+                    ) .
+                    "\n" . str_repeat($indent, $level) . ']';
         } else {
             foreach ($a as $k => $v) {
                 $result[] =
-                    "\n".str_repeat($indent, $level + 1).
-                    self::jsonEncode($k).': '.
-                    self::jsonEncode($v, $level + 2);
+                    "\n" . str_repeat($indent, $level + 1).
+                    self::toJs($k).': '.
+                    self::toJs($v, $level + 1);
             }
             if ($level > 0) {
-                return
-                    "\n".str_repeat($indent, $level).
-                    '{ '.implode(', ', $result).' }';
+                return 
+                    '{ ' . implode(", ", $result) . 
+                    "\n" . str_repeat($indent, $level) . '}';
             } else {
-                return'{ '.implode(', ', $result)." }\n";
+                return '{ ' . implode(', ', $result) . "\n}\n";
             }
         }
     }
 
-    public static function phpEncode($a, $level = 0)
+    public static function toPhp($a, $level = 0)
     {
-        $indent = '  ';
+        $indent = '    ';
         static $jsonReplaces = array(
-            array('\\',   '/',   "\n",  "\t",  "\r",  "\b",  "\f",  '"'),
-            array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'),
+            array('\\',   '/',   "\n",  "\t",  "\r",  "\b",  "\f",  "'"),
+            array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
         );
-
         if (is_null($a)) {
             return 'null';
         }
@@ -83,7 +86,6 @@ class Data2Html_Utils
         if ($a === true) {
             return 'true';
         }
-
         if (is_scalar($a)) {
             if (is_float($a)) {
                 return str_replace(',', '.', strval($a));
@@ -92,12 +94,12 @@ class Data2Html_Utils
                 return $a;
             }
             if (is_string($a) &&
-                    substr($a, 0, 6) === '<?code' &&
+                    substr($a, 0, 7) === '<?code ' &&
                     substr($a, -2, 2) === '?>') {
                 return substr($a, 7, -2);
             }
 
-            return '"'.str_replace($jsonReplaces[0], $jsonReplaces[1], $a).'"';
+            return "'".str_replace($jsonReplaces[0], $jsonReplaces[1], $a)."'";
         }
         $isList = true;
         for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
@@ -109,25 +111,25 @@ class Data2Html_Utils
         $result = array();
         if ($isList) {
             foreach ($a as $v) {
-                $result[] = self::phpEncode($v, $level + 1);
+                $result[] = 
+                    "\n".str_repeat($indent, $level + 1) . 
+                    self::toPhp($v, $level + 1);
             }
-
-            return
-                "\n".str_repeat($indent, $level).
-                'array( '.implode(', ', $result).' )';
+            return 
+                'array( ' . implode(', ', $result) .
+                "\n" . str_repeat($indent, $level) . ')';
         } else {
             foreach ($a as $k => $v) {
                 $result[] =
                     "\n".str_repeat($indent, $level + 1).
-                    self::phpEncode($k).' => '.
-                    self::phpEncode($v, $level + 2);
+                    self::toPhp($k).' => ' . self::toPhp($v, $level + 1);
             }
             if ($level > 0) {
-                return
-                    "\n".str_repeat($indent, $level).
-                    'array( '.implode(', ', $result).' )';
+                return 
+                    'array( ' . implode(', ', $result) .
+                    "\n" . str_repeat($indent, $level) . ')';
             } else {
-                return 'array( '.implode(', ', $result)." );\n";
+                return 'array( '.implode(', ', $result)."\n);\n";
             }
         }
     }
