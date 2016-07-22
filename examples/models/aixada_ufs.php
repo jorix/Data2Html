@@ -29,7 +29,6 @@ class aixada_ufs extends Data2Html {
             ),
             'grids' => array(
                 'list' => array(
-                    'type' => 'list',
                     'columns' => array('id', '=$${name}#$${id}', 'active'),
                     'filter' => array(
                         'layout' => 'inline',
@@ -41,7 +40,6 @@ class aixada_ufs extends Data2Html {
                     ),
                 ),
                 'account' => array(
-                    'type' => 'list',
                     'sort' => 'name',                    
                     'columns' => array(
                         'value' => 'account_id',
