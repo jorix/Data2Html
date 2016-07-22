@@ -31,6 +31,14 @@ class Data2Html_Value
         }
         return $r;
     }
+    public static function toJson($obj, $pretty = false)
+    {
+        $options = 0;
+        if ($pretty && version_compare(PHP_VERSION, '5.4.0', '>=')) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        return json_encode($obj, $options);
+    }
     
     public static function parseString($value, $strict = false)
     {

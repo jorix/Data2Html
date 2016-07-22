@@ -1,10 +1,10 @@
 <?php
-require_once("../code/php/Data2Html.php");
-class aixada_account extends Data2Html {
-
-    protected function init() {
+class aixada_products extends Data2Html {
+    
+    protected function definitions()
+    {
         #Set database table
-        $this->setModel(array(
+        return array(
             'table' => 'aixada_product',
             'fields' => array(
                 'id'            => array('integer', 'autoKey', 'required'),
@@ -13,17 +13,24 @@ class aixada_account extends Data2Html {
                 'description'           => array('maxLength' => null),
                 'barcode'               => array('maxLength' => 50),
                 'custom_product_ref'    => array('maxLength' => 100, 'required'),
-                'active'                => array('boolean', 'required', 'default' => true)
+                'active'                => array('boolean', 'required', 'default' => true),
                 'responsible_uf_id'     => array('foreignKey' => 'ufs'),
                 'orderable_type_id'     => array('foreignKey' => 'orderable_types', 'default' => 2, 'required'),
-                'order_min_quantity'    => array('number' => array(10,4), 'format' => 4, 'visual' => 'red:<0'),
+                'order_min_quantity'    => array(
+                    'number' => array(10,4),
+                    'format' => 4,
+                    'visualClass' => 'red:<0'
+                ),
                 'ts'                    => array('date', 'format' => 'dd-MM-yy HH:mm')// 'medium'
+            ),
+            'grids' => array(
+                'default' => array(
                 )
             ),
             'constraints' => (
                 array('uniqueKey' => array('custom_product_ref', 'provider_id'))
             )
-        ));
+        );
 /*
 
  create table aixada_product (

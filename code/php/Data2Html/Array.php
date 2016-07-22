@@ -8,7 +8,7 @@ class Data2Html_Array
             return null;
         }
         if (!is_array($keys)) {
-            $keys = array(keys);
+            $keys = array($keys);
         }
         $aux = $array;
         foreach ($keys as $v) {

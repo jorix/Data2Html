@@ -18,13 +18,12 @@ class Data2Html_Sql
         $dbfs = array();
         foreach ($colDefs as $k=>$v) {
             $def->set($v);
-            $name = $def->getString('name', $k);
-            $dbName = $def->getString('db', $name);
+            $dbName = $def->getString('db');
             if ($dbName !== null) {
-                if ($name === $dbName) {
+                if ($k === $dbName) {
                     array_push($dbfs, $dbName);
                 } else {
-                    array_push($dbfs, $dbName.' '.$name); // db-field with alias
+                    array_push($dbfs, $dbName.' '.$k); // db-field with alias
                 }
             }
         }
@@ -84,7 +83,6 @@ class Data2Html_Sql
         $def = new Data2Html_Collection();
         foreach ($filterDefs as $k => $v) {
             $def->set($v);
-            $fName = $def->getString('name'); 
             $fCheck = $def->getString('check');
             $dbName = $def->getString('db'); 
             if (
@@ -98,7 +96,7 @@ class Data2Html_Sql
             $r = $def->toSql($this->db, 'value', $type, null);
             if ($r === null) {
                 // requested value
-                $r = $requestValues->toSql($this->db, $fName, $type, null);
+                $r = $requestValues->toSql($this->db, $k, $type, null);
             }
             if ($r !== null) {
                 switch ($fCheck) {
@@ -110,7 +108,7 @@ class Data2Html_Sql
                     break;
                 default:
                     throw new Exception(
-                        "getWhere(): Check '{$fCheck}' on item {$k}=>'{$fName}' is not supported."
+                        "getWhere(): Check '{$fCheck}' on item '{$k}'=>'{$dbName}' is not supported."
                     );
                     break;
                 }

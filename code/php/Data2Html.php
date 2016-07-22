@@ -23,6 +23,7 @@ abstract class Data2Html
     private $colDs = array();
     private $gridsDx = null;
     private static $idParseCount = 0;
+    private $idParseCountArray = array();
     
     protected $keywords = array(
         'autoKey' => 'autoKey',
@@ -50,6 +51,7 @@ abstract class Data2Html
         'uniqueKey' => 'constraints',
         'url' => 'type',
         'value' => 'value',
+        'validations' => 'validations',
         'visualClass' => 'visualClass',
     );
     protected $keywordsToDbTypes = array(
@@ -74,7 +76,7 @@ abstract class Data2Html
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
-        
+
         // Base
         //----------------
         $this->root_path = dirname(__FILE__).DIRECTORY_SEPARATOR;
@@ -102,13 +104,25 @@ abstract class Data2Html
     {
         return $this->root_path;
     }
-    public function createIdParse() {
-        self::$idParseCount++;
-        return 'd2h_'.self::$idParseCount;
+    public function createIdParse($sufix = '') {
+        if ($sufix === '') {
+            self::$idParseCount++;
+            return 'd2h_'.self::$idParseCount;
+        } else {
+            if (!array_key_exists($sufix, $this->idParseCountArray)) {
+                $this->idParseCountArray[$sufix] = 0;
+            }
+            $this->idParseCountArray[$sufix]++;
+            return 'd2h_' . $this->idParseCountArray[$sufix] . '_' . $sufix;
+        }
     }
     public function getColDs()
     {
         return $this->colDs;
+    }
+    public function getGridsDs()
+    {
+        return $this->gridsDx->getValues();
     }
     public function getGridDx($grid)
     {
@@ -133,59 +147,76 @@ abstract class Data2Html
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
-        $grids = $def->getArray('grids', array());
-        $dvServ = new Data2Html_Collection($aux);
-        foreach ($grids as $k => &$s) {
-            $this->parseGrid($s, $fields);
-            $dvServ->set($s);
-            $kkl = array_keys($s['columns']);
-            switch ($dvServ->getString('type')) {
-                case 'list':
-                    $s['columns'][$kkl[0]]['name'] = 'value';
-                    $s['columns'][$kkl[1]]['name'] = 'text';
-                    break;
-            }
-        }
         $this->colDs = $fields;
+        
+        $grids = $def->getArray('grids', array());
+        foreach ($grids as $k => &$s) {
+            $this->parseGrid($k, $s, $fields);
+        }
         $this->gridsDx = new Data2Html_Collection($grids, true);
     }
 
-    protected function parseGrid(&$grid, $fields)
+    protected function parseGrid($gridName, &$grid, $fields)
     {
-        $servV = new Data2Html_Collection($grid);
-        $flV = $servV->getCollection('filter');
-        $grid['filter'] = array(
-            'layout' => $flV->getString('layout'),
-            'fields' => $this->parseFilter($flV->getArray('fields'), $fields)
-        );
+        $gridDx = new Data2Html_Collection($grid);
+        $filterDx = $gridDx->getCollection('filter');
+        if ($filterDx) {
+            $grid['filter'] = array(
+                'layout' => $filterDx->getString('layout'),
+                'fields' => $this->parseFilter(
+                    $gridName,
+                    $filterDx->getArray('fields'),
+                    $fields
+                )
+            );
+        } else {
+            $grid['filter'] = array();
+        }
         $grid['columns'] = 
-            $this->parseColumns($servV->getArray('columns'), $fields);
+            $this->parseColumns(
+                $gridName,
+                $gridDx->getArray('columns'),
+                $fields
+            );
+        if (count($grid['columns']) === 0) { // if no columns set as all fields
+            $grid['columns'] = $fields;
+        }
     }
-    protected function parseColumns($colums, $fields)
+    protected function parseColumns($gridName, $colums, $fields)
     {
         if (!$colums) {
             return array();
         }
-        $_f = new Data2Html_Collection($fields);
+        $fieldsDx = new Data2Html_Collection($fields);
         $pColumns = array();
         foreach ($colums as $k => $v) {
-            if (is_int($k)) {  // name =  $v;
+            $pKey = 0;
+            $pCol = null;
+            if (is_string($v)) {
                 if (substr($v, 0, 1) === '=') {
-                    $name = 'd2h_i'.$k; 
-                    $field = array( 
-                        'value' => substr($v, 1),
-                        'db' => null
+                    list($pKey, $pCol, ) = $this->parseField(
+                        $k,
+                        array( 
+                            'value' => substr($v, 1),
+                            'db' => null
+                        )
                     );
-                    $pColumns += $this->parseField($name, $field);
                 } else {
-                    $pColumns[$v] = $_f->getArray($v, array());
+                    if (is_int($k)) {
+                        $pKey = $v;
+                    } else {
+                        $pKey = $k;
+                    }
+                    $pCol = $fieldsDx->getArray($v);
                 }
-            } else { // name =  $k;
-                $pColumns[$k] = $_f->getArray($k, array());
-                if (is_array($v)) {
-                    $pColumns[$k] = array_merge($pColumns[$k], $v);
+            } elseif (is_array($v)) {
+                $pKey = $k;
+                $pCol = $fieldsDx->getArray($v);
+                if ($pCol) {
+                    $pCol = array_merge($pCol, $v);
                 }
             }
+            $this->addItem($gridName, $pKey, $pCol, $pColumns);
         }
         $matchedFields = array();
         foreach ($pColumns as $v) {
@@ -197,13 +228,13 @@ abstract class Data2Html
             }
         }
         if (count($matchedFields) > 0) {
-            foreach ($matchedFields as $name) {
-                if (!isset($pColumns[$name])) {
-                    if (isset($fields[$name])) {
-                        $pColumns[$name] = $fields[$name];
+            foreach ($matchedFields as $key) {
+                if (!array_key_exists($key, $pColumns)) {
+                    if (array_key_exists($key, $fields)) {
+                        $pColumns[$key] = $fields[$key];
                     } else {
                         throw new Exception(
-                            "Match `\$\${{$name}}` used in a grid not exist on `fields`."
+                            "Match `\$\${{$key}}` used in a grid not exist on `fields`."
                         );
                     }
                 }
@@ -212,31 +243,63 @@ abstract class Data2Html
         return $pColumns;
     }
 
-    protected function parseFilter($filter, $fields)
+    protected function addItem($objecName, $pKey, &$pItem, &$pList)
+    {
+        if (is_int($pKey) || array_key_exists($pKey, $pList)) {
+            $pKey = $this->createIdParse($objecName);
+        }
+        $pList[$pKey] = $pItem;
+        return $pKey;
+    }
+
+    protected function parseFilter($gridName, $filter, $fields)
     {
         if (!$filter) {
             return array();
         }
+        $baseFiledsDx = new Data2Html_Collection($fields);
         $pFields = array();
-        $_v = new Data2Html_Collection();
-        foreach ($filter as $name => $v) {
-            if (!isset($fields[$name])) {
+        $pFieldDx = new Data2Html_Collection();
+        foreach ($filter as $k => $v) {
+            $pKey = 0;
+            $pField = null;
+            if (is_array($v)) {
+                $pKey = $k;
+                $pField = $v;
+            } elseif (is_string($v)) {
+                if (is_string($k)) {
+                    $pKey = $k;
+                    $pField = array('name' => $k, 'check' => $v);
+                } else {
+                    throw new Exception(
+                        "Filter on grid `{$gridName}`: as string `{$k}=>\"{$v}\"` needs a key as string."
+                    ); 
+                }
+            }
+            $pFieldDx->set($pField);              
+            $name = $pFieldDx->getString('name');
+            if ($name) {
+                if (!array_key_exists($name, $fields)) {
+                    throw new Exception(
+                        "Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
+                    );
+                }
+                $pField = array_merge($fields[$name], $pField);
+                $db = $pFieldDx->getString('db');
+            } else {
+                $db = $pFieldDx->getString('db');
+                $name = $db;
+            }
+            if (!$db) {
                 throw new Exception(
-                    "Filter field `{$name}` used in a filter not exist on `fields`."
+                    "Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` key."
                 );
             }
-            $field = $fields[$name];
-            if (is_array($v)) {
-                $fieldArr = $this->parseField($name, array_merge($field, $v));
-                $field = $fieldArr[$name];
-            } else {
-                $field['check'] = $v;
+            if (is_int($pKey)) {
+                $pKey = $name.'_'.$pFieldDx->getString('check', '');
             }
-            $_v->set($field);
-            $field['db'] = $_v->getString('db', $name);
-            $nameNew = $name.'_'.$_v->getString('check', '');
-            $field['name'] = $nameNew;
-            $pFields[$nameNew] = $field;
+            list($pKey, $pField) = $this->parseField($pKey, $pField);
+            $pKey = $this->addItem($gridName, $pKey, $pField, $pFields);
         }
         return $pFields;
     }
@@ -247,11 +310,11 @@ abstract class Data2Html
         $fSorts = array();
         $matchedFields = array();
         foreach ($fields as $k => &$v) {
-            $newField = $this->parseField($k, $v);
-            if (isset($newField['orderBy'])) {
-                $fSorts += array($newField['name'] => $newField['orderBy']);
+            list($pKey, $pField) = $this->parseField($k, $v);
+            if (isset($pField['orderBy'])) {
+                $fSorts += array($pField['db'] => $pField['orderBy']);
             }
-            foreach ($newField as $nv) {
+            foreach ($pField as $nv) {
                 if (isset($nv['serverMatches'])) {
                     $matchedFields = array_merge(
                         $matchedFields,
@@ -259,7 +322,7 @@ abstract class Data2Html
                     );
                 }
             }
-            $pFields += $newField;
+            $this->addItem('field', $pKey, $pField, $pFields);
         }
         if (count($matchedFields) > 0) {
             foreach ($matchedFields as $v) {
@@ -270,15 +333,16 @@ abstract class Data2Html
                 }
             }
         }
-        foreach ($fSorts as $orderFiels) {
-            foreach ($orderFiels as $k => $v) {
+        foreach ($fSorts as $k => $orderFiels) {
+            foreach ($orderFiels as $v) {
                 $f = $v;
                 if (substr($f, 0, 1) === '!') {
                    $f = substr($f, 1);
                 }
-                if (!isset($fields[$f])) {
+                if (!Data2Html_Array::get($pFields, array($f, 'db'))) {
                     throw new Exception(
-                        "'orderBy' item `{$f}}` on `{$k}}` not exist on `fields`."
+                        "On field `{$k}` exist attribute 'orderBy' whit item
+                        `{$f}` that not exist on `fields` with `db`."
                     );
                 }
             }
@@ -288,18 +352,21 @@ abstract class Data2Html
 
     protected function parseField($key, $field)
     {    
-        $dvField = new Data2Html_Collection($field);
-        $name = $dvField->getString('name', (is_int($key) ? null : $key));
-        if (!$name) {
-            $name = $this->createIdParse();
+        $fieldDx = new Data2Html_Collection($field);
+        $name = $fieldDx->getString('name', (is_int($key) ? null : $key));
+        $db = $fieldDx->getString('db', $name, true); // return null if ['db'] is null 
+        $pKey = 0;
+        if (is_string($key)) {
+            $pKey = $key;
         }
-        $dvNewDef = new Data2Html_Collection();
+        $pField = array();
+        if ($name) {
+           // $pField['name'] = $name;
+        }
+        if ($db) {
+            $pField['db'] = $db;
+        }
         $defTypes = new Data2Html_Collection($this->keywordsToDbTypes);
-        $newField = array(
-            'name' => $name,
-            'db' => $dvField->getString('db', $name, true)
-        );
-        $dvNewDef->set($newField);
         $defaultType = null;
         foreach ($field as $kk => $vv) {
             $isValue = is_int($kk);
@@ -310,46 +377,49 @@ abstract class Data2Html
             }
             if (!isset($this->keywords[$word])) {
                 throw new Exception(
-                    "Word \"{$word}\" on field \"{$name}\" is not supported."
+                    "Word \"{$word}\" on field \"{$key}\" is not supported."
                 );
             }
             $kwGroup = $this->keywords[$word];
             if ($kwGroup === $word) {
-                $newField[$word] = $vv; 
+                $pField[$word] = $vv; 
             } elseif (in_array($kwGroup, $this->keywordsSingle)) {
-                $newField[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
+                $pField[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
             } else {
-                if (!isset($newField[$kwGroup])) {
-                    $newField[$kwGroup] = array();
+                if (!isset($pField[$kwGroup])) {
+                    $pField[$kwGroup] = array();
                 }
                 if ($isValue) {
-                    array_push($newField[$kwGroup], $vv);
+                    array_push($pField[$kwGroup], $vv);
                 } else {
-                    $newField[$kwGroup][$kk] = $vv;
+                    $pField[$kwGroup][$kk] = $vv;
                 }
             }
             if (!$defaultType) {
                 $defaultType = $defTypes->getString($word);
             }
         }
-        if (!isset($newField['type']) && $defaultType) {
-            $newField['type'] = $defaultType;
+        if (!isset($pField['type']) && $defaultType) {
+            $pField['type'] = $defaultType;
         }
-        $value = $dvNewDef->getString('value');
+        $value = null;
+        if (array_key_exists('value', $pField)) {
+            $value = $pField['value'];
+        }
         /*
 '/>\$\$([\w.]+)</'
 '/\'\$\$([\w.]+)\'/'
 '/"\$\$([\w.]+)"/'
-         */
+        */
         if ($value) {
-            $newField['db'] = null;
+            $pField['db'] = null;
             $matches = null;
             preg_match_all('/\$\$\{([\w.:]+)\}/', $value, $matches);
             if (count($matches[0]) > 0) {
-                $newField['serverMatches'] = $matches;
+                $pField['serverMatches'] = $matches;
             }
         }
-        return array($name => $newField);
+        return array($pKey, $pField);
     }
     
     // ========================
@@ -365,15 +435,8 @@ abstract class Data2Html
             $render = new Data2Html_Render($template);
             echo $render->render($this, $grid);
         } catch(Exception $e) {
-            // Message to user
-            $exData = $this->exception2Data($e);
-            $html = '<h3>Error: <span style="color:red">'.
-                $exData['error'].'</span></h3>';
-            if (isset($exData['exception'])) {
-                $html .= '<div style="margin-left:1em">Exception:<pre>'.
-                    $this->toJson($exData['exception']).'</pre></div>';
-            }
-            echo $html;
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, $this->debug);
         }
     }
     /**
@@ -391,7 +454,7 @@ abstract class Data2Html
             } else {
                 header('HTTP/1.1 500 Error');
             }
-            $this->responseJson($this->exception2Data($e));
+            $this->responseJson(Data2Html_Exception::toArray($e, $this->debug));
         }
     }
 
@@ -435,45 +498,16 @@ abstract class Data2Html
     // ========================
     // -------------
     /**
-     * Exception to data structure
-     */
-    protected function exception2Data($exception)
-    {
-        $response = array();
-        if ($this->debug) {
-            // Error
-            $response['error'] = $exception->getMessage();
-            if ($exception->getCode()) {
-                $response['error'] .= ' [ code: '.$exception->getCode().' ]';
-            }
-            // Exception to debug
-            $exeptionData = array();
-            $exeptionData['fileLine'] = $exception->getFile().
-                ' [ line: '.$exception->getLine().' ]';
-            $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
-            if ($exception instanceof Data2Html_Exception) {
-                $exeptionData['data'] = $exception->getData();
-            }
-            $response['exception'] = $exeptionData;
-        } else {
-            $response['error'] =
-                'An unexpected error has stopped the execution on the server.';
-        }
-        return $response;
-    }
-    // -------------
-    /**
      * Auto load.
      */
     protected function autoload($class)
     {
         #Not a Data2Html_% class
-        error_log("autoload({$class})<br>");
         if (strpos($class, 'Data2Html_') !== 0) {
             return;
         }
         $file = str_replace('_', '/', $class).'.php';
-        $phisicalFile = $this->root_path.$file;
+        $phisicalFile = $this->root_path . $file;
         #Do not interfere with other autoloads
         if (file_exists($phisicalFile)) {
             require $phisicalFile;
@@ -488,11 +522,7 @@ abstract class Data2Html
      */
     public function toJson($obj)
     {
-        $options = 0;
-        if ($this->debug && version_compare(PHP_VERSION, '5.4.0', '>=')) {
-            $options |= JSON_PRETTY_PRINT;
-        }
-        return json_encode($obj, $options);
+        return Data2Html_Value::toJson($obj, $this->debug);
     }
     /**
      * @param $obj object to send
@@ -503,7 +533,7 @@ abstract class Data2Html
             echo "<pre>\n".$this->toJson($obj)."\n</pre>\n";
         } else {
             header('Content-type: application/responseJson; charset=utf-8;');
-            // Prefix `")]}',\n"` is due to security considerations, see: 
+            // The prefix `)]}',\n` is used due a security considerations, see: 
             //    * https://docs.angularjs.org/api/ng/service/$http
             echo ")]}',\n".$this->toJson($obj);
         }

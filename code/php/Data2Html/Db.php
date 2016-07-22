@@ -100,19 +100,16 @@ abstract class Data2Html_Db
         $dvItem = new Data2Html_Collection();
         $types = array();
         $values = array();
-        $fielsNames = array();
         $serverMatches = array();
         foreach ($fieldDefs as $k => $v) {
             $dvItem->set($v);
-            $name = $dvItem->getString('name', $k);
-            $types[$name] = $dvItem->getString('type');
-            $fielsNames[$k] = $name;
+            $types[$k] = $dvItem->getString('type');
             $value = $dvItem->getString('value');
             if ($value) {
-                $values[$name] = $value;
+                $values[$k] = $value;
                 $matches = $dvItem->getArray('serverMatches');
                 if ($matches) {
-                    $serverMatches[$name] = $matches;
+                    $serverMatches[$k] = $matches;
                 }
             }
         }
@@ -142,7 +139,7 @@ abstract class Data2Html_Db
                 for ($i = 0; $i < count($matches[0]); $i++) {
                     $r[$mk] = str_replace(
                         $matches[0][$i],
-                        $r[$fielsNames[$matches[1][$i]]],
+                        $r[$matches[1][$i]],
                         $r[$mk]
                     );
                 }

@@ -61,7 +61,7 @@
 >[Compte:]
 <ui-select
     ng-controller="d2h_7"
-    ng-model="d2h_filter.account_id_EQ"
+    ng-model="d2h_filter.account_id_EQ" 
     name="d2h_7"
     theme="bootstrap"
     ng-change="changed()"
@@ -101,8 +101,9 @@
     ng-class="{'has-error': d2h_6.d2h_8.$invalid}"
 >[:]
 <input type="text" class="form-control" 
-    ng-model="d2h_filter.description_LK" ng-init="d2h_filter.description_LK=undefined"
+    ng-model="d2h_filter.description_LK"
     ng-change="changed()"
+    ng-model-options="{ debounce: 500 }"
     placeholder=""
     name="d2h_8"
     required
@@ -132,6 +133,11 @@
         };
         $scope.changed = function() {
             $scope.readPage();
+        };
+    }]);
+    d2h_App.factory('d2h_6_defaults', [function() {
+        return function() {
+            return {"account_id_EQ":1005};
         };
     }]);
 </script>
@@ -259,8 +265,9 @@
     <span class="hidden-xs hidden-sm"></span>
 </button>
 <input type="text" class="form-control" 
-    ng-model="d2h_page.pageSize" ng-init="d2h_page.pageSize=10"
+    ng-model="d2h_page.pageSize"
     ng-change="changed()"
+    ng-model-options="{ debounce: 500 }"
     placeholder=""
     name="d2h_4"
     
@@ -281,16 +288,13 @@
 </div>
 <script>
     d2h_App.controller('d2h_2', ['$scope', function ($scope) {
-        var pageSizes = [10, 20, 50, 100];
-        $scope.pageSizeOp = [];
-        for (i = 0, len = pageSizes.length; i < len; i++) {
-            $scope.pageSizeOp.push({
-                value: pageSizes[i],
-                'text': pageSizes[i]+''
-            });
-        }
         $scope.changed = function() {
             $scope.readPage();
+        };
+    }]);
+    d2h_App.factory('d2h_2_defaults', [function() {
+        return function() {
+            return {"pageSize":10};
         };
     }]);
 </script>
@@ -320,77 +324,72 @@
     </div>
 </div>
 <span ng-init="start()"></span>
-</div><!-- ng-controller="d2h_1" -->
+</div>
 <script>
-
-
-function d2h_paged_init(app, ctlName, vRender) {
-    app.controller(ctlName, function($scope, $http) {
-        $scope.d2h_filter = vRender.d2h_filter;
-        $scope.d2h_sort = vRender.d2h_sort
-        $scope.d2h_page = {};
-        // server
-        var _req = function() {
-            return {
-                method: 'POST',
-                url: vRender.urlRequest,
-                headers: {
-                    'Content-Type': undefined
-                },
-                data: {
-                    d2h_oper: 'read',
-                    d2h_filter: $scope.d2h_filter,
-                    d2h_sort: $scope.d2h_sort,
-                    d2h_page: $scope.d2h_page
-                }
-            };
+var h2d_gridPagedCtr = function($scope, $http, pageDefaults, filterDefaults) {
+    var vRender_urlRequest = '_controller.php?model=aixada_accounts&lang=ca';
+    $scope.d2h_filter = filterDefaults();
+    $scope.d2h_sort = 'account_id';
+    $scope.d2h_page = pageDefaults();
+    
+    // server
+    var _req = function() {
+        return {
+            method: 'POST',
+            url: vRender_urlRequest,
+            headers: {
+                'Content-Type': undefined
+            },
+            data: {
+                d2h_oper: 'read',
+                d2h_filter: $scope.d2h_filter,
+                d2h_sort: $scope.d2h_sort,
+                d2h_page: $scope.d2h_page
+            }
         };
-        
-        $scope.readPage = function() {
-            $scope.d2h_page.pageStart = 1; //current page
-            $http(_req()).then(
-                function(response) { // Ok
-                    $scope.data = response.data.rows;
-                    // $scope.status = response.status;
-                }, function(response) { // Error
-                    // $scope.data = response.data || "Request failed";
-                    // $scope.status = response.status;
-                    console.log("IRROR");
-                }
-            );
-        };
-        $scope.nextPage = function() {
-            $scope.d2h_page.pageStart = 
-                parseInt($scope.d2h_page.pageStart, 10) +
-                parseInt($scope.d2h_page.pageSize, 10);
-            $http(_req()).then(
-                function(response) { // Ok
-                    Array.prototype.push.apply(
-                        $scope.data,
-                        response.data.rows
-                    );
-                }, function(response) { // Error
-                    console.log("IRROR");
-                }
-            );
-        };
-        $scope.sortBy = function(predicate, reverse) {
-            $scope.predicate = predicate;
-            $scope.reverse = reverse;
-        };
-        $scope.start = function() {
-            $scope.readPage();
-           //$scope.sortBy('id', true);
-        };
-    });
-}
-
-
-d2h_paged_init(d2h_App, 'd2h_1', {
-        urlRequest:'_controller.php?model=aixada_accounts&lang=ca',
-        d2h_filter:{"account_id_EQ":1014},
-        d2h_sort:'account_id'
-});
+    };
+    
+    $scope.readPage = function() {
+        $scope.d2h_page.pageStart = 1; //current page
+        $http(_req()).then(
+            function(response) { // Ok
+                $scope.data = response.data.rows;
+                // $scope.status = response.status;
+            }, function(response) { // Error
+                // $scope.data = response.data || "Request failed";
+                // $scope.status = response.status;
+                console.log("IRROR");
+            }
+        );
+    };
+    $scope.nextPage = function() {
+        $scope.d2h_page.pageStart = 
+            parseInt($scope.d2h_page.pageStart, 10) +
+            parseInt($scope.d2h_page.pageSize, 10);
+        $http(_req()).then(
+            function(response) { // Ok
+                Array.prototype.push.apply(
+                    $scope.data,
+                    response.data.rows
+                );
+            }, function(response) { // Error
+                console.log("IRROR");
+            }
+        );
+    };
+    $scope.sortBy = function(predicate, reverse) {
+        $scope.predicate = predicate;
+        $scope.reverse = reverse;
+    };
+    $scope.start = function() {
+        $scope.readPage();
+       //$scope.sortBy('id', true);
+    };
+};
+d2h_App.controller('d2h_1', [
+    '$scope', '$http', 'd2h_2_defaults', 'd2h_6_defaults',
+    h2d_gridPagedCtr
+]);
 </script>
     </div>
 </body>

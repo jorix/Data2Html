@@ -44,7 +44,9 @@ class aixada_ufs extends Data2Html {
                     'type' => 'list',
                     'sort' => 'name',                    
                     'columns' => array(
-                        'account_id', '=$${name}#$${account_id}', 'active'
+                        'value' => 'account_id',
+                        'text' => '=$${name}#$${account_id}',
+                        'active'
                     ),
                     'filter' => array(
                         'layout' => 'inline',

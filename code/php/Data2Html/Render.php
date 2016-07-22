@@ -32,18 +32,16 @@ class Data2Html_Render
     public function render($data, $gridName)
     {        // templates
         $this->debug = $data->debug;
-//echo '<pre>'.$data->toJson($this->tamplatesFilenames).'</pre>';
         $templColl = new Data2Html_Collection($this->templates);
         $templGridColl = $templColl->getCollection('grid');
         if (!$templGridColl) {
             throw new Exception("The template must have a `grid` key");
         }
-        $serviceDefColl = $data->getGridDx($gridName);
-//echo '<pre>'.$data->toJson($serviceDefColl->getValues()).'</pre>';
+        $gridDx = $data->getGridDx($gridName);
         $gridHtml = $this->renderTable(
             $templGridColl,
             'table', 
-            $serviceDefColl->getArray('columns'),
+            $gridDx->getArray('columns'),
             $data->url,
             $data->getTitle()
         );
@@ -57,8 +55,7 @@ class Data2Html_Render
                     'description' => null,
                     'action' => 'readPage()'
                 ),
-                array(
-                    'name' => 'pageSize',
+                'pageSize' => array(
                     'default' => 10,
                     'type' => 'integer'
                 ),
@@ -70,26 +67,24 @@ class Data2Html_Render
                 )
             )
         );
+        list($pageId, $pageHtml) = $this->renderFormByDs('form_page',
+            $templGridColl->getArray('form_page'),
+            $pageDef,
+            'd2h_page.',
+            $data->url,
+            $data->getTitle()
+        );
+        list($filterId, $filterHtml) = $this->renderForm(
+            $templGridColl,
+            'form_filter',
+            $gridDx->getArray('filter'),
+            'd2h_filter.',
+            $data->url,
+            $data->getTitle()
+        );
         return str_replace(
-            array(
-                '$${page}',
-                '$${filter}'
-            ),
-            array(
-                $this->renderFormByDs('form_page',
-                    $templGridColl->getArray('form_page'),
-                    $pageDef,
-                    'd2h_page.',
-                    $data->url,
-                    $data->getTitle()
-                ),
-                $this->renderForm($templGridColl, 'form_filter',
-                    $serviceDefColl->getArray('filter'),
-                    'd2h_filter.',
-                    $data->url,
-                    $data->getTitle()
-                )
-            ),
+            array('$${pageId}', '$${page}', '$${filterId}', '$${filter}'),
+            array($pageId, $pageHtml, $filterId, $filterHtml),
             $gridHtml
         );
     }
@@ -192,7 +187,7 @@ class Data2Html_Render
         $formUrl,
         $title
     ){  
-        return $this->renderFormByDs(
+        list($formId, $html) = $this->renderFormByDs(
             $formName,
             $templateColl->getArray($formName),
             $defs,
@@ -200,6 +195,7 @@ class Data2Html_Render
             $formUrl,
             $title
         );
+        return array($formId, $html);
     }
     protected function renderFormByDs(
         $templateName,
@@ -231,6 +227,7 @@ class Data2Html_Render
                     $formDx->getString('layout', '')
                 );
             }
+            $defaults = array();
             foreach ($fieldsDs as $k => $v) {
                 $body .= $this->renderInput(
                     $inputsColl,
@@ -238,15 +235,21 @@ class Data2Html_Render
                     $formId,
                     $fieldPrefix,
                     $formUrl,
+                    $k,
                     $v
                 );
+                $default = Data2Html_Array::get($v, 'default');
+                if ($default !== null) {
+                    $defaults[$k] = $default;
+                }
                 ++$renderCount;
             }
             $html = $this->renderHtmlDs(
                 array(
                     'id' => $formId,
                     'title' => $title,
-                    'body' => $body
+                    'body' => $body,
+                    'defaults' => Data2Html_Value::toJson($defaults)
                 ),
                 $formTpl
             );
@@ -254,12 +257,11 @@ class Data2Html_Render
         if ($this->debug) {
             $html = 
                 "\n<!-- START renderForm({\"{$templateName}\") formId=\"{$formId}\" -->" .
-                // $data->toJson($$fieldsDs) .
                 "\n<!-- ======================================== -->\n" .
                 $html .
                 "\n<!-- END renderForm({\"{$templateName}\") formId=\"{$formId}\" -->\n";
         }
-        return $html;
+        return array($formId, $html);
     }
     
     protected function renderInput(
@@ -268,15 +270,14 @@ class Data2Html_Render
         $formId,
         $fieldPrefix,
         $formUrl,
+        $key,
         $defs
     ) {
         $def = new Data2Html_Collection($defs);
         $input = $def->getString('input', 'text');
-        $name = $def->getString('name', '');
         // $default = $def->getString('default', 'undefined');
         $url = $def->getString('url', '');
         $validations = $def->getArray('validations', array());
-        
         $foreignKey = $def->getString('foreignKey');
         if ($foreignKey) {
             $template = $inputsColl->getString('ui-select');
@@ -300,7 +301,7 @@ class Data2Html_Render
             array(
                 $this->createIdRender(),
                 $formId,
-                $fieldPrefix.$name,
+                $fieldPrefix . $key,
                // $default,
                 $url,
                 implode(' ', $validations),
@@ -414,5 +415,9 @@ class Data2Html_Render
                     break;
             }
         }
+    }
+    public function toJson($obj)
+    {
+        return Data2Html_Value::toJson($obj, $this->debug);
     }
 }

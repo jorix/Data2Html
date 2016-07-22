@@ -25,9 +25,6 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported.");
         }
         */
-
-        
-        $this->data->parse();
         $c = parse_ini_file($this->fileNameConfigDb, true);
         $dbConfig = $c['db'];
         $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
@@ -67,9 +64,9 @@ class Data2Html_Controller
                 $colDs = $gridDx->getArray('columns');
                 $filterDx = $gridDx->getCollection('filter', false);
                 if ($filterDx) {
-                    $filterCols = $filterDx->getArray('fields');
+                    $filterDs = $filterDx->getArray('fields');
                 } else {
-                    $filterCols = null;
+                    $filterDs = null;
                 }
                 $sortReq = $r->getString('d2h_sort');
                 if (!$sortReq) { // use default sort
@@ -80,7 +77,7 @@ class Data2Html_Controller
                     $sql = $sqlObj->getSelect(
                         $table,
                         $colDs,
-                        $filterCols,
+                        $filterDs,
                         $r->getArray('d2h_filter', array()),
                         $sortReq
                     );

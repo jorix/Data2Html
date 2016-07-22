@@ -8,17 +8,13 @@
 </div>
 <script>
     d2h_App.controller('$${id}', ['$scope', function ($scope) {
-        var pageSizes = [10, 11, 20, 50, 100];
-        $scope.pageSizeOp = [];
-        $scope.pageSize = 11;
-        for (i = 0, len = pageSizes.length; i < len; i++) {
-            $scope.pageSizeOp.push({
-                value: pageSizes[i],
-                'text': pageSizes[i]+''
-            });
-        }
         $scope.changed = function() {
             $scope.readPage();
+        };
+    }]);
+    d2h_App.factory('$${id}_defaults', [function() {
+        return function() {
+            return $${defaults};
         };
     }]);
 </script>

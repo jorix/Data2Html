@@ -12,7 +12,7 @@ class aixada_accounts extends Data2Html {
                 'account_id' => array(
                     'foreignKey' => 'aixada_ufs:account',
                     'title' => 'Compte',
-                    'orderBy' => array('account_id','!id') // TODO detectar no existeix
+                    'orderBy' => array('account_id', '!id')
                 ),
                 'operator' => array(
                     'title' => 'Usuari',
@@ -39,8 +39,8 @@ class aixada_accounts extends Data2Html {
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array(
-                            'account_id' => array('check'=>'EQ', 'default'=>1005, 'required'),
-                            'description' => array('check'=>'LK', 'required')
+                            array('name' => 'account_id', 'check'=>'EQ', 'default'=>1005, 'required'),
+                            array('name' => 'description', 'check'=>'LK', 'required')
                         )
                     )
                 )
