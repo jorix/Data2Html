@@ -97,19 +97,19 @@ abstract class Data2Html_Db
             throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
         };
         $dvDefs = new Data2Html_Collection($fieldDefs);
-        $dvItem = new Data2Html_Collection();
+        $itemDx = new Data2Html_Collection();
         $types = array();
         $values = array();
-        $serverMatches = array();
+        $serverTemplateItems = array();
         foreach ($fieldDefs as $k => $v) {
-            $dvItem->set($v);
-            $types[$k] = $dvItem->getString('type');
-            $value = $dvItem->getString('value');
+            $itemDx->set($v);
+            $types[$k] = $itemDx->getString('type');
+            $value = $itemDx->getString('value');
             if ($value) {
                 $values[$k] = $value;
-                $matches = $dvItem->getArray('serverMatches');
+                $matches = $itemDx->getArray('serverTemplateItems');
                 if ($matches) {
-                    $serverMatches[$k] = $matches;
+                    $serverTemplateItems[$k] = $matches;
                 }
             }
         }
@@ -134,8 +134,8 @@ abstract class Data2Html_Db
                 }
             }
             $r += $values;
-            foreach ($serverMatches as $mk => $mv) {
-                $marches = $serverMatches[$mk];
+            foreach ($serverTemplateItems as $mk => $mv) {
+                $marches = $serverTemplateItems[$mk];
                 for ($i = 0; $i < count($matches[0]); $i++) {
                     $r[$mk] = str_replace(
                         $matches[0][$i],
@@ -150,7 +150,7 @@ abstract class Data2Html_Db
         if ($this->debug) {
             $response += array(
                 'sql' => $query,
-                'serverMatches' => $serverMatches
+                'serverTemplateItems' => $serverTemplateItems
             );
         }
         $response += array(

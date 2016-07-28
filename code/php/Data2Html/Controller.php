@@ -53,7 +53,6 @@ class Data2Html_Controller
             case 'read':
                 $page = $r->getCollection('d2h_page', array());
                 $table = $data->table;
-                $sql = $data->sql;
                 if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
                     $grid = $aux[1];
@@ -61,27 +60,18 @@ class Data2Html_Controller
                     $grid = 'default';
                 }
                 $gridDx = $data->getGridDx($grid);
-                $colDs = $gridDx->getArray('columns');
-                $filterDx = $gridDx->getCollection('filter', false);
-                if ($filterDx) {
-                    $filterDs = $filterDx->getArray('fields');
-                } else {
-                    $filterDs = null;
-                }
                 $sortReq = $r->getString('d2h_sort');
                 if (!$sortReq) { // use default sort
-                    $sortReq = $gridDx->getString('sort');
+                    $sortReq = $gridDx->getString('sort', '');
                 }
-                if (!$sql) {
-                    $sqlObj = new Data2Html_Sql($db);
-                    $sql = $sqlObj->getSelect(
-                        $table,
-                        $colDs,
-                        $filterDs,
-                        $r->getArray('d2h_filter', array()),
-                        $sortReq
-                    );
-                }
+                $sqlObj = new Data2Html_Sql($db);
+                $sql = $sqlObj->getSelect(
+                    $table,
+                    $gridDx,
+                    $r->getArray('d2h_filter', array()),
+                    $sortReq
+                );
+                $colDs = $gridDx->getArray('columns');
                 $ra = $db->getQueryArray(
                     $sql,
                     $colDs,

@@ -1,5 +1,5 @@
 <?php
-class aixada_accounts extends Data2Html {
+class aixada_accounts2 extends Data2Html {
 
     protected function definitions()
     {
@@ -34,7 +34,7 @@ class aixada_accounts extends Data2Html {
                 'default' => array(
                     'sort' => 'account_id', // TODO detectar no existeix
                     'columns' => array(
-                        'id', 'account_id', 'operator', 'ts',
+                        'id', 'account_id', 'account_id[1]', 'account_id[3]', 'account_id[name2]', 'operator', 'ts',
                         'description', 'method', 'quantity', 'balance'),
                     'filter' => array(
                         'layout' => 'inline',

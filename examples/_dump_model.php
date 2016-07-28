@@ -22,12 +22,19 @@
                 $data->parse();
 
                 echo "<h2>getColDs():</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getColDs());
+                //echo Data2Html_Utils::toPhp($data->getColDs());
                 echo "</pre><hr>\n";
+                
+                $gridName = Data2Html::getGridNameByModel($_REQUEST['model']);
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getGridsDs());
-                echo "<pre><hr>\n";
+                echo Data2Html_Utils::toPhp($data->getGrid($gridName));
+                echo "</pre><hr>\n";
+                
+                $data->linkGrid($gridName);
+                echo "<h2>Linked getGrid('{$gridName}'):</h2>\n<pre>";
+                echo Data2Html_Utils::toPhp($data->getGrid($gridName));
+                echo "</pre><hr>\n";
 
             } catch(Exception $e) {
                 // Message to developer from exception
@@ -35,7 +42,7 @@
                 
                 echo "<hr><h2>->getColDs()</h2>\n<pre>";
                 echo Data2Html_Utils::toPhp($data->getColDs());
-                echo "<pre>\n";
+                echo "</pre>\n";
             }
         }
     ?>

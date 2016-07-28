@@ -23,13 +23,13 @@ class Data2Html_Render
     }
     public function createIdRender() {
         self::$idRenderCount++;
-        return 'd2h_'.self::$idRenderCount;
+        return 'd2h_' . self::$idRenderCount;
     }
     public function getId()
     {
         return $this->id;
     }
-    public function render($data, $gridName)
+    public function render($data, $gridName = 'default')
     {        // templates
         $this->debug = $data->debug;
         $templColl = new Data2Html_Collection($this->templates);
@@ -278,11 +278,11 @@ class Data2Html_Render
         // $default = $def->getString('default', 'undefined');
         $url = $def->getString('url', '');
         $validations = $def->getArray('validations', array());
-        $foreignKey = $def->getString('foreignKey');
-        if ($foreignKey) {
+        $link = $def->getString('link');
+        if ($link) {
             $template = $inputsColl->getString('ui-select');
             $baseUrl = explode('?', $formUrl);
-            $url = $baseUrl[0].'?model='.$foreignKey.'&';
+            $url = $baseUrl[0].'?model='.$link.'&';
         } elseif ($input) {
             $template = $inputsColl->getString($input);
         }

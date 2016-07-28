@@ -34,7 +34,7 @@ aixada_member (
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
                 'name'      => array('title' => 'Nom',
-                    'maxLength' => 255, 'required'
+                    'length' => 255, 'required'
                 ),
                 'active'    => array('integer', 'required', 'default' => 1)
             ),

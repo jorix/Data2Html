@@ -3,45 +3,60 @@
 class Data2Html_Sql
 {
     protected $db;
+
     public function __construct($db) {
         $this->db = $db;
     }
+
     public function getSelect(
         $table, 
-        $colDefs, 
-        $filterDefs = null,
+        $gridDx,
         $filterReq = array(),
-        $sortColReq = null
-    )
-    {
-        $def = new Data2Html_Collection();
-        $dbfs = array();
-        foreach ($colDefs as $k=>$v) {
-            $def->set($v);
-            $dbName = $def->getString('db');
-            if ($dbName !== null) {
-                if ($k === $dbName) {
-                    array_push($dbfs, $dbName);
-                } else {
-                    array_push($dbfs, $dbName.' '.$k); // db-field with alias
-                }
-            }
+        $sortReq = null
+    ) {
+        $colDefs = $gridDx->getArray('columns');
+        $filterDx = $gridDx->getCollection('filter', false);
+        if ($filterDx) {
+            $filterDefs = $filterDx->getArray('fields');
+        } else {
+            $filterDefs = null;
         }
-        if (count($dbfs) === 0) {
+
+        $select = $this->getSelectText($colDefs);
+        if (count($select) === '') {
             throw new Exception("No data base fields defined.");
         }
-        $query = 'select ' . implode(',', $dbfs);
+        $query = 'select ' . $select;
         $query .= " from {$table}";
         $where = $this->getWhere($filterDefs, $filterReq);
-        if ($where) {
+        if ($where !== '') {
             $query .= " where {$where}";
         }
-        $orderBy = $this->getOrderBy($colDefs, $sortColReq);
-        if ($orderBy) {
+        $orderBy = $this->getOrderBy($colDefs, $sortReq);
+        if ($orderBy !== '') {
             $query .= " order by {$orderBy}";
         }
         return $query;
     }
+
+    protected function getSelectText($pFields)
+    {
+        $textFields = array();
+        $itemDx = new Data2Html_Collection();
+        foreach ($pFields as $k=>$v) {
+            $itemDx->set($v);
+            $fieldDb = $itemDx->getString('db');
+            if ($fieldDb !== null) {
+                if ($fieldDb === $k) {
+                    array_push($textFields, $fieldDb);
+                } else { // db-field with alias
+                    array_push($textFields,  $fieldDb . ' ' . $k);
+                }
+            }
+        }
+        return implode(', ', $textFields);
+    }
+
     protected function getOrderBy($colDefs, $colNameRequest)
     {
         if (!$colNameRequest) {
@@ -73,6 +88,7 @@ class Data2Html_Sql
         }
         return implode(', ', $c);
     }
+
     protected function getWhere($filterDefs, $request)
     {
         if (!$filterDefs) {
@@ -80,20 +96,20 @@ class Data2Html_Sql
         }
         $requestValues = new Data2Html_Collection($request);
         $c = array();
-        $def = new Data2Html_Collection();
+        $itemDx = new Data2Html_Collection();
         foreach ($filterDefs as $k => $v) {
-            $def->set($v);
-            $fCheck = $def->getString('check');
-            $dbName = $def->getString('db'); 
+            $itemDx->set($v);
+            $fCheck = $itemDx->getString('check');
+            $fieldDb = $itemDx->getString('db'); 
             if (
-                $dbName === null ||
+                $fieldDb === null ||
                 $fCheck === null
             ) {
                 continue;
             }
-            $type = $def->getString('type', 'string');
+            $type = $itemDx->getString('type', 'string');
             // forced value
-            $r = $def->toSql($this->db, 'value', $type, null);
+            $r = $itemDx->toSql($this->db, 'value', $type, null);
             if ($r === null) {
                 // requested value
                 $r = $requestValues->toSql($this->db, $k, $type, null);
@@ -108,16 +124,16 @@ class Data2Html_Sql
                     break;
                 default:
                     throw new Exception(
-                        "getWhere(): Check '{$fCheck}' on item '{$k}'=>'{$dbName}' is not supported."
+                        "getWhere(): Check '{$fCheck}' on item '{$k}'=>'{$fieldDb}' is not supported."
                     );
                     break;
                 }
-                array_push($c, "{$dbName} {$dbCheck} {$r}");
+                array_push($c, "{$fieldDb} {$dbCheck} {$r}");
             }
         }
         return implode(' and ', $c);
     }
-    
+
     public function parseSelect($sql) {
         $sql = trim(str_replace(
             array("\t", "\r", "\n"),
@@ -222,6 +238,7 @@ class Data2Html_Sql
             }
         }
     }
+
     protected function getPosSubSelect($posStart, $sqlUp) 
     {
         while (true) {

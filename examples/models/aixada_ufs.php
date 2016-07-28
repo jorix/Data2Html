@@ -7,16 +7,33 @@ class aixada_ufs extends Data2Html {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
+/*
+create table aixada_uf (
+  id   	     		int				not null,
+  name				varchar(255)    not null,
+  active     		tinyint 		default 1,   	
+  created			timestamp 		default current_timestamp,
+  mentor_uf         int             default null,
+  primary key (id)
+)
+*/
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
-                'account_id'=> array('db' => '1000+id', 'integer'),
-                'name'      => array('title' => 'Nom',
-                    'maxLength' => 255, 'required'
+                'account_id'=> array('db' => '1000+.[id]', 'integer'),
+                'name'      => array(
+                    'title' => 'Nom',
+                    'length' => 255, 'required'
                 ),
+                // 'name2'      => array(
+                    // 'db' => '.[name] || \'2\'',
+                    // 'title' => 'Nom',
+                    // 'length' => 255, 'required'
+                // ),
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
-                'mentor_uf' => array('title' => 'UF mentora',
-                    'foreignKey' => 'aixada_ufs:list'
+                'mentor_uf' => array(
+                    'title' => 'UF mentora',
+                    'link' => 'aixada_ufs:list'
                 ),
             ),
             'constraints' => (
@@ -42,9 +59,9 @@ class aixada_ufs extends Data2Html {
                 'account' => array(
                     'sort' => 'name',                    
                     'columns' => array(
-                        'value' => 'account_id',
+                        'value' => array('key', 'name' => 'account_id'),
                         'text' => '=$${name}#$${account_id}',
-                        'active'
+                        'active', 'mentor_uf'
                     ),
                     'filter' => array(
                         'layout' => 'inline',
@@ -57,16 +74,5 @@ class aixada_ufs extends Data2Html {
                 )
             )
         );
-/*
-
- create table aixada_uf (
-  id   	     		int				not null,
-  name				varchar(255)    not null,
-  active     		tinyint 		default 1,   	
-  created			timestamp 		default current_timestamp,
-  mentor_uf         int             default null,
-  primary key (id)
-)
-*/
     }
 }
