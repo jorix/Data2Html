@@ -55,26 +55,22 @@ class Data2Html_Controller
                 $table = $data->table;
                 if ($model && strpos($model, ':') !== false ) {
                     $aux = explode(':', $model);
-                    $grid = $aux[1];
+                    $gridName = $aux[1];
                 } else {
-                    $grid = 'default';
+                    $gridName = 'default';
                 }
-                $gridDx = $data->getGridDx($grid);
+                $link = new Data2Html_LinkGrid($data);
+                $linkedGrid = $link->getGrid($gridName);
                 $sortReq = $r->getString('d2h_sort');
-                if (!$sortReq) { // use default sort
-                    $sortReq = $gridDx->getString('sort', '');
-                }
                 $sqlObj = new Data2Html_Sql($db);
                 $sql = $sqlObj->getSelect(
-                    $table,
-                    $gridDx,
+                    $linkedGrid,
                     $r->getArray('d2h_filter', array()),
                     $sortReq
                 );
-                $colDs = $gridDx->getArray('columns');
                 $ra = $db->getQueryArray(
                     $sql,
-                    $colDs,
+                    $linkedGrid['columns'],
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );

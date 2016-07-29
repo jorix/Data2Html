@@ -33,7 +33,8 @@ aixada_member (
             'title' => 'Membres',
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
-                'name'      => array('title' => 'Nom',
+                'name'      => array(
+                    'title' => 'Usuari',
                     'length' => 255, 'required'
                 ),
                 'active'    => array('integer', 'required', 'default' => 1)

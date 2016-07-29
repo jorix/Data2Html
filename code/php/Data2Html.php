@@ -171,6 +171,10 @@ abstract class Data2Html
     {
         return $this->title;
     }
+    public function getName()
+    {
+        return $this->name;
+    }
     /**
      */
     public function parse()
@@ -246,6 +250,18 @@ abstract class Data2Html
 
     protected function parseField($key, $field)
     {    
+        if (is_string($field)) {
+            if (substr($field, 0, 1) === '=') {
+                $field = array('value' => substr($field, 1));
+            } elseif (preg_match($this->matchLinkedOnce, $field)) { // Is a link
+                $field = array('db' => $field);
+            } else {
+                throw new Exception(
+                    "{$this->name}: Field `{$key}` as string must bee a `value` " .
+                    "as \"=xxx\" or a link as \"link[name]\"."
+                );
+            }
+        }
         $fieldDx = new Data2Html_Collection($field);
         $name = $fieldDx->getString('name', (is_int($key) ? null : $key));
         $db = $fieldDx->getString('db', $name, true); // return null if ['db'] is null 
@@ -371,6 +387,7 @@ abstract class Data2Html
         if (count($columns) === 0) { // if no columns set as all fields
             $columns = $fields;
         }
+        $grid['table'] = $this->table;
         $grid['columns'] = $columns;
     }
 
@@ -463,184 +480,6 @@ abstract class Data2Html
             }
         } 
         return array($keyFields, $pColumns);
-    }
-
-    public function linkGrid($gridName)
-    {    
-        $fields = $this->colDs;
-        $grid = &$this->gridsDs[$gridName];
-        print_r($gridName);
-        $columns = &$grid['columns'];
-        
-        $links = array();
-        foreach ($columns as $k => $v) {
-            if(array_key_exists('linkedTo', $v)) {
-                $this->linkField($gridName, $links, $v['linkedTo'], $fields);
-            }
-        }
-        if (array_key_exists('filter', $grid)) {
-            foreach ($grid['filter']['fields'] as $k => $v) {
-                if(array_key_exists('linkedTo', $v)) {
-                    $this->linkField($gridName, $links, $v['linkedTo'], $fields);
-                }
-            }
-        }
-        if (count($links) > 0) {
-            foreach ($columns as $k => &$v) {
-                $this->applyLinkField($gridName, '.', $links, $v);
-            }
-        }
-    }
-    protected function linkField($gridName, &$links, $linkedTo, $fields)
-    {
-        for ($i = 0; $i < count($linkedTo['links']); $i++) {
-            $linkName = $linkedTo['links'][$i];
-            $fieldName = $linkedTo['names'][$i];
-            if (!array_key_exists($linkName, $links)) { // Add new link
-                if (count($links) === 0) {
-                    $linkGrid = $this->getGrid($gridName);
-                    $this->addLink($gridName, $links, '.', $fieldName, '.', $this, $linkGrid);
-                }
-                if ($linkName !== '.') {
-                    $this->createLink($gridName, $links, $linkName, $fieldName, $fields);
-                }
-            }
-        }
-    }
-    
-    protected function createLink($gridName, &$links, $linkName, $fieldName, $fields)
-    {
-        if ($linkName !== '.') {
-            if (!array_key_exists($linkName, $fields)) { 
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" in grid \"{$gridName}\" uses a link \"{$linkName}\" that not exist on `fields`"
-                );
-            }
-            $linkField = $fields[$linkName];
-            if(array_key_exists('linkedTo', $linkField)) {
-                $this->linkField($gridName, $links, $linkField['linkedTo'], $fields);
-            }
-            
-            if (!array_key_exists('link', $linkField)) {
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" in grid \"{$gridName}\" uses field \"{$linkName}\" without link."
-                );
-            }
-            $modelName = $linkField['link'];
-            $dataLink = Data2Html::createModel($modelName);
-            $linkGrid = $dataLink->getGrid(
-                self::getGridNameByModel($modelName)
-            );
-            $this->addLink($gridName, $links, $linkName, $fieldName, $modelName, $dataLink, $linkGrid);
-        }
-    }
-    
-    protected function addLink(
-        $gridName,
-        &$links,
-        $linkName,
-        $fieldName,
-        $modelName,
-        $dataLink,
-        $gridLink
-    ) {
-        //$gridLink = $this->getGrid($gridName);
-        $linkedKeys = $dataLink->getKeys();
-        if (count($linkedKeys) !== 1) {
-            throw new Exception(
-                "{$this->name}: Requires a primary key with only one field, on linked field \"{$linkName}[{$fieldName}]\" in grid \"{$gridName}\"."
-            );
-        }
-        $links[$linkName] = array(
-            'model' => $modelName,
-            'tableName' => $dataLink->getTable(),
-            'tableAlias' => 'T' . count($links),
-            'tableKey' => $linkedKeys[0],
-            'fields' => $dataLink->getColDs(),
-            'gridName' => $gridLink['name'],
-            'grid' => $gridLink,
-            'gridColNames' => array_keys($gridLink['columns'])
-        );
-        // Check linked field exist
-        $link = $links[$linkName];
-        if (is_numeric($fieldName)) {
-            if (($fieldName+0) >= count($link['gridColNames'])) {
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" in grid \"{$gridName}\"` uses a link with a index out of range on grid \"{$link['gridName']}\" on  model \"{$link['model']}\"."
-                );
-            }
-        } else {
-            if (!array_key_exists($fieldName, $link['fields'])) {
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" in grid `{$gridName}` not exist on `fields` of model \"{$link['model']}\"."
-                );
-            }
-        }
-    }
-    
-    protected function applyLinkField($gridName, $linkName, &$links, &$field)
-    {
-        if(array_key_exists('linkedTo', $field)) {
-            if(array_key_exists('db', $field)) {
-                $field['db'] = $this->applyLinkToDb(
-                    $gridName,
-                    $linkName,
-                    $field['linkedTo'],
-                    $field['db'],
-                    $links
-                );
-            } elseif(array_key_exists('value', $field)) {
-                
-            }
-        } elseif(isset($field['db'])) {
-            $field['db'] =  $links['.']['tableAlias'] . '.' . $field['db'];
-        }
-    }
-    
-    protected function applyLinkToDb(
-        $gridName,
-        $linkedName,
-        $linkedTo,
-        $db,
-        &$links
-    ) {   
-        for ($i = 0; $i < count($linkedTo['links']); $i++) {
-            $linkName = $linkedTo['links'][$i];
-            if ($linkName === '.') {
-                $linkName = $linkedName;
-            }
-            $fieldName = $linkedTo['names'][$i];
-            $link = $links[$linkName];
-            
-            if (is_numeric($fieldName)) {
-                $linkedField = $link['grid']['columns'][$link['gridColNames'][$fieldName+0]];
-        // echo '<pre>'; print_r($linkedField); echo '</pre><hr>';
-            } else {
-                $linkedField = $link['fields'][$fieldName];
-            }
-            if(!array_key_exists('db', $linkedField)) {
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" in grid `{$gridName}` not exist on `fields` of model \"{$link['model']}\"."
-                );
-            }
-            if (array_key_exists('linkedTo', $linkedField)) {
-                $dbLinked = $this->applyLinkToDb(
-                    $gridName,
-                    $linkName,
-                    $linkedField['linkedTo'],
-                    $linkedField['db'],
-                    $links
-                );
-                $db = str_replace($linkedTo['matches'][$i], $dbLinked, $db);  
-            } else {
-                $db = str_replace(
-                    $linkedTo['matches'][$i], 
-                    $link['tableAlias'] . '.' . $linkedField['db'],
-                    $db
-                );  
-            }
-        }
-        return $db;
     }
     
     protected function parseFilter($gridName, $filter, $fields)

@@ -9,11 +9,11 @@ class Data2Html_Sql
     }
 
     public function getSelect(
-        $table, 
-        $gridDx,
+        $grid,
         $filterReq = array(),
         $sortReq = null
     ) {
+        $gridDx = new Data2Html_Collection($grid);
         $colDefs = $gridDx->getArray('columns');
         $filterDx = $gridDx->getCollection('filter', false);
         if ($filterDx) {
@@ -27,10 +27,13 @@ class Data2Html_Sql
             throw new Exception("No data base fields defined.");
         }
         $query = 'select ' . $select;
-        $query .= " from {$table}";
+        $query .= "\n from {$this->getFrom($gridDx)}";
         $where = $this->getWhere($filterDefs, $filterReq);
         if ($where !== '') {
             $query .= " where {$where}";
+        }
+        if (!$sortReq) { // use default sort
+            $sortReq = $gridDx->getString('sort', '');
         }
         $orderBy = $this->getOrderBy($colDefs, $sortReq);
         if ($orderBy !== '') {
@@ -57,6 +60,21 @@ class Data2Html_Sql
         return implode(', ', $textFields);
     }
 
+    protected function getFrom($gridDx)
+    {
+        $joins = $gridDx->getArray('joins');
+        $from = '';
+        foreach ($joins as $v) {
+            if(!$v['fromTable']) {
+                $from .= "\n {$v['toTable']} {$v['toAlias']}";
+            } else {
+                $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
+                $from .= "\n on {$v['fromDbKeys']} = {$v['toDbKeys']}";
+            }
+        }
+        return $from;
+    }
+    
     protected function getOrderBy($colDefs, $colNameRequest)
     {
         if (!$colNameRequest) {

@@ -28,12 +28,12 @@
                 $gridName = Data2Html::getGridNameByModel($_REQUEST['model']);
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getGrid($gridName));
+                //echo Data2Html_Utils::toPhp($data->getGrid($gridName));
                 echo "</pre><hr>\n";
                 
-                $data->linkGrid($gridName);
+                $link = new Data2Html_LinkGrid($data);
                 echo "<h2>Linked getGrid('{$gridName}'):</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getGrid($gridName));
+                echo Data2Html_Utils::toPhp($link->getGrid($gridName));
                 echo "</pre><hr>\n";
 
             } catch(Exception $e) {
