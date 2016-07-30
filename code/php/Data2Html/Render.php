@@ -105,53 +105,61 @@ class Data2Html_Render
         $thead = '';
         $tbody = '';
         $renderCount = 0;
-        $i = 0;
         $def = new Data2Html_Collection();
         foreach ($colDs as $k => $v) {
-            ++$i;
             $def->set($v);
-            $name = $def->getString('name', $k);
-            $label = $def->getString('title', $name);
-            $thead .= $this->renderHtmlDs(
-                array(
-                    'name' => $name,
-                    'title' => $label
-                ),
-                $columnsTemplates->getString('sortable', '')
-            );
-            $type = $def->getString('type');
-            ++$renderCount;
-            $tbody .= '<td';
-            $class = '';
-            $ngClass = '';
-            switch ($type) {
-                case 'integer':
-                case 'number':
-                case 'currency':
-                    $class .= 'text-right';
-            }
-            if ($visual = $def->getString('visualClass')) {
-                if (strpos($visual, ':') !== false) {
-                    $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
-                } else {
-                    $class .= ' '.$visual;
+            $ignore = false;
+            if ($display = $def->getArray('display')) {
+            //print_r($display);
+            //print_r(array_search('hidden', $display));
+                if (count($display)) { // TODO
+                    $ignore = true;
                 }
             }
-            if ($ngClass) {
-                $tbody .= " ng-class=\"{$ngClass}\"";
+            if (!$ignore) {
+                $name = $def->getString('name', $k);
+                $label = $def->getString('title', $name);
+                $thead .= $this->renderHtmlDs(
+                    array(
+                        'name' => $name,
+                        'title' => $label
+                    ),
+                    $columnsTemplates->getString('sortable', '')
+                );
+                $type = $def->getString('type');
+                ++$renderCount;
+                $tbody .= '<td';
+                $class = '';
+                $ngClass = '';
+                switch ($type) {
+                    case 'integer':
+                    case 'number':
+                    case 'currency':
+                        $class .= 'text-right';
+                }
+                if ($visual = $def->getString('visualClass')) {
+                    if (strpos($visual, ':') !== false) {
+                        $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
+                    } else {
+                        $class .= ' '.$visual;
+                    }
+                }
+                if ($ngClass) {
+                    $tbody .= " ng-class=\"{$ngClass}\"";
+                }
+                if ($class) {
+                    $tbody .= " class=\"{$class}\"";
+                }
+                $tbody .= '>';
+                if ($type && $format = $def->getString('format')) {
+                    $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
+                } elseif ($type === 'currency') {
+                    $tbody .= "{{item.{$k} | {$type}}}";
+                } else {
+                    $tbody .= "{{item.{$k}}}";
+                }
+                $tbody .= "</td>\n";
             }
-            if ($class) {
-                $tbody .= " class=\"{$class}\"";
-            }
-            $tbody .= '>';
-            if ($type && $format = $def->getString('format')) {
-                $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
-            } elseif ($type === 'currency') {
-                $tbody .= "{{item.{$k} | {$type}}}";
-            } else {
-                $tbody .= "{{item.{$k}}}";
-            }
-            $tbody .= "</td>\n";
         }
         $tableHtml = $this->renderHtmlDs(
             array(

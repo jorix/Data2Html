@@ -128,16 +128,24 @@ class Data2Html_LinkGrid
             );
         }
         $toAlias = 'T' . count($this->joins);
+        $toFields = $dataLink->getColDs();
         $this->links[$toLinkName] = array(
             'model' => $modelName,
             'toAlias' => $toAlias,
             'tableKey' => $linkedKeys[0],
-            'fields' => $dataLink->getColDs(),
+            'fields' => $toFields,
             'gridName' => $gridLink['name'],
             'grid' => $gridLink,
             'gridColNames' => array_keys($gridLink['columns'])
         );
-        $ff = $gridLink['columns'][$linkedKeys[0]];
+        if (!array_key_exists($linkedKeys[0], $toFields)) {
+            throw new Exception(
+                "{$this->name}: On link \"{$toLinkName}\"" .
+                " for table \"{$gridLink['table']}\"" .
+                " key field \"{$linkedKeys[0]}\" not find on `fields`."
+            );
+        }
+        $ff = $toFields[$linkedKeys[0]];
         $this->applyLinkField($toLinkName, $ff);
         if ($fromLinkName) {
             $fromJoin = $this->joins[$fromLinkName];

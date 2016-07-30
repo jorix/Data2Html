@@ -100,16 +100,16 @@ abstract class Data2Html_Db
         $itemDx = new Data2Html_Collection();
         $types = array();
         $values = array();
-        $serverTemplateItems = array();
+        $teplateItems = array();
         foreach ($fieldDefs as $k => $v) {
             $itemDx->set($v);
             $types[$k] = $itemDx->getString('type');
             $value = $itemDx->getString('value');
             if ($value) {
                 $values[$k] = $value;
-                $matches = $itemDx->getArray('serverTemplateItems');
+                $matches = $itemDx->getArray('teplateItems');
                 if ($matches) {
-                    $serverTemplateItems[$k] = $matches;
+                    $teplateItems[$k] = $matches;
                 }
             }
         }
@@ -134,8 +134,8 @@ abstract class Data2Html_Db
                 }
             }
             $r += $values;
-            foreach ($serverTemplateItems as $mk => $mv) {
-                $marches = $serverTemplateItems[$mk];
+            foreach ($teplateItems as $mk => $mv) {
+                $marches = $teplateItems[$mk];
                 for ($i = 0; $i < count($matches[0]); $i++) {
                     $r[$mk] = str_replace(
                         $matches[0][$i],
@@ -150,7 +150,7 @@ abstract class Data2Html_Db
         if ($this->debug) {
             $response += array(
                 'sql' => $query,
-                'serverTemplateItems' => $serverTemplateItems
+                'teplateItems' => $teplateItems
             );
         }
         $response += array(

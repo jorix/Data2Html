@@ -14,18 +14,15 @@ class aixada_accounts extends Data2Html {
                     'title' => 'Compte',
                     'orderBy' => array('account_id', '!id')
                 ),
-                'operator_id' => array(
-                    'link' => 'aixada_members'
-                ),
-                'description' => array(),
-                'method' => array(
-                    'db' => null
-                ),
+                'operator_id' =>       array('link' => 'aixada_members'),
+                'payment_method_id' => array('link' => 'aixada_payment_methods'),
+                'description' => array('title' => 'Descripció'),
                 'quantity' => array('number', 
                     'format' => 2, 'visualClass' => 'red:<0'),
                 'balance' => array('currency', 'visualClass' => 'red:<0'),
                 'ts' => array(
-                    'title' => 'data', 'date',
+                    'title' => 'Data',
+                    'date',
                     'format' => 'dd-MM-yy HH:mm'// 'medium'
                 )
             ),
@@ -33,14 +30,14 @@ class aixada_accounts extends Data2Html {
                 'default' => array(
                     'sort' => 'account_id', // TODO detectar no existeix
                     'columns' => array(
-                        'id', 'account_id', 
-                        'account_id[name]',
+                        'id',
+                        'ts',
                         'operator_id[name]',
+                        'account_id[name]',
+                        'description',
                         //'account_id[1]',
                         //'account_id[uf_name]',
-                        'ts',
-                        'description',
-                        'method',
+                        'payment_method_id[1]',
                         'quantity',
                         'balance'),
                     'filter' => array(

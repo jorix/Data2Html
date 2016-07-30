@@ -42,6 +42,7 @@ abstract class Data2Html
         'default' => 'default',
         'description' => 'description',
         'digits' => 'size',
+        'display' => 'display',
         'email' => 'type',
         'emails' => 'type',
         'format' => 'format',
@@ -50,11 +51,14 @@ abstract class Data2Html
         'key' => 'key',
         'length' => 'size',
         'link' => 'link',
+        'linkedTo' => 'linkedTo',
         'name' => 'name',
         'number' => 'type',
         'orderBy' => 'orderBy',
         'required' => 'validations',
+        'size' => 'size',
         'string' => 'type',
+        'teplateItems' => 'teplateItems',
         'title' => 'title',
         'type' => 'type',
         'uniqueKey' => 'constraints',
@@ -189,6 +193,9 @@ abstract class Data2Html
         $this->colDs = $fields;
         
         $this->gridsDs = $def->getArray('grids', array());
+        if (!array_key_exists('default', $this->gridsDs)) {
+            $this->gridsDs['default'] = array();
+        }
         foreach ($this->gridsDs as $k => &$s) {
             $this->parseGrid($k, $s, $fields);
         }
@@ -204,10 +211,10 @@ abstract class Data2Html
                 $fSorts += array($pField['db'] => $pField['orderBy']);
             }
             foreach ($pField as $nv) {
-                if (isset($nv['serverTemplateItems'])) {
+                if (isset($nv['teplateItems'])) {
                     $matchedFields = array_merge(
                         $matchedFields,
-                        $nv['serverTemplateItems'][1]
+                        $nv['teplateItems'][1]
                     );
                 }
             }
@@ -344,7 +351,7 @@ abstract class Data2Html
             // $${name} | $${link[name]}
             preg_match_all($this->matchTemplate, $value, $matches0);
             if (count($matches0[0]) > 0) {
-                $pField['serverTemplateItems'] = $matches0;
+                $pField['teplateItems'] = $matches0;
                 $linked = array('links' => array(), 'names' => array());
                 foreach ($matches0[1] as $v) {
                     $matches = null;
@@ -381,20 +388,17 @@ abstract class Data2Html
         }
         list($this->keys, $columns) = $this->parseColumns(
             $gridName,
-            $gridDx->getArray('columns'),
+            $gridDx->getArray('columns', array()),
             $fields
         );
-        if (count($columns) === 0) { // if no columns set as all fields
-            $columns = $fields;
-        }
         $grid['table'] = $this->table;
         $grid['columns'] = $columns;
     }
 
     protected function parseColumns($gridName, $columns, $fields)
     {
-        if (!$columns) {
-            return array();
+        if (count($columns) === 0) { // if no columns set as all fields
+            $columns = $fields;
         }
         $fieldsDx = new Data2Html_Collection($fields);
         $pColumns = array();
@@ -440,13 +444,7 @@ abstract class Data2Html
                     list($pKey, $pCol) = $this->parseField($k, $v);
                     $pCol = array_merge($pCol, $pField);
                 } else {
-                    list($pKey, $pCol) = $this->parseField(
-                        $k,
-                        array( 
-                            'value' => substr($v, 1),
-                            'db' => null
-                        )
-                    );
+                    list($pKey, $pCol) = $this->parseField($k, $v);
                 }
             }
             $this->addItem($gridName, $pKey, $pCol, $pColumns);
@@ -456,10 +454,10 @@ abstract class Data2Html
         $matchedFields = array();
         $keyFields = array();
         foreach ($pColumns as $k => $v) {
-            if (array_key_exists('serverTemplateItems', $v)) {
+            if (array_key_exists('teplateItems', $v)) {
                 $matchedFields = array_merge(
                     $matchedFields,
-                    $v['serverTemplateItems'][1]
+                    $v['teplateItems'][1]
                 );
             }
             if (array_key_exists('key', $v)) {
