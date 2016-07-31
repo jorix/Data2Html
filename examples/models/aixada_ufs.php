@@ -24,7 +24,7 @@ create table aixada_uf (
                         'title' => 'Nom UF',
                         'length'=> 255, 'required'
                 ),
-                'uf_name'   => '.[name]', //'=$${name}#$${id}',
+                'uf_name'   => array('db' => 'name'), //'=$${name}#$${id}',
                 // 'name2'      => array(
                     // 'db' => '.[name] || \'2\'',
                     // 'title' => 'Nom',

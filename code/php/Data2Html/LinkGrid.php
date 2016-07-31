@@ -171,11 +171,71 @@ class Data2Html_LinkGrid
                     $field['linkedTo'],
                     $field['db']
                 );
-            } elseif(array_key_exists('value', $field)) {
-                
+                // Merge with field destination
+                if (count($field['linkedTo']['links']) === 1) {
+                    $linkedTo_0 = $field['linkedTo']['links'][0];
+                    $toField = $this->getToField(
+                        $linkedTo_0,
+                        $field['linkedTo']['names'][0]
+                    );
+                    $this->mergeAttributes(
+                        $field,
+                        $toField,
+                        array(
+                            'description',
+                            'size',
+                            'teplateItems',
+                            'title',
+                            'type',
+                            'value',
+                        )
+                    );
+                    //echo '<pre>';print_r($field);echo '</pre><hr>';
+                    if (array_key_exists('value', $field)) {
+                        unset($field['db']);
+                    }
+                    if (array_key_exists('teplateItems', $field)) {
+                        unset($field['linkedTo']);
+                        // TODO chk if is yet .[] or link[]
+                        for($i = 0; $i < count($field['teplateItems'][1]); $i++) {
+                            $field['teplateItems'][1][$i] = 
+                                $linkedTo_0 . 
+                                '[' . $field['teplateItems'][1][$i] . ']';
+                        }
+                    }
+                }
+            }
+            if (array_key_exists('teplateItems', $field)) {
+                $linked = array(
+                    'matches' => array(),
+                    'links' => array(),
+                    'names' => array()
+                );
+                foreach ($field['teplateItems'][1] as $v) {
+                    $matches = null;
+                    // link[name|123] | .[name|123] -> link_field or self_field
+                    preg_match_all($this->data->matchLinked, $v, $matches); // TODO Unify code
+                    if (count($matches[0]) > 0) {
+                        array_push($linked['matches'], $matches[0]);                    
+                        array_push($linked['links'], $matches[1]);
+                        array_push($linked['names'], $matches[2]);
+                    }
+                }
+                if (count($linked['links']) > 0) {
+                    $field['linkedTo'] = $linked;
+                }
             }
         } elseif(isset($field['db'])) {
             $field['db'] =  $this->links[$linkName]['toAlias'] . '.' . $field['db'];
+        }
+    }
+    protected function mergeAttributes(&$baseField, $linkedField, $keys) {
+        foreach ($keys as $v) {
+            if(!array_key_exists($v, $baseField) &&
+                array_key_exists($v, $linkedField)
+            ) {
+                $baseField[$v] = $linkedField[$v];
+            }
         }
     }
     
@@ -191,25 +251,9 @@ class Data2Html_LinkGrid
             }
             $fieldName = $linkedTo['names'][$i];
             $link = $this->links[$linkName];
-            if (is_numeric($fieldName)) {
-                if (($fieldName+0) >= count($link['gridColNames'])) {
-                    throw new Exception(
-                        "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on  model \"{$link['model']}\"."
-                    );
-                }
-                $linkedField = $link['grid']['columns'][$link['gridColNames'][$fieldName+0]];
-            } else {
-                if (!array_key_exists($fieldName, $link['fields'])) {
-                    throw new Exception(
-                        "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" not exist on `fields` of model \"{$link['model']}\"."
-                    );
-                }
-                $linkedField = $link['fields'][$fieldName];
-            }
+            $linkedField = $this->getToField($linkName, $fieldName);
             if(!array_key_exists('db', $linkedField)) {
-                throw new Exception(
-                    "{$this->name}: Linked field \"{$linkName}[{$fieldName}]\" not exist on `fields` of model \"{$link['model']}\"."
-                );
+                return null;
             }
             if (array_key_exists('linkedTo', $linkedField)) {
                 $dbLinked = $this->applyLinkToDb(
@@ -227,6 +271,27 @@ class Data2Html_LinkGrid
             }
         }
         return $db;
+    }
+    
+    protected function getToField($linkName, $toFieldName)
+    {
+        $link = $this->links[$linkName];
+        if (is_numeric($toFieldName)) {
+            if (($toFieldName+0) >= count($link['gridColNames'])) {
+                throw new Exception(
+                    "{$this->name}: Linked field \"{$linkName}[{$toFieldName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on  model \"{$link['model']}\"."
+                );
+            }
+            $toField = $link['grid']['columns'][$link['gridColNames'][$toFieldName+0]];
+        } else {
+            if (!array_key_exists($toFieldName, $link['fields'])) {
+                throw new Exception(
+                    "{$this->name}: Linked field \"{$linkName}[{$toFieldName}]\" not exist on `fields` of model \"{$link['model']}\"."
+                );
+            }
+            $toField = $link['fields'][$toFieldName];
+        }
+        return $toField;
     }
 }
     

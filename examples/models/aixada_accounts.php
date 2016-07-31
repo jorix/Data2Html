@@ -9,7 +9,9 @@ class aixada_accounts extends Data2Html {
             'title' => 'Diners',
             'fields' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
-                'account_id' => array(
+                'account_id' => array(),
+                'account_uf_id' => array(
+                    'db' => 'account_id',
                     'link' => 'aixada_ufs:account',
                     'title' => 'Compte',
                     'orderBy' => array('account_id', '!id')
@@ -33,10 +35,10 @@ class aixada_accounts extends Data2Html {
                         'id',
                         'ts',
                         'operator_id[name]',
-                        'account_id[name]',
+                        'account_uf_id[name]',
                         'description',
                         //'account_id[1]',
-                        //'account_id[uf_name]',
+                        'account_uf_id[uf_name]',
                         'payment_method_id[1]',
                         'quantity',
                         'balance'),

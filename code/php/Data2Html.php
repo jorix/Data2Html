@@ -29,7 +29,7 @@ abstract class Data2Html
     
     // To parse
     private $idParseCountArray = array();
-    protected $matchLinked = '/([a-z]\w*|.)\[([a-z]\w*|\d+)\]/';
+    public $matchLinked = '/([a-z]\w*|.)\[([a-z]\w*|\d+)\]/';
     protected $matchLinkedOnce = '/^([a-z]\w*|.)\[([a-z]\w*|\d+)\]$/';
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
     protected $keywords = array(
@@ -271,7 +271,12 @@ abstract class Data2Html
         }
         $fieldDx = new Data2Html_Collection($field);
         $name = $fieldDx->getString('name', (is_int($key) ? null : $key));
-        $db = $fieldDx->getString('db', $name, true); // return null if ['db'] is null 
+        $db = null; //$fieldDx->getString('db', $name, true); // return null if ['db'] is null
+        if (array_key_exists('db', $field)) {
+            $db = $field['db'];
+        } elseif (!array_key_exists('value', $field)) {
+            $db = $name;
+        }
         $pKey = 0;
         if (is_string($key)) {
             $pKey = $key;
@@ -352,15 +357,19 @@ abstract class Data2Html
             preg_match_all($this->matchTemplate, $value, $matches0);
             if (count($matches0[0]) > 0) {
                 $pField['teplateItems'] = $matches0;
-                $linked = array('links' => array(), 'names' => array());
-                foreach ($matches0[1] as $v) {
+                $linked = array(
+                    'matches' => array(),
+                    'links' => array(),
+                    'names' => array()
+                );
+                foreach ($pField['teplateItems'][1] as $v) {
                     $matches = null;
                     // link[name|123] | .[name|123] -> link_field or self_field
                     preg_match_all($this->matchLinked, $v, $matches);
                     if (count($matches[0]) > 0) {
                         array_push($linked['matches'], $matches[0]);                    
                         array_push($linked['links'], $matches[1]);
-                        array_push($linked['names'], $matches[1]);
+                        array_push($linked['names'], $matches[2]);
                     }
                 }
                 if (count($linked['links']) > 0) {
