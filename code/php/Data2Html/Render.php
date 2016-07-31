@@ -37,8 +37,7 @@ class Data2Html_Render
         if (!$templGridColl) {
             throw new Exception("The template must have a `grid` key");
         }
-        $link = new Data2Html_LinkGrid($data);
-        $linkedGrid = $link->getGrid($gridName);
+        $linkedGrid = $data->getLinkedGrid($gridName);
         $gridDx = new Data2Html_Collection($linkedGrid);
         $gridHtml = $this->renderTable(
             $templGridColl,

@@ -59,8 +59,7 @@ class Data2Html_Controller
                 } else {
                     $gridName = 'default';
                 }
-                $link = new Data2Html_LinkGrid($data);
-                $linkedGrid = $link->getGrid($gridName);
+                $linkedGrid = $data->getLinkedGrid($gridName);
                 $sortReq = $r->getString('d2h_sort');
                 $sqlObj = new Data2Html_Sql($db);
                 $sql = $sqlObj->getSelect(

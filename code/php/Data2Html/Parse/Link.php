@@ -1,5 +1,5 @@
 <?php
-class Data2Html_LinkGrid
+class Data2Html_Parse_Link
 {
     protected $debug = false;
     protected $data;
