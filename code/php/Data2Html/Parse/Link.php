@@ -6,6 +6,8 @@ class Data2Html_Parse_Link
     protected $gridName;
     protected $gridBase;
     protected $links;
+    protected $matchLinked = '/([a-z]\w*|.)\[([a-z]\w*|\d+)\]/';
+
     public function __construct($data)
     {
         $this->data = $data;
@@ -25,15 +27,19 @@ class Data2Html_Parse_Link
         
         $fields = $this->data->getColDs();
         
-        foreach ($this->gridBase['columns'] as $k => $v) {
-            if(array_key_exists('linkedTo', $v)) {
-                $this->searchForLinks('.', $v['linkedTo'], $fields);
+        foreach ($this->gridBase['columns'] as $k => &$v) {
+            $linkedTo = $this->parseLinkedTo($v);
+            if ($linkedTo) {
+                $v['linkedTo'] = $linkedTo;
+                $this->searchForLinks('.', $linkedTo, $fields);
             }
         }
         if (array_key_exists('filter', $this->gridBase)) {
-            foreach ($this->gridBase['filter']['fields'] as $k => $v) {
-                if(array_key_exists('linkedTo', $v)) {
-                    $this->searchForLinks('.', $v['linkedTo'], $fields);
+            foreach ($this->gridBase['filter']['fields'] as $k => &$v) {
+                $linkedTo = $this->parseLinkedTo($v);
+                if ($linkedTo) {
+                    $v['linkedTo'] = $linkedTo;
+                    $this->searchForLinks('.', $linkedTo, $fields);
                 }
             }
         }
@@ -88,8 +94,10 @@ class Data2Html_Parse_Link
                 );
             }
             $anchorField = $fields[$linkName];
-            if(array_key_exists('linkedTo', $anchorField)) {
-                $this->searchForLinks($linkName, $anchorField['linkedTo'], $fields);
+            $linkedTo = $this->parseLinkedTo($anchorField);
+            if ($linkedTo) {
+                $anchorField['linkedTo'] = $linkedTo;
+                $this->searchForLinks($linkName, $linkedTo, $fields);
             }
             
             if (!array_key_exists('link', $anchorField)) {
@@ -146,6 +154,10 @@ class Data2Html_Parse_Link
             );
         }
         $keyToField = $gridLink['columns'][$linkedKeys[0]]; //$toFields[$linkedKeys[0]];
+        $linkedTo = $this->parseLinkedTo($keyToField);
+        if ($linkedTo) {
+            $keyToField['linkedTo'] = $linkedTo;
+        }
         $this->applyLinkField($toLinkName, $keyToField);
         if ($fromLinkName) {
             $fromJoin = $this->joins[$fromLinkName];
@@ -160,6 +172,44 @@ class Data2Html_Parse_Link
             'toKeyFieldName' => $linkedKeys[0], //$gridLink['columns'][$linkedKeys[0]]['db'],
             'toDbKeys' => $keyToField['db']
         );
+        }
+    
+    protected function parseLinkedTo($field)
+    {
+        $linkedTo = $linkedTo = array(
+            'matches' => array(),
+            'links' => array(),
+            'names' => array()
+        );
+        if (isset($field['db'])) {
+            $matches = null;
+            // link[name|123] | .[name|123] -> link_field or self_field
+            preg_match_all($this->matchLinked, $field['db'], $matches);
+            if (count($matches[0]) > 0) {
+                $linkedTo = array(
+                    'matches' => $matches[0],
+                    'links' => $matches[1],
+                    'names' => $matches[2],
+                );
+            }
+        } elseif (array_key_exists('teplateItems', $field)) {
+
+            foreach ($field['teplateItems'][1] as $v) {
+                $matches = null;
+                // link[name|123] | .[name|123] -> link_field or self_field
+                preg_match_all($this->matchLinked, $v, $matches);
+                if (count($matches[0]) > 0) {
+                    array_push($linked['matches'], $matches[0]);                    
+                    array_push($linked['links'], $matches[1]);
+                    array_push($linked['names'], $matches[2]);
+                }
+            }
+        }
+        if (count($linkedTo['links']) > 0) {
+            return $linkedTo;
+        } else {
+            return null;
+        }
     }
     
     protected function applyLinkField($linkName, &$field)
@@ -292,6 +342,10 @@ class Data2Html_Parse_Link
                 );
             }
             $toField = $link['fields'][$toFieldName];
+        }
+        $linkedTo = $this->parseLinkedTo($toField);
+        if ($linkedTo) {
+            $toField['linkedTo'] = $linkedTo;
         }
         return $toField;
     }

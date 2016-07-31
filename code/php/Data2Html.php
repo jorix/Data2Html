@@ -28,7 +28,6 @@ abstract class Data2Html
     
     // To parse
     private $idParseCountArray = array();
-    public $matchLinked = '/([a-z]\w*|.)\[([a-z]\w*|\d+)\]/';
     protected $matchLinkedOnce = '/^([a-z]\w*|.)\[([a-z]\w*|\d+)\]$/';
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
     protected $keywords = array(
@@ -277,16 +276,6 @@ abstract class Data2Html
         }
         if ($db) {
             $pField['db'] = $db;
-            $matches = null;
-            // link[name|123] | .[name|123] -> link_field or self_field
-            preg_match_all($this->matchLinked, $db, $matches);
-            if (count($matches[0]) > 0) {
-                $pField['linkedTo'] = array(
-                    'matches' => $matches[0],
-                    'links' => $matches[1],
-                    'names' => $matches[2],
-                );
-            }
         }
         $defTypes = new Data2Html_Collection($this->keywordsToDbTypes);
         $defaultType = null;
@@ -342,29 +331,11 @@ abstract class Data2Html
                 }
                 unset($field['db']);
             }
-            $matches0 = null;
+            $matches = null;
             // $${name} | $${link[name]}
-            preg_match_all($this->matchTemplate, $value, $matches0);
-            if (count($matches0[0]) > 0) {
-                $pField['teplateItems'] = $matches0;
-                $linked = array(
-                    'matches' => array(),
-                    'links' => array(),
-                    'names' => array()
-                );
-                foreach ($pField['teplateItems'][1] as $v) {
-                    $matches = null;
-                    // link[name|123] | .[name|123] -> link_field or self_field
-                    preg_match_all($this->matchLinked, $v, $matches);
-                    if (count($matches[0]) > 0) {
-                        array_push($linked['matches'], $matches[0]);                    
-                        array_push($linked['links'], $matches[1]);
-                        array_push($linked['names'], $matches[2]);
-                    }
-                }
-                if (count($linked['links']) > 0) {
-                    $pField['linkedTo'] = $linked;
-                }
+            preg_match_all($this->matchTemplate, $value, $matches);
+            if (count($matches[0]) > 0) {
+                $pField['teplateItems'] = $matches;
             }
         }
         return array($pKey, $pField);
