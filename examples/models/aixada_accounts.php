@@ -9,12 +9,14 @@ class aixada_accounts extends Data2Html {
             'title' => 'Diners',
             'fields' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
-                'account_id' => array(),
+                'account_id' => array(
+                    'orderBy' => array('account_id', '!id'),
+                    'hidden'
+                ),
                 'account_uf_id' => array(
                     'db' => 'account_id',
                     'link' => 'aixada_ufs:account',
-                    'title' => 'Compte',
-                    'orderBy' => array('account_id', '!id')
+                    'title' => 'Compte'
                 ),
                 'operator_id' =>       array('link' => 'aixada_members'),
                 'payment_method_id' => array('link' => 'aixada_payment_methods'),
@@ -35,10 +37,10 @@ class aixada_accounts extends Data2Html {
                         'id',
                         'ts',
                         'operator_id[name]',
+                        'account_id',
                         'account_uf_id[name]',
-                        'description',
                         //'account_id[1]',
-                        'account_uf_id[uf_name]',
+                        'description',
                         'payment_method_id[1]',
                         'quantity',
                         'balance'),
@@ -46,7 +48,7 @@ class aixada_accounts extends Data2Html {
                         'layout' => 'inline',
                         'fields' => array(
                             array(
-                                'name' => 'account_id',
+                                'name' => 'account_uf_id',
                                 'check'=>'EQ', 'default'=>1005, 'required'
                             ),
                             array('name' => 'description', 'check'=>'LK', 'required')

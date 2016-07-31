@@ -121,7 +121,7 @@ class Data2Html_LinkGrid
         $dataLink,
         $gridLink
     ) {
-        $linkedKeys = $dataLink->getKeys();
+        $linkedKeys = $gridLink['keys'];
         if (count($linkedKeys) !== 1) {
             throw new Exception(
                 "{$this->name}: Requires a primary key with only one field, on link \"{$toLinkName}[...]\"."
@@ -138,15 +138,15 @@ class Data2Html_LinkGrid
             'grid' => $gridLink,
             'gridColNames' => array_keys($gridLink['columns'])
         );
-        if (!array_key_exists($linkedKeys[0], $toFields)) {
+        if (count($linkedKeys) === 0) {
             throw new Exception(
                 "{$this->name}: On link \"{$toLinkName}\"" .
                 " for table \"{$gridLink['table']}\"" .
-                " key field \"{$linkedKeys[0]}\" not find on `fields`."
+                " grid without keys."
             );
         }
-        $ff = $toFields[$linkedKeys[0]];
-        $this->applyLinkField($toLinkName, $ff);
+        $keyToField = $gridLink['columns'][$linkedKeys[0]]; //$toFields[$linkedKeys[0]];
+        $this->applyLinkField($toLinkName, $keyToField);
         if ($fromLinkName) {
             $fromJoin = $this->joins[$fromLinkName];
             $this->applyLinkField($fromLinkName, $anchorField);
@@ -158,7 +158,7 @@ class Data2Html_LinkGrid
             'toTable' => $dataLink->getTable(),
             'toAlias' => $toAlias,
             'toKeyFieldName' => $linkedKeys[0], //$gridLink['columns'][$linkedKeys[0]]['db'],
-            'toDbKeys' => $ff['db']
+            'toDbKeys' => $keyToField['db']
         );
     }
     
@@ -283,6 +283,8 @@ class Data2Html_LinkGrid
                 );
             }
             $toField = $link['grid']['columns'][$link['gridColNames'][$toFieldName+0]];
+        } elseif (array_key_exists($toFieldName, $link['grid']['columns'])) {
+            $toField = $link['grid']['columns'][$toFieldName];
         } else {
             if (!array_key_exists($toFieldName, $link['fields'])) {
                 throw new Exception(

@@ -24,7 +24,6 @@ abstract class Data2Html
     public $table = '';
     public $url = '';
     private $colDs = null;
-    private $keys = null;
     private $gridsDs = null;
     
     // To parse
@@ -135,22 +134,9 @@ abstract class Data2Html
         $this->idParseCountArray[$sufix]++;
         return 'd2h_' . $this->idParseCountArray[$sufix] . '_' . $sufix;
     }
-    public function getKeys()
-    {
-        return $this->keys;
-    }
     public function getColDs()
     {
         return $this->colDs;
-    }
-    public function getGridsDs()
-    {
-        return $this->gridsDs;
-    }
-    public function getGridDx($gridName)
-    {
-        $grid = $this->getGrid($gridName);
-        return new Data2Html_Collection($grid);
     }
     public function getGrid($gridName)
     {
@@ -395,7 +381,7 @@ abstract class Data2Html
                 )
             );
         }
-        list($this->keys, $columns) = $this->parseColumns(
+        list($grid['keys'], $columns) = $this->parseColumns(
             $gridName,
             $gridDx->getArray('columns', array()),
             $fields
