@@ -17,7 +17,7 @@ abstract class Data2Html
     protected $root_path;
     protected $configOptions = array();
     public $debug = false;
-    protected $name;
+    protected $reason;
     
     // Parsed object definitions
     protected $title = '';
@@ -147,7 +147,7 @@ abstract class Data2Html
         }
         if (!array_key_exists($gridName, $this->gridsDs)) {
             throw new Exception(
-                "{$this->name}: Grid \"{$gridName}\" not exist on `grids`."
+                "{$this->reason}: Grid \"{$gridName}\" not exist on `grids`."
             );
         }
         return $this->gridsDs[$gridName];
@@ -164,9 +164,9 @@ abstract class Data2Html
     {
         return $this->title;
     }
-    public function getName()
+    public function getReason()
     {
-        return $this->name;
+        return $this->reason;
     }
     /**
      */
@@ -175,7 +175,7 @@ abstract class Data2Html
         $aux = $this->definitions();
         $def = new Data2Html_Collection($aux);
         $this->table = $def->getString('table');
-        $this->name = "Model table \"{$this->table}\"";
+        $this->reason = "Model of table \"{$this->table}\"";
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
@@ -213,7 +213,7 @@ abstract class Data2Html
             foreach ($matchedFields as $v) {
                 if (!isset($pFields[$v])) {
                     throw new Exception(
-                        "{$this->name}: Match `\$\${{$v}}` not exist on `fields`."
+                        "{$this->reason}: Match `\$\${{$v}}` not exist on `fields`."
                     );
                 }
             }
@@ -226,7 +226,7 @@ abstract class Data2Html
                 }
                 if (!Data2Html_Array::get($pFields, array($f, 'db'))) {
                     throw new Exception(
-                        "{$this->name}: On field `{$k}` exist attribute 'orderBy' whit item
+                        "{$this->reason}: On field `{$k}` exist attribute 'orderBy' whit item
                         `{$f}` that not exist on `fields` with `db`."
                     );
                 }
@@ -253,7 +253,7 @@ abstract class Data2Html
                 $field = array('db' => $field);
             } else {
                 throw new Exception(
-                    "{$this->name}: Field `{$key}` as string must bee a `value` " .
+                    "{$this->reason}: Field `{$key}` as string must bee a `value` " .
                     "as \"=xxx\" or a link as \"link[name]\"."
                 );
             }
@@ -288,7 +288,7 @@ abstract class Data2Html
             }
             if (!isset($this->keywords[$word])) {
                 throw new Exception(
-                    "{$this->name}: Word \"{$word}\" on field \"{$key}\" is not supported."
+                    "{$this->reason}: Word \"{$word}\" on field \"{$key}\" is not supported."
                 );
             }
             $kwGroup = $this->keywords[$word];
@@ -326,7 +326,7 @@ abstract class Data2Html
             if (array_key_exists('db', $field) ) {
                 if (isset($field['db'])) {
                     throw new Exception(
-                        "{$this->name}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
+                        "{$this->reason}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
                     );  
                 }
                 unset($field['db']);
@@ -393,7 +393,7 @@ abstract class Data2Html
                     $pCol = $fieldsDx->getArray($v);
                     if (!$pCol) {
                         throw new Exception(
-                            "{$this->name}: Field `{$v}` used in grid `{$gridName}` not exist on `fields`."
+                            "{$this->reason}: Field `{$v}` used in grid `{$gridName}` not exist on `fields`."
                         );
                     }
                     if (is_int($k)) {
@@ -408,7 +408,7 @@ abstract class Data2Html
                     $pField = $fieldsDx->getArray($nameField);
                     if (!$pField) {
                         throw new Exception(
-                            "{$this->name}: Field `{$k}` used in grid `{$gridName}` not exist on `fields`."
+                            "{$this->reason}: Field `{$k}` used in grid `{$gridName}` not exist on `fields`."
                         );
                     }
                     list($pKey, $pCol) = $this->parseField($k, $v);
@@ -441,7 +441,7 @@ abstract class Data2Html
                         $pColumns[$key] = $fields[$key];
                     } else {
                         throw new Exception(
-                            "{$this->name}: Match `\$\${{$key}}` used in grid `{$gridName}` not exist on `fields`."
+                            "{$this->reason}: Match `\$\${{$key}}` used in grid `{$gridName}` not exist on `fields`."
                         );
                     }
                 }
@@ -470,7 +470,7 @@ abstract class Data2Html
                     $pField = array('name' => $k, 'check' => $v);
                 } else {
                     throw new Exception(
-                        "{$this->name}: Filter on grid `{$gridName}`: as string `{$k}=>\"{$v}\"` needs a key as string."
+                        "{$this->reason}: Filter on grid `{$gridName}`: as string `{$k}=>\"{$v}\"` needs a key as string."
                     ); 
                 }
             }
@@ -479,7 +479,7 @@ abstract class Data2Html
             if ($name) {
                 if (!array_key_exists($name, $fields)) {
                     throw new Exception(
-                        "{$this->name}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
+                        "{$this->reason}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
                     );
                 }
                 $pField = array_merge($fields[$name], $pField);
@@ -490,7 +490,7 @@ abstract class Data2Html
             }
             if (!$db) {
                 throw new Exception(
-                    "{$this->name}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` key."
+                    "{$this->reason}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` key."
                 );
             }
             if (is_int($pKey)) {

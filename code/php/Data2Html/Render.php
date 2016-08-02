@@ -111,8 +111,6 @@ class Data2Html_Render
             $def->set($v);
             $ignore = false;
             if ($display = $def->getArray('display')) {
-            //print_r($display);
-            //print_r(array_search('hidden', $display));
                 if (count($display)) { // TODO
                     $ignore = true;
                 }

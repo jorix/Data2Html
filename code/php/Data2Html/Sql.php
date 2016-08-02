@@ -63,14 +63,18 @@ class Data2Html_Sql
     protected function getFrom($gridDx)
     {
         $joins = $gridDx->getArray('joins');
-        $from = '';
-        foreach ($joins as $v) {
-            if(!$v['fromTable']) {
-                $from .= "\n {$v['toTable']} {$v['toAlias']}";
-            } else {
-                $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
-                $from .= "\n on {$v['fromDbKeys']} = {$v['toDbKeys']}";
+        if ($joins) {
+            $from = '';
+            foreach ($joins as $v) {
+                if(!$v['fromTable']) {
+                    $from .= "\n {$v['toTable']} {$v['toAlias']}";
+                } else {
+                    $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
+                    $from .= "\n on {$v['fromDbKeys']} = {$v['toDbKeys']}";
+                }
             }
+        } else {            
+            $from =$gridDx->getArray('table');
         }
         return $from;
     }
