@@ -19,17 +19,11 @@ create table aixada_uf (
 */
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
-                'account_id'=> array('db' => '1000+.[id]', 'integer'),
                 'name'      => array(
                         'title' => 'Nom UF',
                         'length'=> 255, 'required'
                 ),
-                'uf_name'   => array('db' => 'name'), //'=$${name}#$${id}',
-                // 'name2'      => array(
-                    // 'db' => '.[name] || \'2\'',
-                    // 'title' => 'Nom',
-                    // 'length' => 255, 'required'
-                // ),
+                'uf_name'   => array('value' => '=$${name}#$${id}'),
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array(
@@ -60,8 +54,8 @@ create table aixada_uf (
                 'account' => array(
                     'sort' => 'name',                    
                     'columns' => array(
-                        'value' => array('key', 'name' => 'account_id'),
-                        'text' => '=$${name}#$${account_id}',
+                        'value' => array('key', 'db' => '1000+id'),
+                        'text' => '=$${name}#$${value}',
                         'active',
                         'mentor_uf'
                     ),

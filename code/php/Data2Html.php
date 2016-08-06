@@ -28,7 +28,7 @@ abstract class Data2Html
     
     // To parse
     private $idParseCountArray = array();
-    protected $matchLinkedOnce = '/^([a-z]\w*|.)\[([a-z]\w*|\d+)\]$/';
+    protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
     protected $keywords = array(
         'autoKey' => 'key',
@@ -380,8 +380,7 @@ abstract class Data2Html
                     list($pKey, $pCol) = $this->parseField(
                         $k,
                         array( 
-                            'value' => substr($v, 1),
-                            'db' => null
+                            'value' => substr($v, 1)
                         )
                     );
                 } elseif (preg_match($this->matchLinkedOnce, $v)) { // Is a link
@@ -421,32 +420,12 @@ abstract class Data2Html
         }
         
         // Final parse
-        $matchedFields = array();
         $keyFields = array();
         foreach ($pColumns as $k => $v) {
-            if (array_key_exists('teplateItems', $v)) {
-                $matchedFields = array_merge(
-                    $matchedFields,
-                    $v['teplateItems'][1]
-                );
-            }
             if (array_key_exists('key', $v)) {
                 array_push($keyFields, $k);
             }
         }
-        if (count($matchedFields) > 0) {
-            foreach ($matchedFields as $key) {
-                if (!array_key_exists($key, $pColumns)) {
-                    if (array_key_exists($key, $fields)) {
-                        $pColumns[$key] = $fields[$key];
-                    } else {
-                        throw new Exception(
-                            "{$this->reason}: Match `\$\${{$key}}` used in grid `{$gridName}` not exist on `fields`."
-                        );
-                    }
-                }
-            }
-        } 
         return array($keyFields, $pColumns);
     }
     

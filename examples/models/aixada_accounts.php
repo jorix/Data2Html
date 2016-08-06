@@ -38,7 +38,7 @@ class aixada_accounts extends Data2Html {
                         'ts',
                         'operator_id[name]',
                         'account_id',
-                        'account_uf_id[name]',
+                        'account_uf_id[text]',
                         //'account_id[1]',
                         'description',
                         'payment_method_id[1]',

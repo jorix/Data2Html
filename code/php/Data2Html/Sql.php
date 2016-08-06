@@ -66,7 +66,7 @@ class Data2Html_Sql
         if ($joins) {
             $from = '';
             foreach ($joins as $v) {
-                if(!$v['fromTable']) {
+                if(!$v['fromDbKeys']) {
                     $from .= "\n {$v['toTable']} {$v['toAlias']}";
                 } else {
                     $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
