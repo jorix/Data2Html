@@ -22,7 +22,8 @@ abstract class Data2Html
     // Parsed object definitions
     protected $title = '';
     public $table = '';
-    public $url = '';
+    public $requestUrl = '';
+    protected $modelName = '';
     private $colDs = null;
     private $gridsDs = null;
     
@@ -93,7 +94,7 @@ abstract class Data2Html
      *
      * @param jqGridLoader $loader
      */
-    public function __construct($url = '')
+    public function __construct($requestUrl = '')
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
@@ -118,8 +119,16 @@ abstract class Data2Html
         
         // Init
         //----------------
-        if ($url) {
-            $this->url = $url;
+        if ($requestUrl) {
+            $this->requestUrl = $requestUrl;
+            $urlQuery = parse_url($requestUrl, PHP_URL_QUERY);
+            foreach (explode('&', $urlQuery) as $v) {
+                $param = explode('=', $v);
+                if ($param[0] === 'model') {
+                    $this->modelName = urldecode($param[1]);
+                    break;
+                }
+            }
         }
     }
     public function getRoot()
@@ -487,12 +496,15 @@ abstract class Data2Html
     /**
      * Render
      */    
-    public function render($template, $grid = 'default')
+    public function render($template, $modelName = null)
     {
         try {
             $this->parse();
             $render = new Data2Html_Render($template);
-            echo $render->render($this, $grid);
+            echo $render->render(
+                $this,
+                $modelName ? $modelName : $this->modelName
+            );
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, $this->debug);
@@ -501,11 +513,18 @@ abstract class Data2Html
     /**
      * Controller
      */    
-    public function manage($fileNameConfigDb = 'd2h_config_db.ini')
+    public function manage($fileNameConfigDb = null, $modelName = null)
     {
         try {$this->parse();
+            if (!$fileNameConfigDb) {
+                $fileNameConfigDb = 'd2h_config_db.ini';
+            }
             $controller = new Data2Html_Controller($this, $fileNameConfigDb);
-            $this->responseJson($controller->manage());
+            $this->responseJson(
+                $controller->manage(
+                    $modelName ? $modelName : $this->modelName
+                )
+            );
         } catch(Exception $e) {
             // Message to user
             if ($e instanceof Data2Html_Exception_User) {
@@ -647,6 +666,9 @@ abstract class Data2Html
     }
     public static function getGridNameByModel($modelName)
     {
+        if (!$modelName) {
+            return 'default';
+        }
         $modelElements = explode(':', $modelName);
         return 
             count($modelElements) > 1 ?

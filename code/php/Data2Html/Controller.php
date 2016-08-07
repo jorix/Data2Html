@@ -10,7 +10,7 @@ class Data2Html_Controller
         $this->fileNameConfigDb = $fileNameConfigDb;
         $this->debug = $data->debug;
     }
-    public function manage()
+    public function manage($modelName = null)
     {
         /*
         $the_request = array_merge($_GET, $_POST);
@@ -25,7 +25,12 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported.");
         }
         */
-        $c = parse_ini_file($this->fileNameConfigDb, true);
+        if (file_exists($this->fileNameConfigDb)) {
+            $c = parse_ini_file($this->fileNameConfigDb, true);
+        } else {
+            throw new Exception(
+                "->File config \"{$this->fileNameConfigDb}\" does not exist");
+        }
         $dbConfig = $c['db'];
         $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
         $db = new $db_class(
@@ -36,13 +41,9 @@ class Data2Html_Controller
         );
         $postData = file_get_contents("php://input");
         $request = json_decode($postData, true);
-        $model = '';
-        if (isset($_REQUEST['model'])) {
-            $model = $_REQUEST['model'];
-        }
-        return $this->oper($db, $model, $request);
+        return $this->oper($db, $modelName, $request);
     }
-    protected function oper($db, $model, $request)
+    protected function oper($db, $modelName, $request)
     {
         $data = $this->data;
         $r = new Data2Html_Collection($request);
@@ -53,12 +54,7 @@ class Data2Html_Controller
             case 'read':
                 $page = $r->getCollection('d2h_page', array());
                 $table = $data->table;
-                if ($model && strpos($model, ':') !== false ) {
-                    $aux = explode(':', $model);
-                    $gridName = $aux[1];
-                } else {
-                    $gridName = 'default';
-                }
+                $gridName = Data2Html::getGridNameByModel($modelName);
                 $linkedGrid = $data->getLinkedGrid($gridName);
                 $sortReq = $r->getString('d2h_sort');
                 $sqlObj = new Data2Html_Sql($db);

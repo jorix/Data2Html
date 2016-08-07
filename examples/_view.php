@@ -44,7 +44,10 @@
     <?php
         require_once("../code/php/Data2Html.php");
         $data = Data2Html::create('_controller.php', 'models');
-        $data->render("../code/templates/angular1/table_paged.ini");
+        $data->render(
+            "../code/templates/angular1/table_paged.ini",
+            Data2Html_Array::get($_REQUEST, 'model')
+        );
     ?>
     </div>
 </body>

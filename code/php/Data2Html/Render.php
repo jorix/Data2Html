@@ -29,7 +29,7 @@ class Data2Html_Render
     {
         return $this->id;
     }
-    public function render($data, $gridName = 'default')
+    public function render($data, $modelName)
     {        // templates
         $this->debug = $data->debug;
         $templColl = new Data2Html_Collection($this->templates);
@@ -37,13 +37,15 @@ class Data2Html_Render
         if (!$templGridColl) {
             throw new Exception("The template must have a `grid` key");
         }
+        $gridName = Data2Html::getGridNameByModel($modelName);
+        
         $linkedGrid = $data->getLinkedGrid($gridName);
         $gridDx = new Data2Html_Collection($linkedGrid);
         $gridHtml = $this->renderTable(
             $templGridColl,
             'table', 
             $gridDx->getArray('columns'),
-            $data->url,
+            $data->requestUrl,
             $data->getTitle()
         );
         $pageDef = array(
@@ -72,7 +74,7 @@ class Data2Html_Render
             $templGridColl->getArray('form_page'),
             $pageDef,
             'd2h_page.',
-            $data->url,
+            $data->requestUrl,
             $data->getTitle()
         );
         list($filterId, $filterHtml) = $this->renderForm(
@@ -80,7 +82,7 @@ class Data2Html_Render
             'form_filter',
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $data->url,
+            $data->requestUrl,
             $data->getTitle()
         );
         return str_replace(
@@ -212,12 +214,13 @@ class Data2Html_Render
         $formUrl,
         $title
     ){
-        if (!$formDs) {
-            throw new Exception("\$formDs parameter is empty.");
-        }
         $formId = $this->createIdRender();
+        if (!$formDs) {
+            $formDs = array();
+            // throw new Exception("\$formDs parameter is empty.");
+        }
         if (!$template) {
-            $html = '';
+            throw new Exception("Template \"{$templateName}\" is empty.");
         } else {
             $templateColl = new Data2Html_Collection($template);
             $formTpl = $templateColl->getString('form');
@@ -227,7 +230,7 @@ class Data2Html_Render
             $body = '';
             $renderCount = 0;
             $formDx = new Data2Html_Collection($formDs, true);
-            $fieldsDs = $formDx->getArray('fields');
+            $fieldsDs = $formDx->getArray('fields', array());
             $defLayoutTpl = '';
             if ($layoutsColl) {
                 $defLayoutTpl = $layoutsColl->getString(
@@ -260,6 +263,9 @@ class Data2Html_Render
                 ),
                 $formTpl
             );
+        }
+        if ($html === '') {
+            $html = "<div id=\"{$formId}\"></div>";
         }
         if ($this->debug) {
             $html = 

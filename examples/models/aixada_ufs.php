@@ -23,7 +23,7 @@ create table aixada_uf (
                         'title' => 'Nom UF',
                         'length'=> 255, 'required'
                 ),
-                'uf_name'   => array('value' => '=$${name}#$${id}'),
+                'uf_name'   => '=$${name}#$${id}',
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array(
@@ -45,11 +45,7 @@ create table aixada_uf (
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array('active' => 'EQ')
-                    ),
-                    'filterValues' => array(
-                        'is null', '=(sense valor)', null,
-                        'in not null', '=(té valor)', null
-                    ),
+                    )
                 ),
                 'account' => array(
                     'sort' => 'name',                    
@@ -62,11 +58,7 @@ create table aixada_uf (
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array('active' => 'EQ')
-                    ),
-                    'filterValues' => array(
-                        'is null', null, '=(sense valor)', null,
-                        'in not null', null, '=(té valor)', null
-                    ),
+                    )
                 )
             )
         );
