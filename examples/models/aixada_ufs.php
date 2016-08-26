@@ -60,6 +60,11 @@ create table aixada_uf (
                         'fields' => array('active' => 'EQ')
                     )
                 )
+            ),
+            'forms' => array(
+                'default' => array(
+                    'columns' => array()
+                )
             )
         );
     }

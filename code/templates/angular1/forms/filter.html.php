@@ -1,3 +1,4 @@
+<?php die(basename(__FILE__) . ': It is crude!'); ?>
 <div class="row" ng-controller="$${id}">
     <form name="$${id}" class="simple-form" xx-class="form-horizontal"  novalidate>
     <div>
@@ -24,19 +25,3 @@
     </form>
     <div>$$Vallid {{$${id}.$valid}}</div>
 </div>
-<script>
-    d2h_App.controller('$${id}', ['$scope', function($scope) {
-        $scope.clear = function() {
-            $scope.d2h_filter={};
-        };
-        $scope.changed = function() {
-            $scope.readPage();
-        };
-    }]);
-    d2h_App.factory('$${id}_defaults', [function() {
-        return function() {
-            return $${defaults};
-        };
-    }]);
-</script>
-

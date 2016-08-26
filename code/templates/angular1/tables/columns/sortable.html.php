@@ -1,3 +1,4 @@
+<?php die(basename(__FILE__) . ': It is crude!'); ?>
 <th>$${title} <a
     title="ordre creixent"
     ng-click="sortBy('$${name}', false);"><span

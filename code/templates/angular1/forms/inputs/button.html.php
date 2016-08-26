@@ -1,3 +1,4 @@
+<?php die(basename(__FILE__) . ': It is crude!'); ?>
 <button class="btn btn-default hidden-xs "
     title="$${title}"
     ng-click="$${action}">

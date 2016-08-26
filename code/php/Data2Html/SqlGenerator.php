@@ -1,6 +1,6 @@
 <?php
 
-class Data2Html_Sql
+class Data2Html_SqlGenerator
 {
     protected $db;
 

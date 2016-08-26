@@ -110,12 +110,7 @@ abstract class Data2Html
 
         // Load config if exists
         //------------------
-        if (file_exists('d2h_config.ini')) {
-            $this->configOptions = parse_ini_file('d2h_config.ini', true);
-        }
-        $aux = new Data2Html_Collection($this->configOptions);
-        $config = $aux->getCollection('config');
-        $this->debug = $config->getBoolean('debug');
+        $this->debug = Data2Html_Config::debug();
         
         // Init
         //----------------
@@ -501,25 +496,22 @@ abstract class Data2Html
         try {
             $this->parse();
             $render = new Data2Html_Render($template);
-            echo $render->render(
+            echo $render->renderGrid(
                 $this,
                 $modelName ? $modelName : $this->modelName
             );
         } catch(Exception $e) {
             // Message to user            
-            echo Data2Html_Exception::toHtml($e, $this->debug);
+            echo Data2Html_Exception::toHtml($e);
         }
     }
     /**
      * Controller
      */    
-    public function manage($fileNameConfigDb = null, $modelName = null)
+    public function manage($modelName = null)
     {
         try {$this->parse();
-            if (!$fileNameConfigDb) {
-                $fileNameConfigDb = 'd2h_config_db.ini';
-            }
-            $controller = new Data2Html_Controller($this, $fileNameConfigDb);
+            $controller = new Data2Html_Controller($this);
             $this->responseJson(
                 $controller->manage(
                     $modelName ? $modelName : $this->modelName
@@ -598,22 +590,19 @@ abstract class Data2Html
     /**
      * PHP-object to a JSON text
      */
-    public function toJson($obj)
-    {
-        return Data2Html_Value::toJson($obj, $this->debug);
-    }
+
     /**
      * @param $obj object to send
      */
     protected function responseJson($obj)
     {
         if ($this->debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n".$this->toJson($obj)."\n</pre>\n";
+            echo "<pre>\n" . Data2Html_Value::toJson($obj, $this->debug). "\n</pre>\n";
         } else {
             header('Content-type: application/responseJson; charset=utf-8;');
             // The prefix `)]}',\n` is used due a security considerations, see: 
             //    * https://docs.angularjs.org/api/ng/service/$http
-            echo ")]}',\n".$this->toJson($obj);
+            echo ")]}',\n" . Data2Html_Value::toJson($obj, $this->debug);
         }
     }
     /**

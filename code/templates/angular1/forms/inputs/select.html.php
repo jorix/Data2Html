@@ -1,3 +1,4 @@
+<?php die(basename(__FILE__) . ': It is crude!'); ?>
 <select class="form-control" style="padding:0;"
     title="$${title}"
     ng-controller="$${id}"

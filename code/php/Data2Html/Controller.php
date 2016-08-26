@@ -1,14 +1,12 @@
 <?php
 class Data2Html_Controller
 {
-    protected $fileNameConfigDb;
     protected $data;
     protected $debug = false;
-    public function __construct(&$data, $fileNameConfigDb)
+    public function __construct(&$data)
     {
+        $this->debug = Data2Html_Config::debug();
         $this->data = $data;
-        $this->fileNameConfigDb = $fileNameConfigDb;
-        $this->debug = $data->debug;
     }
     public function manage($modelName = null)
     {
@@ -25,20 +23,9 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported.");
         }
         */
-        if (file_exists($this->fileNameConfigDb)) {
-            $c = parse_ini_file($this->fileNameConfigDb, true);
-        } else {
-            throw new Exception(
-                "->File config \"{$this->fileNameConfigDb}\" does not exist");
-        }
-        $dbConfig = $c['db'];
-        $db_class = 'Data2Html_Db_'.$dbConfig['db_class'];
-        $db = new $db_class(
-            $dbConfig,
-            array(
-                'debug' => $this->debug
-            )
-        );
+        $dbConfig = Data2Html_Config_Db::getSection('db');
+        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
+        $db = new $db_class($dbConfig);
         $postData = file_get_contents("php://input");
         $request = json_decode($postData, true);
         return $this->oper($db, $modelName, $request);
@@ -57,7 +44,7 @@ class Data2Html_Controller
                 $gridName = Data2Html::getGridNameByModel($modelName);
                 $linkedGrid = $data->getLinkedGrid($gridName);
                 $sortReq = $r->getString('d2h_sort');
-                $sqlObj = new Data2Html_Sql($db);
+                $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
                     $linkedGrid,
                     $r->getArray('d2h_filter', array()),

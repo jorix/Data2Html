@@ -14,8 +14,8 @@ class Data2Html_Parse_Link
 
     public function __construct($data)
     {
+        $this->debug = Data2Html_Config::debug();
         $this->data = $data;
-        $this->debug = $data->debug;
     }
     public function getReason()
     {

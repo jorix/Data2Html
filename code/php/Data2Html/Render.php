@@ -3,41 +3,30 @@
 class Data2Html_Render
 {
     public $debug = false;
-    protected $pathBase;
-    protected $tamplates;
-    protected $tamplatesFilenames;
+    protected $templateObjs;
     protected $id;
     private static $idRenderCount = 0;
-    public function __construct($templateIni)
+    public function __construct($templateName)
     {
+        $this->debug = Data2Html_Config::debug();
         $this->id = $this->createIdRender();
-        $this->pathBase = dirname($templateIni).DIRECTORY_SEPARATOR;
-        $this->templates = array();
-        $this->tamplatesFilenames = array();
-        $this->loadTemplates(
-            $this->templates,
-            $this->tamplatesFilenames,
-            $templateIni
-        );
-        $this->tamplatesColl = new Data2Html_Collection($this->tamplates);
+        $this->templateObjs = new Data2Html_Render_Templates($templateName);
     }
+    
     public function createIdRender() {
         self::$idRenderCount++;
         return 'd2h_' . self::$idRenderCount;
     }
+    
     public function getId()
     {
         return $this->id;
     }
-    public function render($data, $modelName)
-    {        // templates
-        $this->debug = $data->debug;
-        $templColl = new Data2Html_Collection($this->templates);
-        $templGridColl = $templColl->getCollection('grid');
-        if (!$templGridColl) {
-            throw new Exception("The template must have a `grid` key");
-        }
-        $gridName = Data2Html::getGridNameByModel($modelName);
+    
+    public function renderGrid($data, $gridName)
+    {        
+        return;
+        // templates
         
         $linkedGrid = $data->getLinkedGrid($gridName);
         $gridDx = new Data2Html_Collection($linkedGrid);
@@ -120,7 +109,7 @@ class Data2Html_Render
             if (!$ignore) {
                 $name = $def->getString('name', $k);
                 $label = $def->getString('title', $name);
-                $thead .= $this->renderHtmlDs(
+                $thead .= $this->renderHtml(
                     array(
                         'name' => $name,
                         'title' => $label
@@ -162,31 +151,20 @@ class Data2Html_Render
                 $tbody .= "</td>\n";
             }
         }
-        $tableHtml = $this->renderHtmlDs(
+        $result = $this->templateObjs->renderTemplate(
             array(
                 'page' => '$${page}', // exclude replace
                 'filter' => '$${filter}', // exclude replace 
                 'id' => $this->getId(),
+                'url' => $url,
                 'title' => $title,
                 'thead' => $thead,
                 'tbody' => $tbody,
                 'colCount' => $renderCount
             ),
-            $tableTpl
+            array('grid','table')
         );
-        if ($tableJsTpl) {
-            $tableJs = 
-                "\n<script>\n".
-                str_replace(
-                    array('$${id}', '$${url}'),
-                    array($this->getId(), $url),
-                    $tableJsTpl
-                ).
-                "\n</script>\n";
-        } else {
-            $tableJs = '';
-        }
-        return $tableHtml . $tableJs;
+        return $result;
     }
     protected function renderForm(
         $templateColl,
@@ -254,7 +232,7 @@ class Data2Html_Render
                 }
                 ++$renderCount;
             }
-            $html = $this->renderHtmlDs(
+            $html = $this->renderHtml(
                 array(
                     'id' => $formId,
                     'title' => $title,
@@ -288,7 +266,6 @@ class Data2Html_Render
     ) {
         $def = new Data2Html_Collection($defs);
         $input = $def->getString('input', 'text');
-        // $default = $def->getString('default', 'undefined');
         $url = $def->getString('url', '');
         $validations = $def->getArray('validations', array());
         $link = $def->getString('link');
@@ -307,7 +284,6 @@ class Data2Html_Render
                 '$${id}',
                 '$${form-id}',
                 '$${name}',
-                //'$${default}',
                 '$${url}',
                 '$${validations}'
             ), 
@@ -315,122 +291,12 @@ class Data2Html_Render
                 $this->createIdRender(),
                 $formId,
                 $fieldPrefix . $key,
-               // $default,
                 $url,
                 implode(' ', $validations),
             ),
             $template
         );
         // Other matches
-        return $this->renderHtmlDs($defs, $body);
-    }
-    protected function renderHtmlDs($defs, $template)
-    {
-        $body = $template;
-        $def = new Data2Html_Collection($defs);
-        $matches = null;
-        preg_match_all('/\=\"\$\$\{([\w.:]+)\}\"/', $body, $matches);
-        //htmlentities($str, ENT_SUBSTITUTE, "UTF-8")
-        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $body = str_replace(
-                $matches[0][$i],
-                '="' . htmlspecialchars(
-                    $def->getString($matches[1][$i], ''),
-                    ENT_COMPAT | ENT_SUBSTITUTE,
-                    'UTF-8'
-                ) . '"',
-                $body
-            );
-        }
-        $matches = null;
-        preg_match_all('/\$\$\{([\w.:]+)\}/', $body, $matches);
-        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $body = str_replace(
-                $matches[0][$i],
-                $def->getString($matches[1][$i], ''),
-                $body
-            );
-        }
-        return $body;
-    }
-    protected function loadTemplates(
-        &$templatesArray,
-        &$templatesFnArray,
-        $template
-    ) {
-        if (!file_exists($template)) {
-            throw new Exception(
-                "Template ini file `{$template}` does not exist."
-            );
-        }
-        $tamplates = parse_ini_file($template, true);
-        $tmpls = new Data2Html_Collection($tamplates);
-        $this->loadTemplatesElem(
-            $templatesArray,
-            $templatesFnArray,
-            dirname($template) . DIRECTORY_SEPARATOR,
-            $tmpls,
-            'elements'
-        );
-    }    
-    protected function loadTemplatesElem(
-        &$templatesArray,
-        &$templatesFnArray,
-        $folderBase,
-        $tmpls,
-        $key
-    ) {
-        $elements = $tmpls->getArray($key, array());
-        $ds = DIRECTORY_SEPARATOR;
-        foreach($elements as $k => $v) {
-            $path = Data2Html_Collection::create(pathinfo($v));
-            $dirname = $path->getString('dirname','');
-            if ($dirname) {
-                $dirname = $folderBase . $dirname . $ds;
-            } else {
-                $dirname = $folderBase;
-            }
-            $basename = $path->getString('basename','');
-            switch ($path->getString('extension')) {
-                case 'ini':
-                    $subElems = array();
-                    $subFnElems = array();
-                    $this->loadTemplates(
-                        $subElems, $subFnElems,
-                        $dirname . $basename
-                    );
-                    $templatesArray[$k] = $subElems;
-                    $templatesFnArray[$k] = $subFnElems;
-                    break;
-                case 'html':
-                    if (!file_exists($dirname . $basename)) {
-                        throw new Exception(
-                            "Parsing on folder `{$folderBase}` on element \"{$k}\"=>\"{$v}\" does not exist `{$basename}` on forder `{$dirname}`."
-                        );
-                    }
-                    $templatesArray[$k] = file_get_contents($dirname . $basename);
-                    $templatesFnArray[$k] = $dirname . $basename;
-                    $fileJs = $dirname . $path->getString('filename', '') . '.js';
-                    if (file_exists($fileJs)) {
-                        $templatesArray[$k . '.js'] = file_get_contents($fileJs);
-                        $templatesFnArray[$k . '.js'] = $fileJs;
-                    }
-                    break;
-                default:
-                    $subElems = array();
-                    $subFnElems = array();
-                    $this->loadTemplatesElem(
-                        $subElems, $subFnElems,
-                        $folderBase, $tmpls, $k
-                    );
-                    $templatesArray[$k] = $subElems;
-                    $templatesFnArray[$k] = $subFnElems;
-                    break;
-            }
-        }
-    }
-    public function toJson($obj)
-    {
-        return Data2Html_Value::toJson($obj, $this->debug);
+        return $this->renderHtml($defs, $body);
     }
 }

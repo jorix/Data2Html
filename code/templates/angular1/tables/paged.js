@@ -1,5 +1,5 @@
 var d2h_gridPagedCtr = function($scope, $http, pageDefaults, filterDefaults) {
-    var vRender_urlRequest = '$${url}lang=ca';
+    var vRender_urlRequest = $${url} + 'lang=ca';
     $scope.d2h_filter = filterDefaults();
     $scope.d2h_sort = 'account_id';
     $scope.d2h_page = pageDefaults();
@@ -58,7 +58,9 @@ var d2h_gridPagedCtr = function($scope, $http, pageDefaults, filterDefaults) {
        //$scope.sortBy('id', true);
     };
 };
-d2h_App.controller('$${id}', [
-    '$scope', '$http', '$${pageId}_defaults', '$${filterId}_defaults',
+d2h_App.controller($${id}, [
+    '$scope', '$http',
+    $${pageId} + '_defaults',
+    $${filterId} + '_defaults',
     d2h_gridPagedCtr
 ]);

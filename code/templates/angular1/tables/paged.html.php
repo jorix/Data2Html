@@ -1,3 +1,4 @@
+<?php die(basename(__FILE__) . ': It is crude!'); ?>
 <div ng-controller="$${id}">
 $${filter}
 <div class="row">
