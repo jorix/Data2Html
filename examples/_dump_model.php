@@ -7,9 +7,11 @@
 <body>
     <div class="container">
     <?php
-        require_once("../code/php/Data2Html.php");
+        require_once("../code/php/Data2Html/Autoload.php");
+        Data2Html_Autoload::start();
+    
         try {
-            $data = Data2Html::create('_controller.php', 'models');
+            $data = Data2Html_Model::create('_controller.php', 'models');
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';

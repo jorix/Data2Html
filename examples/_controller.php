@@ -1,4 +1,6 @@
 <?php
-    require_once("../code/php/Data2Html.php");
-    $data = Data2Html::create(__FILE__, 'models');
+    require_once("../code/php/Data2Html/Autoload.php");
+    Data2Html_Autoload::start();
+    
+    $data = Data2Html_Model::create(__FILE__, 'models');
     $data->manage($_REQUEST);

@@ -1,5 +1,5 @@
 <?php
-class aixada_accounts extends Data2Html {
+class aixada_accounts extends Data2Html_Model {
 
     protected function definitions()
     {

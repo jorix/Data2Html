@@ -1,5 +1,5 @@
 <?php
-class aixada_payment_methods extends Data2Html {
+class aixada_payment_methods extends Data2Html_Model {
 /*
 create table aixada_payment_method (
   id   	     	tinyint   not null auto_increment,

@@ -6,7 +6,7 @@
  *      * ..Ds: Definitions as a array.
  */
  
-abstract class Data2Html
+abstract class Data2Html_Model
 {
     //protected $db_params;
     protected static $modelObjects = array();
@@ -14,7 +14,6 @@ abstract class Data2Html
     protected static $modelFolder = null;
     
     // 
-    protected $root_path;
     protected $configOptions = array();
     public $debug = false;
     protected $reason;
@@ -100,14 +99,6 @@ abstract class Data2Html
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
 
-        // Base
-        //----------------
-        $this->root_path = dirname(__FILE__).DIRECTORY_SEPARATOR;
-        
-        // Register autoload
-        //------------------
-        spl_autoload_register(array($this, 'autoload'));
-
         // Load config if exists
         //------------------
         $this->debug = Data2Html_Config::debug();
@@ -126,10 +117,7 @@ abstract class Data2Html
             }
         }
     }
-    public function getRoot()
-    {
-        return $this->root_path;
-    }
+
     public function createIdParse($sufix = '') {
         if (!array_key_exists($sufix, $this->idParseCountArray)) {
             $this->idParseCountArray[$sufix] = 0;
@@ -567,29 +555,6 @@ abstract class Data2Html
     // Utils
     // ========================
     // -------------
-    /**
-     * Auto load.
-     */
-    protected function autoload($class)
-    {
-        #Not a Data2Html_% class
-        if (strpos($class, 'Data2Html_') !== 0) {
-            return;
-        }
-        $file = str_replace('_', '/', $class).'.php';
-        $phisicalFile = $this->root_path . $file;
-        #Do not interfere with other autoloads
-        if (file_exists($phisicalFile)) {
-            require $phisicalFile;
-        } else {
-            throw new Exception(
-                "->autoload({$class}): File \"{$file}\" does not exist");
-        }
-    }
-    // -------------
-    /**
-     * PHP-object to a JSON text
-     */
 
     /**
      * @param $obj object to send
