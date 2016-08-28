@@ -8,6 +8,9 @@ class Data2Html_Autoload
      */
     public static function start()
     {
+        if (version_compare(PHP_VERSION, '5.3.0', '<')) {
+            trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
+        }
         self::$root_path = dirname(dirname(__FILE__)) . DIRECTORY_SEPARATOR;
         spl_autoload_register('self::autoload');
     }

@@ -3,14 +3,14 @@
 class Data2Html_Render
 {
     public $debug = false;
-    protected $templateObjs;
+    protected $templateObj;
     protected $id;
     private static $idRenderCount = 0;
     public function __construct($templateName)
     {
         $this->debug = Data2Html_Config::debug();
         $this->id = $this->createIdRender();
-        $this->templateObjs = new Data2Html_Render_Templates($templateName);
+        $this->templateObj = new Data2Html_Render_Template($templateName);
     }
     
     public function createIdRender() {
@@ -22,21 +22,30 @@ class Data2Html_Render
     {
         return $this->id;
     }
+
+    protected function concatContents(&$final, $item) {
+        foreach($item as $k => $v) {
+            if (array_key_exists($k, $final)) {
+                $final[$k] .= $item[$k];
+            } else {
+                $final[$k] = $item[$k];
+            }
+        }
+    }
     
-    public function renderGrid($data, $gridName)
+    public function renderGrid($model, $gridName)
     {        
-        return;
-        // templates
+        $linkedGrid = $model->getLinkedGrid($gridName);
+        $tplGrid = $this->templateObj->getTemplateBranch('grid');
         
-        $linkedGrid = $data->getLinkedGrid($gridName);
         $gridDx = new Data2Html_Collection($linkedGrid);
         $gridHtml = $this->renderTable(
-            $templGridColl,
-            'table', 
+            $this->templateObj->getTemplateBranch('table', $tplGrid),
             $gridDx->getArray('columns'),
-            $data->requestUrl,
-            $data->getTitle()
+            $model->requestUrl,
+            $model->getTitle()
         );
+        print_r($gridHtml);
         $pageDef = array(
             'layout' => 'inline',
             'fields' => array(
@@ -63,16 +72,16 @@ class Data2Html_Render
             $templGridColl->getArray('form_page'),
             $pageDef,
             'd2h_page.',
-            $data->requestUrl,
-            $data->getTitle()
+            $model->requestUrl,
+            $model->getTitle()
         );
         list($filterId, $filterHtml) = $this->renderForm(
             $templGridColl,
             'form_filter',
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $data->requestUrl,
-            $data->getTitle()
+            $model->requestUrl,
+            $model->getTitle()
         );
         return str_replace(
             array('$${pageId}', '$${page}', '$${filterId}', '$${filter}'),
@@ -80,24 +89,33 @@ class Data2Html_Render
             $gridHtml
         );
     }
+        
+    public function render($model, $request)
+    {
+        if (isset($request['grid'])) {
+            return $this->renderGrid($model, $request['grid']);
+        } else {
+            throw new Exception("no request object.");
+        }
+    }
+    
     protected function renderTable(
-        $templateColl,
-        $elemName,
+        $templateTable,
         $colDs,
         $url,
         $title
     ) {
         if (!$colDs) {
-            throw new Exception("\$colDs parameter is empty.");
+            throw new Exception("`\$colDs` parameter is empty.");
         }
-        $tableTpl = $templateColl->getString($elemName, '');
-        $tableJsTpl = $templateColl->getString($elemName . '.js', '');
-        $columnsTemplates = $templateColl->getCollection('columns');
-        //
-        $thead = '';
-        $tbody = '';
+        $thead = array();
+        $tbody = array();
         $renderCount = 0;
         $def = new Data2Html_Collection();
+        $templateHeads =
+            $this->templateObj->getTemplateBranch('heads', $templateTable);
+        $templateCells =
+            $this->templateObj->getTemplateBranch('cells', $templateTable);
         foreach ($colDs as $k => $v) {
             $def->set($v);
             $ignore = false;
@@ -107,18 +125,23 @@ class Data2Html_Render
                 }
             }
             if (!$ignore) {
+                ++$renderCount;
+                // head
                 $name = $def->getString('name', $k);
                 $label = $def->getString('title', $name);
-                $thead .= $this->renderHtml(
-                    array(
-                        'name' => $name,
-                        'title' => $label
-                    ),
-                    $columnsTemplates->getString('sortable', '')
+                $this->concatContents(
+                    $thead,
+                    $this->templateObj->renderTemplateItem(
+                        'sortable',
+                        $templateHeads,
+                        array(
+                            'name' => $name,
+                            'title' => $label
+                        )
+                    )
                 );
+                // body
                 $type = $def->getString('type');
-                ++$renderCount;
-                $tbody .= '<td';
                 $class = '';
                 $ngClass = '';
                 switch ($type) {
@@ -134,24 +157,29 @@ class Data2Html_Render
                         $class .= ' '.$visual;
                     }
                 }
-                if ($ngClass) {
-                    $tbody .= " ng-class=\"{$ngClass}\"";
-                }
-                if ($class) {
-                    $tbody .= " class=\"{$class}\"";
-                }
-                $tbody .= '>';
                 if ($type && $format = $def->getString('format')) {
-                    $tbody .= "{{item.{$k} | {$type}:'{$format}'}}";
+                    $value = "{{item.{$k} | {$type}:'{$format}'}}";
                 } elseif ($type === 'currency') {
-                    $tbody .= "{{item.{$k} | {$type}}}";
+                    $value = "{{item.{$k} | {$type}}}";
                 } else {
-                    $tbody .= "{{item.{$k}}}";
+                    $value = "{{item.{$k}}}";
                 }
-                $tbody .= "</td>\n";
+                $this->concatContents(
+                    $tbody,
+                    $this->templateObj->renderTemplateItem(
+                        'default',
+                        $templateCells,
+                        array(
+                            'class' => $class,
+                            'ngClass' => $ngClass,
+                            'value' => $value
+                        )
+                    )
+                );
             }
         }
-        $result = $this->templateObjs->renderTemplate(
+        $result = $this->templateObj->renderTemplate(
+            $templateTable,
             array(
                 'page' => '$${page}', // exclude replace
                 'filter' => '$${filter}', // exclude replace 
@@ -161,11 +189,11 @@ class Data2Html_Render
                 'thead' => $thead,
                 'tbody' => $tbody,
                 'colCount' => $renderCount
-            ),
-            array('grid','table')
+            )
         );
         return $result;
     }
+
     protected function renderForm(
         $templateColl,
         $formName,

@@ -1,9 +1,9 @@
 <?php
 
-class Data2Html_Render_Templates
+class Data2Html_Render_Template
 {
     protected $templateName;
-    protected $templates;
+    protected $templateTree;
     protected $templateContents;
     
     public function __construct($templateName)
@@ -12,11 +12,24 @@ class Data2Html_Render_Templates
         $pathObj = $this->parsePath($templateName);
         
         $this->templateContents = array();
-        $this->templates = $this->loadTemplate(
+        $this->templateTree = $this->loadTemplate(
             $pathObj['dirname'],
             $pathObj['basename']
         );
-        print_r($this->templates);
+    }
+    
+    public function dump()
+    {
+        if (Data2Html_Config::debug()) {
+            echo "<div style=\"margin-left:.5em\">
+                <h3>Template tree of: \"{$this->templateName}\":</h3>
+                <pre>" .
+                Data2Html_Value::toJson($this->templateTree, true) .
+                '</pre></div>';
+        } else {
+            echo '<h3 style="margin-left:.5em; color:red; test-align:center">
+                Debugging mode must be enabled to can use dump() method!</h3>';
+        }
     }
     
     protected function loadTemplateTree($folder, $tree)
@@ -38,11 +51,13 @@ class Data2Html_Render_Templates
                 case 'template':
                     $response['template'] = 
                         $this->loadTemplate($folder, $tree['template']);
+                    $response['template']['d2h_template'] = true;
                     break;
                 case 'templates':
                     $items = array();
                     foreach($tree['templates'] as $kk => $vv) {
                         $items[$kk] = $this->loadTemplate($folder, $vv);
+                        $items[$kk]['d2h_template'] = true;
                     }
                     $response['templates'] = $items;
                     break;
@@ -165,65 +180,91 @@ class Data2Html_Render_Templates
         return $pathObj;
     }
     
-    public function renderTemplateItem($baseKeys, $templateTree, $keys, $itemKey)
+    // Apply template
+    public function getTemplateBranch($keys, $templateBranch = null)
     {
-        list($keysText, $templateArray) = $this->getTemplateTree(
-            implode('=>', $baseKeys), $templateTree, $keys
-        );
-        list($keysText, $templateArray) = $this->getTemplateTree(
-            $keysText, $templateTree, array('templates')
-        );
-        list($keysText, $templateArray) = $this->getTemplateTree(
-            $keysText, $templateTree, $itemKey
-        );
-        return $this->renderMethods($keysText, $replaces, $templateTree[1]);
-    }
-    
-    public function renderTemplate($templateTree, $keys, $replaces)
-    {
-        $templateTree = $this->getTemplateTree(
-            implode('=>', $templateTree[0]), $templateTree[1], $keys
-        );
-        list($keysText, $templateArray) = $this->getTemplateTree(
-            $keysText, $templateTree, array('template')
-        );
-        return $this->renderMethods($keysText, $replaces, $templateTree[1]);
-    }
-    
-    protected function getTemplateTree($templateTree, $keys)
-    {
-        $tree = Data2Html_Array::get($templateTree[1], $keys);
+        if (!$templateBranch) {
+            $templateBranch = array(array(), $this->templateTree);
+        }
+        if (!is_array($keys)) {
+            $keys = array($keys);
+        }
+        $finalKeys = array_merge($templateBranch[0], $keys);
+        $tree = Data2Html_Array::get($templateBranch[1], $keys);
         if (!$tree) {
             throw new Exception(
-                "Template key \"" . implode('=>', $keys) .
+                "Template key \"" . 
+                implode('=>', $finalKeys) .
                 "\" of template \"{$this->templateName}\" does not exist."
             ); 
         }
-        $finalKeys = array_merge($templateTree[0], $keys);
         return array($finalKeys, $tree);       
     }
     
-    protected function renderMethods($keysText, $replaces, $templateMethods)
+    public function renderTemplateItem($itemKey, $templateBranch, $replaces)
+    {
+        $templateArray = $this->getTemplateBranch(
+            array('templates', $itemKey),
+            $templateBranch
+        );
+        return $this->renderMethods($templateArray, $replaces);
+    }
+    
+    public function renderTemplate($templateBranch, $replaces)
+    {
+        $templateArray = $this->getTemplateBranch('template', $templateBranch);
+        return $this->renderMethods($templateArray, $replaces);
+    }
+    
+    protected function renderMethods($templateBranch, $replaces)
     {
         $result = array();
-        foreach ($templateMethods as $k => $v) {
+        foreach ($templateBranch[1] as $k => $v) {
             switch ($k) {
+                case 'd2h_template':
+                    break;
                 case 'html':
-                    $result[$k] = renderHtml($replaces, $v);
+                    $result[$k] = $this->renderHtml(
+                        $v, 
+                        $this->getMethodReplaces('html', $replaces)
+                    );
                     break;
                 case 'js':
-                    $result[$k] = renderJs($replaces, $v);
+                    $result[$k] = $this->renderJs(
+                        $v,
+                        $this->getMethodReplaces('js', $replaces)
+                    );
                     break;
                 default:
                     throw new Exception(
-                        "Template method {$k} on key \"{$keysText}\" of template \"{$this->templateName}\" is not supported."
+                        "Template method {$k} on key \"" . implode('=>', $templateBranch[0]) .
+                        "\" of template \"{$this->templateName}\" is not supported."
                     );
             }
         }
         return $result;
     }
     
-    private function renderHtml($replaces, $templateKey)
+    private function getMethodReplaces($method, $replaces)
+    {
+        $repl = array();
+        foreach($replaces as $k => $v) {
+            if (!is_array($v)) {
+                $repl[$k] = $v;
+            } elseif (array_key_exists('d2h_template', $v)) {
+                if (array_key_exists($method, $v)) {
+                    $repl[$k] = $v[$method];
+                } else {
+                    $repl[$k] = '';
+                }
+            } elseif ($method !== 'js') {
+                $repl[$k] = implode(',', $v);
+            }
+        }
+        return $repl;
+    }
+    
+    private function renderHtml($templateKey, $replaces)
     {
         $html = $this->getContent($templateKey);
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
@@ -248,7 +289,7 @@ class Data2Html_Render_Templates
         return $html;
     }
 
-    private function renderJs($replaces, $templateKey)
+    private function renderJs($templateKey, $replaces)
     {
         $html = $this->getContent($templateKey);
         $html = $this->replaceContent( // start string '$${template_item}...
@@ -260,11 +301,14 @@ class Data2Html_Render_Templates
         );
         $html = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
-            Data2Html_Value::toJson,
+            function($value) {
+                return Data2Html_Value::toJson($value);
+            },
             $html
         );
         return $html;
     }
+    
     private function replaceContent($pattern, $replaces, $encodeFn, $content)
     {
         $replDx = new Data2Html_Collection($replaces);

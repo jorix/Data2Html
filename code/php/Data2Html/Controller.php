@@ -8,7 +8,7 @@ class Data2Html_Controller
         $this->debug = Data2Html_Config::debug();
         $this->data = $data;
     }
-    public function manage($modelName = null)
+    public function manage()
     {
         /*
         $the_request = array_merge($_GET, $_POST);
@@ -28,9 +28,9 @@ class Data2Html_Controller
         $db = new $db_class($dbConfig);
         $postData = file_get_contents("php://input");
         $request = json_decode($postData, true);
-        return $this->oper($db, $modelName, $request);
+        return $this->oper($db, $request);
     }
-    protected function oper($db, $modelName, $request)
+    protected function oper($db, $request)
     {
         $data = $this->data;
         $r = new Data2Html_Collection($request);
@@ -41,7 +41,10 @@ class Data2Html_Controller
             case 'read':
                 $page = $r->getCollection('d2h_page', array());
                 $table = $data->table;
-                $gridName = Data2Html::getGridNameByModel($modelName);
+                $gridName = '';
+                if (array_key_exists('grid', $request)) {
+                    $gridName = $request['grid'];
+                }
                 $linkedGrid = $data->getLinkedGrid($gridName);
                 $sortReq = $r->getString('d2h_sort');
                 $sqlObj = new Data2Html_SqlGenerator($db);

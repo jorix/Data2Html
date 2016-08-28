@@ -33,6 +33,7 @@ class aixada_accounts extends Data2Html_Model {
             'grids' => array(
                 'default' => array(
                     'sort' => 'account_id', // TODO detectar no existeix
+                    'layouts' => array('sorted', 'default'),
                     'columns' => array(
                         'id',
                         'ts',

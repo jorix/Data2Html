@@ -1,13 +1,19 @@
 <?php die(basename(__FILE__) . ': It is crude!'); ?>
 {
-    "gird": {
+    "grid": {
         "table": {
             "folder": "tables/",
             "template": "paged.html.php",
-            "columns": {
-                "folder": "columns/",
+            "heads": {
+                "folder": "heads/",
                 "templates": {
                     "sortable": "sortable.html.php"
+                }
+            },
+            "cells": {
+                "folder": "cells/",
+                "templates": {
+                    "default": "default.html.php"
                 }
             }
         },

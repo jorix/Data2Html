@@ -13,7 +13,7 @@ class Data2Html_Config
         if (self::$loaded) {
             return;
         }
-        $file = self::fileName;
+        $file = self::$fileName;
         $config = null;
         if (file_exists($file)) {
             $config = parse_ini_file($file, true);
@@ -59,6 +59,7 @@ class Data2Html_Config
         return $val;
     }
     public static function debug() {
+        self::load();
         return self::$debug;
     }
 }

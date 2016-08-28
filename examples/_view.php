@@ -45,10 +45,11 @@
         require_once("../code/php/Data2Html/Autoload.php");
         Data2Html_Autoload::start();
     
-        $data = Data2Html_Model::create('_controller.php', 'models');
-        $data->render(
-            "../code/templates/angular1/table_paged.ini",
-            Data2Html_Array::get($_REQUEST, 'model')
+        $data = Data2Html_Model::render(
+            '_controller.php',
+            'models', 
+            $_REQUEST, 
+            '../code/templates/angular1/table_paged.ini'
         );
     ?>
     </div>

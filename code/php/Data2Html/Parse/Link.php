@@ -24,8 +24,8 @@ class Data2Html_Parse_Link
     public function getGrid($gridName)
     {
     // echo "getGrid($gridName)<br>";
-        $this->gridName = $gridName;
         $this->gridBase = $this->data->getGrid($gridName);
+        $this->gridName = $this->gridBase['name'];
         $this->reason = "Linking grid \"{$this->gridName}\" of table \"{$this->gridBase['table']}\"";
         $this->links = array();
         $this->joins = array();
@@ -120,10 +120,8 @@ class Data2Html_Parse_Link
                 );
             }
             $modelName = $anchorField['link'];
-            $dataLink = Data2Html::createModel($modelName);
-            $linkGrid = $dataLink->getGrid(
-                Data2Html::getGridNameByModel($modelName)
-            );
+            $dataLink = Data2Html_Model::createGrid($modelName, $gridName);
+            $linkGrid = $dataLink->getGrid($gridName);
             $this->addLink(
                 $fromLinkName,
                 $anchorField,

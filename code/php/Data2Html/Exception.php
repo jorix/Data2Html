@@ -39,7 +39,7 @@ class Data2Html_Exception extends Exception
             $response['exception'] = $exeptionData;
         } else {
             $response['error'] =
-                'An unexpected error has stopped the execution on the server.';
+                'An unexpected error has stopped this task on the server.';
         }
         return $response;
     }

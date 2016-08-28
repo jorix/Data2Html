@@ -1,0 +1,13 @@
+<?php
+    require_once("../code/php/Data2Html/Autoload.php");
+    Data2Html_Autoload::start();
+
+    try {
+        $templateObj = new Data2Html_Render_Template(
+            "../code/templates/angular1/grid_paged.json.php"
+        );
+        $templateObj->dump();
+    } catch(Exception $e) {
+        echo Data2Html_Exception::toHtml($e, true);
+    }
+    

@@ -15,7 +15,7 @@ abstract class Data2Html_Model
     
     // 
     protected $configOptions = array();
-    public $debug = false;
+    protected $debug = false;
     protected $reason;
     
     // Parsed object definitions
@@ -99,23 +99,11 @@ abstract class Data2Html_Model
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
 
-        // Load config if exists
-        //------------------
         $this->debug = Data2Html_Config::debug();
+        $this->modelName = get_class($this);
         
-        // Init
-        //----------------
-        if ($requestUrl) {
-            $this->requestUrl = $requestUrl;
-            $urlQuery = parse_url($requestUrl, PHP_URL_QUERY);
-            foreach (explode('&', $urlQuery) as $v) {
-                $param = explode('=', $v);
-                if ($param[0] === 'model') {
-                    $this->modelName = urldecode($param[1]);
-                    break;
-                }
-            }
-        }
+        $this->requestUrl = $requestUrl;
+        $this->parse();
     }
 
     public function createIdParse($sufix = '') {
@@ -131,9 +119,6 @@ abstract class Data2Html_Model
     }
     public function getGrid($gridName)
     {
-        if ($this->colDs === null) {
-            $this->parse();
-        }
         if (!$gridName) {
             $gridName = 'default';
         }
@@ -162,12 +147,12 @@ abstract class Data2Html_Model
     }
     /**
      */
-    public function parse()
+    protected function parse()
     {
         $aux = $this->definitions();
         $def = new Data2Html_Collection($aux);
         $this->table = $def->getString('table');
-        $this->reason = "Model of table \"{$this->table}\"";
+        $this->reason = "Model \"{$this->modelName}\"";
         $this->title = $def->getString('title', $this->table);
         
         $fields = $this->parseFields($def->getArray('fields'));
@@ -474,49 +459,6 @@ abstract class Data2Html_Model
     }
     
     // ========================
-    // Server
-    // ========================
-    /**
-     * Render
-     */    
-    public function render($template, $modelName = null)
-    {
-        try {
-            $this->parse();
-            $render = new Data2Html_Render($template);
-            echo $render->renderGrid(
-                $this,
-                $modelName ? $modelName : $this->modelName
-            );
-        } catch(Exception $e) {
-            // Message to user            
-            echo Data2Html_Exception::toHtml($e);
-        }
-    }
-    /**
-     * Controller
-     */    
-    public function manage($modelName = null)
-    {
-        try {$this->parse();
-            $controller = new Data2Html_Controller($this);
-            $this->responseJson(
-                $controller->manage(
-                    $modelName ? $modelName : $this->modelName
-                )
-            );
-        } catch(Exception $e) {
-            // Message to user
-            if ($e instanceof Data2Html_Exception_User) {
-                header('HTTP/1.1 409 Conflict');
-            } else {
-                header('HTTP/1.1 500 Error');
-            }
-            $this->responseJson(Data2Html_Exception::toArray($e, $this->debug));
-        }
-    }
-
-    // ========================
     // Events
     // ========================
     /**
@@ -570,63 +512,85 @@ abstract class Data2Html_Model
             echo ")]}',\n" . Data2Html_Value::toJson($obj, $this->debug);
         }
     }
+    
+    // ========================
+    // Server
+    // ========================
+    /**
+     * Render
+     */    
+    public static function render($controllerUrl, $modelFolder, $request, $template)
+    {
+        try {
+            $model = self::create($controllerUrl, $modelFolder, $request);
+            $render = new Data2Html_Render($template);
+            echo $render->render($model, $request);
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+        }
+    }
+    /**
+     * Controller
+     */    
+    public static function manage($controllerUrl, $modelFolder, $request)
+    {
+        try {
+            $model = self::create($controllerUrl, $modelFolder, $request);
+            $controller = new Data2Html_Controller($model);
+            $model->responseJson($controller->manage());
+        } catch(Exception $e) {
+            // Message to user
+            if ($e instanceof Data2Html_Exception_User) {
+                header('HTTP/1.1 409 Conflict');
+            } else {
+                header('HTTP/1.1 500 Error');
+            }
+            $this->responseJson(
+                Data2Html_Exception::toArray($e, Data2Html_Config::debug())
+            );
+        }
+    }
     /**
      * Load and create one model
      */
-    public static function create($controllerUrl, $modelFolder = null)
+    public static function create($controllerUrl, $modelFolder, $request)
     {
-        if (isset($_REQUEST['model'])) {
-            $model = $_REQUEST['model'];
-            $modelElements = explode(':', $model);
-            $modelBase = $modelElements[0];
-            if (!array_key_exists($modelBase, self::$modelObjects)) {
+        if (isset($request['model'])) {
+            $modelName = $request['model'];
+            if (!array_key_exists($modelName, self::$modelObjects)) {
                 self::$controllerUrl = $controllerUrl;
                 self::$modelFolder = $modelFolder;
-                self::createModel($model, $controllerUrl);
+                return self::createModel($modelName);
             }
-            return self::$modelObjects[$modelBase];
         } else {
             throw new Exception('The URL parameter `?model=` is not set.');
         }
     }
-    public static function createModel($modelName)
+    protected static function createModel($modelName)
     {
             if (self::$controllerUrl === null) {
                 throw new Exception(
-                    'Don\'t use `createModel()` before a call to `create()` method.');
+                    'Don\'t use `createGrid()` before load a parent grid.');
             }
             $ds = DIRECTORY_SEPARATOR;
-            $path = dirname(self::$controllerUrl).$ds;
-            
-            $modelElements = explode(':', $modelName);
-            $modelBase = $modelElements[0];
-            $file = $modelBase . '.php';
+            $path = dirname(self::$controllerUrl) . $ds;
+            $file = $modelName . '.php';
             if (self::$modelFolder) {
                 $file = self::$modelFolder . $ds . $file;
             }
-            $phisicalFile = $path.$file;
+            $phisicalFile = $path . $file;
             if (file_exists($phisicalFile)) {
                 require $phisicalFile;
-                $data = new $modelBase(
+                $data = new $modelName(
                     basename(self::$controllerUrl) . 
                     '?model=' . $modelName . '&'
                 );
-                self::$modelObjects[$modelBase] = $data;
+                self::$modelObjects[$modelName] = $data;
                 return $data;
             } else {
                 throw new Exception(
                     "load('{$modelName}'): File \"{$file}\" does not exist.");
             }
-    }
-    public static function getGridNameByModel($modelName)
-    {
-        if (!$modelName) {
-            return 'default';
-        }
-        $modelElements = explode(':', $modelName);
-        return 
-            count($modelElements) > 1 ?
-            $modelElements[1] :
-            'default';
     }
 }
