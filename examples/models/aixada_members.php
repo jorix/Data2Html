@@ -1,5 +1,5 @@
 <?php
-class aixada_members extends Data2Html {
+class aixada_members extends Data2Html_Model {
 /*
 aixada_member (
   id 	       		int				not null auto_increment,

@@ -567,7 +567,7 @@ abstract class Data2Html_Model
             throw new Exception('The URL parameter `?model=` is not set.');
         }
     }
-    protected static function createModel($modelName)
+    public static function createModel($modelName)
     {
             if (self::$controllerUrl === null) {
                 throw new Exception(
@@ -592,5 +592,15 @@ abstract class Data2Html_Model
                 throw new Exception(
                     "load('{$modelName}'): File \"{$file}\" does not exist.");
             }
+    }
+    
+    public static function getModelGridNames($modelLink)
+    {
+        $modelElements = explode(':', $modelLink);
+        $gridName = 
+            count($modelElements) > 1 ?
+            $modelElements[1] :
+            'default';
+        return array($modelElements[0], $gridName);
     }
 }

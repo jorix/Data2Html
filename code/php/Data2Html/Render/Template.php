@@ -32,6 +32,17 @@ class Data2Html_Render_Template
         }
     }
     
+    public function concatContents(&$final, $item) {
+        foreach($item as $k => $v) {
+            if (array_key_exists($k, $final)) {
+                $final[$k] .= $item[$k];
+            } else {
+                $final[$k] = $item[$k];
+            }
+        }
+        $final['d2hToken_content'] = true;
+    }
+    
     protected function loadTemplateTree($folder, $tree)
     {
         if (!is_array($tree)) {
@@ -51,13 +62,13 @@ class Data2Html_Render_Template
                 case 'template':
                     $response['template'] = 
                         $this->loadTemplate($folder, $tree['template']);
-                    $response['template']['d2h_template'] = true;
+                    $response['template']['d2hToken_template'] = true;
                     break;
                 case 'templates':
                     $items = array();
                     foreach($tree['templates'] as $kk => $vv) {
                         $items[$kk] = $this->loadTemplate($folder, $vv);
-                        $items[$kk]['d2h_template'] = true;
+                        $items[$kk]['d2hToken_template'] = true;
                     }
                     $response['templates'] = $items;
                     break;
@@ -203,70 +214,84 @@ class Data2Html_Render_Template
     
     public function renderTemplateItem($itemKey, $templateBranch, $replaces)
     {
-        $templateArray = $this->getTemplateBranch(
+        $templateLeaf = $this->getTemplateBranch(
             array('templates', $itemKey),
             $templateBranch
         );
-        return $this->renderMethods($templateArray, $replaces);
+        return $this->renderMethods($templateLeaf, $replaces);
     }
     
     public function renderTemplate($templateBranch, $replaces)
     {
-        $templateArray = $this->getTemplateBranch('template', $templateBranch);
-        return $this->renderMethods($templateArray, $replaces);
+        $templateLeaf = $this->getTemplateBranch('template', $templateBranch);
+        if (array_key_exists('html', $templateLeaf[1])) {
+            $html = $this->getContent($templateLeaf[1]['html']);
+        } else {
+            $html = '';
+        }
+        $js = '';
+        $finalReplaces = array();
+        foreach($replaces as $k => $v) {
+            if (is_array($v) && array_key_exists('d2hToken_content', $v)) {
+                if (array_key_exists('html', $v)) {
+                    $html = str_replace(
+                        '$${' . $k . '}',
+                        $v['html'],
+                        $html
+                    );
+                } elseif (array_key_exists('js', $v)) {
+                    $js .= $v['js'];
+                }
+            } else {
+                $finalReplaces[$k] = $v;
+            }
+        }
+        $resul = array();
+        if ($html) {
+            $resul['html'] = $this->renderHtml($html, $finalReplaces, false);
+        }
+        if (array_key_exists('js', $templateLeaf[1])) {
+            $js = $this->renderJs(
+                $this->getContent($templateLeaf[1]['js']),
+                $finalReplaces,
+                false
+            ) . $js;
+        }
+        if ($js) {
+            $resul['js'] = $js;
+        }
+        $resul['d2hToken_content'] = true;
+        return $resul;
     }
     
-    protected function renderMethods($templateBranch, $replaces)
+    protected function renderMethods($templateLeaf, $replaces, $all = true)
     {
         $result = array();
-        foreach ($templateBranch[1] as $k => $v) {
+        foreach ($templateLeaf[1] as $k => $v) {
             switch ($k) {
-                case 'd2h_template':
+                case 'd2hToken_template':
                     break;
                 case 'html':
-                    $result[$k] = $this->renderHtml(
-                        $v, 
-                        $this->getMethodReplaces('html', $replaces)
-                    );
+                    $result[$k] =
+                        $this->renderHtml($this->getContent($v), $replaces, $all);
                     break;
                 case 'js':
-                    $result[$k] = $this->renderJs(
-                        $v,
-                        $this->getMethodReplaces('js', $replaces)
-                    );
+                    $result[$k] =
+                        $this->renderJs($this->getContent($v), $replaces, $all);
                     break;
                 default:
                     throw new Exception(
-                        "Template method {$k} on key \"" . implode('=>', $templateBranch[0]) .
+                        "Template method {$k} on key \"" . implode('=>', $templateLeaf[0]) .
                         "\" of template \"{$this->templateName}\" is not supported."
                     );
             }
         }
+        $result['d2hToken_content'] = true;
         return $result;
     }
     
-    private function getMethodReplaces($method, $replaces)
+    private function renderHtml($html, $replaces, $all = true)
     {
-        $repl = array();
-        foreach($replaces as $k => $v) {
-            if (!is_array($v)) {
-                $repl[$k] = $v;
-            } elseif (array_key_exists('d2h_template', $v)) {
-                if (array_key_exists($method, $v)) {
-                    $repl[$k] = $v[$method];
-                } else {
-                    $repl[$k] = '';
-                }
-            } elseif ($method !== 'js') {
-                $repl[$k] = implode(',', $v);
-            }
-        }
-        return $repl;
-    }
-    
-    private function renderHtml($templateKey, $replaces)
-    {
-        $html = $this->getContent($templateKey);
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
             '/\=\"\$\$\{([\w.:]+)\}\"/',
             $replaces,
@@ -277,49 +302,55 @@ class Data2Html_Render_Template
                     'UTF-8'
                 ) . '"';
             },
-            $html
+            $html,
+            $all
         );
         $html = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
             function($value) {
                 return $value;
             },
-            $html
+            $html,
+            $all
         );
         return $html;
     }
 
-    private function renderJs($templateKey, $replaces)
+    private function renderJs($js, $replaces, $all = true)
     {
-        $html = $this->getContent($templateKey);
-        $html = $this->replaceContent( // start string '$${template_item}...
+        $js = $this->replaceContent( // start string '$${template_item}...
             '/["\']?\$\$\{([\w.:]+)\}/', $replaces,
             function($value) {
                 return $value;
             },
-            $html
+            $js,
+            $all
         );
-        $html = $this->replaceContent( // others ...
+        $js = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
             function($value) {
                 return Data2Html_Value::toJson($value);
             },
-            $html
+            $js,
+            $all
         );
-        return $html;
+        return $js;
     }
     
-    private function replaceContent($pattern, $replaces, $encodeFn, $content)
+    private function replaceContent($pattern, $replaces, $encodeFn, $content, $all)
     {
         $replDx = new Data2Html_Collection($replaces);
         $matches = null;
-        preg_match_all('/\$\$\{([\w.:]+)\}/', $content, $matches);
+        preg_match_all($pattern, $content, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $content = str_replace(
-                $matches[0][$i],
-                $encodeFn($replDx->getString($matches[1][$i], '')),
-                $content
-            );
+            $k = $matches[1][$i];
+            if ($all || array_key_exists($k, $replaces)) {
+                $content = str_replace(
+                    $matches[0][$i],
+                    $encodeFn($replDx->getString($k, '')),
+                    $content
+                );
+            }
         }
         return $content;
     }

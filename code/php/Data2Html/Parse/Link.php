@@ -119,8 +119,9 @@ class Data2Html_Parse_Link
                     "{$this->reason}: Linked field \"{$toLinkName}[{$fieldName}]\" uses field \"{$toLinkName}\" without link."
                 );
             }
-            $modelName = $anchorField['link'];
-            $dataLink = Data2Html_Model::createGrid($modelName, $gridName);
+            list($modelName, $gridName) = 
+                Data2Html_Model::getModelGridNames($anchorField['link']);
+            $dataLink = Data2Html_Model::createModel($modelName); //, $gridName);
             $linkGrid = $dataLink->getGrid($gridName);
             $this->addLink(
                 $fromLinkName,

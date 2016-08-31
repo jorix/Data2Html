@@ -22,16 +22,6 @@ class Data2Html_Render
     {
         return $this->id;
     }
-
-    protected function concatContents(&$final, $item) {
-        foreach($item as $k => $v) {
-            if (array_key_exists($k, $final)) {
-                $final[$k] .= $item[$k];
-            } else {
-                $final[$k] = $item[$k];
-            }
-        }
-    }
     
     public function renderGrid($model, $gridName)
     {        
@@ -68,16 +58,15 @@ class Data2Html_Render
                 )
             )
         );
-        list($pageId, $pageHtml) = $this->renderFormByDs('form_page',
-            $templGridColl->getArray('form_page'),
+        list($pageId, $pageHtml) = $this->renderForm(
+            $this->templateObj->getTemplateBranch('form_page', $tplGrid),
             $pageDef,
             'd2h_page.',
             $model->requestUrl,
             $model->getTitle()
         );
         list($filterId, $filterHtml) = $this->renderForm(
-            $templGridColl,
-            'form_filter',
+            $this->templateObj->getTemplateBranch('form_filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
             $model->requestUrl,
@@ -108,14 +97,14 @@ class Data2Html_Render
         if (!$colDs) {
             throw new Exception("`\$colDs` parameter is empty.");
         }
-        $thead = array();
-        $tbody = array();
-        $renderCount = 0;
-        $def = new Data2Html_Collection();
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
         $templateCells =
             $this->templateObj->getTemplateBranch('cells', $templateTable);
+        $thead = array();
+        $tbody = array();
+        $renderCount = 0;
+        $def = new Data2Html_Collection();
         foreach ($colDs as $k => $v) {
             $def->set($v);
             $ignore = false;
@@ -129,7 +118,7 @@ class Data2Html_Render
                 // head
                 $name = $def->getString('name', $k);
                 $label = $def->getString('title', $name);
-                $this->concatContents(
+                $this->templateObj->concatContents(
                     $thead,
                     $this->templateObj->renderTemplateItem(
                         'sortable',
@@ -164,7 +153,7 @@ class Data2Html_Render
                 } else {
                     $value = "{{item.{$k}}}";
                 }
-                $this->concatContents(
+                $this->templateObj->concatContents(
                     $tbody,
                     $this->templateObj->renderTemplateItem(
                         'default',
@@ -178,7 +167,7 @@ class Data2Html_Render
                 );
             }
         }
-        $result = $this->templateObj->renderTemplate(
+        return $this->templateObj->renderTemplate(
             $templateTable,
             array(
                 'page' => '$${page}', // exclude replace
@@ -191,85 +180,95 @@ class Data2Html_Render
                 'colCount' => $renderCount
             )
         );
-        return $result;
     }
 
     protected function renderForm(
-        $templateColl,
-        $formName,
-        $defs,
-        $fieldPrefix,
-        $formUrl,
-        $title
-    ){  
-        list($formId, $html) = $this->renderFormByDs(
-            $formName,
-            $templateColl->getArray($formName),
-            $defs,
-            $fieldPrefix,
-            $formUrl,
-            $title
-        );
-        return array($formId, $html);
-    }
-    protected function renderFormByDs(
-        $templateName,
-        $template,
+        $templateBranch,
         $formDs,
         $fieldPrefix,
         $formUrl,
         $title
     ){
-        $formId = $this->createIdRender();
         if (!$formDs) {
             $formDs = array();
             // throw new Exception("\$formDs parameter is empty.");
         }
-        if (!$template) {
-            throw new Exception("Template \"{$templateName}\" is empty.");
-        } else {
-            $templateColl = new Data2Html_Collection($template);
-            $formTpl = $templateColl->getString('form');
-            $inputsColl = $templateColl->getCollection('inputs');
-            $layoutsColl = $templateColl->getCollection('layouts');
-            // Apply template
-            $body = '';
-            $renderCount = 0;
-            $formDx = new Data2Html_Collection($formDs, true);
-            $fieldsDs = $formDx->getArray('fields', array());
-            $defLayoutTpl = '';
-            if ($layoutsColl) {
-                $defLayoutTpl = $layoutsColl->getString(
-                    $formDx->getString('layout', '')
-                );
-            }
-            $defaults = array();
-            foreach ($fieldsDs as $k => $v) {
-                $body .= $this->renderInput(
-                    $inputsColl,
-                    $defLayoutTpl,
-                    $formId,
-                    $fieldPrefix,
-                    $formUrl,
-                    $k,
-                    $v
-                );
-                $default = Data2Html_Array::get($v, 'default');
-                if ($default !== null) {
-                    $defaults[$k] = $default;
-                }
-                ++$renderCount;
-            }
-            $html = $this->renderHtml(
+        $formId = $this->createIdRender();
+        $templateColl = new Data2Html_Collection($template);
+        
+        
+        $templateInputs =
+            $this->templateObj->getTemplateBranch('inputs', $templateTable);
+        $templateLayouts =
+            $this->templateObj->getTemplateBranch('layouts', $templateTable);
+        $formTpl = $templateColl->getString('form');
+        $fieldsDs = $formDx->getArray('fields', array());
+        $body = array();
+        $defaults = array();
+        $renderCount = 0;
+        foreach ($fieldsDs as $k => $v) {
+            $item = $this->templateObj->renderTemplateItem(
+                'default',
+                $templateLayouts,
                 array(
-                    'id' => $formId,
-                    'title' => $title,
-                    'body' => $body,
-                    'defaults' => Data2Html_Value::toJson($defaults)
-                ),
-                $formTpl
+                    'id' => $this->createIdRender(),
+                    'form-id' => $formId,
+                    'name' => $fieldPrefix . $key,
+                    'url' => $url,
+                    'validations' => implode(' ', $validations)
+                )
             );
+            
+            $vDx = new Data2Html_Collection($v);
+            $input = $vDx->getString('input', 'text');
+            $url = $vDx->getString('url', '');
+            $validations = $vDx->getArray('validations', array());
+            $link = $vDx->getString('link');
+            $inputTplName = $input;
+            if ($link) {
+                $inputTplName = 'ui-select';
+                $baseUrl = explode('?', $formUrl);
+                $url = $baseUrl[0].'?model='.$link.'&';
+            }
+            $item = $this->templateObj->concatContents(
+                $body,
+                $this->templateObj->renderTemplateItem(
+                    $inputTplName,
+                    $templateInputs,
+                    array(
+                        'id' => $this->createIdRender(),
+                        'form-id' => $formId,
+                        'name' => $fieldPrefix . $key,
+                        'url' => $url,
+                        'validations' => implode(' ', $validations)
+                    )
+                )
+            );
+            $body .= $this->renderInput(
+                $inputsColl,
+                $defLayoutTpl,
+                $formId,
+                $fieldPrefix,
+                $formUrl,
+                $k,
+                $v
+            );
+            $default = Data2Html_Array::get($v, 'default');
+            if ($default !== null) {
+                $defaults[$k] = $default;
+            }
+            ++$renderCount;
         }
+        $html = $this->renderHtml(
+            array(
+                'id' => $formId,
+                'title' => $title,
+                'body' => $body,
+                'defaults' => Data2Html_Value::toJson($defaults)
+            ),
+            $formTpl
+        );
+    
         if ($html === '') {
             $html = "<div id=\"{$formId}\"></div>";
         }
