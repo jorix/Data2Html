@@ -323,14 +323,22 @@ class Data2Html_Render_Template
     private function renderHtml($html, $replaces, $all = true)
     {
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
-            '/\=\"\$\$\{([\w.:]+)\}\"/',
+            '/[\w-]+\s*=\s*\"\$\$\{([\w.:]+)\}\"/',
             $replaces,
             function($matchItem, $value) {
-                return '="' . htmlspecialchars(
-                    $value,
-                    ENT_COMPAT | ENT_SUBSTITUTE,
-                    'UTF-8'
-                ) . '"';
+                if ($value) {
+                    $posEq = strpos($matchItem, '=');
+                    return 
+                        substr($matchItem, 0, $posEq) . '="' . 
+                        htmlspecialchars(
+                            $value, 
+                            ENT_COMPAT | ENT_SUBSTITUTE,
+                            'UTF-8'
+                        ) .
+                        '"';
+                } else {
+                    return '';
+                }
             },
             $html,
             $all

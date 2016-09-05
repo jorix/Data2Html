@@ -12,7 +12,7 @@
 
 // test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa');
 // test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa[2]');
-test('/["\']\$\$\{([\w.:]+)\}/', '<a href="$${micu} ">');
+test('/\w+\s*=\s*\"\$\$\{([\w.:]+)\}\"/', 'a d_W1dd="$${aa}" aaa ="$${micu}" ');
    
 function test($patern, $value) {
     $matches = null;
