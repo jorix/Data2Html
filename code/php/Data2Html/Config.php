@@ -3,6 +3,7 @@
 class Data2Html_Config
 {
     protected static $fileName = 'd2h_config.ini';
+    protected static $defaultSection = 'config';
     
     protected static $loaded = false;
     protected static $debug = false;
@@ -10,10 +11,15 @@ class Data2Html_Config
     
     protected static function load()
     {
-        if (self::$loaded) {
+        if (static::$loaded) {
             return;
         }
-        $file = self::$fileName;
+        static::$loaded = static::loadFile(static::$fileName);
+        self::$debug = self::get('debug');
+    }
+    
+    protected static function loadFile($file)
+    {
         $config = null;
         if (file_exists($file)) {
             $config = parse_ini_file($file, true);
@@ -25,29 +31,46 @@ class Data2Html_Config
                 "->Config file \"{$file}\" does not exist");
         }
         if ($config) {
-            self::$config = $config;
+            static::$config = $config;
         } else {
-            self::$config = array();
+            static::$config = array();
         }
-        self::$loaded = true;
-        self::$debug = self::get('debug');
+        return true;
     }
     
     public static function getSection($key)
     {
-        self::load();
-        if (array_key_exists($key, self::$config)) {
-            return self::$config[$sectionKey];
+        static::load();
+        if (array_key_exists($key, static::$config)) {
+            return static::$config[$key];
         } else {
             return array();
         }
     }
     
-    public static function get($key, $default = null, $sectionKey = 'config')
+    public static function dump()
     {
-        self::load();
-        if (array_key_exists($sectionKey, self::$config)) {
-            $section = self::$config[$sectionKey];
+        static::load();
+        if (self::$debug) {
+            echo "<div style=\"margin-left:.5em\">
+                <h3>Config of: \"" . static::$fileName . "\":</h3>
+                <pre>" .
+                Data2Html_Value::toJson(static::$config, true) .
+                '</pre></div>';
+        } else {
+            echo '<h3 style="margin-left:.5em; color:red; test-align:center">
+                Debugging mode must be enabled to can use dump() method!</h3>';
+        }
+    }
+    
+    public static function get($key, $default = null, $sectionKey = null)
+    {
+        static::load();
+        if (!$sectionKey) {
+            $sectionKey = static::$defaultSection;
+        }
+        if (array_key_exists($sectionKey, static::$config)) {
+            $section = static::$config[$sectionKey];
             if (array_key_exists($key, $section)) {
                 $val = $section[$key];
             } else {

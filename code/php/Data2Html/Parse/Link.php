@@ -120,7 +120,7 @@ class Data2Html_Parse_Link
                 );
             }
             list($modelName, $gridName) = 
-                Data2Html_Model::getModelGridNames($anchorField['link']);
+                Data2Html_Model::explodeLink($anchorField['link']);
             $dataLink = Data2Html_Model::createModel($modelName); //, $gridName);
             $linkGrid = $dataLink->getGrid($gridName);
             $this->addLink(

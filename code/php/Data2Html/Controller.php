@@ -8,7 +8,7 @@ class Data2Html_Controller
         $this->debug = Data2Html_Config::debug();
         $this->data = $data;
     }
-    public function manage()
+    public function manage($request)
     {
         /*
         $the_request = array_merge($_GET, $_POST);
@@ -27,39 +27,36 @@ class Data2Html_Controller
         $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
         $db = new $db_class($dbConfig);
         $postData = file_get_contents("php://input");
-        $request = json_decode($postData, true);
-        return $this->oper($db, $request);
+        return $this->oper($db, $request, json_decode($postData, true));
     }
-    protected function oper($db, $request)
+    protected function oper($db, $request, $postData)
     {
         $data = $this->data;
-        $r = new Data2Html_Collection($request);
+        $r = new Data2Html_Collection($postData);
         $oper = $r->getString('d2h_oper', '');
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
-                $page = $r->getCollection('d2h_page', array());
-                $table = $data->table;
                 $gridName = '';
-                if (array_key_exists('grid', $request)) {
-                    $gridName = $request['grid'];
+                if (array_key_exists('model', $request)) {
+                    list($modelName, $gridName) =
+                        Data2Html_Model::explodeLink($request['model']);
                 }
                 $linkedGrid = $data->getLinkedGrid($gridName);
-                $sortReq = $r->getString('d2h_sort');
                 $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
                     $linkedGrid,
                     $r->getArray('d2h_filter', array()),
-                    $sortReq
+                    $r->getString('d2h_sort')
                 );
-                $ra = $db->getQueryArray(
+                $page = $r->getCollection('d2h_page', array());
+                return $db->getQueryArray(
                     $sql,
                     $linkedGrid['columns'],
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
-                return $ra;
             case 'insert':
                 $response['new_id'] = $this->opInsert($data);
                 break;

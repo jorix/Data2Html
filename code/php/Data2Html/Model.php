@@ -222,7 +222,7 @@ abstract class Data2Html_Model
     }
 
     protected function parseField($key, $field)
-    {    
+    {
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
                 $field = array('value' => substr($field, 1));
@@ -237,7 +237,7 @@ abstract class Data2Html_Model
         }
         $fieldDx = new Data2Html_Collection($field);
         $name = $fieldDx->getString('name', (is_int($key) ? null : $key));
-        $db = null; //$fieldDx->getString('db', $name, true); // return null if ['db'] is null
+        $db = null;
         if (array_key_exists('db', $field)) {
             $db = $field['db'];
         } elseif (!array_key_exists('value', $field)) {
@@ -286,6 +286,12 @@ abstract class Data2Html_Model
             if (!$defaultType) {
                 $defaultType = $defTypes->getString($word);
             }
+        }
+        if (!array_key_exists('title', $pField)) {
+            $pField['title'] = $name;
+        }
+        if (!array_key_exists('description', $pField)) {
+            $pField['description'] = $pField['title'];
         }
         if (!isset($pField['type']) && $defaultType) {
             $pField['type'] = $defaultType;
@@ -501,15 +507,15 @@ abstract class Data2Html_Model
     /**
      * @param $obj object to send
      */
-    protected function responseJson($obj)
+    protected static function responseJson($obj, $debug)
     {
-        if ($this->debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n" . Data2Html_Value::toJson($obj, $this->debug). "\n</pre>\n";
+        if ($debug && isset($_REQUEST['debug'])) {
+            echo "<pre>\n" . Data2Html_Value::toJson($obj, $debug). "\n</pre>\n";
         } else {
             header('Content-type: application/responseJson; charset=utf-8;');
             // The prefix `)]}',\n` is used due a security considerations, see: 
             //    * https://docs.angularjs.org/api/ng/service/$http
-            echo ")]}',\n" . Data2Html_Value::toJson($obj, $this->debug);
+            echo ")]}',\n" . Data2Html_Value::toJson($obj, $debug);
         }
     }
     
@@ -523,8 +529,11 @@ abstract class Data2Html_Model
     {
         try {
             $model = self::create($controllerUrl, $modelFolder, $request);
-            $render = new Data2Html_Render($template);
-            echo $render->render($model, $request);
+            $render = new Data2Html_Render($template, $model);
+            $resul = $render->render($request);
+            echo 
+                "{$resul['html']}
+                \n<script>{$resul['js']}</script>";
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -535,10 +544,11 @@ abstract class Data2Html_Model
      */    
     public static function manage($controllerUrl, $modelFolder, $request)
     {
+        $debug = Data2Html_Config::debug();
         try {
             $model = self::create($controllerUrl, $modelFolder, $request);
             $controller = new Data2Html_Controller($model);
-            $model->responseJson($controller->manage());
+            self::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
             // Message to user
             if ($e instanceof Data2Html_Exception_User) {
@@ -546,9 +556,12 @@ abstract class Data2Html_Model
             } else {
                 header('HTTP/1.1 500 Error');
             }
-            $this->responseJson(
-                Data2Html_Exception::toArray($e, Data2Html_Config::debug())
-            );
+            try {
+                self::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
+            } catch(Exception $ee) {
+                header('Content-type: application/responseJson; charset=utf-8;');                
+                echo serialize(Data2Html_Exception::toArray($e, $debug));
+            }
         }
     }
     /**
@@ -557,7 +570,8 @@ abstract class Data2Html_Model
     public static function create($controllerUrl, $modelFolder, $request)
     {
         if (isset($request['model'])) {
-            $modelName = $request['model'];
+            list($modelName, $gridName) = 
+                Data2Html_Model::explodeLink($request['model']);
             if (!array_key_exists($modelName, self::$modelObjects)) {
                 self::$controllerUrl = $controllerUrl;
                 self::$modelFolder = $modelFolder;
@@ -583,8 +597,7 @@ abstract class Data2Html_Model
             if (file_exists($phisicalFile)) {
                 require $phisicalFile;
                 $data = new $modelName(
-                    basename(self::$controllerUrl) . 
-                    '?model=' . $modelName . '&'
+                    basename(self::$controllerUrl) . '?'
                 );
                 self::$modelObjects[$modelName] = $data;
                 return $data;
@@ -594,7 +607,7 @@ abstract class Data2Html_Model
             }
     }
     
-    public static function getModelGridNames($modelLink)
+    public static function explodeLink($modelLink)
     {
         $modelElements = explode(':', $modelLink);
         $gridName = 

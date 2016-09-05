@@ -3,39 +3,43 @@
 class Data2Html_Render
 {
     public $debug = false;
+    protected $modelObj;
     protected $templateObj;
-    protected $id;
+    protected $requestUrl;
+    protected $idRender;
     private static $idRenderCount = 0;
-    public function __construct($templateName)
+    public function __construct($templateName, $modelObj)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->id = $this->createIdRender();
+        $this->idRender = $this->createIdRender();
+        $this->modelObj = $modelObj;
         $this->templateObj = new Data2Html_Render_Template($templateName);
     }
     
-    public function createIdRender() {
+    protected function createIdRender() {
         self::$idRenderCount++;
         return 'd2h_' . self::$idRenderCount;
     }
-    
-    public function getId()
+
+    public function render($request)
     {
-        return $this->id;
+        if (isset($request['model'])) {
+            list($modelName, $gridName) =
+                Data2Html_Model::explodeLink($request['model']);
+            $this->requestUrl = 
+                $this->modelObj->requestUrl . "model={$modelName}:{$gridName}&";
+            return $this->renderGrid($gridName);
+        } else {
+            throw new Exception("no request object.");
+        }
     }
-    
-    public function renderGrid($model, $gridName)
+
+    protected function renderGrid($gridName)
     {        
-        $linkedGrid = $model->getLinkedGrid($gridName);
+        $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
         $tplGrid = $this->templateObj->getTemplateBranch('grid');
         
         $gridDx = new Data2Html_Collection($linkedGrid);
-        $gridHtml = $this->renderTable(
-            $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $gridDx->getArray('columns'),
-            $model->requestUrl,
-            $model->getTitle()
-        );
-        print_r($gridHtml);
         $pageDef = array(
             'layout' => 'inline',
             'fields' => array(
@@ -58,42 +62,38 @@ class Data2Html_Render
                 )
             )
         );
-        list($pageId, $pageHtml) = $this->renderForm(
-            $this->templateObj->getTemplateBranch('form_page', $tplGrid),
+        list($pageId, $pageForm) = $this->renderForm(
+            $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
             'd2h_page.',
-            $model->requestUrl,
-            $model->getTitle()
+            $this->requestUrl,
+            $this->modelObj->getTitle()
         );
-        list($filterId, $filterHtml) = $this->renderForm(
-            $this->templateObj->getTemplateBranch('form_filter', $tplGrid),
+        list($filterId, $filterForm) = $this->renderForm(
+            $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $model->requestUrl,
-            $model->getTitle()
+            $this->requestUrl,
+            $this->modelObj->getTitle()
         );
-        return str_replace(
-            array('$${pageId}', '$${page}', '$${filterId}', '$${filter}'),
-            array($pageId, $pageHtml, $filterId, $filterHtml),
-            $gridHtml
+        $gridTable = $this->renderTable(
+            $this->templateObj->getTemplateBranch('table', $tplGrid),
+            $gridDx->getArray('columns'),
+            array(
+                'title' => $this->modelObj->getTitle(),
+                'url' => $this->requestUrl,
+                'filter' => $filterForm, 
+                'filterId' => $filterId,
+                'page' => $pageForm,
+                'pageId' => $pageId,
+                'id' => $this->idRender
+            )
         );
-    }
-        
-    public function render($model, $request)
-    {
-        if (isset($request['grid'])) {
-            return $this->renderGrid($model, $request['grid']);
-        } else {
-            throw new Exception("no request object.");
-        }
+        return $gridTable;
     }
     
-    protected function renderTable(
-        $templateTable,
-        $colDs,
-        $url,
-        $title
-    ) {
+    protected function renderTable($templateTable, $colDs, $replaces)
+    {
         if (!$colDs) {
             throw new Exception("`\$colDs` parameter is empty.");
         }
@@ -167,19 +167,12 @@ class Data2Html_Render
                 );
             }
         }
-        return $this->templateObj->renderTemplate(
-            $templateTable,
-            array(
-                'page' => '$${page}', // exclude replace
-                'filter' => '$${filter}', // exclude replace 
-                'id' => $this->getId(),
-                'url' => $url,
-                'title' => $title,
-                'thead' => $thead,
-                'tbody' => $tbody,
-                'colCount' => $renderCount
-            )
-        );
+        $replaces = array_merge($replaces, array(
+            'thead' => $thead,
+            'tbody' => $tbody,
+            'colCount' => $renderCount
+        ));
+        return $this->templateObj->renderTemplate($templateTable, $replaces);
     }
 
     protected function renderForm(
@@ -190,35 +183,18 @@ class Data2Html_Render
         $title
     ){
         if (!$formDs) {
-            $formDs = array();
-            // throw new Exception("\$formDs parameter is empty.");
+            throw new Exception("`\$formDs` argument is empty.");
         }
         $formId = $this->createIdRender();
-        $templateColl = new Data2Html_Collection($template);
-        
-        
         $templateInputs =
-            $this->templateObj->getTemplateBranch('inputs', $templateTable);
+            $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
-            $this->templateObj->getTemplateBranch('layouts', $templateTable);
-        $formTpl = $templateColl->getString('form');
-        $fieldsDs = $formDx->getArray('fields', array());
+            $this->templateObj->getTemplateBranch('layouts', $templateBranch);
+        $fieldsDs = Data2Html_Array::get($formDs, 'fields', array());
         $body = array();
         $defaults = array();
         $renderCount = 0;
-        foreach ($fieldsDs as $k => $v) {
-            $item = $this->templateObj->renderTemplateItem(
-                'default',
-                $templateLayouts,
-                array(
-                    'id' => $this->createIdRender(),
-                    'form-id' => $formId,
-                    'name' => $fieldPrefix . $key,
-                    'url' => $url,
-                    'validations' => implode(' ', $validations)
-                )
-            );
-            
+        foreach ($fieldsDs as $k => $v) {            
             $vDx = new Data2Html_Collection($v);
             $input = $vDx->getString('input', 'text');
             $url = $vDx->getString('url', '');
@@ -230,28 +206,25 @@ class Data2Html_Render
                 $baseUrl = explode('?', $formUrl);
                 $url = $baseUrl[0].'?model='.$link.'&';
             }
-            $item = $this->templateObj->concatContents(
+            $replaces = array(
+                'id' => $this->createIdRender(),
+                'formId' => $formId,
+                'title' => $vDx->getString('title'),
+                'icon' => $vDx->getString('icon'),
+                'action' => $vDx->getString('action'),
+                'description' => $vDx->getString('description'),
+                'name' => $fieldPrefix . $k,
+                'url' => $url,
+                'validations' => implode(' ', $validations)
+            );
+            $replaces['html'] = $this->templateObj->renderTemplateItem(
+                $inputTplName, $templateInputs, $replaces
+            );
+            $this->templateObj->concatContents(
                 $body,
                 $this->templateObj->renderTemplateItem(
-                    $inputTplName,
-                    $templateInputs,
-                    array(
-                        'id' => $this->createIdRender(),
-                        'form-id' => $formId,
-                        'name' => $fieldPrefix . $key,
-                        'url' => $url,
-                        'validations' => implode(' ', $validations)
-                    )
+                    'default', $templateLayouts, $replaces
                 )
-            );
-            $body .= $this->renderInput(
-                $inputsColl,
-                $defLayoutTpl,
-                $formId,
-                $fieldPrefix,
-                $formUrl,
-                $k,
-                $v
             );
             $default = Data2Html_Array::get($v, 'default');
             if ($default !== null) {
@@ -259,71 +232,15 @@ class Data2Html_Render
             }
             ++$renderCount;
         }
-        $html = $this->renderHtml(
+        $form = $this->templateObj->renderTemplate(
+            $templateBranch,
             array(
                 'id' => $formId,
                 'title' => $title,
                 'body' => $body,
-                'defaults' => Data2Html_Value::toJson($defaults)
-            ),
-            $formTpl
+                'defaults' => $defaults
+            )
         );
-    
-        if ($html === '') {
-            $html = "<div id=\"{$formId}\"></div>";
-        }
-        if ($this->debug) {
-            $html = 
-                "\n<!-- START renderForm({\"{$templateName}\") formId=\"{$formId}\" -->" .
-                "\n<!-- ======================================== -->\n" .
-                $html .
-                "\n<!-- END renderForm({\"{$templateName}\") formId=\"{$formId}\" -->\n";
-        }
-        return array($formId, $html);
-    }
-    
-    protected function renderInput(
-        $inputsColl,
-        $layoutTpl,
-        $formId,
-        $fieldPrefix,
-        $formUrl,
-        $key,
-        $defs
-    ) {
-        $def = new Data2Html_Collection($defs);
-        $input = $def->getString('input', 'text');
-        $url = $def->getString('url', '');
-        $validations = $def->getArray('validations', array());
-        $link = $def->getString('link');
-        if ($link) {
-            $template = $inputsColl->getString('ui-select');
-            $baseUrl = explode('?', $formUrl);
-            $url = $baseUrl[0].'?model='.$link.'&';
-        } elseif ($input) {
-            $template = $inputsColl->getString($input);
-        }
-        if ($layoutTpl) {
-            $template = str_replace('$${html}', $template, $layoutTpl);
-        }
-        $body = "\n".str_replace(
-            array(
-                '$${id}',
-                '$${form-id}',
-                '$${name}',
-                '$${url}',
-                '$${validations}'
-            ), 
-            array(
-                $this->createIdRender(),
-                $formId,
-                $fieldPrefix . $key,
-                $url,
-                implode(' ', $validations),
-            ),
-            $template
-        );
-        // Other matches
-        return $this->renderHtml($defs, $body);
+        return array($formId, $form);
     }
 }

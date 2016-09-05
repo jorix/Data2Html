@@ -45,7 +45,7 @@
 <!-- START "../code/templates/angular1/tables/paged.html.php" [[ -->
 <!-- ======================================== -->
 
-    <div ng-controller="d2h_1">
+<div ng-controller="d2h_1">
 
 <!-- START "../code/templates/angular1/forms/filter.html.php" [[ -->
 <!-- ======================================== -->
@@ -80,7 +80,7 @@
     required
 >   <ui-select-match
         allow-clear="true"
-        placeholder=""
+        placeholder="Compte"
     >{{$select.selected.text}}</ui-select-match>
     <ui-select-choices 
         repeat="item.value as item in data | filter: {text: $select.search}">
@@ -108,7 +108,7 @@
     ng-model="d2h_filter.description_LK"
     ng-change="changed()"
     ng-model-options="{ debounce: 500 }"
-    placeholder=""
+    placeholder="Descripció"
     name="d2h_8"
     required
 >
@@ -164,7 +164,7 @@
 <!-- START "../code/templates/angular1/tables/heads/sortable.html.php" [[ -->
 <!-- ======================================== -->
 
-<th>Usuari <a
+<th> <a
     title="ordre creixent"
     ng-click="sortBy('d2h_1_default', false);"><span
     aria-label="ordre creixent" aria-hidden="true"
@@ -182,7 +182,7 @@
 <!-- START "../code/templates/angular1/tables/heads/sortable.html.php" [[ -->
 <!-- ======================================== -->
 
-<th>d2h_2_default <a
+<th> <a
     title="ordre creixent"
     ng-click="sortBy('d2h_2_default', false);"><span
     aria-label="ordre creixent" aria-hidden="true"
@@ -218,7 +218,7 @@
 <!-- START "../code/templates/angular1/tables/heads/sortable.html.php" [[ -->
 <!-- ======================================== -->
 
-<th>Moviment <a
+<th> <a
     title="ordre creixent"
     ng-click="sortBy('d2h_3_default', false);"><span
     aria-label="ordre creixent" aria-hidden="true"
@@ -290,7 +290,7 @@
 <!-- START "../code/templates/angular1/tables/heads/sortable.html.php" [[ -->
 <!-- ======================================== -->
 
-<th>account_uf_id_value <a
+<th>value <a
     title="ordre creixent"
     ng-click="sortBy('account_uf_id_value', false);"><span
     aria-label="ordre creixent" aria-hidden="true"
@@ -315,6 +315,13 @@
 <div class="row" ng-controller="d2h_2">
     <form name="d2h_2" class="simple-form"  novalidate>
         <div class="form-inline">
+<!-- START "../code/templates/angular1/forms/layouts/inline.html.php" [[ -->
+<!-- ======================================== -->
+
+<label class="col-md-3 form-group" 
+    ng-class="{'has-error': d2h_2.d2h_3.$invalid}"
+>[$$Refres>"hàdata:]
+
 <!-- START "../code/templates/angular1/forms/inputs/button.html.php" [[ -->
 <!-- ======================================== -->
 
@@ -328,6 +335,20 @@
 </button>
 <!-- END  "../code/templates/angular1/forms/inputs/button.html.php" ]] -->
 
+</label>
+
+<!-- END  "../code/templates/angular1/forms/layouts/inline.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/forms/layouts/inline.html.php" [[ -->
+<!-- ======================================== -->
+
+<label class="col-md-3 form-group" 
+    ng-class="{'has-error': d2h_2.d2h_4.$invalid}"
+>[:]
+
+<!-- START "../code/templates/angular1/forms/inputs/text.html.php" [[ -->
+<!-- ======================================== -->
+
 <input type="text" class="form-control" 
     ng-model="d2h_page.pageSize"
     ng-change="changed()"
@@ -336,6 +357,19 @@
     name="d2h_4"
     
 >
+
+<!-- END  "../code/templates/angular1/forms/inputs/text.html.php" ]] -->
+
+</label>
+
+<!-- END  "../code/templates/angular1/forms/layouts/inline.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/forms/layouts/inline.html.php" [[ -->
+<!-- ======================================== -->
+
+<label class="col-md-3 form-group" 
+    ng-class="{'has-error': d2h_2.d2h_5.$invalid}"
+>[$$Ne.>xtàpage:]
 
 <!-- START "../code/templates/angular1/forms/inputs/button.html.php" [[ -->
 <!-- ======================================== -->
@@ -350,6 +384,9 @@
 </button>
 <!-- END  "../code/templates/angular1/forms/inputs/button.html.php" ]] -->
 
+</label>
+
+<!-- END  "../code/templates/angular1/forms/layouts/inline.html.php" ]] -->
 </div>
     </form>
     <span ng-init="start()" ng-cloak>
@@ -368,21 +405,65 @@
 <!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
 <!-- ======================================== -->
 
-<td>{{item.ts | date:'dd-MM-yy HH:mm'}}</td>
+<td ng-class="" class="">{{item.ts | date:'dd-MM-yy HH:mm'}}</td>
 
 <!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
 
 <!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
 <!-- ======================================== -->
 
-<td>{{item.d2h_1_default}}</td>
-<td>{{item.d2h_2_default}}</td>
-<td>{{item.description}}</td>
-<td>{{item.d2h_3_default}}</td>
-<td ng-class="{red:item.quantity<0}" class="text-right">{{item.quantity | number:'2'}}</td>
-<td ng-class="{red:item.balance<0}" class="text-right">{{item.balance | currency}}</td>
-<td>{{item.account_uf_id_name}}</td>
-<td class="text-right">{{item.account_uf_id_value}}</td>
+<td ng-class="" class="">{{item.d2h_1_default}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="" class="">{{item.d2h_2_default}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="" class="">{{item.description}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="" class="">{{item.d2h_3_default}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="{red:item.quantity&lt;0}" class="text-right">{{item.quantity | number:'2'}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="{red:item.balance&lt;0}" class="text-right">{{item.balance | currency}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="" class="">{{item.account_uf_id_name}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
+
+<!-- START "../code/templates/angular1/tables/cells/default.html.php" [[ -->
+<!-- ======================================== -->
+
+<td ng-class="" class="text-right">{{item.account_uf_id_value}}</td>
+
+<!-- END  "../code/templates/angular1/tables/cells/default.html.php" ]] -->
 
             </tr></tbody>
         </table>
@@ -397,11 +478,12 @@
 </div>
 <!-- END  "../code/templates/angular1/tables/paged.html.php" ]] -->
 
+                
 <script>
 // START "../code/templates/angular1/tables/paged.js" [[
 // ========================================
 var d2h_gridPagedCtr = function($scope, $http, pageDefaults, filterDefaults) {
-    var vRender_urlRequest = '_controller.php?model=aixada_accounts&lang=ca';
+    var vRender_urlRequest = "_controller.php?model=aixada_accounts:default&" + 'lang=ca';
     $scope.d2h_filter = filterDefaults();
     $scope.d2h_sort = 'account_id';
     $scope.d2h_page = pageDefaults();
@@ -460,8 +542,10 @@ var d2h_gridPagedCtr = function($scope, $http, pageDefaults, filterDefaults) {
        //$scope.sortBy('id', true);
     };
 };
-d2h_App.controller('d2h_1', [
-    '$scope', '$http', 'd2h_2_defaults', 'd2h_6_defaults',
+d2h_App.controller("d2h_1", [
+    '$scope', '$http',
+    "d2h_2" + '_defaults',
+    "d2h_6" + '_defaults',
     d2h_gridPagedCtr
 ]);
 // END  "../code/templates/angular1/tables/paged.js" ]]
@@ -469,15 +553,12 @@ d2h_App.controller('d2h_1', [
 // START "../code/templates/angular1/forms/filter.js.php" [[
 // ========================================
 
-d2h_App.controller('d2h_6', ['$scope', function($scope) {
-    $scope.clear = function() {
-        $scope.d2h_filter={};
-    };
+d2h_App.controller("d2h_6", ['$scope', function($scope) {
     $scope.changed = function() {
         $scope.readPage();
     };
 }]);
-d2h_App.factory('d2h_6_defaults', [function() {
+d2h_App.factory("d2h_6" + '_defaults', [function() {
     return function() {
         return {"account_uf_id_EQ":1005};
     };
@@ -522,6 +603,6 @@ d2h_App.factory('d2h_2_defaults', [function() {
 }]);
 
 // END  "../code/templates/angular1/forms/page.js.php" ]]
-</script>
+</script>    </div>
 </body>
 </html>

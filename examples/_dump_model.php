@@ -11,23 +11,22 @@
         Data2Html_Autoload::start();
     
         try {
-            $data = Data2Html_Model::create('_controller.php', 'models');
+            $data = Data2Html_Model::create('_controller.php', 'models', $_REQUEST);
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
             die();
         }
-        if (!$data->debug) {
+        if (!Data2Html_Config::debug()) {
             echo '<h2 style="color:red">Debug mode is required!</h2>';
         } else {
             try {
-                $data->parse();
 
                 echo "<h2>getColDs():</h2>\n<pre>";
                 //echo Data2Html_Utils::toPhp($data->getColDs());
                 echo "</pre><hr>\n";
                 
-                $gridName = Data2Html::getGridNameByModel($_REQUEST['model']);
+                list($modelName, $gridName) = Data2Html_Model::explodeLink($_REQUEST['model']);
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";
                 //echo Data2Html_Utils::toPhp($data->getGrid($gridName));

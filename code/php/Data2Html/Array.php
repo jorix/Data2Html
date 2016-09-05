@@ -2,7 +2,7 @@
 
 class Data2Html_Array
 {
-    public static function get($array, $keys)
+    public static function get(&$array, $keys)
     {
         if (!$keys) {
             return null;

@@ -49,7 +49,7 @@
             '_controller.php',
             'models', 
             $_REQUEST, 
-            '../code/templates/angular1/table_paged.ini'
+            '../code/templates/angular1/grid_paged.json.php'
         );
     ?>
     </div>

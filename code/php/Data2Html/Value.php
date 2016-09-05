@@ -37,7 +37,35 @@ class Data2Html_Value
         if ($pretty && version_compare(PHP_VERSION, '5.4.0', '>=')) {
             $options |= JSON_PRETTY_PRINT;
         }
-        return json_encode($obj, $options);
+        $result = json_encode($obj, $options);
+        $json_error = json_last_error();
+        if ($json_error !== JSON_ERROR_NONE) {
+            switch ($json_error) {
+                case JSON_ERROR_NONE:
+                    $textError = 'No errors';
+                    break;
+                case JSON_ERROR_DEPTH:
+                    $textError = 'Maximum stack depth exceeded';
+                    break;
+                case JSON_ERROR_STATE_MISMATCH:
+                    $textError = 'Underflow or the modes mismatch';
+                    break;
+                case JSON_ERROR_CTRL_CHAR:
+                    $textError = 'Unexpected control character found';
+                    break;
+                case JSON_ERROR_SYNTAX:
+                    $textError = 'Syntax error, malformed JSON';
+                    break;
+                case JSON_ERROR_UTF8:
+                    $textError = 'Malformed UTF-8 characters, possibly incorrectly encoded';
+                    break;
+                default:
+                    $textError = 'Unknown error';
+                    break;
+            }
+            throw new Exception('JSON Error: ' . $json_error . ' - '. $textError);
+        }   
+        return $result;
     }
     
     public static function parseString($value, $strict = false)

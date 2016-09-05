@@ -2,12 +2,14 @@
 
 class Data2Html_Render_Template
 {
+    protected $debug;
     protected $templateName;
     protected $templateTree;
     protected $templateContents;
     
     public function __construct($templateName)
     {
+        $this->debug = Data2Html_Config::debug();
         $this->templateName = $templateName;
         $pathObj = $this->parsePath($templateName);
         
@@ -20,7 +22,7 @@ class Data2Html_Render_Template
     
     public function dump()
     {
-        if (Data2Html_Config::debug()) {
+        if ($this->debug) {
             echo "<div style=\"margin-left:.5em\">
                 <h3>Template tree of: \"{$this->templateName}\":</h3>
                 <pre>" .
@@ -133,11 +135,7 @@ class Data2Html_Render_Template
     }
 
     protected function addContent($fileName) {
-        $cleanFileName = str_replace(
-            array('\\', '/./'),
-            array('/', '/'),
-            $fileName
-        );
+        $cleanFileName = $this->cleanFileName($fileName);
         if (!array_key_exists($cleanFileName, $this->templateContents)) {
             $this->templateContents[$cleanFileName] =
                 $this->loadContent($fileName);
@@ -147,7 +145,14 @@ class Data2Html_Render_Template
             $this->templateContents[$cleanFileName][1] // the path info
         );
     }
-    
+
+    protected function cleanFileName($fileName) {
+        return str_replace(
+            array('\\', '/./'),
+            array('/', '/'),
+            $fileName
+        );
+    }
     protected function getContent($key) {
         return $this->templateContents[$key][0];
     }
@@ -174,6 +179,25 @@ class Data2Html_Render_Template
                 $text = substr($text, $phpEnd + 3);
             }
         }
+        if ($this->debug) {
+            $cleanFileName = $this->cleanFileName($fileName);
+            switch ($pathObj['extension']) {
+                case '.html':
+                    $text = 
+                        "\n<!-- START \"{$cleanFileName}\" [[ -->" .
+                        "\n<!-- ======================================== -->\n" .
+                        $text .
+                        "\n<!-- END  \"{$cleanFileName}\" ]] -->\n";
+                    break;
+                case '.js':
+                    $text = 
+                        "\n// START \"{$cleanFileName}\" [[" .
+                        "\n// ========================================\n" .
+                        $text .
+                        "\n// END  \"{$cleanFileName}\" ]]\n";
+                    break;
+            }
+        }
         return array($text, $pathObj);
     }
     
@@ -191,7 +215,9 @@ class Data2Html_Render_Template
         return $pathObj;
     }
     
+    // ==========================================
     // Apply template
+    // ==========================================
     public function getTemplateBranch($keys, $templateBranch = null)
     {
         if (!$templateBranch) {
@@ -224,6 +250,11 @@ class Data2Html_Render_Template
     public function renderTemplate($templateBranch, $replaces)
     {
         $templateLeaf = $this->getTemplateBranch('template', $templateBranch);
+        return $this->renderMethods($templateLeaf, $replaces);
+    }
+    
+    protected function renderMethods($templateLeaf, $replaces, $all = true)
+    {
         if (array_key_exists('html', $templateLeaf[1])) {
             $html = $this->getContent($templateLeaf[1]['html']);
         } else {
@@ -239,7 +270,8 @@ class Data2Html_Render_Template
                         $v['html'],
                         $html
                     );
-                } elseif (array_key_exists('js', $v)) {
+                } 
+                if (array_key_exists('js', $v)) {
                     $js .= $v['js'];
                 }
             } else {
@@ -262,10 +294,8 @@ class Data2Html_Render_Template
         }
         $resul['d2hToken_content'] = true;
         return $resul;
-    }
-    
-    protected function renderMethods($templateLeaf, $replaces, $all = true)
-    {
+        //==================================
+        
         $result = array();
         foreach ($templateLeaf[1] as $k => $v) {
             switch ($k) {
@@ -295,7 +325,7 @@ class Data2Html_Render_Template
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
             '/\=\"\$\$\{([\w.:]+)\}\"/',
             $replaces,
-            function($value) {
+            function($matchItem, $value) {
                 return '="' . htmlspecialchars(
                     $value,
                     ENT_COMPAT | ENT_SUBSTITUTE,
@@ -307,7 +337,7 @@ class Data2Html_Render_Template
         );
         $html = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
-            function($value) {
+            function($matchItem, $value) {
                 return $value;
             },
             $html,
@@ -319,16 +349,27 @@ class Data2Html_Render_Template
     private function renderJs($js, $replaces, $all = true)
     {
         $js = $this->replaceContent( // start string '$${template_item}...
-            '/["\']?\$\$\{([\w.:]+)\}/', $replaces,
-            function($value) {
-                return $value;
+            '/["\']\$\$\{([\w.:]+)\}/', $replaces,
+            function($matchItem, $value) {
+                if (!is_array($value)) {
+                    $v = Data2Html_Value::toJson($value);
+                    if (is_string($value)) {
+                        // remove quotes
+                        $v = substr($v, 1, -1);
+                    }
+                    return substr($matchItem, 0, 1) .$v;
+                } else {
+                    return 
+                        substr($matchItem, 0, 1) . 
+                        'd2h_error: this value is an array()!';
+                }
             },
             $js,
             $all
         );
         $js = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
-            function($value) {
+            function($matchItem, $value) {
                 return Data2Html_Value::toJson($value);
             },
             $js,
@@ -339,7 +380,6 @@ class Data2Html_Render_Template
     
     private function replaceContent($pattern, $replaces, $encodeFn, $content, $all)
     {
-        $replDx = new Data2Html_Collection($replaces);
         $matches = null;
         preg_match_all($pattern, $content, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
@@ -347,7 +387,7 @@ class Data2Html_Render_Template
             if ($all || array_key_exists($k, $replaces)) {
                 $content = str_replace(
                     $matches[0][$i],
-                    $encodeFn($replDx->getString($k, '')),
+                    $encodeFn($matches[0][$i], $replaces[$k]),
                     $content
                 );
             }
