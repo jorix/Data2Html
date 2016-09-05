@@ -41,7 +41,7 @@ class Data2Html_Render
         
         $gridDx = new Data2Html_Collection($linkedGrid);
         $pageDef = array(
-            'layout' => 'inline',
+            'layout' => 'none',
             'fields' => array(
                 array(
                     'input' => 'button',
@@ -191,6 +191,7 @@ class Data2Html_Render
         $templateLayouts =
             $this->templateObj->getTemplateBranch('layouts', $templateBranch);
         $fieldsDs = Data2Html_Array::get($formDs, 'fields', array());
+        $defaultFieldLayout = Data2Html_Array::get($formDs, 'layout', 'default');
         $body = array();
         $defaults = array();
         $renderCount = 0;
@@ -223,7 +224,9 @@ class Data2Html_Render
             $this->templateObj->concatContents(
                 $body,
                 $this->templateObj->renderTemplateItem(
-                    'default', $templateLayouts, $replaces
+                    $vDx->getString('layout', $defaultFieldLayout),
+                    $templateLayouts, 
+                    $replaces
                 )
             );
             $default = Data2Html_Array::get($v, 'default');

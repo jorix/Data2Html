@@ -287,10 +287,8 @@ abstract class Data2Html_Model
                 $defaultType = $defTypes->getString($word);
             }
         }
-        if (!array_key_exists('title', $pField)) {
-            $pField['title'] = $name;
-        }
-        if (!array_key_exists('description', $pField)) {
+        if (!array_key_exists('description', $pField) &&
+            array_key_exists('title', $pField)) {
             $pField['description'] = $pField['title'];
         }
         if (!isset($pField['type']) && $defaultType) {

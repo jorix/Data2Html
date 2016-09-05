@@ -99,7 +99,7 @@ class Data2Html_Parse_Link
     
     protected function createLink($fromLinkName, $toLinkName, $fieldName, $fields)
     {
-            // echo "createLink($fromLinkName, $toLinkName, $fieldName, )<br>";
+    // echo "createLink('$fromLinkName', $toLinkName, $fieldName, )<br>";
         if ($toLinkName !== '.') {
             $linkParts = explode('->', $toLinkName);
             $finalLinkName = $linkParts[count($linkParts)-1];
@@ -177,7 +177,6 @@ class Data2Html_Parse_Link
             }
         }
         $this->applyLinkField($toLinkName, $keyToField);
-       // die('no ->applyLinkField');
         if ($fromLinkName) {
             $fromJoin = $this->joins[$fromLinkName];
             $this->applyLinkField($fromLinkName, $anchorField);
@@ -368,7 +367,7 @@ class Data2Html_Parse_Link
                         $linkedTo['matches'][$i], 
                         $link['toAlias'] . '.' . $linkedField['db'],
                         $db
-                    );  
+                    );
                 }
             } else {
                 $db = str_replace(
