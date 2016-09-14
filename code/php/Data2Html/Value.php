@@ -68,6 +68,27 @@ class Data2Html_Value
         return $result;
     }
     
+    public static function getItem(&$array, $keys, $default = null)
+    {
+        if (!$keys) {
+            return $default;
+        } elseif (!is_array($keys)) {
+            if (!is_array($array)) {
+                return $default;
+            } elseif (array_key_exists($keys, $array)) {
+                return $array[$keys];
+            } else {
+                return $default;
+            }
+        } elseif (count($keys) === 1) {
+            return self::getItem($array, $keys[0], $default);
+        } else {
+            $key0 = array_shift($keys);
+            $item0 = self::getItem($array, $key0, $default);
+            return self::getItem($item0, $keys, $default);
+        }
+    }
+    
     public static function parseString($value, $strict = false)
     {
         if (is_array($value)) {

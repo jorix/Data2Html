@@ -26,6 +26,10 @@
                 //echo Data2Html_Utils::toPhp($data->getColDs());
                 echo "</pre><hr>\n";
                 
+                echo "<h2>getForm():</h2>\n<pre>";
+                echo Data2Html_Utils::toPhp($data->getForm());
+                echo "</pre><hr>\n";
+                
                 list($modelName, $gridName) = Data2Html_Model::explodeLink($_REQUEST['model']);
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";

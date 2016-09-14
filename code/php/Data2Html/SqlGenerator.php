@@ -91,7 +91,7 @@ class Data2Html_SqlGenerator
             $nakedColName = $colNameRequest;
             $ascending = true;
         }
-        $orderByDef = Data2Html_Array::get(
+        $orderByDef = Data2Html_Value::getItem(
             $colDefs,
             array($nakedColName, 'orderBy')
         );

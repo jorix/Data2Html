@@ -190,8 +190,8 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
             $this->templateObj->getTemplateBranch('layouts', $templateBranch);
-        $fieldsDs = Data2Html_Array::get($formDs, 'fields', array());
-        $defaultFieldLayout = Data2Html_Array::get($formDs, 'layout', 'default');
+        $fieldsDs = Data2Html_Value::getItem($formDs, 'fields', array());
+        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'layout', 'default');
         $body = array();
         $defaults = array();
         $renderCount = 0;
@@ -229,7 +229,7 @@ class Data2Html_Render
                     $replaces
                 )
             );
-            $default = Data2Html_Array::get($v, 'default');
+            $default = Data2Html_Value::getItem($v, 'default');
             if ($default !== null) {
                 $defaults[$k] = $default;
             }

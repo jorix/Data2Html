@@ -70,6 +70,7 @@ class Data2Html_Parse_Link
         }
         $this->gridBase['debug->full2BaseNames'] = $this->full2BaseNames;
         $this->gridBase['debug->baseNames'] = $this->baseNames;
+        $this->gridBase['_linked'] = true;
         return $this->gridBase;
     }
     

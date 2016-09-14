@@ -227,12 +227,13 @@ class Data2Html_Render_Template
             $keys = array($keys);
         }
         $finalKeys = array_merge($templateBranch[0], $keys);
-        $tree = Data2Html_Array::get($templateBranch[1], $keys);
+        $tree = Data2Html_Value::getItem($templateBranch[1], $keys);
         if (!$tree) {
-            throw new Exception(
+            throw new Data2Html_Exception(
                 "Template key \"" . 
                 implode('=>', $finalKeys) .
-                "\" of template \"{$this->templateName}\" does not exist."
+                "\" of template \"{$this->templateName}\" does not exist.",
+                $templateBranch[1]
             ); 
         }
         return array($finalKeys, $tree);       

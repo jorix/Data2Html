@@ -24,7 +24,8 @@ abstract class Data2Html_Model
     public $requestUrl = '';
     protected $modelName = '';
     private $colDs = null;
-    private $gridsDs = null;
+    private $grids = null;
+    private $forms = null;
     
     // To parse
     private $idParseCountArray = array();
@@ -117,17 +118,29 @@ abstract class Data2Html_Model
     {
         return $this->colDs;
     }
-    public function getGrid($gridName)
+    public function getGrid($gridName = '')
     {
         if (!$gridName) {
             $gridName = 'default';
         }
-        if (!array_key_exists($gridName, $this->gridsDs)) {
+        if (!array_key_exists($gridName, $this->grids)) {
             throw new Exception(
                 "{$this->reason}: Grid \"{$gridName}\" not exist on `grids`."
             );
         }
-        return $this->gridsDs[$gridName];
+        return $this->grids[$gridName];
+    }
+    public function getForm($formName = '')
+    {
+        if (!$formName) {
+            $formName = 'default';
+        }
+        if (!array_key_exists($formName, $this->forms)) {
+            throw new Exception(
+                "{$this->reason}: Form \"{$formName}\" not exist on `forms`."
+            );
+        }
+        return $this->forms[$formName];
     }
     public function getLinkedGrid($gridName) {
         $link = new Data2Html_Parse_Link($this);
@@ -155,16 +168,31 @@ abstract class Data2Html_Model
         $this->reason = "Model \"{$this->modelName}\"";
         $this->title = $def->getString('title', $this->table);
         
-        $fields = $this->parseFields($def->getArray('fields'));
-        $this->colDs = $fields;
+        $baseFields = $this->parseFields($def->getArray('fields'));
+        $this->colDs = $baseFields;
         
-        $this->gridsDs = $def->getArray('grids', array());
-        if (!array_key_exists('default', $this->gridsDs)) {
-            $this->gridsDs['default'] = array();
+        $this->grids = $def->getArray('grids', array());
+        if (!array_key_exists('default', $this->grids)) {
+            $this->grids['default'] = array();
         }
-        foreach ($this->gridsDs as $k => &$s) {
-            $this->parseGrid($k, $s, $fields);
+        foreach ($this->grids as $k => &$v) {
+            $this->parseGrid($k, $v, $baseFields);
         }
+        unset($v);
+        
+        
+        $this->forms = $def->getArray('forms', array());
+        if (!array_key_exists('default', $this->forms)) {
+            $this->forms['default'] = array();
+        }        
+        foreach ($this->forms as $k => &$v) {
+            $v['fields'] = $this->parseFormFields(
+                $k,
+                Data2Html_Value::getItem($v, 'fields', array()),
+                $baseFields
+            );
+        }
+        unset($v);
     }
     protected function parseFields($fields)
     {    
@@ -201,7 +229,7 @@ abstract class Data2Html_Model
                 if (substr($f, 0, 1) === '!') {
                    $f = substr($f, 1);
                 }
-                if (!Data2Html_Array::get($pFields, array($f, 'db'))) {
+                if (!Data2Html_Value::getItem($pFields, array($f, 'db'))) {
                     throw new Exception(
                         "{$this->reason}: On field `{$k}` exist attribute 'orderBy' whit item
                         `{$f}` that not exist on `fields` with `db`."
@@ -322,7 +350,7 @@ abstract class Data2Html_Model
         return array($pKey, $pField);
     }
 
-    protected function parseGrid($gridName, &$grid, $fields)
+    protected function parseGrid($gridName, &$grid, $baseFields)
     {
         $grid['name'] = $gridName;
         $gridDx = new Data2Html_Collection($grid);
@@ -330,28 +358,29 @@ abstract class Data2Html_Model
         if ($filterDx) {
             $grid['filter'] = array(
                 'layout' => $filterDx->getString('layout'),
-                'fields' => $this->parseFilter(
+                'fields' => $this->parseFilterFields(
                     $gridName,
-                    $filterDx->getArray('fields'),
-                    $fields
+                    $filterDx->getArray('fields', array()),
+                    $baseFields
                 )
             );
         }
         list($grid['keys'], $columns) = $this->parseColumns(
             $gridName,
             $gridDx->getArray('columns', array()),
-            $fields
+            $baseFields
         );
         $grid['table'] = $this->table;
         $grid['columns'] = $columns;
+        $grid['_parsed'] = true;
     }
 
-    protected function parseColumns($gridName, $columns, $fields)
+    protected function parseColumns($gridName, $columns, $baseFields)
     {
-        if (count($columns) === 0) { // if no columns set as all fields
-            $columns = $fields;
+        if (count($columns) === 0) { // if no columns set as all baseFields
+            $columns = $baseFields;
         }
-        $fieldsDx = new Data2Html_Collection($fields);
+        $fieldsDx = new Data2Html_Collection($baseFields);
         $pColumns = array();
         foreach ($columns as $k => $v) {
             $pKey = 0;
@@ -383,7 +412,7 @@ abstract class Data2Html_Model
                     }
                 }
             } elseif (is_array($v)) {
-                $nameField = Data2Html_Array::get($v, 'name');
+                $nameField = Data2Html_Value::getItem($v, 'name');
                 if ($nameField) {
                     $pField = $fieldsDx->getArray($nameField);
                     if (!$pField) {
@@ -410,12 +439,9 @@ abstract class Data2Html_Model
         return array($keyFields, $pColumns);
     }
     
-    protected function parseFilter($gridName, $filter, $fields)
+    protected function parseFilterFields($gridName, $filter, $baseFields)
     {
-        if (!$filter) {
-            return array();
-        }
-        $baseFiledsDx = new Data2Html_Collection($fields);
+        $baseFiledsDx = new Data2Html_Collection($baseFields);
         $pFields = array();
         $pFieldDx = new Data2Html_Collection();
         foreach ($filter as $k => $v) {
@@ -437,12 +463,12 @@ abstract class Data2Html_Model
             $pFieldDx->set($pField);              
             $name = $pFieldDx->getString('name');
             if ($name) {
-                if (!array_key_exists($name, $fields)) {
+                if (!array_key_exists($name, $baseFields)) {
                     throw new Exception(
                         "{$this->reason}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
                     );
                 }
-                $pField = array_merge($fields[$name], $pField);
+                $pField = array_merge($baseFields[$name], $pField);
                 $db = $pFieldDx->getString('db');
             } else {
                 $db = $pFieldDx->getString('db');
@@ -450,18 +476,49 @@ abstract class Data2Html_Model
             }
             if (!$db) {
                 throw new Exception(
-                    "{$this->reason}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` key."
+                    "{$this->reason}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` attribute."
                 );
             }
             if (is_int($pKey)) {
                 $pKey = $name.'_'.$pFieldDx->getString('check', '');
             }
             list($pKey, $pField) = $this->parseField($pKey, $pField);
-            $pKey = $this->addItem($gridName, $pKey, $pField, $pFields);
+            $this->addItem($gridName, $pKey, $pField, $pFields);
         }
         return $pFields;
     }
     
+    protected function parseFormFields($formName, $fields, $baseFields)
+    {
+        if (count($fields) === 0) { // if no columns set as all baseFields
+            $fields = $baseFields;
+        }
+        $baseFiledsDx = new Data2Html_Collection($baseFields);
+        $pFields = array();
+        $pFieldDx = new Data2Html_Collection();
+        foreach ($fields as $k => $v) {
+            $pFieldDx->set($v);              
+            $name = $pFieldDx->getString('name');
+            if ($name) {
+                if (!array_key_exists($name, $baseFields)) {
+                    throw new Exception(
+                        "{$this->reason}: Form `{$formName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
+                    );
+                }
+                $v = array_merge($baseFields[$name], $v);
+                $db = $pFieldDx->getString('db');
+            } else {
+                $db = $pFieldDx->getString('db');
+                $name = $db;
+            }
+            if (is_int($k)) {
+                $k = $name.'_'.$pFieldDx->getString('check', '');
+            }
+            list($k, $v) = $this->parseField($k, $v);
+            $this->addItem($formName, $k, $v, $pFields);
+        }
+        return $pFields;
+    }
     // ========================
     // Events
     // ========================
