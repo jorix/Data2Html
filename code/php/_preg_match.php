@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="utf-8">
+    <title>preg_match</title>
+</head>
+<div class="container">
 <?php
 // $obj = array(22+4) ;
 // echo '<pre>';
@@ -12,7 +19,7 @@
 
 // test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa');
 // test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa[2]');
-test('/\w+\s*=\s*\"\$\$\{([\w.:]+)\}\"/', 'a d_W1dd="$${aa}" aaa ="$${micu}" ');
+test('/\w[\w-]*\s*=\s*\"\$\$\{(\w+)(\|*\w*)\}\"/', 'a d_W-1dd="$${aa}" -a ="$${mi|cu}" ');
    
 function test($patern, $value) {
     $matches = null;
@@ -21,4 +28,8 @@ function test($patern, $value) {
     print_r($matches);
     echo '</pre><hr>';
 }
-            
+?>
+</div>
+</body>
+</html>
+    

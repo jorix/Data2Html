@@ -323,7 +323,7 @@ class Data2Html_Render_Template
     private function renderHtml($html, $replaces, $all = true)
     {
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
-            '/[\w-]+\s*=\s*\"\$\$\{([\w.:]+)\}\"/',
+            '/\w[\w-]*\s*=\s*\"\$\$\{(\w+)(\|*\w*)\}\"/',
             $replaces,
             function($matchItem, $value) {
                 if ($value) {

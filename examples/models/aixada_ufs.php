@@ -7,16 +7,6 @@ class aixada_ufs extends Data2Html_Model {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
-/*
-create table aixada_uf (
-  id   	     		int				not null,
-  name				varchar(255)    not null,
-  active     		tinyint 		default 1,   	
-  created			timestamp 		default current_timestamp,
-  mentor_uf         int             default null,
-  primary key (id)
-)
-*/
             'fields' => array(
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(

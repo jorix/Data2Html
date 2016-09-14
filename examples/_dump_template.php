@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="d2h_App" ng-app lang="ca">
+<html lang="ca">
 <head>
     <meta charset="utf-8">
     <title>Dump template</title>
@@ -22,4 +22,3 @@
     </div>
 </body>
 </html>
-
