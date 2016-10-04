@@ -46,8 +46,6 @@
         Data2Html_Autoload::start();
     
         $data = Data2Html_Model::render(
-            '_controller.php',
-            'models', 
             $_REQUEST, 
             '../code/templates/angular1/grid_paged.json.php'
         );

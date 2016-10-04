@@ -239,6 +239,11 @@ class Data2Html_Render_Template
         return array($finalKeys, $tree);       
     }
     
+    public function emptyRender()
+    {
+        return array('d2hToken_content' => true);
+    }
+    
     public function renderTemplateItem($itemKey, $templateBranch, $replaces)
     {
         $templateLeaf = $this->getTemplateBranch(

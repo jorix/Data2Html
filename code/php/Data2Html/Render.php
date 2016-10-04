@@ -23,12 +23,15 @@ class Data2Html_Render
 
     public function render($request)
     {
-        if (isset($request['model'])) {
+        if (isset($request['form'])) {
+            
+        } elseif (isset($request['model'])) {
             list($modelName, $gridName) =
                 Data2Html_Model::explodeLink($request['model']);
             $this->requestUrl = 
                 $this->modelObj->requestUrl . "model={$modelName}:{$gridName}&";
             return $this->renderGrid($gridName);
+            
         } else {
             throw new Exception("no request object.");
         }
@@ -62,14 +65,18 @@ class Data2Html_Render
                 )
             )
         );
-        list($pageId, $pageForm) = $this->renderForm(
+        $pageId = $this->idRender . '_page';
+        $pageForm = $this->renderForm(
+            $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
             'd2h_page.',
             $this->requestUrl,
             $this->modelObj->getTitle()
         );
-        list($filterId, $filterForm) = $this->renderForm(
+        $filterId = $this->idRender . '_filter';
+        $filterForm = $this->renderForm(
+            $filterId,
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
@@ -176,6 +183,7 @@ class Data2Html_Render
     }
 
     protected function renderForm(
+        $formId,
         $templateBranch,
         $formDs,
         $fieldPrefix,
@@ -183,9 +191,8 @@ class Data2Html_Render
         $title
     ){
         if (!$formDs) {
-            throw new Exception("`\$formDs` argument is empty.");
+            return $this->templateObj->emptyRender();
         }
-        $formId = $this->createIdRender();
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
@@ -244,6 +251,6 @@ class Data2Html_Render
                 'defaults' => $defaults
             )
         );
-        return array($formId, $form);
+        return $form;
     }
 }

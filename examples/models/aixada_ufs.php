@@ -16,9 +16,10 @@ class aixada_ufs extends Data2Html_Model {
                 'uf_name'   => '=$${name}#$${id}',
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
-                'mentor_uf' => array(
+                'mentor_uf' => array('link' => 'aixada_ufs:list'),
+                'mentor_name' =>  array(
                     'title' => 'UF mentora',
-                    'link' => 'aixada_ufs:list'
+                    'db'=>'mentor_uf[uf_name]'
                 ),
             ),
             'constraints' => (
@@ -49,6 +50,10 @@ class aixada_ufs extends Data2Html_Model {
                         'layout' => 'inline',
                         'fields' => array('active' => 'EQ')
                     )
+                ),
+                'default' => array(
+                    'columns' => array(),
+                    'filter' => array()
                 )
             ),
             'forms' => array(

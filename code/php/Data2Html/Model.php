@@ -23,7 +23,7 @@ abstract class Data2Html_Model
     public $table = '';
     public $requestUrl = '';
     protected $modelName = '';
-    private $colDs = null;
+    private $fields = null;
     private $grids = null;
     private $forms = null;
     
@@ -116,7 +116,7 @@ abstract class Data2Html_Model
     }
     public function getColDs()
     {
-        return $this->colDs;
+        return $this->fields;
     }
     public function getGrid($gridName = '')
     {
@@ -140,6 +140,14 @@ abstract class Data2Html_Model
                 "{$this->reason}: Form \"{$formName}\" not exist on `forms`."
             );
         }
+        if (!Data2Html_Value::getItem($this->forms[$formName],'_parsed')) {
+             $this->forms[$formName]['fields'] = $this->parseFormFields(
+                $formName,
+                Data2Html_Value::getItem($this->forms[$formName], 'fields', array()),
+                $this->fields
+            );
+            $this->forms[$formName]['_parsed'] = true;
+        }
         return $this->forms[$formName];
     }
     public function getLinkedGrid($gridName) {
@@ -154,10 +162,6 @@ abstract class Data2Html_Model
     {
         return $this->title;
     }
-    public function getReason()
-    {
-        return $this->reason;
-    }
     /**
      */
     protected function parse()
@@ -169,7 +173,7 @@ abstract class Data2Html_Model
         $this->title = $def->getString('title', $this->table);
         
         $baseFields = $this->parseFields($def->getArray('fields'));
-        $this->colDs = $baseFields;
+        $this->fields = $baseFields;
         
         $this->grids = $def->getArray('grids', array());
         if (!array_key_exists('default', $this->grids)) {
@@ -185,14 +189,7 @@ abstract class Data2Html_Model
         if (!array_key_exists('default', $this->forms)) {
             $this->forms['default'] = array();
         }        
-        foreach ($this->forms as $k => &$v) {
-            $v['fields'] = $this->parseFormFields(
-                $k,
-                Data2Html_Value::getItem($v, 'fields', array()),
-                $baseFields
-            );
-        }
-        unset($v);
+
     }
     protected function parseFields($fields)
     {    
@@ -370,6 +367,7 @@ abstract class Data2Html_Model
             $gridDx->getArray('columns', array()),
             $baseFields
         );
+        $grid['modelName'] = $this->modelName;
         $grid['table'] = $this->table;
         $grid['columns'] = $columns;
         $grid['_parsed'] = true;
@@ -580,10 +578,10 @@ abstract class Data2Html_Model
     /**
      * Render
      */    
-    public static function render($controllerUrl, $modelFolder, $request, $template)
+    public static function render($request, $template)
     {
         try {
-            $model = self::create($controllerUrl, $modelFolder, $request);
+            $model = self::createModel($request);
             $render = new Data2Html_Render($template, $model);
             $resul = $render->render($request);
             echo 
@@ -597,11 +595,13 @@ abstract class Data2Html_Model
     /**
      * Controller
      */    
-    public static function manage($controllerUrl, $modelFolder, $request)
+    public static function manage($request)
     {
         $debug = Data2Html_Config::debug();
         try {
-            $model = self::create($controllerUrl, $modelFolder, $request);
+            $modelName = self::extractModelName($request);
+            $payerName = self::extractPlayerName($request);
+            $model = self::createModel($modelName);
             $controller = new Data2Html_Controller($model);
             self::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
@@ -621,47 +621,72 @@ abstract class Data2Html_Model
     }
     /**
      * Load and create one model
+     * $modelName string||array
      */
-    public static function create($controllerUrl, $modelFolder, $request)
+    public static function createModel($modelName)
     {
-        if (isset($request['model'])) {
-            list($modelName, $gridName) = 
-                Data2Html_Model::explodeLink($request['model']);
-            if (!array_key_exists($modelName, self::$modelObjects)) {
-                self::$controllerUrl = $controllerUrl;
-                self::$modelFolder = $modelFolder;
-                return self::createModel($modelName);
-            }
+        if (is_array($modelName)) {
+            $modelName = self::extractModelName($modelName);
+        }
+        if (array_key_exists($modelName, self::$modelObjects)) {
+            return self::$modelObjects[$modelName];
+        }
+        if (count(self::$modelObjects) === 0) {
+            self::$controllerUrl = Data2Html_Config::get('controllerUrl');
+            self::$modelFolder = Data2Html_Config::get('modelFolder');
+        }
+        if (self::$controllerUrl === null) {
+            throw new Exception(
+                'Don\'t use `createGrid()` before load a parent grid.');
+        }
+        $ds = DIRECTORY_SEPARATOR;
+        $path = dirname(self::$controllerUrl) . $ds;
+        $file = $modelName . '.php';
+        if (self::$modelFolder) {
+            $file = self::$modelFolder . $ds . $file;
+        }
+        $phisicalFile = $path . $file;
+        if (file_exists($phisicalFile)) {
+            require $phisicalFile;
+            $data = new $modelName(
+                basename(self::$controllerUrl) . '?'
+            );
+            self::$modelObjects[$modelName] = $data;
+            return $data;
+        } else {
+            throw new Exception(
+                "load('{$modelName}'): File \"{$file}\" does not exist.");
+        }
+    }
+            
+    public static function extractPlayerName($request) 
+    {
+        if (!array_key_exists('model', $request)) {
+            throw new Exception('The URL parameter `?model=` is not set.');
+        }
+        list($modelName, $gridName) = self::explodeLink($request['model']);
+        $response = array('model' => $modelName);
+        if ($gridName) {
+            $response['grid'] = $gridName;
+        }
+        if (array_key_exists('grid', $request)) {
+            $response['grid'] = $request['grid'];
+        }
+        if (array_key_exists('form', $request)) {
+            $response['form'] = $request['form'];
+        }
+        return $response;
+        
+    }    
+    public static function extractModelName($request) 
+    {
+        if (array_key_exists('model', $request)) {
+            list($modelName, $gridName) = self::explodeLink($request['model']);
+            return $modelName;
         } else {
             throw new Exception('The URL parameter `?model=` is not set.');
         }
     }
-    public static function createModel($modelName)
-    {
-            if (self::$controllerUrl === null) {
-                throw new Exception(
-                    'Don\'t use `createGrid()` before load a parent grid.');
-            }
-            $ds = DIRECTORY_SEPARATOR;
-            $path = dirname(self::$controllerUrl) . $ds;
-            $file = $modelName . '.php';
-            if (self::$modelFolder) {
-                $file = self::$modelFolder . $ds . $file;
-            }
-            $phisicalFile = $path . $file;
-            if (file_exists($phisicalFile)) {
-                require $phisicalFile;
-                $data = new $modelName(
-                    basename(self::$controllerUrl) . '?'
-                );
-                self::$modelObjects[$modelName] = $data;
-                return $data;
-            } else {
-                throw new Exception(
-                    "load('{$modelName}'): File \"{$file}\" does not exist.");
-            }
-    }
-    
     public static function explodeLink($modelLink)
     {
         $modelElements = explode(':', $modelLink);

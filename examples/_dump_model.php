@@ -11,13 +11,14 @@
         Data2Html_Autoload::start();
     
         try {
-            $data = Data2Html_Model::create('_controller.php', 'models', $_REQUEST);
+            $data = Data2Html_Model::createModel($_REQUEST);
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
             die();
         }
-        if (!Data2Html_Config::debug()) {
+        $debug = Data2Html_Config::debug();
+        if (!$debug) {
             echo '<h2 style="color:red">Debug mode is required!</h2>';
         } else {
             try {
@@ -42,7 +43,7 @@
 
             } catch(Exception $e) {
                 // Message to developer from exception
-                echo Data2Html_Exception::toHtml($e, $data->debug);
+                echo Data2Html_Exception::toHtml($e, $debug);
                 
                 echo "<hr><h2>->getColDs()</h2>\n<pre>";
                 echo Data2Html_Utils::toPhp($data->getColDs());

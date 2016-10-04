@@ -17,16 +17,12 @@ class Data2Html_Parse_Link
         $this->debug = Data2Html_Config::debug();
         $this->data = $data;
     }
-    public function getReason()
-    {
-        return $this->reason;
-    }
     public function getGrid($gridName)
     {
     // echo "getGrid($gridName)<br>";
         $this->gridBase = $this->data->getGrid($gridName);
         $this->gridName = $this->gridBase['name'];
-        $this->reason = "Linking grid \"{$this->gridName}\" of table \"{$this->gridBase['table']}\"";
+        $this->reason = "Linking grid \"{$this->gridName}\" of model \"{$this->gridBase['modelName']}\"";
         $this->links = array();
         $this->joins = array();
         $this->full2BaseNames = array();
@@ -38,7 +34,7 @@ class Data2Html_Parse_Link
             $linkedTo = $this->parseLinkedTo('.', $v);
             if ($linkedTo) {
                 $v['linkedTo'] = $linkedTo;
-                $this->searchForLinks('.', $linkedTo, $fields);
+                $this->searchLinksTo('.', $linkedTo, $fields);
             }
             $fullName = $this->getFieldFullName('.', $k);
             if (!array_key_exists($fullName, $this->full2BaseNames)) {
@@ -50,7 +46,7 @@ class Data2Html_Parse_Link
                 $linkedTo = $this->parseLinkedTo('.', $v);
                 if ($linkedTo) {
                     $v['linkedTo'] = $linkedTo;
-                    $this->searchForLinks('.', $linkedTo, $fields);
+                    $this->searchLinksTo('.', $linkedTo, $fields);
                 }
             }
         }
@@ -74,22 +70,16 @@ class Data2Html_Parse_Link
         return $this->gridBase;
     }
     
-    protected function searchForLinks($fromLinkName, $linkedTo, $fields)
+    protected function searchLinksTo($fromLinkName, $linkedTo, $fields)
     {
-    // echo "searchForLinks($fromLinkName, ..)<br>";
+    // echo "searchLinksTo('$fromLinkName', ...)<br>";
         for ($i = 0; $i < count($linkedTo['links']); $i++) {
             $linkName = $linkedTo['links'][$i];
             $fieldName = $linkedTo['names'][$i];
+            // echo "  '{$linkName}[$fieldName]'<br>";
             if (!array_key_exists($linkName, $this->links)) { // Add new link
                 if (count($this->links) === 0) {
-                    $this->addLink(
-                        null,           // $fromLinkName
-                        null,           // $anchorField
-                        '.',            // $toLinkName
-                        '.',            // $modelName
-                        $this->data,    // $dataLink
-                        $this->gridBase // $gridLink
-                    );
+                    $this->createLink(null, '.', null, $fields);
                 }
                 if ($linkName !== '.') {
                     $this->createLink($fromLinkName, $linkName, $fieldName, $fields);
@@ -100,8 +90,13 @@ class Data2Html_Parse_Link
     
     protected function createLink($fromLinkName, $toLinkName, $fieldName, $fields)
     {
-    // echo "createLink('$fromLinkName', $toLinkName, $fieldName, )<br>";
-        if ($toLinkName !== '.') {
+    // echo "createLink('$fromLinkName', '$toLinkName', '$fieldName', )<br>";
+        if ($toLinkName === '.') {
+            $anchorField = null;
+            $modelName = $this->gridBase['modelName'];
+            $dataLink = $this->data;
+            $linkGrid = $this->gridBase;
+        } else {
             $linkParts = explode('->', $toLinkName);
             $finalLinkName = $linkParts[count($linkParts)-1];
             if (!array_key_exists($finalLinkName, $fields)) { 
@@ -113,7 +108,7 @@ class Data2Html_Parse_Link
             $linkedTo = $this->parseLinkedTo($fromLinkName, $anchorField);
             if ($linkedTo) {
                 $anchorField['linkedTo'] = $linkedTo;
-                $this->searchForLinks($toLinkName, $linkedTo, $fields);
+               // $this->searchLinksTo($toLinkName, $linkedTo, $fields);
             }
             if (!array_key_exists('link', $anchorField)) {
                 throw new Exception(
@@ -122,29 +117,11 @@ class Data2Html_Parse_Link
             }
             list($modelName, $gridName) = 
                 Data2Html_Model::explodeLink($anchorField['link']);
-            $dataLink = Data2Html_Model::createModel($modelName); //, $gridName);
+            $dataLink = Data2Html_Model::createModel($modelName);
             $linkGrid = $dataLink->getGrid($gridName);
-            $this->addLink(
-                $fromLinkName,
-                $anchorField,
-                $toLinkName,
-                $modelName,
-                $dataLink,
-                $linkGrid
-            );
         }
-    }
-    
-    protected function addLink(
-        $fromLinkName,
-        $anchorField,
-        $toLinkName,
-        $modelName,
-        $dataLink,
-        $gridLink
-    ) {
-    // echo "addLink($fromLinkName, , $toLinkName, $modelName,)<br>";
-        $linkedKeys = $gridLink['keys'];
+        // Add the new link
+        $linkedKeys = $linkGrid['keys'];
         if (count($linkedKeys) !== 1) {
             throw new Exception(
                 "{$this->reason}: Requires a primary key with only one field, on link \"{$toLinkName}[...]\"."
@@ -156,38 +133,39 @@ class Data2Html_Parse_Link
             'fromLink' => $fromLinkName,
             'model' => $modelName,
             'toAlias' => $toAlias,
-            'toTable' => $gridLink['table'],
+            'toTable' => $linkGrid['table'],
             'tableKey' => $linkedKeys[0],
             'fields' => $toFields,
-            'gridName' => $gridLink['name'],
-            'grid' => $gridLink,
-            'gridColNames' => array_keys($gridLink['columns'])
+            'gridName' => $linkGrid['name'],
+            'grid' => $linkGrid,
+            'gridColNames' => array_keys($linkGrid['columns'])
         );
         if (count($linkedKeys) === 0) {
             throw new Exception(
                 "{$this->reason}: On link \"{$toLinkName}\"" .
-                " for table \"{$gridLink['table']}\"" .
+                " for table \"{$linkGrid['table']}\"" .
                 " grid without keys."
             );
         }
-        $keyToField = $gridLink['columns'][$linkedKeys[0]]; //$toFields[$linkedKeys[0]];
+        $keyToField = $linkGrid['columns'][$linkedKeys[0]]; //$toFields[$linkedKeys[0]];
         if (!array_key_exists('linkedTo', $keyToField)) {
             $linkedTo = $this->parseLinkedTo($toLinkName, $keyToField);
             if ($linkedTo) {
                 $keyToField['linkedTo'] = $linkedTo;
             }
         }
-        $this->applyLinkField($toLinkName, $keyToField);
         if ($fromLinkName) {
             $fromJoin = $this->joins[$fromLinkName];
             $this->applyLinkField($fromLinkName, $anchorField);
         }
+        $this->applyLinkField($toLinkName, $keyToField);
         $this->joins[$toLinkName] = array(
             'fromDbKeys' => $fromLinkName ? $anchorField['db'] : null,
-            'toTable' => $gridLink['table'],
+            'toTable' => $linkGrid['table'],
             'toAlias' => $toAlias,
             'toDbKeys' => $keyToField['db']
         );
+        // echo "END createLink('$fromLinkName', $toLinkName, $fieldName, )<br>";
     }
     
     protected function parseLinkedTo($linkName, $field)
@@ -234,25 +212,29 @@ class Data2Html_Parse_Link
     }
     protected function applyLinkField($linkName, &$field)
     {
-    // echo "applyLinkField($linkName,)<br>";
+    //echo "applyLinkField('$linkName', array('{$field['db']}'))<br>";
         if(array_key_exists('linkedTo', $field)) {
             if (array_key_exists('db', $field)) {
-            // echo "applyLinkField($linkName,) field['db']= {$field['db']}<br>";
-                $field['db'] = $this->applyLinkToDb(
-                    $linkName,
-                    $field['linkedTo'],
-                    $field['db']
-                );
+                // echo "*applyLinkToDb applyLinkField<br>";
+                // TODO Refactor resistivity to remove use of 'db_init'
+                if (!array_key_exists('db_init', $field)) {
+                    $field['db_init'] = $field['db'];
+                    $field['db'] = $this->applyLinkToDb(
+                        $linkName,
+                        $field['linkedTo'],
+                        $field['db']
+                    );
+                }
                 // Merge with field destination
                 if (count($field['linkedTo']['links']) === 1) {
                     $linkedTo_0 = $field['linkedTo']['links'][0];
-                    $toField = $this->getToField(
+                    $fieldTo = $this->getFieldTo(
                         $linkedTo_0,
                         $field['linkedTo']['names'][0]
                     );
                     $this->mergeAttributes(
                         $field,
-                        $toField,
+                        $fieldTo,
                         array(
                             'description',
                             'size',
@@ -286,14 +268,25 @@ class Data2Html_Parse_Link
                     $baseName = $linkedTo['names'][$i];
                     $fullName = $this->getFieldFullName($newLinkName, $baseName);
                     if (!array_key_exists($fullName, $this->full2BaseNames)) {
-                        $toField = $this->getToField($newLinkName, $baseName);
-                        $this->addGridItem($fullName, $toField);
+                        $fieldTo = $this->getFieldTo($newLinkName, $baseName);
+                        $this->applyLinkField($newLinkName, $fieldTo);
+                        
+                        
+                        // if (array_key_exists('db', $fieldTo)) {
+                            // $fieldTo['db_init'] = $fieldTo['db'];
+                            // $fieldTo['db'] = 
+                                // $this->links[$newLinkName]['toAlias'] . '-' .
+                                // $fieldTo['db'];
+                        // }
+                        $this->addGridItem($fullName, $fieldTo);
                     }
                 }
             }
         } elseif(isset($field['db'])) {
+            $field['db_init'] = $field['db'];
             $field['db'] =  $this->links[$linkName]['toAlias'] . '.' . $field['db'];
         }
+    //echo "END applyLinkField('$linkName', array('{$field['db']}'))<br>";
     }
 
     protected function getFieldFullName($linkName, $fieldBaseName)
@@ -342,21 +335,22 @@ class Data2Html_Parse_Link
     }
     
     protected function applyLinkToDb($formLinkName, $linkedTo, $db) {   
-    // echo "applyLinkToDb($formLinkName, ,$db)<br>";
+    //echo "applyLinkToDb('$formLinkName', ,'$db')<br>";
         for ($i = 0; $i < count($linkedTo['links']); $i++) {
             $toLinkName = $linkedTo['links'][$i];
             if ($toLinkName === '.') {
                 $toLinkName = $formLinkName;
             }
-            $toFieldName = $linkedTo['names'][$i];
+            $fieldToName = $linkedTo['names'][$i];
             $link = $this->links[$toLinkName];
-            $linkedField = $this->getToField($toLinkName, $toFieldName);
+            $linkedField = $this->getFieldTo($toLinkName, $fieldToName);
             if(!array_key_exists('db', $linkedField)) {
                 return null;
             }
             if (array_key_exists('linkedTo', $linkedField)) {
                 // if is not the same field
                 if ($formLinkName !== $toLinkName || $db !== $linkedField['db']) {
+                    // echo "*applyLinkToDb self {$db} !== {$linkedField['db']} <br>";
                     $dbLinked = $this->applyLinkToDb(
                         $toLinkName,
                         $linkedField['linkedTo'],
@@ -381,32 +375,35 @@ class Data2Html_Parse_Link
         return $db;
     }
     
-    protected function getToField($linkName, $toFieldName)
+    protected function getFieldTo($linkName, $fieldToName)
     {
-    // echo "getToField($linkName, $toFieldName)<br>";
+    //echo "getFieldTo('$linkName', $fieldToName)<br>";
         $link = $this->links[$linkName];
-        if (is_numeric($toFieldName)) {
-            if (($toFieldName+0) >= count($link['gridColNames'])) {
+        if (is_numeric($fieldToName)) {
+            // Is a column of grid indexed by number
+            if (($fieldToName+0) >= count($link['gridColNames'])) {
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$linkName}[{$toFieldName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on grid of table \"{$link['toTable']}."
+                    "{$this->reason}: Linked field \"{$linkName}[{$fieldToName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on grid of model \"{$link['model']}."
                 );
             }
-            $toField = $link['grid']['columns'][$link['gridColNames'][$toFieldName+0]];
-        } elseif (array_key_exists($toFieldName, $link['grid']['columns'])) {
-            $toField = $link['grid']['columns'][$toFieldName];
+            $fieldTo = $link['grid']['columns'][$link['gridColNames'][$fieldToName+0]];
+        } elseif (array_key_exists($fieldToName, $link['grid']['columns'])) {
+            // Is a column of grid
+            $fieldTo = $link['grid']['columns'][$fieldToName];
         } else {
-            if (!array_key_exists($toFieldName, $link['fields'])) {
+            // Is a field of model
+            if (!array_key_exists($fieldToName, $link['fields'])) {
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$linkName}[{$toFieldName}]\" not exist on `fields` on model of table \"{$link['toTable']}\"."
+                    "{$this->reason}: Linked field \"{$linkName}[{$fieldToName}]\" not exist on `fields` on model \"{$link['model']}\"."
                 );
             }
-            $toField = $link['fields'][$toFieldName];
+            $fieldTo = $link['fields'][$fieldToName];
         }
-        $linkedTo = $this->parseLinkedTo($linkName, $toField);
+        $linkedTo = $this->parseLinkedTo($linkName, $fieldTo);
         if ($linkedTo) {
-            $toField['linkedTo'] = $linkedTo;
+            $fieldTo['linkedTo'] = $linkedTo;
         }
-        return $toField;
+        return $fieldTo;
     }
 }
     

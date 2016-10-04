@@ -121,25 +121,33 @@ abstract class Data2Html_Db
                 case 'number':
                 case 'boolean':
                 case 'currency':
-                    $v = $v + 0; // convert to number
+                    if (!is_null($v)) {
+                        $v = $v + 0; // convert to number
+                    }
                     break;
                 case 'date';
-                    $date = DateTime::createFromFormat('Y-m-d H:i:s', $v);
-                    // convert to a string as "2015-04-15T08:39:19+01:00"
-                    $v = date('c', $date->getTimestamp());
+                    if (!is_null($v)) {
+                        $date = DateTime::createFromFormat('Y-m-d H:i:s', $v);
+                        // convert to a string as "2015-04-15T08:39:19+01:00"
+                        $v = date('c', $date->getTimestamp());
+                    }
                     unset($date);
                     break;
                 }
             }
             $r += $values;
             foreach ($teplateItems as $mk => $mv) {
-                $marches = $teplateItems[$mk];
-                for ($i = 0; $i < count($matches[0]); $i++) {
+                $allIsNull = true;
+                for ($i = 0; $i < count($mv[0]); $i++) {
                     $r[$mk] = str_replace(
-                        $matches[0][$i],
-                        $r[$matches[1][$i]],
+                        $mv[0][$i],
+                        $r[$mv[1][$i]],
                         $r[$mk]
                     );
+                    $allIsNull = $allIsNull && is_null($r[$mv[1][$i]]);
+                }
+                if ($allIsNull) {
+                    $r[$mk] = null;
                 }
             }
             $rows[] = $r;
