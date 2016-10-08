@@ -102,6 +102,7 @@ abstract class Data2Html_Model
 
         $this->debug = Data2Html_Config::debug();
         $this->modelName = get_class($this);
+        $this->reason = "Model \"{$this->modelName}\"";
         
         $this->requestUrl = $requestUrl;
         $this->parse();
@@ -169,7 +170,6 @@ abstract class Data2Html_Model
         $aux = $this->definitions();
         $def = new Data2Html_Collection($aux);
         $this->table = $def->getString('table');
-        $this->reason = "Model \"{$this->modelName}\"";
         $this->title = $def->getString('title', $this->table);
         
         $baseFields = $this->parseFields($def->getArray('fields'));
@@ -341,6 +341,9 @@ abstract class Data2Html_Model
             // $${name} | $${link[name]}
             preg_match_all($this->matchTemplate, $value, $matches);
             if (count($matches[0]) > 0) {
+                if (!array_key_exists('type', $pField)) {
+                    $pField['type'] = 'string';
+                }
                 $pField['teplateItems'] = $matches;
             }
         }
@@ -370,6 +373,7 @@ abstract class Data2Html_Model
         $grid['modelName'] = $this->modelName;
         $grid['table'] = $this->table;
         $grid['columns'] = $columns;
+        $grid['columnNames'] = array_keys($columns);
         $grid['_parsed'] = true;
     }
 

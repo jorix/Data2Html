@@ -86,7 +86,7 @@ abstract class Data2Html_Db
     /**
      * Execute a query and return the array result.
      */
-    public function getQueryArray($query, $fieldDefs, $pageStart = 1, $pageSize = 0)
+    public function getQueryArray($query, $fieldDefs, $fieldNames, $pageStart = 1, $pageSize = 0)
     {
         try {
             $pageSize = intval($pageSize);
@@ -150,7 +150,13 @@ abstract class Data2Html_Db
                     $r[$mk] = null;
                 }
             }
-            $rows[] = $r;
+            $rRes = array();
+            $typesRes = array();
+            foreach ($fieldNames as $v) {
+                $rRes[$v] = $r[$v];
+                $typesRes[$v] = $types[$v];
+            }
+            $rows[] = $rRes;
         }
         $response = array();
         if ($this->debug) {
@@ -162,7 +168,7 @@ abstract class Data2Html_Db
         $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'types' => $types,
+            'types' => $typesRes,
             'rows' => $rows
         );
         return $response;

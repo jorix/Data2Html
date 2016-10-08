@@ -54,6 +54,7 @@ class Data2Html_Controller
                 return $db->getQueryArray(
                     $sql,
                     $linkedGrid['columns'],
+                    $linkedGrid['columnNames'],
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );

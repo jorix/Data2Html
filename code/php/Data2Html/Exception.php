@@ -50,7 +50,13 @@ class Data2Html_Exception extends Exception
                     $exData['error'].'</span></h3>';
         if (isset($exData['exception'])) {
             $html .= '<div style="margin-left:1em">Exception:<pre>' .
-                Data2Html_Value::toJson($exData['exception'], $debug) .
+                // Break a html comments to preserve the <pre> block (they may
+                // appear in some arguments calls)
+                str_replace(
+                    "<!--",
+                    '</!--',
+                    Data2Html_Value::toJson($exData['exception'], $debug)
+                ) .
                 '</pre></div>';
         }
         return $html;

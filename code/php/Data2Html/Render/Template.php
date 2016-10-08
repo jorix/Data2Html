@@ -4,6 +4,7 @@ class Data2Html_Render_Template
 {
     protected $debug;
     protected $templateName;
+    protected $reason;
     protected $templateTree;
     protected $templateContents;
     
@@ -11,6 +12,7 @@ class Data2Html_Render_Template
     {
         $this->debug = Data2Html_Config::debug();
         $this->templateName = $templateName;
+        $this->reason = "Template \"{$this->templateName}\"";
         $pathObj = $this->parsePath($templateName);
         
         $this->templateContents = array();
@@ -48,7 +50,7 @@ class Data2Html_Render_Template
     protected function loadTemplateTree($folder, $tree)
     {
         if (!is_array($tree)) {
-             throw new Exception("Tree must be a array!");
+             throw new Exception("{$this->reason}: Tree must be a array!");
         }
         if (array_key_exists('folder', $tree)) {
             $folder .=  $tree['folder'];
@@ -126,11 +128,11 @@ class Data2Html_Render_Template
             case '.json':
                 $tree = json_decode($this->getContent($contentKey), true);
                 if ($tree === null) {
-                    throw new Exception("Error parsing the json file: \"{$fullFileName}\"");
+                    throw new Exception("{$this->reason}: Error parsing the json file: \"{$fullFileName}\"");
                 }
                 return $this->loadTemplateTree($folder, $tree);
             default:
-                throw new Exception("Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported.");
+                throw new Exception("{$this->reason}: Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported.");
         }
     }
 
@@ -160,7 +162,7 @@ class Data2Html_Render_Template
     protected function loadContent($fileName) {
         if (!file_exists($fileName)) {
             throw new Exception(
-                "The \"{$fileName}\" file does not exist."
+                "{$this->reason}: The \"{$fileName}\" file does not exist."
             );
         }        
         $text = file_get_contents($fileName);//, FILE_USE_INCLUDE_PATH);
@@ -230,15 +232,17 @@ class Data2Html_Render_Template
         $tree = Data2Html_Value::getItem($templateBranch[1], $keys);
         if (!$tree) {
             throw new Data2Html_Exception(
-                "Template key \"" . 
-                implode('=>', $finalKeys) .
-                "\" of template \"{$this->templateName}\" does not exist.",
+                "{$this->reason}: Key \"" .
+                    implode('=>', $finalKeys) .
+                    "\" does not exist.",
                 $templateBranch[1]
             ); 
         }
         return array($finalKeys, $tree);       
     }
     
+    // TODO: Remove comments after solve parse a empty form filter!!!!!
+    // TODO: Remove this function
     public function emptyRender()
     {
         return array('d2hToken_content' => true);
@@ -317,8 +321,9 @@ class Data2Html_Render_Template
                     break;
                 default:
                     throw new Exception(
-                        "Template method {$k} on key \"" . implode('=>', $templateLeaf[0]) .
-                        "\" of template \"{$this->templateName}\" is not supported."
+                        "{$this->reason}: Method {$k} on key \"" . 
+                        implode('=>', $templateLeaf[0]) .
+                        "\" is not supported."
                     );
             }
         }
@@ -399,11 +404,14 @@ class Data2Html_Render_Template
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             $k = $matches[1][$i];
             if ($all || array_key_exists($k, $replaces)) {
-                $content = str_replace(
-                    $matches[0][$i],
-                    $encodeFn($matches[0][$i], $replaces[$k]),
-                    $content
-                );
+                $encodedVal = $encodeFn($matches[0][$i], $replaces[$k]);
+                // TODO: Remove comments after solve parse a empty form filter!!!!!
+                // if (is_array($encodedVal)) {
+                    // throw new Exception( 
+                        // "{$this->reason}: Replaces of \"{$matches[0][$i]}\" is array after encoded."
+                    // );
+                // }
+                $content = str_replace($matches[0][$i], $encodedVal, $content);
             }
         }
         return $content;

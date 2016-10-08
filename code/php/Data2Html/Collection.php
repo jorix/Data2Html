@@ -195,6 +195,25 @@ class Data2Html_Collection
         }
         return $val;
     }
+    public function toArray($itemKey, $default = null)
+    {
+        if (!array_key_exists($itemKey, $this->values)) {
+            $this->throwNotExist($itemKey, $default);
+            if (is_null($default)) {
+                return null;
+            }
+            $val = $default;
+        } else {
+            $val = $this->values[$itemKey];
+            if (is_null($val)) {
+                return null;
+            }
+        }
+        if (!is_array($val)) {
+            $val = array($val);
+        }
+        return $val;
+    }
     public function getCollection($itemKey, $default = null)
     {
         $val = $this->getArray($itemKey, $default);

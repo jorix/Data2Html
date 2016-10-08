@@ -86,6 +86,7 @@ class Data2Html_Render
         $gridTable = $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $gridDx->getArray('columns'),
+            $gridDx->getArray('columnNames'),
             array(
                 'title' => $this->modelObj->getTitle(),
                 'url' => $this->requestUrl,
@@ -99,7 +100,7 @@ class Data2Html_Render
         return $gridTable;
     }
     
-    protected function renderTable($templateTable, $colDs, $replaces)
+    protected function renderTable($templateTable, $colDs, $colNames, $replaces)
     {
         if (!$colDs) {
             throw new Exception("`\$colDs` parameter is empty.");
@@ -112,11 +113,13 @@ class Data2Html_Render
         $tbody = array();
         $renderCount = 0;
         $def = new Data2Html_Collection();
-        foreach ($colDs as $k => $v) {
+        foreach ($colNames as $k) {
+            $v = $colDs[$k];
             $def->set($v);
             $ignore = false;
-            if ($display = $def->getArray('display')) {
-                if (count($display)) { // TODO
+            if ($display = $def->toArray('display')) {
+                if (array_search('hidden', $display) !== false ||
+                    array_search('none', $display) !== false) {
                     $ignore = true;
                 }
             }

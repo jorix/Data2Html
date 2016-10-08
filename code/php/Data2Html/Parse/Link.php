@@ -270,14 +270,6 @@ class Data2Html_Parse_Link
                     if (!array_key_exists($fullName, $this->full2BaseNames)) {
                         $fieldTo = $this->getFieldTo($newLinkName, $baseName);
                         $this->applyLinkField($newLinkName, $fieldTo);
-                        
-                        
-                        // if (array_key_exists('db', $fieldTo)) {
-                            // $fieldTo['db_init'] = $fieldTo['db'];
-                            // $fieldTo['db'] = 
-                                // $this->links[$newLinkName]['toAlias'] . '-' .
-                                // $fieldTo['db'];
-                        // }
                         $this->addGridItem($fullName, $fieldTo);
                     }
                 }
@@ -320,7 +312,6 @@ class Data2Html_Parse_Link
         $this->baseNames[$pKey] = array(
             'fullName' => $fullName
         );
-        
         return $pKey;
     }
     
