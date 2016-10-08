@@ -585,7 +585,8 @@ abstract class Data2Html_Model
     public static function render($request, $template)
     {
         try {
-            $model = self::createModel($request);
+            $payerNames = self::extractPlayerNames($request);
+            $model = self::createModel($payerNames['model']);
             $render = new Data2Html_Render($template, $model);
             $resul = $render->render($request);
             echo 
@@ -603,9 +604,8 @@ abstract class Data2Html_Model
     {
         $debug = Data2Html_Config::debug();
         try {
-            $modelName = self::extractModelName($request);
-            $payerName = self::extractPlayerName($request);
-            $model = self::createModel($modelName);
+            $payerNames = self::extractPlayerNames($request);
+            $model = self::createModel($payerNames['model']);
             $controller = new Data2Html_Controller($model);
             self::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
@@ -629,9 +629,6 @@ abstract class Data2Html_Model
      */
     public static function createModel($modelName)
     {
-        if (is_array($modelName)) {
-            $modelName = self::extractModelName($modelName);
-        }
         if (array_key_exists($modelName, self::$modelObjects)) {
             return self::$modelObjects[$modelName];
         }
@@ -663,7 +660,7 @@ abstract class Data2Html_Model
         }
     }
             
-    public static function extractPlayerName($request) 
+    public static function extractPlayerNames($request) 
     {
         if (!array_key_exists('model', $request)) {
             throw new Exception('The URL parameter `?model=` is not set.');
@@ -681,16 +678,8 @@ abstract class Data2Html_Model
         }
         return $response;
         
-    }    
-    public static function extractModelName($request) 
-    {
-        if (array_key_exists('model', $request)) {
-            list($modelName, $gridName) = self::explodeLink($request['model']);
-            return $modelName;
-        } else {
-            throw new Exception('The URL parameter `?model=` is not set.');
-        }
     }
+
     public static function explodeLink($modelLink)
     {
         $modelElements = explode(':', $modelLink);

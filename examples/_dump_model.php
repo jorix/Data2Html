@@ -11,7 +11,8 @@
         Data2Html_Autoload::start();
     
         try {
-            $data = Data2Html_Model::createModel($_REQUEST);
+            $payerNames = Data2Html_Model::extractPlayerNames($_REQUEST);
+            $model = Data2Html_Model::createModel($payerNames['model']);
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
@@ -24,21 +25,21 @@
             try {
 
                 echo "<h2>getColDs():</h2>\n<pre>";
-                //echo Data2Html_Utils::toPhp($data->getColDs());
+                //echo Data2Html_Utils::toPhp($model->getColDs());
                 echo "</pre><hr>\n";
                 
                 echo "<h2>getForm():</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getForm());
+                echo Data2Html_Utils::toPhp($model->getForm());
                 echo "</pre><hr>\n";
                 
-                list($modelName, $gridName) = Data2Html_Model::explodeLink($_REQUEST['model']);
+                $gridName = $payerNames['grid'];
 
                 echo "<h2>getGridsDs():</h2>\n<pre>";
-                //echo Data2Html_Utils::toPhp($data->getGrid($gridName));
+                //echo Data2Html_Utils::toPhp($model->getGrid($gridName));
                 echo "</pre><hr>\n";
                 
                 echo "<h2>Linked getLinkedGrid('{$gridName}'):</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getLinkedGrid($gridName));
+                echo Data2Html_Utils::toPhp($model->getLinkedGrid($gridName));
                 echo "</pre><hr>\n";
 
             } catch(Exception $e) {
@@ -46,7 +47,7 @@
                 echo Data2Html_Exception::toHtml($e, $debug);
                 
                 echo "<hr><h2>->getColDs()</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($data->getColDs());
+                echo Data2Html_Utils::toPhp($model->getColDs());
                 echo "</pre>\n";
             }
         }
