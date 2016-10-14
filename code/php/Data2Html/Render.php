@@ -5,7 +5,6 @@ class Data2Html_Render
     public $debug = false;
     protected $modelObj;
     protected $templateObj;
-    protected $requestUrl;
     protected $idRender;
     private static $idRenderCount = 0;
     public function __construct($templateName, $modelObj)
@@ -21,23 +20,23 @@ class Data2Html_Render
         return 'd2h_' . self::$idRenderCount;
     }
 
-    public function render($request)
+    public function render($payerNames)
     {
-        if (isset($request['form'])) {
+        if (isset($payerNames['form'])) {
             
-        } elseif (isset($request['model'])) {
-            list($modelName, $gridName) =
-                Data2Html_Model::explodeLink($request['model']);
-            $this->requestUrl = 
-                $this->modelObj->requestUrl . "model={$modelName}:{$gridName}&";
-            return $this->renderGrid($gridName);
+        } elseif (isset($payerNames['grid'])) {
+            $gridName = $payerNames['grid'];
+            $requestUrl = 
+                $this->modelObj->requestUrl .
+                "model={$payerNames['model']}:{$gridName}&";
+            return $this->renderGrid($gridName, $requestUrl);
             
         } else {
             throw new Exception("no request object.");
         }
     }
 
-    protected function renderGrid($gridName)
+    protected function renderGrid($gridName, $requestUrl)
     {        
         $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
         $tplGrid = $this->templateObj->getTemplateBranch('grid');
@@ -71,7 +70,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
             'd2h_page.',
-            $this->requestUrl,
+            $requestUrl,
             $this->modelObj->getTitle()
         );
         $filterId = $this->idRender . '_filter';
@@ -80,7 +79,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $this->requestUrl,
+            $requestUrl,
             $this->modelObj->getTitle()
         );
         $gridTable = $this->renderTable(
@@ -89,7 +88,7 @@ class Data2Html_Render
             $gridDx->getArray('columnNames'),
             array(
                 'title' => $this->modelObj->getTitle(),
-                'url' => $this->requestUrl,
+                'url' => $requestUrl,
                 'filter' => $filterForm, 
                 'filterId' => $filterId,
                 'page' => $pageForm,

@@ -588,7 +588,7 @@ abstract class Data2Html_Model
             $payerNames = self::extractPlayerNames($request);
             $model = self::createModel($payerNames['model']);
             $render = new Data2Html_Render($template, $model);
-            $resul = $render->render($request);
+            $resul = $render->render($payerNames);
             echo 
                 "{$resul['html']}
                 \n<script>{$resul['js']}</script>";
@@ -667,14 +667,12 @@ abstract class Data2Html_Model
         }
         list($modelName, $gridName) = self::explodeLink($request['model']);
         $response = array('model' => $modelName);
-        if ($gridName) {
-            $response['grid'] = $gridName;
-        }
-        if (array_key_exists('grid', $request)) {
-            $response['grid'] = $request['grid'];
-        }
         if (array_key_exists('form', $request)) {
             $response['form'] = $request['form'];
+        } elseif (array_key_exists('grid', $request)) {
+            $response['grid'] = $request['grid'];
+        } elseif ($gridName) {
+            $response['grid'] = $gridName;
         }
         return $response;
         
