@@ -131,18 +131,21 @@ class Data2Html_SqlGenerator
             }
             $type = $itemDx->getString('type', 'string');
             // forced value
-            $r = $itemDx->toSql($this->db, 'value', $type, null);
-            if ($r === null) {
+            $rr = $itemDx->getValue('value', $type);
+            if ($rr === null) {
                 // requested value
-                $r = $requestValues->toSql($this->db, $k, $type, null);
+                $rr = $requestValues->getValue($k, $type);
             }
-            if ($r !== null) {
+            if ($rr !== null) {
                 switch ($fCheck) {
                 case 'EQ':
                     $dbCheck = '=';
                     break;
                 case 'LK':
                     $dbCheck = 'like';
+                    if (strpos($rr, '%') === false) {
+                        $rr = '%' . $rr . '%';
+                    }
                     break;
                 default:
                     throw new Exception(
@@ -150,6 +153,7 @@ class Data2Html_SqlGenerator
                     );
                     break;
                 }
+                $r = Data2Html_Value::toSql($this->db, $rr, $type);
                 array_push($c, "{$fieldDb} {$dbCheck} {$r}");
             }
         }

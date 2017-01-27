@@ -389,7 +389,12 @@ class Data2Html_Render_Template
         $js = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
             function($matchItem, $value) {
-                return Data2Html_Value::toJson($value);
+                if (is_array($value) && count($value) === 0) {
+                    // array as js object
+                    return '{}';
+                } else {
+                    return Data2Html_Value::toJson($value);
+                }
             },
             $js,
             $all

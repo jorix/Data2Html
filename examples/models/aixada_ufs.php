@@ -53,7 +53,15 @@ class aixada_ufs extends Data2Html_Model {
                 ),
                 'default' => array(
                     'columns' => array(),
-                    'filter' => array()
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array(
+                            //'active' => 'EQ',
+                            'mentor_uf[name]' => 'LK',
+                            // 'aaaa' => array('db'=>'mentor_uf[name]' ,'check'=> 'LK'),
+                            // '_niste' => array('default'=>1005),
+                        )
+                    )
                 )
             ),
             'forms' => array(

@@ -2,13 +2,6 @@
 <div class="row" ng-controller="$${id}">
     <form name="$${id}" class="simple-form" xx-class="form-horizontal"  novalidate>
     <div>
-        <div class="col-md-3">$$Filter:
-            <input type="text" placeholder="Filter" 
-                class="form-control" 
-                ng-model="search"
-                required
-            />
-        </div>
         $${body}
         <span class="col-md-1 form-group">
             <br>

@@ -41,6 +41,7 @@ class Data2Html_Parse_Link
                 $this->addGridItem($fullName);
             }
         }
+        unset($v);
         if (array_key_exists('filter', $this->gridBase)) {
             foreach ($this->gridBase['filter']['fields'] as $k => &$v) {
                 $linkedTo = $this->parseLinkedTo('.', $v);
@@ -49,9 +50,16 @@ class Data2Html_Parse_Link
                     $this->searchLinksTo('.', $linkedTo, $fields);
                 }
             }
+            unset($v);
         }
         foreach ($this->gridBase['columns'] as $k => &$v) {
             $this->applyLinkField('.', $v);
+        }
+        if (array_key_exists('filter', $this->gridBase)) {
+            foreach ($this->gridBase['filter']['fields'] as $k => &$v) {
+                $this->applyLinkField('.', $v);
+            }
+            unset($v);
         }
         foreach ($this->gridBase['columns'] as &$field) {
             if (array_key_exists('teplateItems', $field)) {

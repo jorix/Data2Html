@@ -59,40 +59,6 @@ class Data2Html_Collection
         }
     }
 
-    public function toSql($db, $itemKey, $type, $default = 'null')
-    {
-        switch ($type) {
-            case 'number':
-            case 'currency':            
-                $r = $this->getNumber($itemKey);
-                break;
-            case 'integer':
-            case 'boolean':
-                $r = $this->getInteger($itemKey);
-                break;
-            case 'string':
-            case 'email':
-            case 'url':
-                $r = $this->getString($itemKey);
-                if ($r !== null) {
-                    $r = $db->stringToSql($r);
-                }
-                break;
-            case 'date':
-                $r = $this->getDate($itemKey);
-                if ($r !== null) {
-                    $r = "'{$r}'";
-                }
-                break;
-            default:
-                throw new Exception(
-                    "Type `{$type}` is not supported."
-                );
-                break;
-        }
-        return is_null($r) ? $default : $r;
-    }
-
     public function getBoolean($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {

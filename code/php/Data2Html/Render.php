@@ -23,24 +23,30 @@ class Data2Html_Render
     public function render($payerNames)
     {
         if (isset($payerNames['form'])) {
-            
+            $formName = $payerNames['form'];
+            $formId = $this->idRender . '_f_' . $formName;
+            $form = $this->renderForm(
+                $formId,
+                $this->templateObj->getTemplateBranch('filter', $tplGrid),
+                $this->modelObj->getForm($formName),
+                'd2h_f_' . $formName . '.',
+                $this->modelObj->getControllerUrl(),
+                $this->modelObj->getTitle()
+            );
         } elseif (isset($payerNames['grid'])) {
-            $gridName = $payerNames['grid'];
-            $requestUrl = 
-                $this->modelObj->requestUrl .
-                "model={$payerNames['model']}:{$gridName}&";
-            return $this->renderGrid($gridName, $requestUrl);
-            
+            return $this->renderGrid($payerNames['grid']);
         } else {
             throw new Exception("no request object.");
         }
     }
 
-    protected function renderGrid($gridName, $requestUrl)
+    protected function renderGrid($gridName)
     {        
         $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
         $tplGrid = $this->templateObj->getTemplateBranch('grid');
-        
+        $requestUrl = 
+                $this->modelObj->getControllerUrl() .
+                "model={$this->modelObj->getModelName()}:{$gridName}&";
         $gridDx = new Data2Html_Collection($linkedGrid);
         $pageDef = array(
             'layout' => 'none',
@@ -70,7 +76,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
             'd2h_page.',
-            $requestUrl,
+            $this->modelObj->getControllerUrl(),
             $this->modelObj->getTitle()
         );
         $filterId = $this->idRender . '_filter';
@@ -79,7 +85,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $requestUrl,
+            $this->modelObj->getControllerUrl(),
             $this->modelObj->getTitle()
         );
         $gridTable = $this->renderTable(
@@ -189,7 +195,7 @@ class Data2Html_Render
         $templateBranch,
         $formDs,
         $fieldPrefix,
-        $formUrl,
+        $baseUrl,
         $title
     ){
         if (!$formDs) {
@@ -213,8 +219,7 @@ class Data2Html_Render
             $inputTplName = $input;
             if ($link) {
                 $inputTplName = 'ui-select';
-                $baseUrl = explode('?', $formUrl);
-                $url = $baseUrl[0].'?model='.$link.'&';
+                $url = $baseUrl . 'model='.$link.'&';
             }
             $replaces = array(
                 'id' => $this->createIdRender(),

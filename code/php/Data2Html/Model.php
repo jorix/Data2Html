@@ -21,7 +21,7 @@ abstract class Data2Html_Model
     // Parsed object definitions
     protected $title = '';
     public $table = '';
-    public $requestUrl = '';
+    protected $requestUrl = '';
     protected $modelName = '';
     private $fields = null;
     private $grids = null;
@@ -72,7 +72,7 @@ abstract class Data2Html_Model
         'link' => 'integer',
         'length' => 'string',
     );
-     protected $typesToDbTypes = array(
+    protected $typesToDbTypes = array(
         'email' => 'string',
         'url' => 'string',
     );
@@ -114,6 +114,14 @@ abstract class Data2Html_Model
         }
         $this->idParseCountArray[$sufix]++;
         return 'd2h_' . $this->idParseCountArray[$sufix] . '_' . $sufix;
+    }
+    public function getModelName()
+    {
+        return $this->modelName;
+    }
+    public function getControllerUrl()
+    {
+        return $this->requestUrl;
     }
     public function getColDs()
     {
@@ -465,18 +473,18 @@ abstract class Data2Html_Model
             $pFieldDx->set($pField);              
             $name = $pFieldDx->getString('name');
             if ($name) {
-                if (!array_key_exists($name, $baseFields)) {
-                    throw new Exception(
-                        "{$this->reason}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
-                    );
-                }
+                // if (!array_key_exists($name, $baseFields)) {
+                    // throw new Exception(
+                        // "{$this->reason}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
+                    // );
+                // }
                 $pField = array_merge($baseFields[$name], $pField);
                 $db = $pFieldDx->getString('db');
             } else {
                 $db = $pFieldDx->getString('db');
                 $name = $db;
             }
-            if (!$db) {
+            if (!$db && array_key_exists('check', $pField) ) {
                 throw new Exception(
                     "{$this->reason}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` attribute."
                 );
@@ -488,6 +496,10 @@ abstract class Data2Html_Model
             $this->addItem($gridName, $pKey, $pField, $pFields);
         }
         return $pFields;
+    }
+    
+    protected function parseFilterChek($fieldName)
+    {
     }
     
     protected function parseFormFields($formName, $fields, $baseFields)
@@ -502,11 +514,11 @@ abstract class Data2Html_Model
             $pFieldDx->set($v);              
             $name = $pFieldDx->getString('name');
             if ($name) {
-                if (!array_key_exists($name, $baseFields)) {
-                    throw new Exception(
-                        "{$this->reason}: Form `{$formName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
-                    );
-                }
+                // if (!array_key_exists($name, $baseFields)) {
+                    // throw new Exception(
+                        // "{$this->reason}: Form `{$formName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
+                    // );
+                // }
                 $v = array_merge($baseFields[$name], $v);
                 $db = $pFieldDx->getString('db');
             } else {
