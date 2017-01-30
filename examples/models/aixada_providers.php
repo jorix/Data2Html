@@ -1,5 +1,5 @@
 <?php
-class aixada_providers extends Data2Html {
+class aixada_providers extends Data2Html_Model {
     
     protected function definitions()
     {
@@ -8,7 +8,7 @@ class aixada_providers extends Data2Html {
             'fields' => array(
                 'id' => array('integer', 'autoKey'),
                 'name' => array(),
-                'group' => array(),
+                //'group' => array(),
                 'text' => array(
                     'value' => '$${name} #$${id}'
                 ),
@@ -18,8 +18,14 @@ class aixada_providers extends Data2Html {
             ),
             'grids' => array(
                 'default' => array(
+                    'columns' => array(),
                     'sort' => 'name',
-                    'filter' => array('active' => 'EQ')
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array(
+                            'active' => 'EQ'
+                        )
+                    )
                 )
             )
         );

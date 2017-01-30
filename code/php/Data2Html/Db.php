@@ -112,6 +112,7 @@ abstract class Data2Html_Db
             }
         }
         // Read rs
+        $dataTypes = array();
         $rows = array();
         $result = $this->queryPage($query, $pageStart, $pageSize);
         while ($r = $this->fetch($result)) {
@@ -151,10 +152,9 @@ abstract class Data2Html_Db
                 }
             }
             $rRes = array();
-            $typesRes = array();
             foreach ($fieldNames as $v) {
                 $rRes[$v] = $r[$v];
-                $typesRes[$v] = $types[$v];
+                $dataTypes[$v] = $types[$v];
             }
             $rows[] = $rRes;
         }
@@ -168,7 +168,7 @@ abstract class Data2Html_Db
         $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'types' => $typesRes,
+            'dataTypes' => $dataTypes,
             'rows' => $rows
         );
         return $response;
