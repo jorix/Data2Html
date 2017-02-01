@@ -14,6 +14,8 @@
         <ul>
             <li><a href="#" onclick="$('#tbl_providers').data2html('load', {params: 'model=aixada_ufs'}); return false;">Ufs</a></li>
             <li><a href="#" onclick="$('#tbl_providers').data2html('load', {params: 'model=aixada_providers'}); return false;">Proveidors</a></li>
+            <li><a href="#" onclick="$('#tbl_xxx').data2html('load', {params: 'model=aixada_ufs'}); return false;">xxx Ufs</a></li>
+        </ul>
         <div class="row" id="tbl_providers" >
         <table class="table table-striped table-bordered">
             <tbody>
@@ -32,25 +34,30 @@
                 <tr><td>post</td></tr>              
             </tbody>
         </table>
-        <span class="d2h_repeat"></span>
+        <table id="tbl_xxx" class="table table-striped table-bordered">
+            <tbody><tr class="d2h_repeat2" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
+                    <td><input type="checkbox" name="providerBulkAction"/></td>
+                    <td class="textAlignRight">{id}</td>
+                    <td title="<?php echo 'click_to_list'; ?>">{name}</td></tr>
+                <tr><td>post</td></tr>              
+            </tbody>
+            </table>
+        <span class="d2h_repeat333"></span>
         </div>
     </div>
     <script "type"="text/javascript">
     $('#tbl_providers').data2html({
         url: '../_controller.php',
-        params: 'model=aixada_providers',
-        complete: function(rowCount){
-            //$('tr:even', this).addClass('rowHighlight');
-            $('p.providerActiveStatus').each(function(){
-                if ($(this).text() == "1"){
-                    $(this).html('<span class="ui-icon ui-icon-check"></span>').addClass('aix-style-ok-green ui-corner-all')
-                } else {
-                    $(this).html('<span class="ui-icon ui-icon-cancel"></span>').addClass("noRed ui-corner-all");
-                }
-            });
-        }
+        params: 'model=aixada_providers'
     });
     $('#tbl_providers').data2html("load");
+    </script>
+    <script "type"="text/javascript">
+    $('#tbl_xxx').data2html({
+        classRepeat: 'd2h_repeat2',
+        url: '../_controller.php',
+        params: 'model=aixada_providers'
+    });
     </script>
 </body>
 </html>

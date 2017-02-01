@@ -57,6 +57,15 @@
                         );
                         return;
                     }
+                    if ($(dataObj._selectorRepeat, this).length > 1) {
+                        $.error("Data2Html: Can not initialize, DOM object '" +
+                            _getElementPath(this) +
+                            "' contains more than one '" +
+                            dataObj._selectorRepeat +
+                            "' selector."
+                        );
+                        return;
+                    }
 
                     // Mark then parent.
                     var $parentContainer = $itemRepeat.parent();
