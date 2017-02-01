@@ -3,101 +3,146 @@
  * 
  */
 (function( $ ){
+    var _initCounter = 0;
     var _defaults = {
         url: '',				
         params: '',
         type: 'GET',
-        offSet: 0, //indicates the offset when deleting dynamic rows. 
         pageSize: 0, //default results per page
-        elementData: 'table tbody',
-        elementWaiting: '.d2h_waiting',
+        classRepeat: 'd2h_repeat',
+        classWaiting: 'd2h_waiting',        
+        selectorPageIndex: '.pageIndex',
+        
         beforeSend: function(){},
         complete: function(row_count){}, //called, once loop through data has finished
-        rowComplete: function(current_row_index, row){}//called, after each row 
+        rowComplete: function(current_row_index, row) {}, //called, after each row 
+        
+        _classRepeatParent: 'd2h_repeatParent'
     };
 	var methods = {
         init: function(options){
-            var _options = null;
-            if (options) {
-                _options = $.extend(
-                    $.extend({}, _defaults), // to preserve defaults
-                    options
-                );
-            }
+            var _options = $.extend(
+                {},
+                _defaults, // to preserve defaults
+                options
+            );
             var response = this.each( function(){
-                var $this = $(this),
-                    dataObj = $this.data('data2html'),
-                    $thisData = null;
-                if ( dataObj ) { // Object 'data2html' already exists
-                    $thisData = $(dataObj.elementData, $this);
-                } else { // Create object 'data2html'
-                    if (_options === null) {
-                        $.error("The options are required to first start");
+                var dataObj = $(this).data('data2html');
+                if (!dataObj) { // Create object 'data2html'
+                    if (options === null) {
+                        $.error("Options are required to initialize a DOM object '" +
+                            _getElementPath(this) +
+                            "'.");
                         return;
                     }
-                    dataObj = $.extend({}, _options);
-                    dataObj = $.extend({
-                        _dataArray: null, //the data once loaded/received
-                        _tpl: '',       // template HTML string
-                        rowCount: 0,    // number of total result rows
-                        _listHeader: null,
-                        _pageIndex: 0,
-                        _indexCols: {}
-                    }, dataObj);
-                    $thisData = $(dataObj.elementData, $this);
-                    if (dataObj.offSet > 0){
-                        var listHeader = $thisData.children(
-                            ':lt('+dataObj.offSet+')'
-                        ).detach(); 
-                        if (listHeader.size() > 0){
-                            dataObj._listHeader = listHeader;
-                        } 
+                    _initCounter++;
+                    var classRepeatParent = 'i_' + _options.classRepeat +
+                                            'Parent_' + _initCounter;
+                    dataObj = $.extend({}, _options, {
+                            _rows: null, //the data once loaded/received
+                            _repeatHtml: '',       // template HTML string
+                            _pageIndex: 0,
+                            _selectorWaiting: (_options.classWaiting ?
+                                '.' + _options.classWaiting : ''),
+                            _selectorRepeat: '.' + _options.classRepeat,
+                            _selectorRepeatParent: '.' + classRepeatParent
+                    });
+                    $itemRepeat = $(dataObj._selectorRepeat + ':first', this);
+                    if ($itemRepeat.length == 0) {
+                        $.error("Data2Html: Can not initialize, DOM object '" +
+                            _getElementPath(this) +
+                            "' does not contain a '" +
+                            dataObj._selectorRepeat +
+                            "' selector."
+                        );
+                        return;
                     }
-                    dataObj._tpl = $thisData.html();
-                    $this.data('data2html', dataObj); // set dataObj
+
+                    // Mark then parent.
+                    var $parentContainer = $itemRepeat.parent();
+                    if ($(dataObj._selectorRepeatParent, this).length > 0) {
+                        $.error("Data2Html: Can not initialize, DOM object '" +
+                            _getElementPath(this) +
+                            "' contains selector '" +
+                            dataObj._selectorRepeatParent +
+                            "' which is for internal use only!"
+                        );
+                        return;
+                    }
+                    $parentContainer.addClass(classRepeatParent);
+                    if ($(dataObj._selectorRepeat, $parentContainer).length > 1) {
+                        $.error("Data2Html: Can not initialize, DOM object '" +
+                            _getElementPath($parentContainer[0]) +
+                            "' contains more than one '" +
+                            dataObj._selectorRepeat +
+                            "' selector."
+                        );
+                        return;
+                    }
+                    
+                    // Set template
+                    dataObj._repeatHtml = $itemRepeat.get(0).outerHTML;
+                    dataObj._repeatStart = $parentContainer.children().index($itemRepeat);
+                    $(this).data('data2html', dataObj); // set dataObj
                 }
-                _removeAll($thisData, dataObj._listHeader);
+                _clearHtml.call(this);
             });
-            if (response.length == 0) {
-                throw "Data2Html: Can not initialize, DOM object not found.";
-            }
             return response;
  		},
-        load: function( options ) {
-            if ( options ) {
-                $.extend( $(this).data('data2html'), options );
-            }
+        
+        load: function(options) {
             return this.each(function() {
-                var $this = $(this);
-                    _dataObj = $this.data('data2html');
+                var _this = this;
+                    _dataObj = $(this).data('data2html');
+                if (options) {
+                    $.extend(_dataObj, options);
+                }
                 if (!_dataObj) {
-                    throw "Data2Html: Can not call 'load' without first initialize DOM: " +
-                        _getElementDesc(this);
+                    $.error(
+                        "Data2Html: Can not call 'load' without first initialize DOM '" +
+                        _getElementPath(this)+
+                        "' object"
+                    );
+                    return;
                 }
                 $.ajax({
                     type: _dataObj.type,
                     url: _dataObj.url + "?" + _dataObj.params,		
                     dataType: "json", 
                     beforeSend: function(){
-                        if (_dataObj.elementWaiting) {
-                            $(_dataObj.elementWaiting, $this).show();
+                        if (_dataObj._selectorWaiting) {
+                            $(_dataObj._selectorWaiting, _this).show();
                         }
-                        _dataObj.beforeSend.call(this, 0);
+                        _dataObj.beforeSend.call(_this, 0);
                     },
                     success: function(jsonData){
-                        _dataObj._dataArray = jsonData;
-                        _dataObj.rowCount = jsonData.rows.length;
-                        var _indexCols = null;
-                        if (jsonData.dataRows) {
-                            _indexCols = {};
-                            for (var i=0, len= jsonData.dataTypes.length; i <len; i++) {
-                                _indexCols[jsonData.dataTypes[i]] = i;
+                        var dataTypes = jsonData.dataTypes,
+                            rowsCount = 0;
+                        _dataObj._dataTypes = dataTypes;
+                        if (jsonData.rowsAsArray) {
+                            var rows = [],
+                                indexCols = {};
+                            for (var i = 0, len = dataTypes.length; i < len; i++) {
+                                indexCols[dataTypes[i]] = i;
                             }
-                            
+                            var rowsAsArray = jsonData.rowsAsArray;
+                            rowsCount = rowsAsArray.length;
+                            for (var i = 0; i < rowsCount; i++) {
+                                var item = rowsAsArray[i];
+                                for (var tagName in indexCols) {
+                                    var row = {};
+                                    row[tagName] = item[indexCols[tagName]];
+                                    var pattern = new RegExp('\{'+tagName+'\}','gi');		
+                                    templateStr = templateStr.replace(pattern, value);
+                                }
+                                rows.push(row);
+                            }
+                            _dataObj._rows = rows;
+                        } else {
+                            _dataObj._rows = jsonData.rows;
                         }
-                        _dataObj._indexCols = _indexCols;
-                        _loopRows.call($this);
-                    },//end success
+                        _showRows.call(_this);
+                    },
                     error: function(XMLHttpRequest, textStatus, errorThrown){
                         if (typeof bootbox != 'undefined'){
                             bootbox.alert({
@@ -110,20 +155,20 @@
                         }
                     },
                     complete: function(msg){
-                        if (_dataObj.elementWaiting) {
-                            $(_dataObj.elementWaiting, $this).hide();
+                        if (_dataObj._selectorWaiting) {
+                            $(_dataObj._selectorWaiting, _this).hide();
                         }
                     }
                 });
             });
         }
     };
-    function _getElementDesc(elem) {
+    function _getElementPath($elem) {
         var selectorArr = [
-            elem.tagName.toLowerCase() +
-            (elem.id ? '#' + elem.id : '')
+            $elem.tagName.toLowerCase() +
+            ($elem.id ? '#' + $elem.id : '')
         ];
-        $(elem).parents().map(
+        $($elem).parents().map(
             function() {
                 selectorArr.push(
                     this.tagName.toLowerCase() +
@@ -133,45 +178,50 @@
         );
         return selectorArr.reverse().join(">");
     };
-    function _removeAll($thisData, listHeader) {
-        $thisData.empty();
-        $thisData.append(listHeader);
-    }
-	function _loopRows() {
+    function _clearHtml() {
         var dataObj = $(this).data('data2html'),
-            _indexCols = dataObj._indexCols,
-            dataArray = dataObj._dataArray,
-            rowCount = dataObj.rowCount,
-            resultsPP = (dataObj.pageSize ? dataObj.pageSize : rowCount),
-            startIndex = dataObj._pageIndex * resultsPP; 
-        var nextSet = startIndex + resultsPP;
-
-        // append header
-        $thisData = $(dataObj.elementData, this);
-        _removeAll($thisData, dataObj._listHeader);
-		$('.pageIndex').val(dataObj._pageIndex + 1);
+            $parentContainer = $(dataObj._selectorRepeatParent, this);
+        $(dataObj._selectorRepeat, $parentContainer).remove();
+    }
+	function _showRows() {
+        var dataObj = $(this).data('data2html'),
+            rows = dataObj._rows,
+            rowsCount = rows.length;
+        var resultsPP = (dataObj.pageSize ? dataObj.pageSize : rowsCount),
+            startIndex = dataObj._pageIndex * resultsPP,
+            nextSet = startIndex + resultsPP;
+        
+        _clearHtml.call(this);
+		$(dataObj.selectorPageIndex).val(dataObj._pageIndex + 1);
+        
+        var $parentContainer = $(dataObj._selectorRepeatParent, this),
+            lastItem = null;
+        if (dataObj._repeatStart > 0) {
+            lastItem = $(
+                $parentContainer.children()[dataObj._repeatStart - 1]
+            );
+        }
         
         // loop rows
-		for (var i=startIndex; (i<rowCount && i<nextSet); i++){
-			var row = dataArray.rows[i];
-			var templateStr = dataObj._tpl;
-            if (_indexCols) { // by array width cols declaration
-                for (var tagName in _indexCols) {
-                    var value = row[_indexCols[tagName]];
-                    var pattern = new RegExp('\{'+tagName+'\}','gi');		
-                    templateStr = templateStr.replace(pattern, value);
-                }
-            } else {
-                for (tagName in row) {
-                    var pattern = new RegExp('\{'+tagName+'\}','gi');		
-                    templateStr = templateStr.replace(pattern, row[tagName]);
-                }
+		for (var i=startIndex; (i<rowsCount && i<nextSet); i++){
+			var row = rows[i];
+			var templateStr = dataObj._repeatHtml;
+            for (tagName in row) {
+                var pattern = new RegExp('\{'+tagName+'\}','gi');		
+                templateStr = templateStr.replace(pattern, row[tagName]);
             }
-			$thisData.append(templateStr);
-			dataObj.rowComplete.call(this,
-                i, $thisData.children(":last"));
+            if (lastItem) {
+                lastItem.after(templateStr);
+            } else {
+                $parentContainer.append(templateStr);
+            }
+            lastItem = $(
+                dataObj._selectorRepeat + ':last',
+                $parentContainer
+            );
+			dataObj.rowComplete.call(this, i, lastItem);
 		}
-        dataObj.complete.call(this,startIndex+resultsPP);
+        dataObj.complete.call(this, startIndex + resultsPP);
 	}
     /**
      * Method calling logic
@@ -182,7 +232,7 @@
                 this, Array.prototype.slice.call(arguments, 1)
             );
         } else if ( typeof method === 'object' || ! method ) {
-            return methods.init.apply( this, arguments );
+            return methods.init.apply(this, arguments);
         } else {
             $.error( 'Method "' +  method + '" does not exist on jQuery.data2html' );
         }

@@ -11,10 +11,14 @@
 </head>
 <body>
     <div class="container">
+        <ul>
+            <li><a href="#" onclick="$('#tbl_providers').data2html('load', {params: 'model=aixada_ufs'}); return false;">Ufs</a></li>
+            <li><a href="#" onclick="$('#tbl_providers').data2html('load', {params: 'model=aixada_providers'}); return false;">Proveidors</a></li>
         <div class="row" id="tbl_providers" >
         <table class="table table-striped table-bordered">
             <tbody>
-                <tr providerId="{id}" responsibleUfId="{responsible_uf_id}" >
+                <tr><td>previ</td></tr>
+                <tr class="d2h_repeat" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
                     <td><input type="checkbox" name="providerBulkAction"/></td>
                     <td class="textAlignRight">{id}</td>
                     <td title="<?php echo 'click_to_list'; ?>">{name}</td>
@@ -24,23 +28,18 @@
                     <td><?php echo 'uf_short';?>{responsible_uf_id} {responsible_uf_name}</td>
                     <td><a href="javascript:void(null)" class="btn_edit_provider"><?php echo 'edit'; ?></a> | 
                     <a href="javascript:void(null)" class="btn_del_provider"><?php echo 'btn_del'; ?></a></td>
-                </tr>						
+                </tr>
+                <tr><td>post</td></tr>              
             </tbody>
         </table>
+        <span class="d2h_repeat"></span>
         </div>
     </div>
     <script "type"="text/javascript">
     $('#tbl_providers').data2html({
         url: '../_controller.php',
-        params : 'model=aixada_providers',
-        beforeLoad: function(){
-            $('.loadSpinner').show();
-        },
-        rowComplete: function (rowIndex, row){
-
-        },
+        params: 'model=aixada_providers',
         complete: function(rowCount){
-            $('.loadSpinner').hide();
             //$('tr:even', this).addClass('rowHighlight');
             $('p.providerActiveStatus').each(function(){
                 if ($(this).text() == "1"){
@@ -49,7 +48,6 @@
                     $(this).html('<span class="ui-icon ui-icon-cancel"></span>').addClass("noRed ui-corner-all");
                 }
             });
-            $("#tbl_providers").trigger("update"); 
         }
     });
     $('#tbl_providers').data2html("load");
