@@ -2,6 +2,7 @@
  * TODO: right now, the same page can only have one pagination. Should be that pagination with all associated fields is instance specific!!!
  * 
  */
+var data2html, d2h;
 (function( $ ){
     var _initCounter = 0;
     var _defaults = {
@@ -19,86 +20,87 @@
         
         _classRepeatParent: 'd2h_repeatParent'
     };
-	var methods = {
-        init: function(options){
-            var _options = $.extend(
-                {},
-                _defaults, // to preserve defaults
-                options
-            );
-            var response = this.each( function(){
-                var dataObj = $(this).data('data2html');
-                if (!dataObj) { // Create object 'data2html'
-                    if (options === null) {
-                        $.error("Options are required to initialize a DOM object '" +
-                            _getElementPath(this) +
-                            "'.");
-                        return;
-                    }
-                    _initCounter++;
-                    var classRepeatParent = 'i_' + _options.classRepeat +
-                                            'Parent_' + _initCounter;
-                    dataObj = $.extend({}, _options, {
-                            _rows: null, //the data once loaded/received
-                            _repeatHtml: '',       // template HTML string
-                            _pageIndex: 0,
-                            _selectorWaiting: (_options.classWaiting ?
-                                '.' + _options.classWaiting : ''),
-                            _selectorRepeat: '.' + _options.classRepeat,
-                            _selectorRepeatParent: '.' + classRepeatParent
-                    });
-                    $itemRepeat = $(dataObj._selectorRepeat + ':first', this);
-                    if ($itemRepeat.length == 0) {
-                        $.error("Data2Html: Can not initialize, DOM object '" +
-                            _getElementPath(this) +
-                            "' does not contain a '" +
-                            dataObj._selectorRepeat +
-                            "' selector."
-                        );
-                        return;
-                    }
-                    if ($(dataObj._selectorRepeat, this).length > 1) {
-                        $.error("Data2Html: Can not initialize, DOM object '" +
-                            _getElementPath(this) +
-                            "' contains more than one '" +
-                            dataObj._selectorRepeat +
-                            "' selector."
-                        );
-                        return;
-                    }
-
-                    // Mark then parent.
-                    var $parentContainer = $itemRepeat.parent();
-                    if ($(dataObj._selectorRepeatParent, this).length > 0) {
-                        $.error("Data2Html: Can not initialize, DOM object '" +
-                            _getElementPath(this) +
-                            "' contains selector '" +
-                            dataObj._selectorRepeatParent +
-                            "' which is for internal use only!"
-                        );
-                        return;
-                    }
-                    $parentContainer.addClass(classRepeatParent);
-                    if ($(dataObj._selectorRepeat, $parentContainer).length > 1) {
-                        $.error("Data2Html: Can not initialize, DOM object '" +
-                            _getElementPath($parentContainer[0]) +
-                            "' contains more than one '" +
-                            dataObj._selectorRepeat +
-                            "' selector."
-                        );
-                        return;
-                    }
-                    
-                    // Set template
-                    dataObj._repeatHtml = $itemRepeat.get(0).outerHTML;
-                    dataObj._repeatStart = $parentContainer.children().index($itemRepeat);
-                    $(this).data('data2html', dataObj); // set dataObj
+    var _init = function(options){
+        var _options = $.extend(
+            {},
+            _defaults, // to preserve defaults
+            options
+        );
+        return this.each( function(){
+            var dataObj = $(this).data('data2html');
+            if (!dataObj) { // Create object 'data2html'
+                if (options === null) {
+                    $.error("Options are required to initialize a DOM object '" +
+                        _getElementPath(this) +
+                        "'.");
+                    return;
                 }
-                _clearHtml.call(this);
-            });
-            return response;
- 		},
+                _initCounter++;
+                var classRepeatParent = 'i_' + _options.classRepeat +
+                                        'Parent_' + _initCounter;
+                dataObj = $.extend({}, _options, {
+                        _rows: null, //the data once loaded/received
+                        _repeatHtml: '',       // template HTML string
+                        _pageIndex: 0,
+                        _selectorWaiting: (_options.classWaiting ?
+                            '.' + _options.classWaiting : ''),
+                        _selectorRepeat: '.' + _options.classRepeat,
+                        _selectorRepeatParent: '.' + classRepeatParent
+                });
+                $itemRepeat = $(dataObj._selectorRepeat + ':first', this);
+                if ($itemRepeat.length == 0) {
+                    $.error("Data2Html: Can not initialize, DOM object '" +
+                        _getElementPath(this) +
+                        "' does not contain a '" +
+                        dataObj._selectorRepeat +
+                        "' selector."
+                    );
+                    return;
+                }
+                if ($(dataObj._selectorRepeat, this).length > 1) {
+                    $.error("Data2Html: Can not initialize, DOM object '" +
+                        _getElementPath(this) +
+                        "' contains more than one '" +
+                        dataObj._selectorRepeat +
+                        "' selector."
+                    );
+                    return;
+                }
+
+                // Mark then parent.
+                var $parentContainer = $itemRepeat.parent();
+                if ($(dataObj._selectorRepeatParent, this).length > 0) {
+                    $.error("Data2Html: Can not initialize, DOM object '" +
+                        _getElementPath(this) +
+                        "' contains selector '" +
+                        dataObj._selectorRepeatParent +
+                        "' which is for internal use only!"
+                    );
+                    return;
+                }
+                $parentContainer.addClass(classRepeatParent);
+                if ($(dataObj._selectorRepeat, $parentContainer).length > 1) {
+                    $.error("Data2Html: Can not initialize, DOM object '" +
+                        _getElementPath($parentContainer[0]) +
+                        "' contains more than one '" +
+                        dataObj._selectorRepeat +
+                        "' selector."
+                    );
+                    return;
+                }
+                
+                // Set template
+                dataObj._repeatHtml = $itemRepeat.get(0).outerHTML;
+                dataObj._repeatStart = $parentContainer.children().index($itemRepeat);
+                $(this).data('data2html', dataObj); // set dataObj
+            }
+            _clearHtml.call(this);
+        });
+    };
         
+	var _methods = {
+        filter: function(options) {
+        },
         load: function(options) {
             return this.each(function() {
                 var _this = this;
@@ -231,19 +233,56 @@
 			dataObj.rowComplete.call(this, i, lastItem);
 		}
         dataObj.complete.call(this, startIndex + resultsPP);
+        return this;
 	}
     /**
      * Method calling logic
      */
-	$.fn.data2html = function(method) {
-        if ( methods[method] ) {
-            return methods[ method ].apply(
-                this, Array.prototype.slice.call(arguments, 1)
+    var _d2h = function(selector) {
+        this.selector = selector;
+    };
+    _d2h.prototype = {
+        init: function(options) {
+            var $elem = $(this.selector);
+            if ($elem.length == 0) {
+                $.error(
+                    "Data2Html: Can not find a DOM object with the selector '" +
+                    this.selector + "'."
+                );
+                return this;
+            }
+            _init.call($elem, options);
+            return this;
+        },
+        filter: function(options) {
+            _methods.filter.call($(this.selector), options);
+            return this;
+        },
+        load: function(options) {
+            _methods.load.call($(this.selector), options);
+            return this;
+        }
+    };
+    d2h = data2html = function(selector, options) {
+        var obj = new _d2h(selector);
+        obj.init(options);
+        return obj;
+    };
+	$.fn.d2h = $.fn.data2html = function(method) {
+        if (this.length == 0) {
+            $.error(
+                "Data2Html: Can not find a DOM object with the selector, " +
+                "there is no object on which the method '" +
+                method + "' executes."
             );
-        } else if ( typeof method === 'object' || ! method ) {
-            return methods.init.apply(this, arguments);
+            return;
+        }
+        var method = _methods[method];
+        if ( method ) {
+            var newArgs = Array.prototype.slice.call(arguments, 1);
+            return method.apply(this, newArgs);
         } else {
             $.error( 'Method "' +  method + '" does not exist on jQuery.data2html' );
         }
     };
-})( jQuery );
+})(jQuery);
