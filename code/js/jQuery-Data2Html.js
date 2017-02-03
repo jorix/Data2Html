@@ -93,8 +93,8 @@ var data2html, d2h;
                 dataObj._repeatHtml = $itemRepeat.get(0).outerHTML;
                 dataObj._repeatStart = $parentContainer.children().index($itemRepeat);
                 $(this).data('data2html', dataObj); // set dataObj
+                _clearHtml.call(this);
             }
-            _clearHtml.call(this);
         });
     };
         
@@ -224,7 +224,7 @@ var data2html, d2h;
             if (lastItem) {
                 lastItem.after(templateStr);
             } else {
-                $parentContainer.append(templateStr);
+                $parentContainer.prepend(templateStr);
             }
             lastItem = $(
                 dataObj._selectorRepeat + ':last',
