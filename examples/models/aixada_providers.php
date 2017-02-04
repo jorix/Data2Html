@@ -23,6 +23,7 @@ class aixada_providers extends Data2Html_Model {
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array(
+                            array('name' => 'name', 'check'=>'LK', 'required'),
                             'active' => 'EQ'
                         )
                     )

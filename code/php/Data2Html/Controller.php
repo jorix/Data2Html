@@ -10,24 +10,33 @@ class Data2Html_Controller
     }
     public function manage($request)
     {
-        /*
-        $the_request = array_merge($_GET, $_POST);
+//        $the_request = array_merge($_GET, $_POST);
+        $dbConfig = Data2Html_Config_Db::getSection('db');
+        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
+        $db = new $db_class($dbConfig);
+
+        $postData = array();
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
             case 'GET':
-                $the_request = &$_GET; break;
+                foreach($request as $key => $val) {
+                    if (strpos($val, '[,]') !== false) {
+                        parse_str(str_replace('[,]', '&', $val), $data);
+                        $postData[$key] = $data;
+                    } else {
+                        $postData[$key] = $val;
+                    }
+                }
+                break;
             case 'POST':
-                $the_request = &$_POST; break;
+                //$the_request = &$_POST;
+                $postData = json_decode(file_get_contents("php://input"), true);
+                break;
             default:
                 throw new Exception(
                     "Server method {$serverMethod} is not supported.");
         }
-        */
-        $dbConfig = Data2Html_Config_Db::getSection('db');
-        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
-        $db = new $db_class($dbConfig);
-        $postData = file_get_contents("php://input");
-        return $this->oper($db, $request, json_decode($postData, true));
+        return $this->oper($db, $request, $postData);
     }
     protected function oper($db, $request, $postData)
     {

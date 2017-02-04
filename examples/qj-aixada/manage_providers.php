@@ -44,10 +44,10 @@
         <form id="d2h_1_filter" class="simple-form">
         <div>
             <label class="col-md-3 form-group">ddddddww wewew
-                <input class="form-control" onchange="$('#tbl_providers').data2html('load');" name="d2h_5" type="text">
+                <input class="form-control" name="name_LK" type="text">
             </label>
             <label class="col-md-3 form-group">ddddddww wewew
-                <input class="form-control" onchange="changed()" name="d2h_fff5" type="text">
+                <input class="form-control" name="d2h_fff5" type="text">
             </label>
             <span class="col-md-1 form-group">
                 <br>
@@ -89,11 +89,16 @@
         <span class="d2h_repeat333"></span>
         </div>
     </div>
+    
+    <script "type"="text/javascript">
+    
+    </script>
+    
     <script "type"="text/javascript">
     data2html('#tbl_providers', {
         url: '../_controller.php',
         params: 'model=aixada_providers'
-    }).filter().load();
+    }).filter('#d2h_1_filter').load();
     //.d2h("filter", "#d2h_1_filter");
     </script>
     <script "type"="text/javascript">

@@ -3,7 +3,7 @@
  * 
  */
 var data2html, d2h;
-(function( $ ){
+(function($) {
     var _initCounter = 0;
     var _defaults = {
         url: '',				
@@ -20,6 +20,7 @@ var data2html, d2h;
         
         _classRepeatParent: 'd2h_repeatParent'
     };
+    
     var _init = function(options){
         var _options = $.extend(
             {},
@@ -45,6 +46,7 @@ var data2html, d2h;
                         _selectorWaiting: (_options.classWaiting ?
                             '.' + _options.classWaiting : ''),
                         _selectorRepeat: '.' + _options.classRepeat,
+                        _selectorFilter: null,
                         _selectorRepeatParent: '.' + classRepeatParent
                 });
                 $itemRepeat = $(dataObj._selectorRepeat + ':first', this);
@@ -98,81 +100,82 @@ var data2html, d2h;
         });
     };
         
-	var _methods = {
-        filter: function(options) {
-        },
-        load: function(options) {
-            return this.each(function() {
-                var _this = this;
-                    _dataObj = $(this).data('data2html');
-                if (options) {
-                    $.extend(_dataObj, options);
-                }
-                if (!_dataObj) {
-                    $.error(
-                        "Data2Html: Can not call 'load' without first initialize DOM '" +
-                        _getElementPath(this)+
-                        "' object"
-                    );
-                    return;
-                }
-                $.ajax({
-                    type: _dataObj.type,
-                    url: _dataObj.url + "?" + _dataObj.params,		
-                    dataType: "json", 
-                    beforeSend: function(){
-                        if (_dataObj._selectorWaiting) {
-                            $(_dataObj._selectorWaiting, _this).show();
-                        }
-                        _dataObj.beforeSend.call(_this, 0);
-                    },
-                    success: function(jsonData){
-                        var dataTypes = jsonData.dataTypes,
-                            rowsCount = 0;
-                        _dataObj._dataTypes = dataTypes;
-                        if (jsonData.rowsAsArray) {
-                            var rows = [],
-                                indexCols = {};
-                            for (var i = 0, len = dataTypes.length; i < len; i++) {
-                                indexCols[dataTypes[i]] = i;
-                            }
-                            var rowsAsArray = jsonData.rowsAsArray;
-                            rowsCount = rowsAsArray.length;
-                            for (var i = 0; i < rowsCount; i++) {
-                                var item = rowsAsArray[i];
-                                for (var tagName in indexCols) {
-                                    var row = {};
-                                    row[tagName] = item[indexCols[tagName]];
-                                    var pattern = new RegExp('\{'+tagName+'\}','gi');		
-                                    templateStr = templateStr.replace(pattern, value);
-                                }
-                                rows.push(row);
-                            }
-                            _dataObj._rows = rows;
-                        } else {
-                            _dataObj._rows = jsonData.rows;
-                        }
-                        _showRows.call(_this);
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown){
-                        if (typeof bootbox != 'undefined'){
-                            bootbox.alert({
-                                title : "Error",
-                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                    XMLHttpRequest.responseText + "</strong></div>",												
-                            });
-                        } else {
-                            alert('An error "' + errorThrown + '", status "' + textStatus + '" occurred during loading data: ' + XMLHttpRequest.responseText);
-                        }
-                    },
-                    complete: function(msg){
-                        if (_dataObj._selectorWaiting) {
-                            $(_dataObj._selectorWaiting, _this).hide();
-                        }
-                    }
-                });
-            });
+	var _load = function(options) {
+        var _this = this,
+            _dataObj = $(this).data('data2html');
+        if (options) {
+            $.extend(_dataObj, options);
         }
+        if (!_dataObj) {
+            $.error(
+                "Data2Html: Can not call 'load' without first initialize DOM '" +
+                _getElementPath(this)+
+                "' object"
+            );
+            return;
+        }
+        
+        var url = _dataObj.url + "?" + _dataObj.params;
+        if (_dataObj._selectorFilter) {
+            url += '&d2h_filter=' +  $(_dataObj._selectorFilter).serialize()
+                .replace('&', '[,]');
+        }
+            
+        $.ajax({
+            type: _dataObj.type,
+            url: url,		
+            dataType: "json", 
+            beforeSend: function(){
+                if (_dataObj._selectorWaiting) {
+                    $(_dataObj._selectorWaiting, _this).show();
+                }
+                _dataObj.beforeSend.call(_this, 0);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown){
+                if (typeof bootbox != 'undefined'){
+                    bootbox.alert({
+                        title : "Error",
+                        message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                            XMLHttpRequest.responseText + "</strong></div>",												
+                    });
+                } else {
+                    alert('An error "' + errorThrown + '", status "' + textStatus + '" occurred during loading data: ' + XMLHttpRequest.responseText);
+                }
+            },
+            success: function(jsonData){
+                var dataTypes = jsonData.dataTypes,
+                    rowsCount = 0;
+                _dataObj._dataTypes = dataTypes;
+                if (jsonData.rowsAsArray) {
+                    var rows = [],
+                        indexCols = {};
+                    for (var i = 0, len = dataTypes.length; i < len; i++) {
+                        indexCols[dataTypes[i]] = i;
+                    }
+                    var rowsAsArray = jsonData.rowsAsArray;
+                    rowsCount = rowsAsArray.length;
+                    for (var i = 0; i < rowsCount; i++) {
+                        var item = rowsAsArray[i];
+                        for (var tagName in indexCols) {
+                            var row = {};
+                            row[tagName] = item[indexCols[tagName]];
+                            var pattern = new RegExp('\{'+tagName+'\}','gi');		
+                            templateStr = templateStr.replace(pattern, value);
+                        }
+                        rows.push(row);
+                    }
+                    _dataObj._rows = rows;
+                } else {
+                    _dataObj._rows = jsonData.rows;
+                }
+                _showRows.call(_this);
+            },
+            complete: function(msg){
+                if (_dataObj._selectorWaiting) {
+                    $(_dataObj._selectorWaiting, _this).hide();
+                }
+            }
+        });
     };
     function _getElementPath($elem) {
         var selectorArr = [
@@ -254,12 +257,21 @@ var data2html, d2h;
             _init.call($elem, options);
             return this;
         },
-        filter: function(options) {
-            _methods.filter.call($(this.selector), options);
+        filter: function(selectorFilter, options) {
+            var _self = this;
+            $(this.selector).each(function() {
+                var _dataObj = $(this).data('data2html');
+                _dataObj._selectorFilter = selectorFilter;
+                $(selectorFilter).change(function() {
+                    _self.load();
+                });
+            });
             return this;
         },
         load: function(options) {
-            _methods.load.call($(this.selector), options);
+            $(this.selector).each(function() {
+                _load.call(this, options);
+            });
             return this;
         }
     };
@@ -268,21 +280,21 @@ var data2html, d2h;
         obj.init(options);
         return obj;
     };
-	$.fn.d2h = $.fn.data2html = function(method) {
-        if (this.length == 0) {
-            $.error(
-                "Data2Html: Can not find a DOM object with the selector, " +
-                "there is no object on which the method '" +
-                method + "' executes."
-            );
-            return;
-        }
-        var method = _methods[method];
-        if ( method ) {
-            var newArgs = Array.prototype.slice.call(arguments, 1);
-            return method.apply(this, newArgs);
-        } else {
-            $.error( 'Method "' +  method + '" does not exist on jQuery.data2html' );
-        }
-    };
+	// $.fn.d2h = $.fn.data2html = function(method) {
+        // if (this.length == 0) {
+            // $.error(
+                // "Data2Html: Can not find a DOM object with the selector, " +
+                // "there is no object on which the method '" +
+                // method + "' executes."
+            // );
+            // return;
+        // }
+        // var method = _methods[method];
+        // if ( method ) {
+            // var newArgs = Array.prototype.slice.call(arguments, 1);
+            // return method.apply(this, newArgs);
+        // } else {
+            // $.error( 'Method "' +  method + '" does not exist on jQuery.data2html' );
+        // }
+    // };
 })(jQuery);
