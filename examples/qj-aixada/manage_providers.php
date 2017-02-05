@@ -49,7 +49,7 @@
         <form id="d2h_1_filter" class="simple-form">
         <div>
             <label class="col-md-3 form-group">ddddddww wewew
-                <input class="form-control" name="name_LK" type="text">
+                <input class="form-control" name="name" type="text">
             </label>
             <label class="col-md-3 form-group">ddddddww wewew
                 <input class="form-control" name="d2h_fff5" type="text">
