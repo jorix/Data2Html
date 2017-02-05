@@ -60,11 +60,11 @@
         
         <table class="table table-striped table-bordered">
             <thead><tr>
-            <th>&nbsp;</th>
+            <th>&nbsp;<input type="hidden" value="name" class="d2h_sort"></th>
             <th>id 
-                <a title="ordre creixent" onclick="sortBy('id', false);"><span class="glyphicon glyphicon-arrow-up"></span></a>
-                <a title="ordre decreixent" onclick="sortBy('id', false);"><span class="glyphicon glyphicon-arrow-down"></span></a>
-                <a title="ordenar" onclick="sortBy('id', false);"><span class="glyphicon glyphicon-sort"></span></a>
+                <a title="ordre creixent" ><span class="glyphicon glyphicon-arrow-up"></span></a>
+                <a title="ordre decreixent" ><span class="glyphicon glyphicon-arrow-down"></span></a>
+                <a title="ordenar" ><span class="glyphicon glyphicon-sort"></span></a>
             </th>
             <th>nom</th>
             </tr></thead>

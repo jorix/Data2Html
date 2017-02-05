@@ -101,8 +101,7 @@ var data2html, d2h;
     };
         
 	var _load = function(options) {
-        var _this = this,
-            _dataObj = $(this).data('data2html');
+        var _dataObj = $(this).data('data2html');
         if (options) {
             $.extend(_dataObj, options);
         }
@@ -117,10 +116,11 @@ var data2html, d2h;
         
         var url = _dataObj.url + "?" + _dataObj.params;
         if (_dataObj._selectorFilter) {
-            url += '&d2h_filter=' +  $(_dataObj._selectorFilter).serialize()
+            url += '&d2h_filter=' +  $(_dataObj._selectorFilter, this).serialize()
                 .replace('&', '[,]');
         }
-            
+        url += '&d2h_sort=' +  $('.d2h_sort', this).val();
+        var _this = this;
         $.ajax({
             type: _dataObj.type,
             url: url,		
@@ -262,7 +262,7 @@ var data2html, d2h;
             $(this.selector).each(function() {
                 var _dataObj = $(this).data('data2html');
                 _dataObj._selectorFilter = selectorFilter;
-                $(selectorFilter).change(function() {
+                $(selectorFilter, this).change(function() {
                     _self.load();
                 });
             });
@@ -280,21 +280,4 @@ var data2html, d2h;
         obj.init(options);
         return obj;
     };
-	// $.fn.d2h = $.fn.data2html = function(method) {
-        // if (this.length == 0) {
-            // $.error(
-                // "Data2Html: Can not find a DOM object with the selector, " +
-                // "there is no object on which the method '" +
-                // method + "' executes."
-            // );
-            // return;
-        // }
-        // var method = _methods[method];
-        // if ( method ) {
-            // var newArgs = Array.prototype.slice.call(arguments, 1);
-            // return method.apply(this, newArgs);
-        // } else {
-            // $.error( 'Method "' +  method + '" does not exist on jQuery.data2html' );
-        // }
-    // };
 })(jQuery);
