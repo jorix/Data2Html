@@ -1,13 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ca" lang="ca">
+<!DOCTYPE html>
+<html lang="ca">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta charset="UTF-8">
 	<title>title</title>
    
-    <script src="../../external/jquery-2.1.0/jquery.js" "type"="text/javascript"></script>
+    <script src="../../external/jquery-2.1.0/jquery.js" ></script>
     <link  href="../../external/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" "type"="text/javascript" ></script>
-    <script src="../../code/js/jQuery-Data2Html.js" "type"="text/javascript" ></script>
+    <script src="../../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
+    <script src="../../code/js/jQuery-Data2Html.js" ></script>
     <style>
     .d2h_waiting {
         position: fixed; left: 50%; top: 50%;
@@ -33,14 +33,19 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container">à
         <ul>
-            <li><a href="#" onclick="$('#tbl_providers').data2html('load', {params: 'model=aixada_ufs'}); return false;">Ufs</a></li>
-            <li><a href="#" onclick="$('#tbl_providers').d2h('load', {params: 'model=aixada_providers'}); return false;">Proveidors</a></li>
-            <li><a href="#" onclick="$('#tbl_xxx').data2html('load', {params: 'model=aixada_ufs'}); return false;">xxx Ufs</a></li>
+            <li><a href="#" onclick="d2h('#tbl_providers').load(); return false;">Ufs</a></li>
+            <li><a href="#" onclick="data2html('#tbl_xxx').load(); return false;">xxx Providers</a></li>
         </ul>
-        <div class="row" id="tbl_providers" >
-        
+        <div class="row" 
+            id="tbl_providers"
+            data-d2h="
+                url:'../_controller.php?model=aixada_ufs',
+                repeat:  'table tbody tr.d2h_r',
+                filter:'#d2h_1_filter',
+                page:  '#d2h_1_page',
+                sort:  '#d2h_1_sort'">
         <form id="d2h_1_filter" class="simple-form">
         <div>
             <label class="col-md-3 form-group">ddddddww wewew
@@ -70,7 +75,7 @@
             </tr></thead>
             <tbody>
                 <tr><td>previ<div class="d2h_waiting"></div></td></tr>
-                <tr class="d2h_repeat" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
+                <tr class="d2h_r" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
                     <td><input type="checkbox" name="providerBulkAction"/></td>
                     <td class="textAlignRight">{id}</td>
                     <td title="<?php echo 'click_to_list'; ?>">{name}</td>
@@ -95,17 +100,13 @@
     </script>
     
     <script "type"="text/javascript">
-    data2html('#tbl_providers', {
-        url: '../_controller.php',
-        params: 'model=aixada_providers'
-    }).filter('#d2h_1_filter').load();
+    data2html('#tbl_providers').load({_:{}});
     //.d2h("filter", "#d2h_1_filter");
     </script>
     <script "type"="text/javascript">
     d2h('#tbl_xxx', {
-        classRepeat: 'd2h_repeat2',
-        url: '../_controller.php',
-        params: 'model=aixada_providers'
+        repeat: '.d2h_repeat2',
+        url: '../_controller.php?model=aixada_providers'
     });
     </script>
 </body>
