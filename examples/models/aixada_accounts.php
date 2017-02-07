@@ -10,7 +10,7 @@ class aixada_accounts extends Data2Html_Model {
             'fields' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
                 'account_id' => array(
-                    'orderBy' => array('account_id', '!id'),
+                    'sortBy' => array('account_id', '!id'),
                     'hidden'
                 ),
                 'account_uf_id' => array(

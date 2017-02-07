@@ -53,7 +53,7 @@ abstract class Data2Html_Model
         'linkedTo' => 'linkedTo',
         'name' => 'name',
         'number' => 'type',
-        'orderBy' => 'orderBy',
+        'sortBy' => 'sortBy',
         'required' => 'validations',
         'size' => 'size',
         'string' => 'type',
@@ -83,7 +83,7 @@ abstract class Data2Html_Model
         'description',
         'key',
         'name',
-        'orderBy',
+        'sortBy',
       //  'size', <- join of 'length' or 'digits' 
         'title',
         'type',
@@ -202,12 +202,31 @@ abstract class Data2Html_Model
     protected function parseFields($fields)
     {    
         $pFields = array();
-        $fSorts = array();
         $matchedFields = array();
         foreach ($fields as $k => &$v) {
             list($pKey, $pField) = $this->parseField($k, $v);
-            if (isset($pField['orderBy'])) {
-                $fSorts += array($pField['db'] => $pField['orderBy']);
+            if (isset($pField['sortBy'])) {
+                $sortBy = $pField['sortBy'];
+                if (is_string($sortBy)) {
+                    $sortBy = array($sortBy);
+                }
+                $sortByNew = array();
+                foreach ($sortBy as $sk => $sv) {
+                    if (is_numeric($sk)) {
+                        if (substr($sv, 0, 1) === '!') {
+                            $sortByNew[substr($sv, 1)] = 'desc';
+                        } else {
+                            $sortByNew[$sv] = 'asc';
+                        }
+                    } else {
+                        $sortByNew[$sk] = (preg_match("/php/i", 'desc') ? 'desc' : 'asc');
+                    }
+                }
+                $pField['sortBy'] = $sortByNew;
+            } elseif (!array_key_exists('sortBy', $pField) && isset($pField['db'])) {
+                $pField['sortBy'] = array($k => 'asc');
+            } else { // is set to null
+                unset($pField['sortBy']);
             }
             foreach ($pField as $nv) {
                 if (isset($nv['teplateItems'])) {
@@ -224,20 +243,6 @@ abstract class Data2Html_Model
                 if (!isset($pFields[$v])) {
                     throw new Exception(
                         "{$this->reason}: Match `\$\${{$v}}` not exist on `fields`."
-                    );
-                }
-            }
-        }
-        foreach ($fSorts as $k => $orderFiels) {
-            foreach ($orderFiels as $v) {
-                $f = $v;
-                if (substr($f, 0, 1) === '!') {
-                   $f = substr($f, 1);
-                }
-                if (!Data2Html_Value::getItem($pFields, array($f, 'db'))) {
-                    throw new Exception(
-                        "{$this->reason}: On field `{$k}` exist attribute 'orderBy' whit item
-                        `{$f}` that not exist on `fields` with `db`."
                     );
                 }
             }

@@ -30,14 +30,14 @@ class Data2Html_SqlGenerator
         $query .= "\n from {$this->getFrom($gridDx)}";
         $where = $this->getWhere($filterDefs, $filterReq);
         if ($where !== '') {
-            $query .= " where {$where}";
+            $query .= "\n where {$where}";
         }
         if (!$sortReq) { // use default sort
             $sortReq = $gridDx->getString('sort', '');
         }
         $orderBy = $this->getOrderBy($colDefs, $sortReq);
         if ($orderBy !== '') {
-            $query .= " order by {$orderBy}";
+            $query .= "\n order by {$orderBy}";
         }
         return $query;
     }
@@ -67,14 +67,14 @@ class Data2Html_SqlGenerator
             $from = '';
             foreach ($joins as $v) {
                 if(!$v['fromDbKeys']) {
-                    $from .= "\n {$v['toTable']} {$v['toAlias']}";
+                    $from .= " {$v['toTable']} {$v['toAlias']}";
                 } else {
                     $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
                     $from .= "\n on {$v['fromDbKeys']} = {$v['toDbKeys']}";
                 }
             }
         } else {            
-            $from =$gridDx->getArray('table');
+            $from = $gridDx->getArray('table');
         }
         return $from;
     }
@@ -86,26 +86,26 @@ class Data2Html_SqlGenerator
         }
         if (substr($colNameRequest, 0, 1) === '!') {
             $nakedColName = substr($colNameRequest, 1);
-            $ascending = false;
+            $reverse = true;
         } else {
             $nakedColName = $colNameRequest;
-            $ascending = true;
+            $reverse = false;
         }
-        $orderByDef = Data2Html_Value::getItem(
+        $sortByDef = Data2Html_Value::getItem(
             $colDefs,
-            array($nakedColName, 'orderBy')
+            array($nakedColName, 'sortBy')
         );
         $c = array();
-        if ($orderByDef) {
-            foreach ($orderByDef as $v) {
-                if (substr($v, 0, 1) === '!') {
-                    $dbField = substr($v, 1);
-                    $dbAscen = !$ascending;
-                } else {
-                    $dbField = $v;
-                    $dbAscen = $ascending;
+        if ($sortByDef) {
+            foreach ($sortByDef as $k => $v) {
+                if ($reverse) {
+                    if ($v === 'asc') {
+                        $v = 'desc';
+                    } else {
+                        $v = 'asc';
+                    }
                 }
-                array_push($c, $dbField . ($dbAscen ? ' ASC' : ' DESC'));
+                array_push($c, $k . ' ' . ($v) );
             }    
         }
         return implode(', ', $c);
@@ -234,12 +234,12 @@ class Data2Html_SqlGenerator
         
 
         // Insert order by
-        if ($orderBy !== null) {
+        if ($sortBy !== null) {
             if ($posOrdrBy === 0) {
                 $posOrderBy = $posEnd;
             }
             if ($ordreBy === '') {
-                $sqlUp = substr($sqlUp, 1, $posOrder - 1) . " ORDER BY " . $orderBy & substr($sqlUp, $posFi);
+                $sqlUp = substr($sqlUp, 1, $posOrder - 1) . " ORDER BY " . $sortBy & substr($sqlUp, $posFi);
             } else {
                 $sqlUp = substr($sqlUp, 1, $posOrder - 1) . substr($sqlUp, $posFi);
             }

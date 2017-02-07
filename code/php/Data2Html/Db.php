@@ -92,7 +92,7 @@ abstract class Data2Html_Db
             $pageSize = intval($pageSize);
             $pageStart = intval($pageStart);
         } catch (Exception $e) {
-            throw new Exception($e->getMessage()); //, array('query' => $sql), $e->getCode());
+            throw new Exception($e->getMessage());
         };
         $dvDefs = new Data2Html_Collection($fieldDefs);
         $itemDx = new Data2Html_Collection();
@@ -161,7 +161,7 @@ abstract class Data2Html_Db
         $response = array();
         if ($this->debug) {
             $response += array(
-                'sql' => $query,
+                'sql' => explode("\n", $query),
                 'teplateItems' => $teplateItems
             );
         }

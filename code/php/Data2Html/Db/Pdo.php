@@ -49,7 +49,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db
             throw new Data2Html_Exception(
                 $e->getMessage(),
                 array(
-                    'sql' => $sql
+                    'sql' => explode("\n", $sql)
                 ),
                 $e->getCode()
             );
