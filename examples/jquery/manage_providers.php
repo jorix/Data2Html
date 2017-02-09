@@ -41,7 +41,7 @@
         <div class="row" 
             id="tbl_providers"
             data-d2h="
-                url:'../_controller.php?model=aixada_ufs',
+                url:'../_controller/_controller.php?model=aixada_ufs',
                 repeat:  'table tbody tr.d2h_r',
                 filter:'#d2h_1_filter',
                 page:  '#d2h_1_page',
@@ -106,7 +106,7 @@
     <script "type"="text/javascript">
     d2h('#tbl_xxx', {
         repeat: '.d2h_repeat2',
-        url: '../_controller.php?model=aixada_providers'
+        url: '../_controller/_controller.php?model=aixada_providers'
     });
     </script>
 </body>

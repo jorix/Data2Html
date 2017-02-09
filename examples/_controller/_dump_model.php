@@ -7,8 +7,8 @@
 <body>
     <div class="container">
     <?php
-        require_once("../code/php/Data2Html/Autoload.php");
-        Data2Html_Autoload::start();
+        require_once("../../code/php/Data2Html/Autoload.php");
+        Data2Html_Autoload::start('../_config');
     
         try {
             $payerNames = Data2Html_Model::extractPlayerNames($_REQUEST);

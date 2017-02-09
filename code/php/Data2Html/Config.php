@@ -2,19 +2,27 @@
 
 class Data2Html_Config
 {
-    protected static $fileName = 'd2h_config.ini';
+    public static $folderName = '.';
+    protected static $fileNames = array(
+        'd2h_config.ini',
+        'd2h_config_db.ini'
+    );
     protected static $defaultSection = 'config';
     
     protected static $loaded = false;
     protected static $debug = false;
-    protected static $config = null;
+    protected static $config = array();
     
     protected static function load()
     {
         if (static::$loaded) {
             return;
         }
-        static::$loaded = static::loadFile(static::$fileName);
+        foreach(static::$fileNames as $file) {
+            static::$loaded = static::loadFile(
+                static::$folderName . '/' . $file
+            );
+        }
         self::$debug = self::get('debug');
     }
     
@@ -31,9 +39,7 @@ class Data2Html_Config
                 "->Config file \"{$file}\" does not exist");
         }
         if ($config) {
-            static::$config = $config;
-        } else {
-            static::$config = array();
+            static::$config = array_replace_recursive(static::$config, $config);
         }
         return true;
     }

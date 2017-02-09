@@ -10,7 +10,7 @@ class aixada_providers extends Data2Html_Model {
                 'name' => array(),
                 //'group' => array(),
                 'text' => array(
-                    'sortBy => null,
+                    'sortBy' => null,
                     'value' => '$${name} #$${id}'
                 ),
                 'active' => array(

@@ -667,9 +667,7 @@ abstract class Data2Html_Model
         $phisicalFile = $path . $file;
         if (file_exists($phisicalFile)) {
             require $phisicalFile;
-            $data = new $modelName(
-                basename(self::$controllerUrl) . '?'
-            );
+            $data = new $modelName(self::$controllerUrl . '?');
             self::$modelObjects[$modelName] = $data;
             return $data;
         } else {
