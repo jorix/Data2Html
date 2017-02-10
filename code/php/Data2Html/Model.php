@@ -10,7 +10,6 @@ abstract class Data2Html_Model
 {
     //protected $db_params;
     protected static $modelObjects = array();
-    protected static $controllerUrl = null;
     protected static $modelFolder = null;
     
     // 
@@ -21,7 +20,6 @@ abstract class Data2Html_Model
     // Parsed object definitions
     protected $title = '';
     public $table = '';
-    protected $requestUrl = '';
     protected $modelName = '';
     private $fields = null;
     private $grids = null;
@@ -94,7 +92,7 @@ abstract class Data2Html_Model
      *
      * @param jqGridLoader $loader
      */
-    public function __construct($requestUrl = '')
+    public function __construct()
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
@@ -104,7 +102,6 @@ abstract class Data2Html_Model
         $this->modelName = get_class($this);
         $this->reason = "Model \"{$this->modelName}\"";
         
-        $this->requestUrl = $requestUrl;
         $this->parse();
     }
 
@@ -121,7 +118,7 @@ abstract class Data2Html_Model
     }
     public function getControllerUrl()
     {
-        return $this->requestUrl;
+        return Data2Html_Config::get('controllerUrl') . '?';
     }
     public function getColDs()
     {
@@ -651,28 +648,22 @@ abstract class Data2Html_Model
             return self::$modelObjects[$modelName];
         }
         if (count(self::$modelObjects) === 0) {
-            self::$controllerUrl = Data2Html_Config::get('controllerUrl');
             self::$modelFolder = Data2Html_Config::get('modelFolder');
         }
-        if (self::$controllerUrl === null) {
+        if (self::$modelFolder === null) {
             throw new Exception(
                 'Don\'t use `createGrid()` before load a parent grid.');
         }
         $ds = DIRECTORY_SEPARATOR;
-        $path = dirname(self::$controllerUrl) . $ds;
-        $file = $modelName . '.php';
-        if (self::$modelFolder) {
-            $file = self::$modelFolder . $ds . $file;
-        }
-        $phisicalFile = $path . $file;
-        if (file_exists($phisicalFile)) {
-            require $phisicalFile;
-            $data = new $modelName(self::$controllerUrl . '?');
+        $modelFile = self::$modelFolder . $ds . $modelName . '.php';
+        if (file_exists($modelFile)) {
+            require $modelFile;
+            $data = new $modelName();
             self::$modelObjects[$modelName] = $data;
             return $data;
         } else {
             throw new Exception(
-                "load('{$modelName}'): File \"{$file}\" does not exist.");
+                "load('{$modelName}'): File \"{$modelFile}\" does not exist.");
         }
     }
             

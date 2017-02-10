@@ -20,6 +20,10 @@ class Data2Html_Render
         return 'd2h_' . self::$idRenderCount;
     }
 
+    protected function getControllerUrl()
+    {
+        return Data2Html_Config::get('controllerUrl') . '?';
+    }
     public function render($payerNames)
     {
         if (isset($payerNames['form'])) {
@@ -30,7 +34,6 @@ class Data2Html_Render
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
                 $this->modelObj->getForm($formName),
                 'd2h_f_' . $formName . '.',
-                $this->modelObj->getControllerUrl(),
                 $this->modelObj->getTitle()
             );
         } elseif (isset($payerNames['grid'])) {
@@ -45,7 +48,7 @@ class Data2Html_Render
         $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
         $tplGrid = $this->templateObj->getTemplateBranch('grid');
         $requestUrl = 
-                $this->modelObj->getControllerUrl() .
+                $this->getControllerUrl() .
                 "model={$this->modelObj->getModelName()}:{$gridName}&";
         $gridDx = new Data2Html_Collection($linkedGrid);
         $pageDef = array(
@@ -76,7 +79,6 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
             'd2h_page.',
-            $this->modelObj->getControllerUrl(),
             $this->modelObj->getTitle()
         );
         $filterId = $this->idRender . '_filter';
@@ -85,7 +87,6 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
             'd2h_filter.',
-            $this->modelObj->getControllerUrl(),
             $this->modelObj->getTitle()
         );
         $gridTable = $this->renderTable(
@@ -195,12 +196,12 @@ class Data2Html_Render
         $templateBranch,
         $formDs,
         $fieldPrefix,
-        $baseUrl,
         $title
     ){
         if (!$formDs) {
             return $this->templateObj->emptyRender();
         }
+        $baseUrl = $this->getControllerUrl();
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
