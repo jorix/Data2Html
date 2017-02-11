@@ -257,9 +257,9 @@ class Data2Html_Render_Template
         if (!is_array($keys)) {
             $keys = array($keys);
         }
-        $tree = Data2Html_Value::getItem($templateBranch[1], $keys);
+        $item = Data2Html_Value::getItem($templateBranch[1], $keys);
         if ($tree) {
-            return $tree;
+            return $item;
         } else {
             return $default;
         } 
