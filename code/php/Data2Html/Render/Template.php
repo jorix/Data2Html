@@ -53,10 +53,7 @@ class Data2Html_Render_Template
              throw new Exception("{$this->reason}: Tree must be a array!");
         }
         if (array_key_exists('folder', $tree)) {
-            $folder .=  $tree['folder'];
-            if (strpos('/\\', substr($folder, -1, 1)) === false) {
-                $folder .= DIRECTORY_SEPARATOR;
-            }
+            $folder = $this->setFolderPath($folder . $tree['folder']);
         }
         $response = array();
         foreach($tree as $k => $v) {
@@ -94,9 +91,18 @@ class Data2Html_Render_Template
         return $response;
     }
     
+    protected function setFolderPath($folder)
+    {
+        if (strpos('/\\', substr($folder, -1, 1)) === false) {
+            return $folder .= DIRECTORY_SEPARATOR;
+        } else {
+            return $folder;
+        }
+    }
     protected function loadTemplate($folder, $templateFileName)
     {
         $fullFileName = $folder . $templateFileName;
+        $folder = $this->setFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->addContent($fullFileName);
         switch ($pathObj['extension']) {
             case '.html':

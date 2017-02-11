@@ -17,21 +17,9 @@
                 }
             }
         },
-        "filter": {
-            "folder": "forms",
-            "template": "filter.html.php",
-            "includes": [
-                "inputs_layouts.json.php",
-                "inputs_fields.json.php"
-            ]
-        },
-        "page": {
-            "folder": "./forms/",
-            "template": "page.html.php",
-            "includes": [
-                "inputs_layouts.json.php",
-                "inputs_fields.json.php"
-            ]
-        }
+        "includes": [
+            "forms/filter.json.php",
+            "forms/page.json.php"
+        ]
     }
 }
