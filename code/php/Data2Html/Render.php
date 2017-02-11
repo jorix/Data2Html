@@ -33,7 +33,6 @@ class Data2Html_Render
                 $formId,
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
                 $this->modelObj->getForm($formName),
-                'd2h_f_' . $formName . '.',
                 $this->modelObj->getTitle()
             );
         } elseif (isset($payerNames['grid'])) {
@@ -46,7 +45,9 @@ class Data2Html_Render
     protected function renderGrid($gridName)
     {        
         $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
-        $tplGrid = $this->templateObj->getTemplateBranch('grid');
+        $tplGrid = $this->templateObj->getTemplateBranch('grid',
+            $this->templateObj->getTemplateRoot()
+        );
         $requestUrl = 
                 $this->getControllerUrl() .
                 "model={$this->modelObj->getModelName()}:{$gridName}&";
@@ -78,7 +79,6 @@ class Data2Html_Render
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             $pageDef,
-            'd2h_page.',
             $this->modelObj->getTitle()
         );
         $filterId = $this->idRender . '_filter';
@@ -86,7 +86,6 @@ class Data2Html_Render
             $filterId,
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
             $gridDx->getArray('filter'),
-            'd2h_filter.',
             $this->modelObj->getTitle()
         );
         $gridTable = $this->renderTable(
@@ -196,7 +195,6 @@ class Data2Html_Render
         $formId,
         $templateBranch,
         $formDs,
-        $fieldPrefix,
         $title
     ){
         if (!$formDs) {
@@ -212,6 +210,8 @@ class Data2Html_Render
         $body = array();
         $defaults = array();
         $renderCount = 0;
+        
+        $fieldPrefix = $this->templateObj->getTemplateItem('prefix', $templateBranch, '');
         foreach ($fieldsDs as $k => $v) {            
             $vDx = new Data2Html_Collection($v);
             $input = $vDx->getString('input', 'text');

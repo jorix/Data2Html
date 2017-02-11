@@ -58,8 +58,15 @@ class Data2Html_Render_Template
         $response = array();
         foreach($tree as $k => $v) {
             switch ($k) {
+                // Declarative words
                 case 'folder':
                     break;
+                case 'prefix':
+                    $response[$k] = $v;
+                    break;
+                case '_description': // Ignore all developer descriptions
+                    break; 
+                // Mount the tree
                 case 'template':
                     $response['template'] = 
                         $this->loadTemplate($folder, $tree['template']);
@@ -81,8 +88,6 @@ class Data2Html_Render_Template
                          $response += $this->loadTemplate($folder, $vv);
                     }
                     break;
-                case '_description':
-                    break; // Ignore all developer descriptions
                 default:
                     $response[$k] = $this->loadTemplateTree($folder, $v);
                     break;
@@ -226,11 +231,12 @@ class Data2Html_Render_Template
     // ==========================================
     // Apply template
     // ==========================================
-    public function getTemplateBranch($keys, $templateBranch = null)
+    public function getTemplateRoot()
+    { 
+        return array(array(), $this->templateTree);
+    }
+    public function getTemplateBranch($keys, $templateBranch)
     {
-        if (!$templateBranch) {
-            $templateBranch = array(array(), $this->templateTree);
-        }
         if (!is_array($keys)) {
             $keys = array($keys);
         }
@@ -245,6 +251,18 @@ class Data2Html_Render_Template
             ); 
         }
         return array($finalKeys, $tree);       
+    }
+    public function getTemplateItem($keys, $templateBranch, $default = null)
+    {
+        if (!is_array($keys)) {
+            $keys = array($keys);
+        }
+        $tree = Data2Html_Value::getItem($templateBranch[1], $keys);
+        if ($tree) {
+            return $tree;
+        } else {
+            return $default;
+        } 
     }
     
     // TODO: Remove comments after solve parse a empty form filter!!!!!
@@ -422,6 +440,9 @@ class Data2Html_Render_Template
                         // "{$this->reason}: Replaces of \"{$matches[0][$i]}\" is array after encoded."
                     // );
                 // }
+                if (is_array($encodedVal)) {
+                    print_r($encodedVal);
+                }
                 $content = str_replace($matches[0][$i], $encodedVal, $content);
             }
         }
