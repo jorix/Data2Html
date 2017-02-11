@@ -1,2 +1,2 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <td ng-class="$${ngClass}" class="$${class}">{{$${prefix}$${name}$${format}}}</td>

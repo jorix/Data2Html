@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <select class="form-control" style="padding:0;"
     title="$${title}"
     ng-controller="$${id}"

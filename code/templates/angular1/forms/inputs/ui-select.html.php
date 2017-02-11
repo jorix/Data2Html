@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <ui-select
     ng-controller="$${id}"
     ng-model="$${prefix}$${name}" 

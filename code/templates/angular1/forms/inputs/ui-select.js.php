@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 d2h_App.controller('$${id}', function($scope, $http) {
     $scope.item = {};
     $http({

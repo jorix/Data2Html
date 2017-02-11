@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <div class="row" ng-controller="$${id}">
     <form name="$${id}" class="simple-form"  novalidate>
         <div class="form-inline">$${body}</div>

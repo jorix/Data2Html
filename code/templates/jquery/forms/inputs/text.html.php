@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <input type="text" class="form-control"
     placeholder="$${description}"
     name="$${name}"

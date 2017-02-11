@@ -1,4 +1,4 @@
-<?php die(basename(__FILE__) . ': It is crude!'); ?>
+<?php die("It's uncooked!"); ?>
 <button class="btn btn-default hidden-xs "
     title="$${title}"
     ng-click="$${action}">
