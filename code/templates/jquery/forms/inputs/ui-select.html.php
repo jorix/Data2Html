@@ -1,7 +1,7 @@
 <?php die(basename(__FILE__) . ': It is crude!'); ?>
 <ui-select
     ng-controller="$${id}"
-    ng-model="$${name}" 
+    ng-model="$${prefix}$${name}" 
     name="$${id}"
     theme="bootstrap"
     ng-change="changed()"

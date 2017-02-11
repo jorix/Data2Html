@@ -162,12 +162,11 @@ class Data2Html_Render
                         $class .= ' '.$visual;
                     }
                 }
+                $formatItem = '';
                 if ($type && $format = $def->getString('format')) {
-                    $value = "{{item.{$k} | {$type}:'{$format}'}}";
+                    $formatItem = " | {$type}:'{$format}'";
                 } elseif ($type === 'currency') {
-                    $value = "{{item.{$k} | {$type}}}";
-                } else {
-                    $value = "{{item.{$k}}}";
+                    $formatItem = " | {$type}";
                 }
                 $this->templateObj->concatContents(
                     $tbody,
@@ -177,7 +176,9 @@ class Data2Html_Render
                         array(
                             'class' => $class,
                             'ngClass' => $ngClass,
-                            'value' => $value
+                            'prefix' => 'item.',
+                            'name' => $k,
+                            'format' => $formatItem
                         )
                     )
                 );
@@ -222,6 +223,7 @@ class Data2Html_Render
                 $inputTplName = 'ui-select';
                 $url = $baseUrl . 'model='.$link.'&';
             }
+            $default = Data2Html_Value::getItem($v, 'default');
             $replaces = array(
                 'id' => $this->createIdRender(),
                 'formId' => $formId,
@@ -229,7 +231,9 @@ class Data2Html_Render
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
                 'description' => $vDx->getString('description'),
-                'name' => $fieldPrefix . $k,
+                'prefix' => $fieldPrefix,
+                'name' => $k,
+                'default' => $default,
                 'url' => $url,
                 'validations' => implode(' ', $validations)
             );
@@ -244,7 +248,6 @@ class Data2Html_Render
                     $replaces
                 )
             );
-            $default = Data2Html_Value::getItem($v, 'default');
             if ($default !== null) {
                 $defaults[$k] = $default;
             }

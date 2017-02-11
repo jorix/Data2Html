@@ -2,7 +2,7 @@
 <select class="form-control" style="padding:0;"
     title="$${title}"
     ng-controller="$${id}"
-    ng-model="$${name}"
+    ng-model="$${prefix}$${name}"
     ng-change="changed()"
     ng-options="item.value as item.text for item in data"
     $${validations}

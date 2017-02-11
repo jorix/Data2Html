@@ -2,7 +2,7 @@
 <div class="row"
     id="$${id}"
     data-d2h="
-        url:'../_controller.php?model=aixada_ufs',
+        url:'$${url}',
         repeat:  'table tbody tr',
         filter:'#$${id}_filter',
         page:  '#$${id}_page',

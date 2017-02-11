@@ -2,5 +2,6 @@
 <input type="text" class="form-control"
     placeholder="$${description}"
     name="$${name}"
+    value="$${default}"
     $${validations}
 >
