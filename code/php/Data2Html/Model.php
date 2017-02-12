@@ -15,18 +15,17 @@ abstract class Data2Html_Model
     // 
     protected $configOptions = array();
     protected $debug = false;
-    protected $culprit;
     
     // Parsed object definitions
     protected $title = '';
     public $table = '';
     protected $modelName = '';
+    protected $culprit = '';
     private $fields = null;
     private $grids = null;
     private $forms = null;
     
     // To parse
-    private $idParseCountArray = array();
     protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
     protected $keywords = array(
@@ -105,13 +104,6 @@ abstract class Data2Html_Model
         $this->parse();
     }
 
-    public function createIdParse($sufix = '') {
-        if (!array_key_exists($sufix, $this->idParseCountArray)) {
-            $this->idParseCountArray[$sufix] = 0;
-        }
-        $this->idParseCountArray[$sufix]++;
-        return 'd2h_' . $this->idParseCountArray[$sufix] . '_' . $sufix;
-    }
     public function getModelName()
     {
         return $this->modelName;
@@ -198,7 +190,7 @@ abstract class Data2Html_Model
     }
     protected function parseFields($fields)
     {    
-        $pFields = array();
+        $set = new Data2Html_Model_Set('fields');
         $matchedFields = array();
         foreach ($fields as $k => &$v) {
             list($pKey, $pField) = $this->parseField($k, $v);
@@ -233,8 +225,9 @@ abstract class Data2Html_Model
                     );
                 }
             }
-            $this->addItem('field', $pKey, $pField, $pFields);
+            $set->addItem($pKey, $pField);
         }
+        $pFields = $set->getItems();
         if (count($matchedFields) > 0) {
             foreach ($matchedFields as $v) {
                 if (!isset($pFields[$v])) {
@@ -245,15 +238,6 @@ abstract class Data2Html_Model
             }
         }
         return $pFields;
-    }
-        
-    protected function addItem($objecName, $pKey, &$pItem, &$pList)
-    {
-        if (is_int($pKey) || array_key_exists($pKey, $pList)) {
-            $pKey = $this->createIdParse($objecName);
-        }
-        $pList[$pKey] = $pItem;
-        return $pKey;
     }
 
     protected function parseField($key, $field)
@@ -393,7 +377,7 @@ abstract class Data2Html_Model
             $columns = $baseFields;
         }
         $fieldsDx = new Data2Html_Collection($baseFields);
-        $pColumns = array();
+        $set = new Data2Html_Model_Set($gridName);
         foreach ($columns as $k => $v) {
             $pKey = 0;
             $pCol = null;
@@ -438,10 +422,11 @@ abstract class Data2Html_Model
                     list($pKey, $pCol) = $this->parseField($k, $v);
                 }
             }
-            $this->addItem($gridName, $pKey, $pCol, $pColumns);
+            $set->addItem($pKey, $pCol);
         }
         
         // Final parse
+        $pColumns = $set->getItems();
         $keyFields = array();
         foreach ($pColumns as $k => $v) {
             if (array_key_exists('key', $v)) {
@@ -454,7 +439,7 @@ abstract class Data2Html_Model
     protected function parseFilterFields($gridName, $filter, $baseFields)
     {
         $baseFiledsDx = new Data2Html_Collection($baseFields);
-        $pFields = array();
+        $set = new Data2Html_Model_Set($gridName);
         $pFieldDx = new Data2Html_Collection();
         foreach ($filter as $k => $v) {
             $pKey = 0;
@@ -495,9 +480,9 @@ abstract class Data2Html_Model
                 $pKey = $name.'_'.$pFieldDx->getString('check', '');
             }
             list($pKey, $pField) = $this->parseField($pKey, $pField);
-            $this->addItem($gridName, $pKey, $pField, $pFields);
+            $set->addItem($pKey, $pField);
         }
-        return $pFields;
+        return $set->getItems();
     }
     
     protected function parseFormFields($formName, $fields, $baseFields)
@@ -506,7 +491,7 @@ abstract class Data2Html_Model
             $fields = $baseFields;
         }
         $baseFiledsDx = new Data2Html_Collection($baseFields);
-        $pFields = array();
+        $set = new Data2Html_Model_Set($formName);
         $pFieldDx = new Data2Html_Collection();
         foreach ($fields as $k => $v) {
             $pFieldDx->set($v);              
@@ -527,9 +512,9 @@ abstract class Data2Html_Model
                 $k = $name.'_'.$pFieldDx->getString('check', '');
             }
             list($k, $v) = $this->parseField($k, $v);
-            $this->addItem($formName, $k, $v, $pFields);
+            $set->addItem($k, $v);
         }
-        return $pFields;
+        return $set->getImetms();
     }
     // ========================
     // Events

@@ -11,6 +11,7 @@ class Data2Html_Parse_Link
     protected $baseNames;
     protected $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
     protected $culprit;
+    protected $idCount = 0;
 
     public function __construct($data)
     {
@@ -312,7 +313,7 @@ class Data2Html_Parse_Link
         }
         if ($field) {
             if (array_key_exists($pKey, $this->gridBase['columns'])) {
-                $pKey = $this->data->createIdParse($this->gridName);
+                $pKey = $this->createId();
             }
             $this->gridBase['columns'][$pKey] = $field;
         }
@@ -322,7 +323,10 @@ class Data2Html_Parse_Link
         );
         return $pKey;
     }
-    
+    protected function createId() {
+        $this->idCount++;
+        return 'd2h_' . $this->gridName . '_Link_' . $this->idCount;
+    }
     protected function mergeAttributes(&$baseField, $linkedField, $keys) {
         foreach ($keys as $v) {
             if(!array_key_exists($v, $baseField) &&
