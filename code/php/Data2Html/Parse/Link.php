@@ -10,7 +10,7 @@ class Data2Html_Parse_Link
     protected $full2BaseNames;
     protected $baseNames;
     protected $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
-    protected $reason;
+    protected $culprit;
 
     public function __construct($data)
     {
@@ -22,7 +22,7 @@ class Data2Html_Parse_Link
     // echo "getGrid($gridName)<br>";
         $this->gridBase = $this->data->getGrid($gridName);
         $this->gridName = $this->gridBase['name'];
-        $this->reason = "Linking grid \"{$this->gridName}\" of model \"{$this->gridBase['modelName']}\"";
+        $this->culprit = "Linking grid \"{$this->gridName}\" of model \"{$this->gridBase['modelName']}\"";
         $this->links = array();
         $this->joins = array();
         $this->full2BaseNames = array();
@@ -109,7 +109,7 @@ class Data2Html_Parse_Link
             $finalLinkName = $linkParts[count($linkParts)-1];
             if (!array_key_exists($finalLinkName, $fields)) { 
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$toLinkName}[{$fieldName}]\" uses a link \"{$finalLinkName}\" that not exist on `fields`"
+                    "{$this->culprit}: Linked field \"{$toLinkName}[{$fieldName}]\" uses a link \"{$finalLinkName}\" that not exist on `fields`"
                 );
             }
             $anchorField = $fields[$finalLinkName];
@@ -120,7 +120,7 @@ class Data2Html_Parse_Link
             }
             if (!array_key_exists('link', $anchorField)) {
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$toLinkName}[{$fieldName}]\" uses field \"{$toLinkName}\" without link."
+                    "{$this->culprit}: Linked field \"{$toLinkName}[{$fieldName}]\" uses field \"{$toLinkName}\" without link."
                 );
             }
             list($modelName, $gridName) = 
@@ -132,7 +132,7 @@ class Data2Html_Parse_Link
         $linkedKeys = $linkGrid['keys'];
         if (count($linkedKeys) !== 1) {
             throw new Exception(
-                "{$this->reason}: Requires a primary key with only one field, on link \"{$toLinkName}[...]\"."
+                "{$this->culprit}: Requires a primary key with only one field, on link \"{$toLinkName}[...]\"."
             );
         }
         $toAlias = 'T' . count($this->joins);
@@ -150,7 +150,7 @@ class Data2Html_Parse_Link
         );
         if (count($linkedKeys) === 0) {
             throw new Exception(
-                "{$this->reason}: On link \"{$toLinkName}\"" .
+                "{$this->culprit}: On link \"{$toLinkName}\"" .
                 " for table \"{$linkGrid['table']}\"" .
                 " grid without keys."
             );
@@ -382,7 +382,7 @@ class Data2Html_Parse_Link
             // Is a column of grid indexed by number
             if (($fieldToName+0) >= count($link['gridColNames'])) {
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$linkName}[{$fieldToName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on grid of model \"{$link['model']}."
+                    "{$this->culprit}: Linked field \"{$linkName}[{$fieldToName}]\" uses a link with a index out of range on grid \"{$link['gridName']}\" on grid of model \"{$link['model']}."
                 );
             }
             $fieldTo = $link['grid']['columns'][$link['gridColNames'][$fieldToName+0]];
@@ -393,7 +393,7 @@ class Data2Html_Parse_Link
             // Is a field of model
             if (!array_key_exists($fieldToName, $link['fields'])) {
                 throw new Exception(
-                    "{$this->reason}: Linked field \"{$linkName}[{$fieldToName}]\" not exist on `fields` on model \"{$link['model']}\"."
+                    "{$this->culprit}: Linked field \"{$linkName}[{$fieldToName}]\" not exist on `fields` on model \"{$link['model']}\"."
                 );
             }
             $fieldTo = $link['fields'][$fieldToName];
