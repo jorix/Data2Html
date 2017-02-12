@@ -27,65 +27,7 @@ abstract class Data2Html_Model
     
     // To parse
     protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
-    protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
-    protected $keywords = array(
-        'autoKey' => 'key',
-        'boolean' => 'type',
-        'check' => 'check',
-        'currency' => 'type',
-        'date' => 'type',
-        'db' => 'db',
-        'default' => 'default',
-        'description' => 'description',
-        'digits' => 'size',
-        'display' => 'display',
-        'email' => 'type',
-        'emails' => 'type',
-        'format' => 'format',
-        'hidden' => 'display',
-        'integer' => 'type',
-        'key' => 'key',
-        'length' => 'size',
-        'link' => 'link',
-        'linkedTo' => 'linkedTo',
-        'name' => 'name',
-        'number' => 'type',
-        'sortBy' => 'sortBy',
-        'required' => 'validations',
-        'size' => 'size',
-        'string' => 'type',
-        'teplateItems' => 'teplateItems',
-        'title' => 'title',
-        'type' => 'type',
-        'uniqueKey' => 'constraints',
-        'url' => 'type',
-        'validations' => 'validations',
-        'value' => 'value',
-        'visualClass' => 'visualClass',
-    );
-    protected $keywordsToDbTypes = array(
-        'autoKey' => 'integer',
-        'digits' => 'number',
-        'link' => 'integer',
-        'length' => 'string',
-    );
-    protected $typesToDbTypes = array(
-        'email' => 'string',
-        'url' => 'string',
-    );
-    protected $keywordsSingle = array(
-        'check',
-        'db',
-        'default',
-        'description',
-        'key',
-        'name',
-        'sortBy',
-      //  'size', <- join of 'length' or 'digits' 
-        'title',
-        'type',
-        'value',
-    );
+
     /**
      * Class constructor, initializes basic properties.
      *
@@ -185,15 +127,16 @@ abstract class Data2Html_Model
         $this->forms = $def->getArray('forms', array());
         if (!array_key_exists('default', $this->forms)) {
             $this->forms['default'] = array();
-        }        
-
+        }
     }
+
     protected function parseFields($fields)
     {    
         $set = new Data2Html_Model_Set('fields');
         $matchedFields = array();
         foreach ($fields as $k => &$v) {
-            list($pKey, $pField) = $this->parseField($k, $v);
+            $pKey = $set->addParse($k, $v);
+            $pField = $set->getItem($pKey);
             if (isset($pField['sortBy'])) {
                 $sortBy = $pField['sortBy'];
                 if (is_string($sortBy)) {
@@ -225,7 +168,7 @@ abstract class Data2Html_Model
                     );
                 }
             }
-            $set->addItem($pKey, $pField);
+            $set->setItem($pKey, $pField);
         }
         $pFields = $set->getItems();
         if (count($matchedFields) > 0) {
@@ -239,111 +182,6 @@ abstract class Data2Html_Model
         }
         return $pFields;
     }
-
-    protected function parseField($key, $field)
-    {
-        if (is_string($field)) {
-            if (substr($field, 0, 1) === '=') {
-                $field = array('value' => substr($field, 1));
-            } elseif (preg_match($this->matchLinkedOnce, $field)) { // Is a link
-                $field = array('db' => $field);
-            } else {
-                throw new Exception(
-                    "{$this->culprit}: Field `{$key}` as string must bee a `value` " .
-                    "as \"=xxx\" or a link as \"link[name]\"."
-                );
-            }
-        }
-        $fieldDx = new Data2Html_Collection($field);
-        $name = $fieldDx->getString('name', (is_int($key) ? null : $key));
-        $db = null;
-        if (array_key_exists('db', $field)) {
-            $db = $field['db'];
-        } elseif (!array_key_exists('value', $field)) {
-            $db = $name;
-        }
-        $pKey = 0;
-        if (is_string($key)) {
-            $pKey = $key;
-        }
-        $pField = array();
-        if ($name) {
-           // $pField['name'] = $name;
-        }
-        if ($db) {
-            $pField['db'] = $db;
-        }
-        $defTypes = new Data2Html_Collection($this->keywordsToDbTypes);
-        $defaultType = null;
-        foreach ($field as $kk => $vv) {
-            $isValue = is_int($kk);
-            if ($isValue) {
-                $word = $vv;
-            } else {
-                $word = $kk;
-            }
-            if (!isset($this->keywords[$word])) {
-                throw new Exception(
-                    "{$this->culprit}: Word \"{$word}\" on field \"{$key}\" is not supported."
-                );
-            }
-            $kwGroup = $this->keywords[$word];
-            if ($kwGroup === $word) {
-                $pField[$word] = $vv; 
-            } elseif (in_array($kwGroup, $this->keywordsSingle)) {
-                $pField[$kwGroup] = ($isValue ? $vv : array($kk => $vv)); 
-            } else {
-                if (!isset($pField[$kwGroup])) {
-                    $pField[$kwGroup] = array();
-                }
-                if ($isValue) {
-                    array_push($pField[$kwGroup], $vv);
-                } else {
-                    $pField[$kwGroup][$kk] = $vv;
-                }
-            }
-            if (!$defaultType) {
-                $defaultType = $defTypes->getString($word);
-            }
-        }
-        if (!array_key_exists('description', $pField) &&
-            array_key_exists('title', $pField)) {
-            $pField['description'] = $pField['title'];
-        }
-        if (!isset($pField['type']) && $defaultType) {
-            $pField['type'] = $defaultType;
-        }
-        $value = null;
-        if (array_key_exists('value', $pField)) {
-            $value = $pField['value'];
-        }
-        /*
-'/>\$\$([\w.]+)</'
-'/\'\$\$([\w.]+)\'/'
-'/"\$\$([\w.]+)"/'
-        */
-        if ($value) {
-            if (array_key_exists('db', $field) ) {
-                if (isset($field['db'])) {
-                    throw new Exception(
-                        "{$this->culprit}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
-                    );  
-                }
-                unset($field['db']);
-            }
-            $matches = null;
-            // $${name} | $${link[name]}
-            preg_match_all($this->matchTemplate, $value, $matches);
-            if (count($matches[0]) > 0) {
-                if (!array_key_exists('type', $pField)) {
-                    $pField['type'] = 'string';
-                }
-                $pField['teplateItems'] = $matches;
-            }
-        }
-        return array($pKey, $pField);
-    }
-
     protected function parseGrid($gridName, &$grid, $baseFields)
     {
         $grid['name'] = $gridName;
@@ -383,17 +221,9 @@ abstract class Data2Html_Model
             $pCol = null;
             if (is_string($v)) {
                 if (substr($v, 0, 1) === '=') { // Is a value
-                    list($pKey, $pCol) = $this->parseField(
-                        $k,
-                        array( 
-                            'value' => substr($v, 1)
-                        )
-                    );
+                    $set->addParse($k, array('value' => substr($v, 1)));
                 } elseif (preg_match($this->matchLinkedOnce, $v)) { // Is a link
-                    list($pKey, $pCol) = $this->parseField(
-                        $k,
-                        array('db' => $v)
-                    );
+                    $set->addParse($k, array('db' => $v));
                 } else {
                     $pCol = $fieldsDx->getArray($v);
                     if (!$pCol) {
@@ -402,27 +232,25 @@ abstract class Data2Html_Model
                         );
                     }
                     if (is_int($k)) {
-                        $pKey = $v;
+                        $set->addParse($v, $pCol);
                     } else {
-                        $pKey = $k;
+                        $set->addParse($k, $pCol);
                     }
                 }
             } elseif (is_array($v)) {
                 $nameField = Data2Html_Value::getItem($v, 'name');
                 if ($nameField) {
-                    $pField = $fieldsDx->getArray($nameField);
-                    if (!$pField) {
+                    $baseField = $fieldsDx->getArray($nameField);
+                    if (!$baseField) {
                         throw new Exception(
                             "{$this->culprit}: Field `{$k}` used in grid `{$gridName}` not exist on `fields`."
                         );
                     }
-                    list($pKey, $pCol) = $this->parseField($k, $v);
-                    $pCol = array_merge($pCol, $pField);
+                    $set->addParse($k, $v, $baseField);
                 } else {
-                    list($pKey, $pCol) = $this->parseField($k, $v);
+                    $set->addParse($k, $v);
                 }
             }
-            $set->addItem($pKey, $pCol);
         }
         
         // Final parse
@@ -479,8 +307,7 @@ abstract class Data2Html_Model
             if (is_int($pKey)) {
                 $pKey = $name.'_'.$pFieldDx->getString('check', '');
             }
-            list($pKey, $pField) = $this->parseField($pKey, $pField);
-            $set->addItem($pKey, $pField);
+            $set->addParse($pKey, $pField);
         }
         return $set->getItems();
     }
@@ -511,8 +338,7 @@ abstract class Data2Html_Model
             if (is_int($k)) {
                 $k = $name.'_'.$pFieldDx->getString('check', '');
             }
-            list($k, $v) = $this->parseField($k, $v);
-            $set->addItem($k, $v);
+            $set->addParse($k, $v);
         }
         return $set->getImetms();
     }
