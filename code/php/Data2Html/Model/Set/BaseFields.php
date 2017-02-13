@@ -50,5 +50,6 @@ class Data2Html_Model_Set_BaseFields extends Data2Html_Model_Set
                 }
             }
         }
+        return $this->setItems;
     }
 }

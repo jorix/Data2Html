@@ -133,8 +133,7 @@ abstract class Data2Html_Model
     protected function parseFields($fields)
     {    
         $set = new Data2Html_Model_Set_BaseFields($this->modelName);
-        $set->parseItems($fields);
-        return $set->getItems();
+        return $set->parseItems($fields);
     }
     protected function parseGrid($gridName, &$grid, $baseFields)
     {
@@ -174,22 +173,19 @@ abstract class Data2Html_Model
     protected function parseColumns($gridName, $columns, $baseFields)
     {
         $set = new Data2Html_Model_Set_Columns($this->modelName . ':' . $gridName);
-        $set->parseItems($columns, $baseFields);
-        return $set->getItems();
+        return $set->parseItems($columns, $baseFields);
     }
     
     protected function parseFilterFields($gridName, $filter, $baseFields)
     {
         $set = new Data2Html_Model_Set_Filter($this->modelName . ':' . $gridName);
-        $set->parseItems($filter, $baseFields);
-        return $set->getItems();
+        return $set->parseItems($filter, $baseFields);
     }
     
     protected function parseFormFields($formName, $fields, $baseFields)
     {
         $set = new Data2Html_Model_Set_Form($formName);
-        $set->parseItems($fields, $baseFields);
-        return $set->getItems();
+        return $set->parseItems($fields, $baseFields);
     }
     // ========================
     // Events
