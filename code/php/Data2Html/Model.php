@@ -197,11 +197,19 @@ abstract class Data2Html_Model
                 )
             );
         }
-        list($grid['keys'], $columns) = $this->parseColumns(
+        $columns = $this->parseColumns(
             $gridName,
             $gridDx->getArray('columns', array()),
             $baseFields
         );
+        $keyFields = array();
+        foreach ($columns as $k => $v) {
+            if (array_key_exists('key', $v)) {
+                array_push($keyFields, $k);
+            }
+        }
+        //print_r($keyFields);
+        $grid['keys'] = $keyFields;
         $grid['modelName'] = $this->modelName;
         $grid['table'] = $this->table;
         $grid['columns'] = $columns;
@@ -211,136 +219,23 @@ abstract class Data2Html_Model
 
     protected function parseColumns($gridName, $columns, $baseFields)
     {
-        if (count($columns) === 0) { // if no columns set as all baseFields
-            $columns = $baseFields;
-        }
-        $fieldsDx = new Data2Html_Collection($baseFields);
-        $set = new Data2Html_Model_Set($gridName);
-        foreach ($columns as $k => $v) {
-            $pKey = 0;
-            $pCol = null;
-            if (is_string($v)) {
-                if (substr($v, 0, 1) === '=') { // Is a value
-                    $set->addParse($k, array('value' => substr($v, 1)));
-                } elseif (preg_match($this->matchLinkedOnce, $v)) { // Is a link
-                    $set->addParse($k, array('db' => $v));
-                } else {
-                    $pCol = $fieldsDx->getArray($v);
-                    if (!$pCol) {
-                        throw new Exception(
-                            "{$this->culprit}: Field `{$v}` used in grid `{$gridName}` not exist on `fields`."
-                        );
-                    }
-                    if (is_int($k)) {
-                        $set->addParse($v, $pCol);
-                    } else {
-                        $set->addParse($k, $pCol);
-                    }
-                }
-            } elseif (is_array($v)) {
-                $nameField = Data2Html_Value::getItem($v, 'name');
-                if ($nameField) {
-                    $baseField = $fieldsDx->getArray($nameField);
-                    if (!$baseField) {
-                        throw new Exception(
-                            "{$this->culprit}: Field `{$k}` used in grid `{$gridName}` not exist on `fields`."
-                        );
-                    }
-                    $set->addParse($k, $v, $baseField);
-                } else {
-                    $set->addParse($k, $v);
-                }
-            }
-        }
-        
-        // Final parse
-        $pColumns = $set->getItems();
-        $keyFields = array();
-        foreach ($pColumns as $k => $v) {
-            if (array_key_exists('key', $v)) {
-                array_push($keyFields, $k);
-            }
-        }
-        return array($keyFields, $pColumns);
+        $set = new Data2Html_Model_Set_Columns($this->modelName . ':' . $gridName);
+        $set->parseItems($columns, $baseFields);
+        return $set->getItems();
     }
     
     protected function parseFilterFields($gridName, $filter, $baseFields)
     {
-        $baseFiledsDx = new Data2Html_Collection($baseFields);
-        $set = new Data2Html_Model_Set($gridName);
-        $pFieldDx = new Data2Html_Collection();
-        foreach ($filter as $k => $v) {
-            $pKey = 0;
-            $pField = null;
-            if (is_array($v)) {
-                $pKey = $k;
-                $pField = $v;
-            } elseif (is_string($v)) {
-                if (is_string($k)) {
-                    $pKey = $k;
-                    $pField = array('name' => $k, 'check' => $v);
-                } else {
-                    throw new Exception(
-                        "{$this->culprit}: Filter on grid `{$gridName}`: as string `{$k}=>\"{$v}\"` needs a key as string."
-                    ); 
-                }
-            }
-            $pFieldDx->set($pField);              
-            $name = $pFieldDx->getString('name');
-            if ($name) {
-                // if (!array_key_exists($name, $baseFields)) {
-                    // throw new Exception(
-                        // "{$this->culprit}: Filter on grid `{$gridName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
-                    // );
-                // }
-                $pField = array_merge($baseFields[$name], $pField);
-                $db = $pFieldDx->getString('db');
-            } else {
-                $db = $pFieldDx->getString('db');
-                $name = $db;
-            }
-            if (!$db && array_key_exists('check', $pField) ) {
-                throw new Exception(
-                    "{$this->culprit}: Filter on grid `{$gridName}`: `{$k}=>[...]` requires a `db` attribute."
-                );
-            }
-            if (is_int($pKey)) {
-                $pKey = $name.'_'.$pFieldDx->getString('check', '');
-            }
-            $set->addParse($pKey, $pField);
-        }
+        $set = new Data2Html_Model_Set_Filter($this->modelName . ':' . $gridName);
+        $set->parseItems($filter, $baseFields);
         return $set->getItems();
     }
     
     protected function parseFormFields($formName, $fields, $baseFields)
     {
-        if (count($fields) === 0) { // if no columns set as all baseFields
-            $fields = $baseFields;
-        }
-        $baseFiledsDx = new Data2Html_Collection($baseFields);
-        $set = new Data2Html_Model_Set($formName);
-        $pFieldDx = new Data2Html_Collection();
-        foreach ($fields as $k => $v) {
-            $pFieldDx->set($v);              
-            $name = $pFieldDx->getString('name');
-            if ($name) {
-                // if (!array_key_exists($name, $baseFields)) {
-                    // throw new Exception(
-                        // "{$this->culprit}: Form `{$formName}`: Field `{$k}=>[... 'name'=>'{$name}']` uses a name that not exist on `fields`."
-                    // );
-                // }
-                $v = array_merge($baseFields[$name], $v);
-                $db = $pFieldDx->getString('db');
-            } else {
-                $db = $pFieldDx->getString('db');
-                $name = $db;
-            }
-            if (is_int($k)) {
-                $k = $name.'_'.$pFieldDx->getString('check', '');
-            }
-            $set->addParse($k, $v);
-        }
-        return $set->getImetms();
+        $set = new Data2Html_Model_Set_Form($formName);
+        $set->parseItems($fields, $baseFields);
+        return $set->getItems();
     }
     // ========================
     // Events

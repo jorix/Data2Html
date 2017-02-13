@@ -1,12 +1,15 @@
 <?php
+//abstract 
 class Data2Html_Model_Set
 {
-    protected $idCount = 0;
-    protected $setName = '';
+    protected $originName = '';
     protected $culprit = '';
     protected $debug = false;
-    protected $setItems = array();
     
+    protected $idPrefix = '';
+    protected $idCount = 0;
+    
+    protected $setItems = array();
     
     // To parse
     protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
@@ -72,22 +75,14 @@ class Data2Html_Model_Set
         'value',
     );
     
-    public function __construct($setName)
+    public function __construct($originName)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->setName = $setName;
-        $this->culprit = str_replace('Data2Html_Model_', '', get_class($this)) .
-            " \"{$this->setName}\"";
+        $this->originName = $originName;
+        $this->ifPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
+        $this->culprit = $this->ifPrefix . " for \"{$this->originName}\"";
     }
-    
-    public function addItem($pKey, $pItem)
-    {
-        if (is_int($pKey) || array_key_exists($pKey, $this->setItems)) {
-            $pKey = $this->createId();
-        }
-        $this->setItems[$pKey] = $pItem;
-        return $pKey;
-    }
+
     public function getItems()
     {
         return $this->setItems;
@@ -208,8 +203,13 @@ class Data2Html_Model_Set
         return $this->addItem($pKey, $pField);
     }
     
-    protected function createId() {
-        $this->idCount++;
-        return 'd2h_' . $this->setName . '_' . $this->idCount;
+    protected function addItem($pKey, $pItem)
+    {
+        if (is_int($pKey) || array_key_exists($pKey, $this->setItems)) {
+            $this->idCount++;
+            $pKey = $this->ifPrefix . '_' . $this->idCount;;
+        }
+        $this->setItems[$pKey] = $pItem;
+        return $pKey;
     }
 }
