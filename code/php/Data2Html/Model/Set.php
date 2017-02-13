@@ -87,14 +87,6 @@ class Data2Html_Model_Set
     {
         return $this->setItems;
     }
-    public function getItem($key)
-    {
-        return $this->setItems[$key];
-    }
-    public function setItem($key, $item)
-    {
-        $this->setItems[$key] = $item;
-    }
     
     public function addParse($key, $field, $baseField = null)
     {
