@@ -67,6 +67,10 @@ class Data2Html_Render_Template
                 case '_description': // Ignore all developer descriptions
                     break; 
                 // Mount the tree
+                case 'definitions':
+                    $response['definitions'] = 
+                        $this->loadDefinitions($folder, $tree['definitions']);
+                    break;
                 case 'template':
                     $response['template'] = 
                         $this->loadTemplate($folder, $tree['template']);
@@ -102,6 +106,23 @@ class Data2Html_Render_Template
             return $folder .= DIRECTORY_SEPARATOR;
         } else {
             return $folder;
+        }
+    }
+    
+    protected function loadDefinitions($folder, $definitionsFileName)
+    {
+        $fullFileName = $folder . $definitionsFileName;
+        $folder = $this->setFolderPath(dirname($fullFileName));
+        list($contentKey, $pathObj) = $this->addContent($fullFileName);
+        switch ($pathObj['extension']) {
+            case '.json':
+                $defs = json_decode($this->getContent($contentKey), true);
+                if ($defs === null) {
+                    throw new Exception("{$this->culprit}: Error parsing the json file: \"{$fullFileName}\"");
+                }
+                return $defs;
+            default:
+                throw new Exception("{$this->culprit}: Extension \"{$pathObj['extension']}\" on definitions name \"{$fullFileName}\" is not supported.");
         }
     }
     protected function loadTemplate($folder, $templateFileName)
@@ -234,6 +255,10 @@ class Data2Html_Render_Template
     public function getTemplateRoot()
     { 
         return array(array(), $this->templateTree);
+    }
+    public function getTemplateDefinitions($keys, $templateBranch)
+    {
+        return Data2Html_Value::getItem($templateBranch[1], $keys, array());
     }
     public function getTemplateBranch($keys, $templateBranch)
     {

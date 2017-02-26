@@ -52,33 +52,11 @@ class Data2Html_Render
                 $this->getControllerUrl() .
                 "model={$this->modelObj->getModelName()}:{$gridName}&";
         $gridDx = new Data2Html_Collection($linkedGrid);
-        $pageDef = array(
-            'layout' => 'none',
-            'fields' => array(
-                array(
-                    'input' => 'button',
-                    'icon' => 'refresh',
-                    'title' => '$$Refres>"hàdata',
-                    'description' => null,
-                    'action' => 'readPage()'
-                ),
-                'pageSize' => array(
-                    'default' => 10,
-                    'type' => 'integer'
-                ),
-                array(
-                    'input' => 'button',
-                    'icon' => 'forward',
-                    'title' => '$$Ne.>xtàpage',
-                    'action' => 'nextPage()',
-                )
-            )
-        );
         $pageId = $this->idRender . '_page';
         $pageForm = $this->renderForm(
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
-            $pageDef,
+            array(),
             $this->modelObj->getTitle()
         );
         $filterId = $this->idRender . '_filter';
@@ -197,9 +175,14 @@ class Data2Html_Render
         $formDs,
         $title
     ){
-        if (!$formDs) {
+        $formDs = array_replace_recursive(
+            $formDs,
+            $this->templateObj->getTemplateDefinitions('definitions', $templateBranch)
+        );
+        if (!$formDs || count($formDs) === 0) {
             return $this->templateObj->emptyRender();
         }
+
         $baseUrl = $this->getControllerUrl();
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
