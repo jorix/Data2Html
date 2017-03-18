@@ -1,6 +1,6 @@
 <?php die("It's uncooked!"); ?>
-<div class="row" ng-controller="$${id}">
-    <form name="$${id}" class="simple-form" xx-class="form-horizontal"  novalidate>
+<div class="row">
+    <form name="$${id}" class="simple-form" novalidate>
     <div>
         $${body}
     </div>

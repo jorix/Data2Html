@@ -184,7 +184,11 @@ class Data2Html_Collection
     {
         $val = $this->getArray($itemKey, $default);
         if (is_null($val)) {
-            return null;
+            if (is_array($default)) {
+                return new Data2Html_Collection($val, $default);
+            } else {
+                return null;
+            }
         } else {
             return new Data2Html_Collection($val, $this->required);
         }

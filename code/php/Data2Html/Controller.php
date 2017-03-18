@@ -20,7 +20,7 @@ class Data2Html_Controller
         switch ($serverMethod) {
             case 'GET':
                 foreach($request as $key => $val) {
-                    if (strpos($val, '[,]') !== false) {
+                    if (strpos($val, '=') !== false) {
                         parse_str(str_replace('[,]', '&', $val), $data);
                         $postData[$key] = $data;
                     } else {

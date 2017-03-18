@@ -69,6 +69,7 @@ var data2html, d2h;
                         selectorRepeat: '.' + iClassRepeat,
                         selectorWaiting: '.' + iClassWaiting,
                         filterSelector: optionsItems.filter ? optionsItems.filter : null,
+                        pageSelector: optionsItems.page ? optionsItems.page : null,
                         selectorRepeatParent: '.' + iClassRepeatParent
                     }
                 });
@@ -125,6 +126,7 @@ var data2html, d2h;
                 _clearHtml.call(this);
                 // additional calls
                 _setFilter.call(this, dataObj_.filterSelector);
+                _setPage.call(this, dataObj_.pageSelector);
             }
         });
     };
@@ -141,6 +143,21 @@ var data2html, d2h;
         }
         var _this = this;
         $filter.change(function() {
+            _load.call(_this);
+        });
+    };
+    var _setPage = function(pageSelector, pageOptions) {
+        if (!pageSelector) { return; }
+        var dataObj = $(this).data('data2html');
+        dataObj._.pageSelector = pageSelector;
+        var $page;
+        if (pageSelector.substr(0,1) === "#") {
+            $page = $(pageSelector);
+        } else {
+            $page = $(pageSelector, this);
+        }
+        var _this = this;
+        $page.change(function() {
             _load.call(_this);
         });
     };
@@ -165,6 +182,10 @@ var data2html, d2h;
             _dataObj_= _dataObj._;
         if (_dataObj_.filterSelector) {
             url += '&d2h_filter=' +  $(_dataObj_.filterSelector, this).serialize()
+                .replace('&', '[,]');
+        }
+        if (_dataObj_.pageSelector) {
+            url += '&d2h_page=' +  $(_dataObj_.pageSelector, this).serialize()
                 .replace('&', '[,]');
         }
         url += '&d2h_sort=' +  $('.d2h_sort', this).val();
@@ -315,6 +336,13 @@ var data2html, d2h;
             return this;
         },
         filter: function(filterSelector, options) {
+            var _self = this;
+            $(this.selector).each(function() {
+                
+            });
+            return this;
+        },
+        page: function(pageSelector, options) {
             var _self = this;
             $(this.selector).each(function() {
                 

@@ -3,7 +3,7 @@
     id="$${id}"
     data-d2h="
         url:'$${url}',
-        repeat:  'table tbody tr',
+        repeat:'table tbody tr',
         filter:'#$${id}_filter',
         page:  '#$${id}_page',
         sort:  '#$${id}_sort'"
