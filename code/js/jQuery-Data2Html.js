@@ -12,7 +12,7 @@ var data2html, d2h;
         classRepeat: 'd2h_repeat',
         classWaiting: 'd2h_waiting',
         
-        beforeSend: function(){},
+        beforeSend: function(){ return true; },
         complete: function(row_count){}, //called, once loop through data has finished
         rowComplete: function(current_row_index, row) {} //called, after each row 
     };
@@ -68,12 +68,11 @@ var data2html, d2h;
                         pageIndex: 0,
                         selectorRepeat: '.' + iClassRepeat,
                         selectorWaiting: '.' + iClassWaiting,
-                        filterSelector: optionsItems.filter ? optionsItems.filter : null,
-                        pageSelector: optionsItems.page ? optionsItems.page : null,
                         selectorRepeatParent: '.' + iClassRepeatParent
                     }
                 });
                 var dataObj_ = dataObj._;
+
                 $itemRepeat = $(dataObj.repeat, this);
                 if ($itemRepeat.length == 0) {
                     $.error("Data2Html can not initialize DOM object '" +
@@ -124,43 +123,55 @@ var data2html, d2h;
                 $(this).data('data2html', dataObj); 
                 // clear
                 _clearHtml.call(this);
+                
                 // additional calls
-                _setFilter.call(this, dataObj_.filterSelector);
-                _setPage.call(this, dataObj_.pageSelector);
+                if (optionsItems.filter) {
+                    _setGroup.call(this, 'filter', optionsItems.filter);
+                }
+                if (optionsItems.page) {
+                    _setGroup.call(this, 'page', optionsItems.page);
+                }
             }
         });
     };
     
-    var _setFilter = function(filterSelector, filterOptions) {
-        if (!filterSelector) { return; }
+    var _setGroup = function(groupName, groupSelector, groupOptions) {
+        // Check arguments
+        if (!groupSelector) { return; }
         var dataObj = $(this).data('data2html');
-        dataObj._.filterSelector = filterSelector;
-        var $filter;
-        if (filterSelector.substr(0,1) === "#") {
-            $filter = $(filterSelector);
-        } else {
-            $filter = $(filterSelector, this);
+        if ($.isArray(groupSelector)) {
+            if (groupSelector.length < 1) {
+                return;
+            }
+            if (groupSelector.length >= 2) {
+                groupOptions = groupSelector[1];
+            }
+            groupSelector = groupSelector[0];
         }
+        
+        // To set up
+        dataObj._[groupName] = {selector: groupSelector};
+        var $group;
+        if (groupSelector.substr(0,1) === "#") {
+            $group = $(groupSelector);
+        } else {
+            $group = $(groupSelector, this);
+        }
+        
+        // Actions
         var _this = this;
-        $filter.change(function() {
+        if (groupOptions) {
+            if (groupOptions.actions) {
+                for (var key in groupOptions.actions) {
+                    
+                }
+            }
+        }
+        $group.change(function() {
             _load.call(_this);
         });
     };
-    var _setPage = function(pageSelector, pageOptions) {
-        if (!pageSelector) { return; }
-        var dataObj = $(this).data('data2html');
-        dataObj._.pageSelector = pageSelector;
-        var $page;
-        if (pageSelector.substr(0,1) === "#") {
-            $page = $(pageSelector);
-        } else {
-            $page = $(pageSelector, this);
-        }
-        var _this = this;
-        $page.change(function() {
-            _load.call(_this);
-        });
-    };
+
 	var _load = function(options) {
         var _dataObj = $(this).data('data2html');
         if (options) {
@@ -180,12 +191,12 @@ var data2html, d2h;
         
         var url = _dataObj.url,
             _dataObj_= _dataObj._;
-        if (_dataObj_.filterSelector) {
-            url += '&d2h_filter=' +  $(_dataObj_.filterSelector, this).serialize()
+        if (_dataObj_.filter) {
+            url += '&d2h_filter=' +  $(_dataObj_.filter.selector, this).serialize()
                 .replace('&', '[,]');
         }
-        if (_dataObj_.pageSelector) {
-            url += '&d2h_page=' +  $(_dataObj_.pageSelector, this).serialize()
+        if (_dataObj_.page) {
+            url += '&d2h_page=' +  $(_dataObj_.page.selector, this).serialize()
                 .replace('&', '[,]');
         }
         url += '&d2h_sort=' +  $('.d2h_sort', this).val();
@@ -195,10 +206,13 @@ var data2html, d2h;
             url: url,		
             dataType: "json", 
             beforeSend: function(){
-                if (_dataObj_.selectorWaiting) {
-                    $(_dataObj_.selectorWaiting, _this).show();
+                var response = _dataObj.beforeSend.call(_this, 0);
+                if (response !== false) {
+                    if (_dataObj_.selectorWaiting) {
+                        $(_dataObj_.selectorWaiting, _this).show();
+                    }
                 }
-                _dataObj.beforeSend.call(_this, 0);
+                return response;
             },
             error: function(XMLHttpRequest, textStatus, errorThrown){
                 if (typeof bootbox != 'undefined'){
@@ -336,16 +350,14 @@ var data2html, d2h;
             return this;
         },
         filter: function(filterSelector, options) {
-            var _self = this;
             $(this.selector).each(function() {
-                
+                _setGroup.call(this, 'filter', filterSelector, options);
             });
             return this;
         },
         page: function(pageSelector, options) {
-            var _self = this;
             $(this.selector).each(function() {
-                
+                _setGroup.call(this, 'page', pageSelector, options);
             });
             return this;
         },

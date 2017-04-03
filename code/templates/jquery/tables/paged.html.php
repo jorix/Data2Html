@@ -5,7 +5,12 @@
         url:'$${url}',
         repeat:'table tbody tr',
         filter:'#$${id}_filter',
-        page:  '#$${id}_page',
+        page: ['#$${id}_page', {
+            actions: {
+                nextPage: function() {this.load()},
+                readPage: function() {this.load()}
+            }
+        }],
         sort:  '#$${id}_sort'"
 >
     $${filter}
