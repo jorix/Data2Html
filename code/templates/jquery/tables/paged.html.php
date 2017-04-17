@@ -7,6 +7,7 @@
         filter:'#$${id}_filter',
         page: ['#$${id}_page', {
             actions: {
+                lolo: function(e, d2hObj) {console.log('lali');d2hObj.load()},
                 nextPage: function() {this.load()},
                 readPage: function() {this.load()}
             }

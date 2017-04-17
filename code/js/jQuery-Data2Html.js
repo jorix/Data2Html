@@ -135,10 +135,14 @@ var data2html, d2h;
         });
     };
     
+    /**
+     * $scope = element with d2h $().data('data2html')
+     */
     var _setGroup = function(groupName, groupSelector, groupOptions) {
         // Check arguments
         if (!groupSelector) { return; }
-        var dataObj = $(this).data('data2html');
+        var _this = this,
+            dataObj = $(this).data('data2html');
         if ($.isArray(groupSelector)) {
             if (groupSelector.length < 1) {
                 return;
@@ -151,7 +155,8 @@ var data2html, d2h;
         
         // To set up
         dataObj._[groupName] = {selector: groupSelector};
-        var $group;
+        var $group,
+            groupDataObj = dataObj._[groupName];
         if (groupSelector.substr(0,1) === "#") {
             $group = $(groupSelector);
         } else {
@@ -159,12 +164,19 @@ var data2html, d2h;
         }
         
         // Actions
-        var _this = this;
         if (groupOptions) {
             if (groupOptions.actions) {
-                for (var key in groupOptions.actions) {
-                    
-                }
+                var _actions = groupOptions.actions;
+                groupDataObj.actions = _actions;
+                $('[data-d2h-on]', this).each(function() {
+                    var $this = $(this),
+                        _onAction = $this.attr('data-d2h-on').split(':');
+                    if (_onAction.length === 2) {
+                        $this.on(_onAction[0], function(event) {
+                            _actions[_onAction[1]].call(this, event, _this);
+                        });
+                    }
+                });
             }
         }
         $group.change(function() {
