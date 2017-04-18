@@ -35,8 +35,9 @@
 <body>
     <div class="container">à
         <ul>
-            <li><a href="#" onclick="d2h('#tbl_providers').load(); return false;">Ufs</a></li>
-            <li><a href="#" onclick="data2html('#tbl_xxx').load(); return false;">xxx Providers</a></li>
+            <li><a href="#" onclick="$('#tbl_providers').data2html('load', {url: '../_controller/_controller.php?model=aixada_providers'}); return false;">Providers</a></li>
+            <li><a href="#" onclick="$('#tbl_providers').data2html('load'); return false;">Ufs</a></li>
+            <li><a href="#" onclick="$('#tbl_xxx').data2html('load'); return false;">xxx Providers</a></li>
         </ul>
         <div class="row" 
             id="tbl_providers"
@@ -44,7 +45,7 @@
                 url:'../_controller/_controller.php?model=aixada_ufs',
                 repeat:  'table tbody tr.d2h_r',
                 filter:'#d2h_1_filter',
-                page:  '#d2h_1_page',
+                // page:  '#d2h_1_page',
                 sort:  '#d2h_1_sort'">
         <form id="d2h_1_filter" class="simple-form">
         <div>
@@ -84,7 +85,7 @@
             </tbody>
         </table>
         <table id="tbl_xxx" class="table table-striped table-bordered">
-            <tbody><tr class="d2h_repeat2" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
+            <tbody><tr class="d2h_repeat" providerId="{id}" responsibleUfId="{responsible_uf_id}" >
                     <td><input type="checkbox" name="providerBulkAction"/></td>
                     <td class="textAlignRight">{id}</td>
                     <td title="<?php echo 'click_to_list'; ?>">{name}</td></tr>
@@ -100,12 +101,10 @@
     </script>
     
     <script "type"="text/javascript">
-    data2html('#tbl_providers').load({_:{}});
-    //.d2h("filter", "#d2h_1_filter");
+    //$('#tbl_providers').data2html('load');
     </script>
     <script "type"="text/javascript">
-    d2h('#tbl_xxx', {
-        repeat: '.d2h_repeat2',
+    $('#tbl_xxx').data2html({
         url: '../_controller/_controller.php?model=aixada_providers'
     });
     </script>

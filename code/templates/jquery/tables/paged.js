@@ -1,1 +1,1 @@
-data2html('#' + $${id}).load();
+$('#' + $${id}).data2html('load');
