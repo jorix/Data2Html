@@ -167,20 +167,8 @@
             var $group,
                 _ele = this._ele,
                 groupDataObj = {selector: groupSelector};
-            if (groupSelector.substr(0,1) === "#") {
-                $group = $(groupSelector);
-            } else {
-                $group = $(groupSelector, _ele);
-            }
-            if ($group.length != 1) {
-                $.error(
-                    "Data2Html selector '" + groupSelector + 
-                    "' of group '" + groupName +
-                    "' has selected " + $group.length +
-                    "  elements. Must select only one element!"
-                );
-                return;
-            }
+            $group = this._selGroup(groupDataObj);
+
             this.groups[groupName] = groupDataObj;
             
             // Actions
@@ -206,6 +194,25 @@
             });
         },
         
+        _selGroup: function(groupDataObj) {
+            var groupSelector = groupDataObj.selector;
+            if (groupSelector.substr(0,1) === "#") {
+                $group = $(groupSelector);
+            } else {
+                $group = $(groupSelector, this.ele);
+            }
+            if ($group.length != 1) {
+                $.error(
+                    "Data2Html selector '" + groupSelector + 
+                    "' of group '" + groupName +
+                    "' has selected " + $group.length +
+                    "  elements. Must select only one element!"
+                );
+                return;
+            }
+            return $group;
+        },
+        
         load: function(options) {
             if (!this.settings) {
                 $.error(
@@ -217,11 +224,11 @@
             
             var url = _settings.url;
             if (this.groups.filter) {
-                url += '&d2h_filter=' +  $(this.groups.filter, this).serialize()
+                url += '&d2h_filter=' + this._selGroup(this.groups.filter).serialize()
                     .replace('&', '[,]');
             }
             if (this.groups.page) {
-                url += '&d2h_page=' +  $(this.groups.page, this).serialize()
+                url += '&d2h_page=' + this._selGroup(this.groups.page).serialize()
                     .replace('&', '[,]');
             }
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
