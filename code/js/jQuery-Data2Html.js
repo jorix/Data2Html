@@ -7,7 +7,8 @@
         url: '',
         type: 'GET',
         pageSize: 0, //default results per page
-        classFormChanged: 'd2h_formChanged',
+        classFormChanged: 'd2h_formChanged', // Only set at initial declaration
+        classWaiting: 'd2h_waiting',
         
         repeat: '.d2h_repeat',
         filter: '',
@@ -39,8 +40,8 @@
         
         
         _selectorRepeat: '',
-        _selectorWaiting: '',
         _selectorRepeatParent: '',
+        _classFormChanged: '',
         _repeatHtml: '', // Template
         _repeatStart: 0,
         
@@ -79,11 +80,10 @@
             // Set internal selectors
             _initCounter++;
             var iClassRepeat = 'i_d2h_repeat_' + _initCounter,
-                iClassRepeatParent = iClassRepeat + '_parent',
-                iClassWaiting = iClassRepeat + '_waiting';
+                iClassRepeatParent = iClassRepeat + '_parent';
             this._selectorRepeat = '.' + iClassRepeat;
-            this._selectorWaiting = '.' + iClassWaiting;
             this._selectorRepeatParent = '.' + iClassRepeatParent;
+            this._classFormChanged = settings.classFormChanged;
 
             // Check repeat selector
             var $itemRepeat = $(settings.repeat, ele);
@@ -189,7 +189,7 @@
                 }
             }
             $group.change(function() {
-                $group.addClass(classFormChanged);
+                $group.addClass(_this._classFormChanged);
                 _this.load();
             });
         },
@@ -232,7 +232,8 @@
                     .replace('&', '[,]');
             }
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
-            var _this = this;
+            var _this = this,
+                _ele = this.ele;
             $.ajax({
                 type: _settings.type,
                 url: url,		
@@ -240,8 +241,8 @@
                 beforeSend: function(){
                     var response = _settings.beforeSend.call(_this, 0);
                     if (response !== false) {
-                        if (_this._selectorWaiting) {
-                            $(_this._selectorWaiting, _this).show();
+                        if (_settings.classWaiting) {
+                            $('.' + _settings.classWaiting, _ele).show();
                         }
                     }
                     return response;
@@ -287,10 +288,10 @@
                     _this._showRows(true);
                 },
                 complete: function(msg){
-                    if (_this._selectorWaiting) {
-                        $(_this._selectorWaiting, _this).hide();
-                        
+                    if (_settings.classWaiting) {
+                        $('.' + _settings.classWaiting, _ele).hide();
                     }
+                    $("*", _ele).removeClass(_this._classFormChanged);
                 }
             });
         },

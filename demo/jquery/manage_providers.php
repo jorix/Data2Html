@@ -101,7 +101,7 @@
     </script>
     
     <script "type"="text/javascript">
-    //$('#tbl_providers').data2html('load');
+    $('#tbl_providers').data2html('load');
     </script>
     <script "type"="text/javascript">
     $('#tbl_xxx').data2html({

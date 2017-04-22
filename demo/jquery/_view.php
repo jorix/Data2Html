@@ -12,11 +12,11 @@
     .d2h_waiting {
         position: fixed; left: 50%; top: 50%;
         display: none;
-        border: 12px dotted #aaa;
-        border-bottom: 8px solid #aaa;
+        border: 6px dotted #a88;
+        border-bottom: 4px solid #aaa;
         border-radius: 50%;
-        width: 100px;
-        height: 100px;
+        width: 50px;
+        height: 50px;
         -webkit-animation: spin 2s linear infinite;
         animation: spin 2s linear infinite;
     }
@@ -44,5 +44,6 @@
         );
     ?>
     </div>
+    <div class="d2h_waiting"></div>
 </body>
 </html>
