@@ -18,15 +18,13 @@
         complete: function(row_count){}, //called, once loop through data has finished
         rowComplete: function(current_row_index, row) {} //called, after each row
     };
-    var _initCounter = 0;
-
-    // The actual plugin constructor
+    
+    var _initCounter = 0,
+        _waitCounter = 0; // Only one wait
+    
     function data2html(element, options) {
-            this._ele = element;
-            
-            this._init(options);
+        this._init(element, options);
     }
-
     data2html.prototype = {
         settings: null,
         groups: {},
@@ -38,15 +36,15 @@
         _repeatHtml: '',       // template HTML string
         _startIndex: 0,
         
-        
         _selectorRepeat: '',
         _selectorRepeatParent: '',
         _classFormChanged: '',
         _repeatHtml: '', // Template
         _repeatStart: 0,
         
-        _init: function(options) {
-            var ele = this._ele;
+        // The constructor
+        _init: function(ele, options) {
+            this._ele = ele;
             
             // settings
             var optionsEle = null,
@@ -242,6 +240,7 @@
                     var response = _settings.beforeSend.call(_this, 0);
                     if (response !== false) {
                         if (_settings.classWaiting) {
+                            _waitCounter++;
                             $('.' + _settings.classWaiting, _ele).show();
                         }
                     }
@@ -255,7 +254,11 @@
                                 XMLHttpRequest.responseText + "</strong></div>",												
                         });
                     } else {
-                        alert('An error "' + errorThrown + '", status "' + textStatus + '" occurred during loading data: ' + XMLHttpRequest.responseText);
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            XMLHttpRequest.responseText
+                        );
                     }
                 },
                 success: function(jsonData){
@@ -289,7 +292,11 @@
                 },
                 complete: function(msg){
                     if (_settings.classWaiting) {
-                        $('.' + _settings.classWaiting, _ele).hide();
+                        _waitCounter--;
+                        if (_waitCounter <=0) {
+                            _waitCounter = 0;
+                            $('.' + _settings.classWaiting, _ele).hide();
+                        }
                     }
                     $("*", _ele).removeClass(_this._classFormChanged);
                 }
