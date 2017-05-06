@@ -15,42 +15,47 @@
         
         afterChange: function() { }
     };
-    function formHandler(element, name, options) {
-        this._init(element, name, options);
+    function formHandler(element, container, options) {
+        this._formInit(element, container, options);
     }
     formHandler.prototype = {
+        defaults: {
+        },
         settings: null,
-        groups: {},
+        _parent: null,
         _ele: null, // The DOM element
         
-        _init: function(ele, groupName, options) {
+        _formInit: function(ele, _this, formOptions) {
             this._ele = ele;
+            this._parent = _this;
+            var settings = $.extend({}, this.defaults, formOptions);
             
-            // To set up the group element
-            var $group,
-                _ele = this._ele,
-                _settings = {};
-            $group = this._selGroup(groupDataObj);
-var _settings
-            // Actions
-            var _this = this;
-            if (options.actions) {
-                var _actions = aptions.actions;
-                groupDataObj.actions = _actions;
-                $('[data-d2h-on]', _ele).each(function() {
+            if (settings.actions) {
+                var _actions = settings.actions;
+                var _fnAction = function() {
                     var $this = $(this),
                         _onAction = $this.attr('data-d2h-on').split(':');
                     if (_onAction.length === 2) {
                         $this.on(_onAction[0], function(event) {
-                            _actions[_onAction[1]].call(this, event, _this);
+                            console.log(_onAction.join('->'));
+                            _actions[_onAction[1]].call(_this, $this, event);
+                            return false;
                         });
                     }
+                };
+                // all sub-elements
+                $('[data-d2h-on]', ele).each(function() {
+                    _fnAction.call(this);
                 });
+                // self element
+                if (ele.attr('data-d2h-on')) {
+                    _fnAction.call(ele);
+                }
             }
-            $group.change(function() {
-                $group.addClass(_settings.classChanged);
-                _settings.afterChange.call(_this); 
+            ele.change(function() {
+                ele.addClass(_this._classFormChanged);
             });
+            this.settings = settings;
         }
     };
     
@@ -210,45 +215,11 @@ var _settings
             }
             
             // To set up the group element
-            var $group,
-                groupDataObj = {selector: groupSelector};
-            $group = this._selGroup(groupDataObj);
-
-            this.groups[groupName] = groupDataObj;
-            
-            // Actions
-            var _this = this;
-            if (groupOptions) {
-                if (groupOptions.actions) {
-                    var _actions = groupOptions.actions
-                        _fnAction = function() {
-                        var $this = $(this),
-                            _onAction = $this.attr('data-d2h-on').split(':');
-                        if (_onAction.length === 2) {
-                            $this.on(_onAction[0], function(event) {
-                                _actions[_onAction[1]].call(_this, $this, event);
-                                return false;
-                            });
-                        }
-                    };
-                    // all elements
-                    $('[data-d2h-on]', $group).each(function() {
-                        _fnAction.call(this);
-                    });
-                    // self group
-                    if ($group.attr('data-d2h-on')) {
-                        _fnAction.call($group);
-                    }
-                    groupDataObj.actions = _actions;
-                }
-            }
-            $group.change(function() {
-                $group.addClass(_this._classFormChanged);
-            });
+            new formHandler(this._selGroup(groupSelector), this, groupOptions);
+            this.groups[groupName] = groupSelector;
         },
         
-        _selGroup: function(groupDataObj) {
-            var groupSelector = groupDataObj.selector;
+        _selGroup: function(groupSelector) {
             if (groupSelector.substr(0,1) === "#") {
                 $group = $(groupSelector);
             } else {

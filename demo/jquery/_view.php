@@ -20,7 +20,8 @@
         -webkit-animation: spin 2s linear infinite;
         animation: spin 2s linear infinite;
     }
-    .d2h_formChanged {
+    .d2h_formChanged, 
+    .d2h_formChanged input{
         background-color: red
     }
     @-webkit-keyframes spin {
