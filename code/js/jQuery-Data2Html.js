@@ -220,9 +220,8 @@ var _settings
             var _this = this;
             if (groupOptions) {
                 if (groupOptions.actions) {
-                    var _actions = groupOptions.actions;
-                    groupDataObj.actions = _actions;
-                    $('[data-d2h-on]', $group).each(function() {
+                    var _actions = groupOptions.actions
+                        _fnAction = function() {
                         var $this = $(this),
                             _onAction = $this.attr('data-d2h-on').split(':');
                         if (_onAction.length === 2) {
@@ -231,7 +230,16 @@ var _settings
                                 return false;
                             });
                         }
+                    };
+                    // all elements
+                    $('[data-d2h-on]', $group).each(function() {
+                        _fnAction.call(this);
                     });
+                    // self group
+                    if ($group.attr('data-d2h-on')) {
+                        _fnAction.call($group);
+                    }
+                    groupDataObj.actions = _actions;
                 }
             }
             $group.change(function() {
