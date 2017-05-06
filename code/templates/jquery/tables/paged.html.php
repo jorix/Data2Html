@@ -6,13 +6,13 @@
         repeat:'table tbody tr',
         filter:['#$${id}_filter', {
             actions: {
-                'readPage()': function() {this.load();console.log('readPage():filter');}
+                'readPage': function() {this.load();}
             }
         }],
         page: ['#$${id}_page', {
             actions: {
-                'nextPage()': function() {this.load(); },
-                'readPage()': function() {this.load();console.log('readPage():page');}
+                'nextPage': function() {this.load();},
+                'readPage': function() {this.load();}
             }
         }],
         sort:  '#$${id}_sort'"

@@ -7,7 +7,7 @@
             "icon": "refresh",
             "title": "$$Refres>\"hàdata",
             "description": null,
-            "action": "readPage()"
+            "action": "readPage"
         },
         "pageSize": {
             "default": 10,
@@ -17,7 +17,7 @@
             "input": "button",
             "icon": "forward",
             "title": "$$Ne.>Ne.>xtàpage",
-            "action": "nextPage()"
+            "action": "nextPage"
         }
     }
 }
