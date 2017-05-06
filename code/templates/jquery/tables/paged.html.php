@@ -4,12 +4,15 @@
     data-d2h="
         url:'$${url}',
         repeat:'table tbody tr',
-        filter:'#$${id}_filter',
+        filter:['#$${id}_filter', {
+            actions: {
+                'readPage()': function() {this.load();console.log('readPage():filter');}
+            }
+        }],
         page: ['#$${id}_page', {
             actions: {
-                lolo: function(e, d2hObj) {console.log('lali');d2hObj.load()},
-                nextPage: function() {this.load()},
-                readPage: function() {this.load()}
+                'nextPage()': function() {this.load(); },
+                'readPage()': function() {this.load();console.log('readPage():page');}
             }
         }],
         sort:  '#$${id}_sort'"

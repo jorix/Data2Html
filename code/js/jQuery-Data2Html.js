@@ -3,29 +3,77 @@
  * 
  */
 (function ($) {
-    var _defaults = {
-        url: '',
-        type: 'GET',
-        pageSize: 0, //default results per page
-        classFormChanged: 'd2h_formChanged', // Only set at initial declaration
-        classWaiting: 'd2h_waiting',
-        
-        repeat: '.d2h_repeat',
-        filter: '',
-        page: '',
-        
-        beforeSend: function(){ return true; },
-        complete: function(row_count){}, //called, once loop through data has finished
-        rowComplete: function(current_row_index, row) {} //called, after each row
-    };
-    
+
     var _initCounter = 0,
         _waitCounter = 0; // Only one wait
     
-    function data2html(element, options) {
+    var _formDefaults = {
+        url: '',
+        type: 'POST',
+        classChanged: 'd2h_formChanged', // Only set at initial declaration
+        classWaiting: 'd2h_waiting',
+        
+        afterChange: function() { }
+    };
+    function formHandler(element, name, options) {
+        this._init(element, name, options);
+    }
+    formHandler.prototype = {
+        settings: null,
+        groups: {},
+        _ele: null, // The DOM element
+        
+        _init: function(ele, groupName, options) {
+            this._ele = ele;
+            
+            // To set up the group element
+            var $group,
+                _ele = this._ele,
+                _settings = {};
+            $group = this._selGroup(groupDataObj);
+var _settings
+            // Actions
+            var _this = this;
+            if (options.actions) {
+                var _actions = aptions.actions;
+                groupDataObj.actions = _actions;
+                $('[data-d2h-on]', _ele).each(function() {
+                    var $this = $(this),
+                        _onAction = $this.attr('data-d2h-on').split(':');
+                    if (_onAction.length === 2) {
+                        $this.on(_onAction[0], function(event) {
+                            _actions[_onAction[1]].call(this, event, _this);
+                        });
+                    }
+                });
+            }
+            $group.change(function() {
+                $group.addClass(_settings.classChanged);
+                _settings.afterChange.call(_this); 
+            });
+        }
+    };
+    
+    function gridHandler(element, options) {
         this._init(element, options);
     }
-    data2html.prototype = {
+    gridHandler.prototype = {
+        defaults: {
+            url: '',
+            type: 'GET',
+            pageSize: 0, //default results per page
+            classFormChanged: 'd2h_formChanged', // Only set at initial declaration
+            classWaiting: 'd2h_waiting',
+            
+            repeat: '.d2h_repeat',
+            filter: '',
+            page: '',
+            
+            beforeSend: function(){ return true; },
+            rowComplete: function(current_row_index, row) {}, //called, after each row
+            complete: function(row_count){} //called, once loop through data has finished
+        },
+        
         settings: null,
         groups: {},
         _ele: null, // The DOM element
@@ -66,7 +114,7 @@
                     "'.");
                 return;
             }
-            var settings = $.extend({}, _defaults, optionsEle, options);
+            var settings = $.extend({}, this.defaults, optionsEle, options);
             if (!settings.repeat) {
                 $.error("Data2Html can not initialize DOM object '" +
                     _getElementPath(ele) +
@@ -144,14 +192,14 @@
             // All ok, so save settings
             this.settings = settings;
         },
-        _initGroup: function(groupName, groupSelector, groupOptions, settings) {
+        _initGroup: function(groupName, groupSelector, groupOptions) {
             // Check arguments
             if (!groupSelector) { return; }
             if ($.isArray(groupSelector)) {
                 if (groupSelector.length < 1 || groupSelector.length > 2) {
                     $.error(
                         "Data2Html can not initialize group '" + groupName +
-                        "'. If selector is array must have 1 or 2 items!"
+                        "'. When selector is array must have 1 or 2 items!"
                     );
                     return;
                 }
@@ -163,7 +211,6 @@
             
             // To set up the group element
             var $group,
-                _ele = this._ele,
                 groupDataObj = {selector: groupSelector};
             $group = this._selGroup(groupDataObj);
 
@@ -175,12 +222,13 @@
                 if (groupOptions.actions) {
                     var _actions = groupOptions.actions;
                     groupDataObj.actions = _actions;
-                    $('[data-d2h-on]', _ele).each(function() {
+                    $('[data-d2h-on]', $group).each(function() {
                         var $this = $(this),
                             _onAction = $this.attr('data-d2h-on').split(':');
                         if (_onAction.length === 2) {
                             $this.on(_onAction[0], function(event) {
-                                _actions[_onAction[1]].call(this, event, _this);
+                                _actions[_onAction[1]].call(_this, $this, event);
+                                return false;
                             });
                         }
                     });
@@ -188,7 +236,6 @@
             }
             $group.change(function() {
                 $group.addClass(_this._classFormChanged);
-                _this.load();
             });
         },
         
@@ -384,7 +431,7 @@
     };
     
     /**
-     * Declare plugin
+     * Plugin declaration
      */
     $.fn.data2html = function() {
         if (this.length == 0) {
@@ -430,7 +477,7 @@
         
         this.each(function() {
             if (!$.data(this, "plugin_data2html") ) {
-                $.data(this, "plugin_data2html", new data2html(this, _options) );
+                $.data(this, "plugin_data2html", new gridHandler(this, _options) );
             }
             if (_method) {
                 var thisObj = $.data(this, "plugin_data2html");
