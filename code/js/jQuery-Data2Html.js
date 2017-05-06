@@ -23,11 +23,11 @@
         },
         settings: null,
         _parent: null,
-        _ele: null, // The DOM element
+        _formEle: null, // The DOM element
         
-        _formInit: function(ele, _this, formOptions) {
-            this._ele = ele;
-            this._parent = _this;
+        _formInit: function(formEle, _parent, formOptions) {
+            this._formEle = formEle;
+            this._parent = _parent;
             var settings = $.extend({}, this.defaults, formOptions);
             
             if (settings.actions) {
@@ -38,22 +38,22 @@
                     if (_onAction.length === 2) {
                         $this.on(_onAction[0], function(event) {
                             console.log(_onAction.join('->'));
-                            _actions[_onAction[1]].call(_this, $this, event);
+                            _actions[_onAction[1]].call(_parent, $this, event);
                             return false;
                         });
                     }
                 };
                 // all sub-elements
-                $('[data-d2h-on]', ele).each(function() {
+                $('[data-d2h-on]', formEle).each(function() {
                     _fnAction.call(this);
                 });
                 // self element
-                if (ele.attr('data-d2h-on')) {
-                    _fnAction.call(ele);
+                if (formEle.attr('data-d2h-on')) {
+                    _fnAction.call(formEle);
                 }
             }
-            ele.change(function() {
-                ele.addClass(_this._classFormChanged);
+            formEle.change(function() {
+                formEle.addClass(_parent._classFormChanged);
             });
             this.settings = settings;
         }
@@ -96,33 +96,33 @@
         _repeatStart: 0,
         
         // The constructor
-        _init: function(ele, options) {
-            this._ele = ele;
+        _init: function(gridEle, options) {
+            this._ele = gridEle;
             
             // settings
             var optionsEle = null,
-                dataD2h = $(ele).attr('data-d2h');
+                dataD2h = $(gridEle).attr('data-d2h');
             if (dataD2h) {
                 try {
                     var optionsEle = eval('[({' + dataD2h + '})]')[0];
                 } catch(e) {
                     $.error(
                         "Can not initialize Data2Html: HTML Attribute 'data-d2h' on '" + 
-                        _getElementPath(ele) +
+                        _getElementPath(gridEle) +
                         "' have a not valid js syntax." 
                     );
                     return;
                 }
             } else if (options === null) {
                 $.error("Options are required to initialize a DOM object '" +
-                    _getElementPath(ele) +
+                    _getElementPath(gridEle) +
                     "'.");
                 return;
             }
             var settings = $.extend({}, this.defaults, optionsEle, options);
             if (!settings.repeat) {
                 $.error("Data2Html can not initialize DOM object '" +
-                    _getElementPath(ele) +
+                    _getElementPath(gridEle) +
                     "': Option 'repeat' is missing."
                 );
                 return;
@@ -137,10 +137,10 @@
             this._classFormChanged = settings.classFormChanged;
 
             // Check repeat selector
-            var $itemRepeat = $(settings.repeat, ele);
+            var $itemRepeat = $(settings.repeat, gridEle);
             if ($itemRepeat.length == 0) {
                 $.error("Data2Html can not initialize DOM object '" +
-                    _getElementPath(ele) +
+                    _getElementPath(gridEle) +
                     "': Does not contain a '" +
                     settings.repeat +
                     "' selector."
@@ -149,7 +149,7 @@
             }
             if ($itemRepeat.length > 1) {
                 $.error("Data2Html can not initialize DOM object '" +
-                    _getElementPath(ele) +
+                    _getElementPath(gridEle) +
                     "': Contains more than one '" +
                     settings.repeat +
                     "' selector."
@@ -160,9 +160,9 @@
             // Mark repeat and parent elements.
             $itemRepeat.addClass(iClassRepeat);
             var $parentContainer = $itemRepeat.parent();
-            if ($(this._selectorRepeatParent, ele).length > 0) {
+            if ($(this._selectorRepeatParent, gridEle).length > 0) {
                 $.error("Data2Html can not initialize DOM object '" +
-                    _getElementPath(ele) +
+                    _getElementPath(gridEle) +
                     "': Contains selector '" +
                     this._selectorRepeatParent +
                     "' which is for internal use only!"
@@ -188,17 +188,18 @@
             
             // additional calls
             if (settings.filter) {
-                this._initGroup('filter', settings.filter, settings);
+                this._initGroup('filter', settings.filter);
             }
             if (settings.page) {
-                this._initGroup('page', settings.page, settings);
+                this._initGroup('page', settings.page);
             }
             
             // All ok, so save settings
             this.settings = settings;
         },
-        _initGroup: function(groupName, groupSelector, groupOptions) {
+        _initGroup: function(groupName, groupSelector) {
             // Check arguments
+            var groupOptions = null;
             if (!groupSelector) { return; }
             if ($.isArray(groupSelector)) {
                 if (groupSelector.length < 1 || groupSelector.length > 2) {
