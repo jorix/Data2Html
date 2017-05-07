@@ -80,7 +80,7 @@
         },
         
         settings: null,
-        groups: {},
+        groups: null,
         _ele: null, // The DOM element
         
         _rows: null, //the data once loaded/received
@@ -96,6 +96,7 @@
         // The constructor
         _init: function(gridEle, options) {
             this._ele = gridEle;
+            this.groups = {};
             
             // settings
             var optionsEle = null,
@@ -341,6 +342,9 @@
         // Manage HTML
         _clearHtml: function () {
             var $parentContainer = $(this._selectorRepeatParent, this._ele);
+            if ($parentContainer.length === 0) {
+                $parentContainer = $(this._ele);
+            }
             $(this._selectorRepeat, $parentContainer).remove();
         },
     
@@ -353,6 +357,9 @@
             
             var $parentContainer = $(this._selectorRepeatParent, this._ele),
                 lastItem = null;
+            if ($parentContainer.length === 0) {
+                $parentContainer = $(this._ele);
+            }
             if (this._repeatStart > 0) {
                 lastItem = $(
                     $parentContainer.children()[this._repeatStart - 1]

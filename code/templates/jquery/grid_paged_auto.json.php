@@ -18,8 +18,8 @@
             }
         },
         "includes": [
-            "forms/filter.json.php",
-            "forms/page.json.php"
+            "forms/formFilter/filter_auto_.json.php",
+            "forms/formPage/page_.json.php"
         ]
     }
 }

@@ -43,7 +43,7 @@
     
         $data = Data2Html_Model::render(
             $_REQUEST, 
-            '../../code/templates/jquery/grid_paged_auto.json.php'
+            '../../code/templates/jquery/grid_paged_man.json.php'
         );
     ?>
     </div>

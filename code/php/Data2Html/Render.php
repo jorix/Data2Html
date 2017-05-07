@@ -151,9 +151,8 @@ class Data2Html_Render
                         'default',
                         $templateCells,
                         array(
+                            'ngClass' => $ngClass, 'prefix' => 'item.', // angular1
                             'class' => $class,
-                            'ngClass' => $ngClass,
-                            'prefix' => 'item.',
                             'name' => $k,
                             'format' => $formatItem
                         )
