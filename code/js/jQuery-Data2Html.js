@@ -21,12 +21,12 @@
     formHandler.prototype = {
         defaults: {
         },
-        settings: null,
+        formSettings: null,
+        formEle: null, // The DOM element
         _parent: null,
-        _formEle: null, // The DOM element
         
         _formInit: function(formEle, _parent, formOptions) {
-            this._formEle = formEle;
+            this.formEle = formEle;
             this._parent = _parent;
             var settings = $.extend({}, this.defaults, formOptions);
             
@@ -55,7 +55,7 @@
             formEle.change(function() {
                 formEle.addClass(_parent._classFormChanged);
             });
-            this.settings = settings;
+            this.formSettings = settings;
         }
     };
     
@@ -86,14 +86,12 @@
         _rows: null, //the data once loaded/received
         _dataTypes: null,
         
-        _repeatHtml: '',       // template HTML string
-        _startIndex: 0,
+        _classFormChanged: '',
         
+        _repeatHtml: '',       // template HTML string
+        _repeatStart: 0,
         _selectorRepeat: '',
         _selectorRepeatParent: '',
-        _classFormChanged: '',
-        _repeatHtml: '', // Template
-        _repeatStart: 0,
         
         // The constructor
         _init: function(gridEle, options) {
@@ -224,7 +222,7 @@
             if (groupSelector.substr(0,1) === "#") {
                 $group = $(groupSelector);
             } else {
-                $group = $(groupSelector, this.ele);
+                $group = $(groupSelector, this._ele);
             }
             if ($group.length != 1) {
                 $.error(
@@ -237,7 +235,9 @@
             }
             return $group;
         },
-        
+        loadNext: function(options) {
+            
+        },
         load: function(options) {
             if (!this.settings) {
                 $.error(
@@ -247,18 +247,22 @@
             }
             var _settings = $.extend({}, this.settings, options);
             
-            var url = _settings.url;
+            var url = _settings.url,
+                pageStart = 1;
             if (this.groups.filter) {
                 url += '&d2h_filter=' + this._selGroup(this.groups.filter).serialize()
                     .replace('&', '[,]');
             }
             if (this.groups.page) {
-                url += '&d2h_page=' + this._selGroup(this.groups.page).serialize()
-                    .replace('&', '[,]');
+                if (_settings.add) {
+                    pageStart = this._rows ? this._rows.length + 1 : 1;
+                }
+                url += '&d2h_page=pageStart=' + pageStart + '[,]' +
+                    this._selGroup(this.groups.page).serialize().replace('&', '[,]');
             }
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
             var _this = this,
-                _ele = this.ele;
+                _gridEle = this._ele;
             $.ajax({
                 type: _settings.type,
                 url: url,		
@@ -268,7 +272,7 @@
                     if (response !== false) {
                         if (_settings.classWaiting) {
                             _waitCounter++;
-                            $('.' + _settings.classWaiting, _ele).show();
+                            $('.' + _settings.classWaiting, _gridEle).show();
                         }
                     }
                     return response;
@@ -309,23 +313,27 @@
                             }
                             rows.push(row);
                         }
-                        _this._rows = rows;
                     } else {
-                        _this._rows = jsonData.rows;
+                        rows = jsonData.rows;
+                    }
+                    if (_settings.add) {
+                        Array.prototype.push.apply(_this._rows, rows);
+                    } else {
+                        _this._rows = rows;
                     }
                     _this._dataTypes = dataTypes;
-                    
-                    _this._showRows(true);
+                    _this._showRows();
+                    _settings.complete.call(_this);
                 },
                 complete: function(msg){
                     if (_settings.classWaiting) {
                         _waitCounter--;
                         if (_waitCounter <=0) {
                             _waitCounter = 0;
-                            $('.' + _settings.classWaiting, _ele).hide();
+                            $('.' + _settings.classWaiting, _gridEle).hide();
                         }
                     }
-                    $("*", _ele).removeClass(_this._classFormChanged);
+                    $("*", _gridEle).removeClass(_this._classFormChanged);
                 }
             });
         },
@@ -334,21 +342,14 @@
         _clearHtml: function () {
             var $parentContainer = $(this._selectorRepeatParent, this._ele);
             $(this._selectorRepeat, $parentContainer).remove();
-            this._startIndex = 0;
         },
     
-        _showRows: function (clear) {
-            if (clear) {
-                this._clearHtml();
-            }
-            
+        _showRows: function () {
+            this._clearHtml();
+           
             var _settings = this.settings,
                 rows = this._rows,
                 rowsCount = rows.length;
-            var resultsPP = (this._pageSize ? this._pageSize : rowsCount),
-                startIndex = this._startIndex,
-                nextSet = startIndex + resultsPP;
-            
             
             var $parentContainer = $(this._selectorRepeatParent, this._ele),
                 lastItem = null;
@@ -357,15 +358,9 @@
                     $parentContainer.children()[this._repeatStart - 1]
                 );
             }
-            if (startIndex) { // add lines
-                lastItem = $(
-                    this._selectorRepeat + ':last',
-                    $parentContainer
-                );
-            }
         
             // loop rows
-            for (var i = 0; i < rowsCount && i + startIndex < nextSet; i++){
+            for (var i = 0; i < rowsCount; i++){
                 var row = rows[i];
                 var templateStr = this._repeatHtml;
                 for (tagName in row) {
@@ -383,8 +378,6 @@
                 );
                 _settings.rowComplete.call(this, i, lastItem);
             }
-            this._startIndex = i + startIndex;
-            _settings.complete.call(this, this._startIndex);
         }
     };
     

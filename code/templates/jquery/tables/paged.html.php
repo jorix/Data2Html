@@ -11,8 +11,8 @@
         }],
         page: ['#$${id}_page', {
             actions: {
-                'nextPage': function() {this.load();},
-                'readPage': function() {this.load();}
+                'readPage': function() {this.load();},
+                'nextPage': function() {this.load({add:true});}
             }
         }],
         sort:  '#$${id}_sort'"
