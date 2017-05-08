@@ -17,6 +17,7 @@
     };
     function formHandler(element, container, options) {
         this._formInit(element, container, options);
+        $.data(this.formEle, "plugin_data2html", this);
     }
     formHandler.prototype = {
         defaults: {
@@ -28,7 +29,7 @@
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
             this._parent = _parent;
-            var settings = $.extend({}, this.defaults, formOptions);
+            var settings = _getElementOptions(formEle, this.defaults, formOptions);
             
             if (settings.actions) {
                 var _actions = settings.actions;
@@ -61,6 +62,7 @@
     
     function gridHandler(element, options) {
         this._init(element, options);
+        $.data(this.gridEle, "plugin_data2html", this);
     }
     gridHandler.prototype = {
         defaults: {
@@ -81,7 +83,7 @@
         
         settings: null,
         groups: null,
-        _ele: null, // The DOM element
+        gridEle: null, // The DOM element
         
         _rows: null, //the data once loaded/received
         _dataTypes: null,
@@ -95,38 +97,19 @@
         
         // The constructor
         _init: function(gridEle, options) {
-            this._ele = gridEle;
+            this.gridEle = gridEle;
             this.groups = {};
             
             // settings
-            var optionsEle = null,
-                dataD2h = $(gridEle).attr('data-d2h');
-            if (dataD2h) {
-                try {
-                    var optionsEle = eval('[({' + dataD2h + '})]')[0];
-                } catch(e) {
-                    $.error(
-                        "Can not initialize Data2Html: HTML Attribute 'data-d2h' on '" + 
-                        _getElementPath(gridEle) +
-                        "' have a not valid js syntax." 
-                    );
-                    return;
-                }
-            } else if (options === null) {
-                $.error("Options are required to initialize a DOM object '" +
-                    _getElementPath(gridEle) +
-                    "'.");
-                return;
-            }
-            var settings = $.extend({}, this.defaults, optionsEle, options);
+            var settings = _getElementOptions(gridEle, this.defaults, options);
             if (!settings.repeat) {
-                $.error("Data2Html can not initialize DOM object '" +
+                $.error("Data2Html can not initialize a gridHanfler on DOM object '" +
                     _getElementPath(gridEle) +
                     "': Option 'repeat' is missing."
                 );
                 return;
             }
-            
+
             // Set internal selectors
             _initCounter++;
             var iClassRepeat = 'i_d2h_repeat_' + _initCounter,
@@ -223,7 +206,7 @@
             if (groupSelector.substr(0,1) === "#") {
                 $group = $(groupSelector);
             } else {
-                $group = $(groupSelector, this._ele);
+                $group = $(groupSelector, this.gridEle);
             }
             if ($group.length != 1) {
                 $.error(
@@ -263,7 +246,7 @@
             }
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
             var _this = this,
-                _gridEle = this._ele;
+                _gridEle = this.gridEle;
             $.ajax({
                 type: _settings.type,
                 url: url,		
@@ -341,9 +324,9 @@
 
         // Manage HTML
         _clearHtml: function () {
-            var $parentContainer = $(this._selectorRepeatParent, this._ele);
+            var $parentContainer = $(this._selectorRepeatParent, this.gridEle);
             if ($parentContainer.length === 0) {
-                $parentContainer = $(this._ele);
+                $parentContainer = $(this.gridEle);
             }
             $(this._selectorRepeat, $parentContainer).remove();
         },
@@ -355,10 +338,10 @@
                 rows = this._rows,
                 rowsCount = rows.length;
             
-            var $parentContainer = $(this._selectorRepeatParent, this._ele),
+            var $parentContainer = $(this._selectorRepeatParent, this.gridEle),
                 lastItem = null;
             if ($parentContainer.length === 0) {
-                $parentContainer = $(this._ele);
+                $parentContainer = $(this.gridEle);
             }
             if (this._repeatStart > 0) {
                 lastItem = $(
@@ -409,6 +392,31 @@
         );
         return selectorArr.reverse().join(">");
     };
+    function _getElementOptions($elem, defaultOptions, options) {
+        var optionsEle = null,
+            dataD2h = $($elem).attr('data-d2h');
+        if (dataD2h) {
+            try {
+                var optionsEle = eval('[({' + dataD2h + '})]')[0];
+            } catch(e) {
+                $.error(
+                    "Can not initialize a data2html handler: " +
+                    "HTML attribute 'data-d2h' have a not valid js syntax on '" + 
+                        _getElementPath(gridEle) + "'" 
+                );
+                return null;
+            }
+        }
+        if (!optionsEle && !options) {
+            $.error(
+                "Can not initialize a data2html handler: " +
+                "Options or HTML attribute 'data-d2h' are required on '" + 
+                    _getElementPath(gridEle) + "'"
+            );
+            return;
+        }
+        return $.extend({}, defaultOptions, optionsEle, options);
+    }
     
     /**
      * Plugin declaration
@@ -457,7 +465,7 @@
         
         this.each(function() {
             if (!$.data(this, "plugin_data2html") ) {
-                $.data(this, "plugin_data2html", new gridHandler(this, _options) );
+                new gridHandler(this, _options);
             }
             if (_method) {
                 var thisObj = $.data(this, "plugin_data2html");
