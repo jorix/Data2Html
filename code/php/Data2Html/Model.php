@@ -322,21 +322,39 @@ abstract class Data2Html_Model
     public static function extractPlayerNames($request) 
     {
         if (!array_key_exists('model', $request)) {
-            throw new Exception('The URL parameter `?model=` is not set.');
+            throw new Data2Html_Exception(
+                'The URL parameter `?model=` is not set.',
+                $request
+            );
         }
-        list($modelName, $gridName) = self::explodeLink($request['model']);
-        $response = array('model' => $modelName);
         if (array_key_exists('form', $request)) {
+            // as ['model' => 'model_name', 'form' => 'form_name']
             $response['form'] = $request['form'];
         } elseif (array_key_exists('grid', $request)) {
+            // as ['model' => 'model_name', 'grid' => 'grid_name'}
             $response['grid'] = $request['grid'];
-        } elseif ($gridName) {
-            $response['grid'] = $gridName;
+        } else {
+            // as {'model' => 'model_name:grid_name'}
+            list($modelName, $gridName) = self::explodeLink($request['model']);
+            if ($gridName) {
+                $response = array('model' => $modelName);
+                $response['grid'] = $gridName;
+            }
         }
         return $response;
         
     }
-
+    public static function linkToPlayerNames($linkText) 
+    {
+        try {
+            parse_str('model=' . $linkText, $reqArr);
+        } catch(Exception $e) {
+            throw new Exception(
+                "Link \"{$linkText}\" can't be parsed.");
+            return null;
+        }
+        return self::extractPlayerNames($reqArr);
+    }
     public static function explodeLink($modelLink)
     {
         $modelElements = explode(':', $modelLink);

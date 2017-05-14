@@ -124,10 +124,16 @@ class Data2Html_Parse_Link
                     "{$this->culprit}: Linked field \"{$toLinkName}[{$fieldName}]\" uses field \"{$toLinkName}\" without link."
                 );
             }
-            list($modelName, $gridName) = 
-                Data2Html_Model::explodeLink($anchorField['link']);
+            $playerNames = Data2Html_Model::linkToPlayerNames($anchorField['link']);
+            $modelName = $playerNames['model'];
+            if (!array_key_exists('grid', $playerNames)) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: Link \"{$anchorField['link']}\" without a grid name.",
+                    $anchorField
+                );
+            }
             $dataLink = Data2Html_Model::createModel($modelName);
-            $linkGrid = $dataLink->getGrid($gridName);
+            $linkGrid = $dataLink->getGrid($playerNames['grid']);
         }
         // Add the new link
         $linkedKeys = $linkGrid['keys'];
