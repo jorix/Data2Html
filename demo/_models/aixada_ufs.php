@@ -32,9 +32,9 @@ class aixada_ufs extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'columns' => array('id', '=$${name}#$${id}', 'active'),
+                    'columns' => array('value' =>'id', 'text' => '=$${name}#$${id}', 'active'),
                     'filter' => array(
-                        'layout' => 'inline',
+                        'fieldLayouts' => 'inline',
                         'fields' => array('active' => 'EQ')
                     )
                 ),
@@ -47,14 +47,15 @@ class aixada_ufs extends Data2Html_Model {
                         'mentor_uf'
                     ),
                     'filter' => array(
-                        'layout' => 'inline',
+                        'fieldLayouts' => 'inline',
                         'fields' => array('active' => 'EQ')
                     )
                 ),
                 'default' => array(
+                   // 'layout' => 'grid_man',
                     'columns' => array(),
                     'filter' => array(
-                        'layout' => 'inline',
+                        'fieldLayouts' => 'inline',
                         'fields' => array(
                             //'active' => 'EQ',
                             //'mentor_uf[name]' => 'LK',
@@ -66,6 +67,7 @@ class aixada_ufs extends Data2Html_Model {
                 )
             ),
             'forms' => array(
+                'layout' => 'lines',
                 'default' => array(
                     'columns' => array()
                 )

@@ -154,6 +154,9 @@ class Data2Html_Model_Set
                 $defaultType = $defTypes->getString($word);
             }
         }
+        if (!array_key_exists('title', $pField) && $name) {
+            $pField['title'] = $name;
+        }
         if (!array_key_exists('description', $pField) &&
             array_key_exists('title', $pField)) {
             $pField['description'] = $pField['title'];

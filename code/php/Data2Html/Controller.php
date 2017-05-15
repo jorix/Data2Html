@@ -10,7 +10,6 @@ class Data2Html_Controller
     }
     public function manage($request)
     {
-//        $the_request = array_merge($_GET, $_POST);
         $dbConfig = Data2Html_Config::getSection('db');
         $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
         $db = new $db_class($dbConfig);

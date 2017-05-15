@@ -28,13 +28,20 @@ class Data2Html_Render
     {
         if (isset($payerNames['form'])) {
             $formName = $payerNames['form'];
-            $formId = $this->idRender . '_f_' . $formName;
-            $form = $this->renderForm(
+            $form = $this->modelObj->getForm($formName);
+            $formDx = new Data2Html_Collection($form);
+            $layout = $formDx->getString('layout', 'form');
+            
+            $formId = $this->idRender . '_form_' . $formName;
+            $formV = $this->renderForm(
                 $formId,
-                $this->templateObj->getTemplateBranch('filter', $tplGrid),
-                $this->modelObj->getForm($formName),
+                $this->templateObj->getTemplateBranch($layout, 
+                    $this->templateObj->getTemplateRoot()
+                ),
+                $form,
                 $this->modelObj->getTitle()
             );
+            return $formV;
         } elseif (isset($payerNames['grid'])) {
             return $this->renderGrid($payerNames['grid']);
         } else {
@@ -45,13 +52,15 @@ class Data2Html_Render
     protected function renderGrid($gridName)
     {        
         $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
-        $tplGrid = $this->templateObj->getTemplateBranch('grid',
+        $gridDx = new Data2Html_Collection($linkedGrid);
+        $layout = $gridDx->getString('layout', 'grid');
+        
+        $tplGrid = $this->templateObj->getTemplateBranch($layout,
             $this->templateObj->getTemplateRoot()
         );
         $requestUrl = 
                 $this->getControllerUrl() .
                 "model={$this->modelObj->getModelName()}:{$gridName}&";
-        $gridDx = new Data2Html_Collection($linkedGrid);
         $pageId = $this->idRender . '_page';
         $pageForm = $this->renderForm(
             $pageId,
@@ -66,7 +75,7 @@ class Data2Html_Render
             $gridDx->getArray('filter'),
             $this->modelObj->getTitle()
         );
-        $gridTable = $this->renderTable(
+        $gridV = $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $gridDx->getArray('columns'),
             $gridDx->getArray('columnNames'),
@@ -80,7 +89,7 @@ class Data2Html_Render
                 'id' => $this->idRender
             )
         );
-        return $gridTable;
+        return $gridV;
     }
     
     protected function renderTable($templateTable, $colDs, $colNames, $replaces)
@@ -188,7 +197,7 @@ class Data2Html_Render
         $templateLayouts =
             $this->templateObj->getTemplateBranch('layouts', $templateBranch);
         $fieldsDs = Data2Html_Value::getItem($formDs, 'fields', array());
-        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'layout', 'default');
+        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'fieldLayouts', 'default');
         $body = array();
         $defaults = array();
         $renderCount = 0;

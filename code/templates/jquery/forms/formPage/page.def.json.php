@@ -1,8 +1,8 @@
 <?php die("It's uncooked!"); ?>
 {
-    "layout": "none",
     "fields": {
         "0": {
+            "layout": "none",
             "input": "button",
             "icon": "refresh",
             "title": "$$Refres>\"hàdata",
@@ -10,10 +10,12 @@
             "action": "readPage"
         },
         "pageSize": {
+            "layout": "none",
             "default": 10,
             "type": "integer"
         },
         "1": {
+            "layout": "none",
             "input": "button",
             "icon": "forward",
             "title": "$$Ne.>Ne.>xtàpage",

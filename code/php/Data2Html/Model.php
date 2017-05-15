@@ -302,6 +302,9 @@ abstract class Data2Html_Model
         if (count(self::$modelObjects) === 0) {
             self::$modelFolder = Data2Html_Config::get('modelFolder');
         }
+        if (!$modelName) {
+            throw new Exception("Don't use `createModel()` without modelName.");
+        }
         if (self::$modelFolder === null) {
             throw new Exception(
                 'Don\'t use `createGrid()` before load a parent grid.');
@@ -329,9 +332,11 @@ abstract class Data2Html_Model
         }
         if (array_key_exists('form', $request)) {
             // as ['model' => 'model_name', 'form' => 'form_name']
+            $response = array('model' => $request['model']);
             $response['form'] = $request['form'];
         } elseif (array_key_exists('grid', $request)) {
             // as ['model' => 'model_name', 'grid' => 'grid_name'}
+            $response = array('model' => $request['model']);
             $response['grid'] = $request['grid'];
         } else {
             // as {'model' => 'model_name:grid_name'}
