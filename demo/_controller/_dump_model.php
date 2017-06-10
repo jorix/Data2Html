@@ -12,44 +12,33 @@
     
         try {
             $payerNames = Data2Html_Model::extractPlayerNames($_REQUEST);
+            $gridName = $payerNames['grid'];
             $model = Data2Html_Model::createModel($payerNames['model']);
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
             die();
         }
-        $debug = Data2Html_Config::debug();
-        if (!$debug) {
-            echo '<h2 style="color:red">Debug mode is required!</h2>';
-        } else {
-            try {
+        try {
+            
+            $model->getGrid($gridName)->dump();
+            
 
-                echo "<h2>getColDs():</h2>\n<pre>";
-                //echo Data2Html_Utils::toPhp($model->getColDs());
-                echo "</pre><hr>\n";
-                
-                echo "<h2>getForm():</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($model->getForm());
-                echo "</pre><hr>\n";
-                
-                $gridName = $payerNames['grid'];
+            // echo "<h2>getGridsDs():</h2>\n<pre>";
+            // //echo Data2Html_Utils::toPhp($model->getGrid($gridName));
+            // echo "</pre><hr>\n";
+            
+            // echo "<h2>Linked getLinkedGrid('{$gridName}'):</h2>\n<pre>";
+            // echo Data2Html_Utils::toPhp($model->getLinkedGrid($gridName));
+            // echo "</pre><hr>\n";
 
-                echo "<h2>getGridsDs():</h2>\n<pre>";
-                //echo Data2Html_Utils::toPhp($model->getGrid($gridName));
-                echo "</pre><hr>\n";
-                
-                echo "<h2>Linked getLinkedGrid('{$gridName}'):</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($model->getLinkedGrid($gridName));
-                echo "</pre><hr>\n";
-
-            } catch(Exception $e) {
-                // Message to developer from exception
-                echo Data2Html_Exception::toHtml($e, $debug);
-                
-                echo "<hr><h2>->getColDs()</h2>\n<pre>";
-                echo Data2Html_Utils::toPhp($model->getColDs());
-                echo "</pre>\n";
-            }
+        } catch(Exception $e) {
+            // Message to developer from exception
+            echo Data2Html_Exception::toHtml($e, true);
+            
+            echo "<hr><h2>->gxxxxxx()</h2>\n<pre>";
+            echo Data2Html_Utils::toPhp($model->getColDs());
+            echo "</pre>\n";
         }
     ?>
     </div>

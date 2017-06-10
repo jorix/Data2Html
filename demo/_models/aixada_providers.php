@@ -5,7 +5,7 @@ class aixada_providers extends Data2Html_Model {
     {
         return array(
             'table' => 'aixada_provider',
-            'fields' => array(
+            'base' => array(
                 'id' => array('integer', 'autoKey'),
                 'name' => array(),
                 //'group' => array(),

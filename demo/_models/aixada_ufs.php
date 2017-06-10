@@ -7,19 +7,20 @@ class aixada_ufs extends Data2Html_Model {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
-            'fields' => array(
+            'base' => array(
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'name'      => array(
                         'title' => 'Nom UF',
                         'length'=> 255, 'required'
                 ),
                 'uf_name'   => '=$${name}#$${id}',
+                'uf_mentor_name'   => '=$${mentor_uf[uf_name]}#$${id}',
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array('link' => 'aixada_ufs:list'),
                 'mentor_name' =>  array(
                     'title' => 'UF mentora',
-                    'db'=>'mentor_uf[uf_name]'
+                    'base'=>'mentor_uf[uf_name]'
                 ),
             ),
             'constraints' => (
@@ -53,7 +54,6 @@ class aixada_ufs extends Data2Html_Model {
                 ),
                 'default' => array(
                    // 'layout' => 'grid_man',
-                    'columns' => array(),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array(

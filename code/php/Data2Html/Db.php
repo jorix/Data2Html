@@ -86,7 +86,7 @@ abstract class Data2Html_Db
     /**
      * Execute a query and return the array result.
      */
-    public function getQueryArray($query, $fieldDefs, $fieldNames, $pageStart = 1, $pageSize = 0)
+    public function getQueryArray($query, $fieldDefs, $pageStart = 1, $pageSize = 0)
     {
         try {
             $pageSize = intval($pageSize);

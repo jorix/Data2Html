@@ -17,13 +17,14 @@ abstract class Data2Html_Model
     protected $debug = false;
     
     // Parsed object definitions
+    protected $table = '';
+    protected $definitions = null;
     protected $title = '';
-    public $table = '';
     protected $modelName = '';
     protected $culprit = '';
-    private $fields = null;
-    private $grids = null;
-    private $forms = null;
+    private $base = null;
+    private $grids = array();
+    private $forms = array();
     
     // To parse
     protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
@@ -43,9 +44,18 @@ abstract class Data2Html_Model
         $this->modelName = get_class($this);
         $this->culprit = "Model \"{$this->modelName}\"";
         
-        $this->parse();
+        $this->definitions = $this->definitions();
+        
+        $dx = new Data2Html_Collection($this->definitions);
+        $this->table = $dx->getString('table');
+        $this->title = $dx->getString('title', $this->table);
+        $this->base = new Data2Html_Model_Set_Base(
+            $this, null, $dx->getArray('base')
+        );
+        //$this->parse();
     }
-
+    abstract protected function definitions();
+ 
     public function getModelName()
     {
         return $this->modelName;
@@ -54,7 +64,7 @@ abstract class Data2Html_Model
     {
         return Data2Html_Config::get('controllerUrl') . '?';
     }
-    public function getColDs()
+    public function getBaseFields()
     {
         return $this->fields;
     }
@@ -64,12 +74,13 @@ abstract class Data2Html_Model
             $gridName = 'default';
         }
         if (!array_key_exists($gridName, $this->grids)) {
-            throw new Exception(
-                "{$this->culprit}: Grid \"{$gridName}\" not exist on `grids`."
+            $this->grids[$gridName] = new Data2Html_Model_Grid(
+                    $this, $gridName, $this->definitions, $this->base
             );
-        }
+        }    
         return $this->grids[$gridName];
     }
+    
     public function getForm($formName = '')
     {
         if (!$formName) {
@@ -81,12 +92,11 @@ abstract class Data2Html_Model
             );
         }
         if (!Data2Html_Value::getItem($this->forms[$formName],'_parsed')) {
-             $this->forms[$formName]['fields'] = $this->parseFormFields(
+             $this->forms[$formName] = new Data2Html_Model_Set_Form($this,
                 $formName,
                 Data2Html_Value::getItem($this->forms[$formName], 'fields', array()),
                 $this->fields
             );
-            $this->forms[$formName]['_parsed'] = true;
         }
         return $this->forms[$formName];
     }
@@ -102,90 +112,15 @@ abstract class Data2Html_Model
     {
         return $this->title;
     }
-    /**
-     */
-    protected function parse()
-    {
-        $aux = $this->definitions();
-        $def = new Data2Html_Collection($aux);
-        $this->table = $def->getString('table');
-        $this->title = $def->getString('title', $this->table);
-        
-        $baseFields = $this->parseFields($def->getArray('fields'));
-        $this->fields = $baseFields;
-        
-        $this->grids = $def->getArray('grids', array());
-        if (!array_key_exists('default', $this->grids)) {
-            $this->grids['default'] = array();
-        }
-        foreach ($this->grids as $k => &$v) {
-            $this->parseGrid($k, $v, $baseFields);
-        }
-        unset($v);
-        
-        
-        $this->forms = $def->getArray('forms', array());
-        if (!array_key_exists('default', $this->forms)) {
-            $this->forms['default'] = array();
-        }
-    }
-
-    protected function parseFields($fields)
-    {    
-        $set = new Data2Html_Model_Set_BaseFields($this->modelName);
-        return $set->parseItems($fields);
-    }
-    protected function parseGrid($gridName, &$grid, $baseFields)
-    {
-        $grid['name'] = $gridName;
-        $gridDx = new Data2Html_Collection($grid);
-        $filterDx = $gridDx->getCollection('filter');
-        if ($filterDx) {
-            $grid['filter'] = array(
-                'layout' => $filterDx->getString('layout'),
-                'fields' => $this->parseFilterFields(
-                    $gridName,
-                    $filterDx->getArray('fields', array()),
-                    $baseFields
-                )
-            );
-        }
-        $columns = $this->parseColumns(
-            $gridName,
-            $gridDx->getArray('columns', array()),
-            $baseFields
-        );
-        $keyFields = array();
-        foreach ($columns as $k => $v) {
-            if (array_key_exists('key', $v)) {
-                array_push($keyFields, $k);
-            }
-        }
-        //print_r($keyFields);
-        $grid['keys'] = $keyFields;
-        $grid['modelName'] = $this->modelName;
-        $grid['table'] = $this->table;
-        $grid['columns'] = $columns;
-        $grid['columnNames'] = array_keys($columns);
-        $grid['_parsed'] = true;
-    }
-
-    protected function parseColumns($gridName, $columns, $baseFields)
-    {
-        $set = new Data2Html_Model_Set_Columns($this->modelName . ':' . $gridName);
-        return $set->parseItems($columns, $baseFields);
-    }
     
     protected function parseFilterFields($gridName, $filter, $baseFields)
     {
-        $set = new Data2Html_Model_Set_Filter($this->modelName . ':' . $gridName);
-        return $set->parseItems($filter, $baseFields);
+        return;
     }
     
     protected function parseFormFields($formName, $fields, $baseFields)
     {
-        $set = new Data2Html_Model_Set_Form($formName);
-        return $set->parseItems($fields, $baseFields);
+        return;
     }
     // ========================
     // Events

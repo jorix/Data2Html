@@ -7,7 +7,7 @@ class aixada_accounts extends Data2Html_Model {
         return array(
             'table' => 'aixada_account',
             'title' => 'Diners',
-            'fields' => array(
+            'base' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
                 'account_id' => array(
                     'sortBy' => array('account_id', '!id'),
@@ -43,16 +43,16 @@ class aixada_accounts extends Data2Html_Model {
                         //'account_id[1]',
                         'description',
                         'payment_method_id[1]',
-                        'quantity',
+                        '  ',
                         'balance'),
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array(
                             array(
-                                'name' => 'account_uf_id',
+                                'base' => 'account_uf_id',
                                 'check'=>'EQ', 'default'=>1005, 'required'
                             ),
-                            array('name' => 'description', 'check'=>'LK', 'required')
+                            array('base' => 'description', 'check'=>'LK', 'required')
                         )
                     )
                 )

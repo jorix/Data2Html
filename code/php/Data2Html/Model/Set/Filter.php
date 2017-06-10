@@ -1,53 +1,37 @@
 <?php
-class Data2Html_Model_Set_Filter extends Data2Html_Model_Set 
+class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form 
 {
-    public function parseItems($items, $baseFields = array())
+    protected $keywords = array(
+        'words' => array('check'=> 'string')
+    );
+    protected function beforeParseItem(&$key, &$field)
     {
-        $baseFiledsDx = new Data2Html_Collection($baseFields);
-        $pFieldDx = new Data2Html_Collection();
-        foreach ($items as $k => $v) {
-            $pKey = 0;
-            $pField = null;
-            if (is_array($v)) {
-                $pKey = $k;
-                $pField = $v;
-            } elseif (is_string($v)) {
-                if (is_string($k)) {
-                    $pKey = $k;
-                    $pField = array('name' => $k, 'check' => $v);
-                } else {
-                    throw new Exception(
-                        "{$this->culprit}: String \"{$v}\" needs a value as string or array."
-                    ); 
-                }
-            }
-            $pFieldDx->set($pField);              
-            $name = $pFieldDx->getString('name');
-            if ($name) {
-                // TODO: see link
-                $baseName = explode('[', $name);
-                $baseField = $baseFiledsDx->getArray($baseName[0]);
-                if (!$baseField) {
-                    throw new Exception(
-                        "{$this->culprit}: Name \"{$name}\" not exist on base fields."
-                    );
-                }
-                $pField = array_replace_recursive(array(), $baseField, $pField);
-                $db = $pFieldDx->getString('db');
+        if (is_array($field)) {
+            $field = $field;
+        } elseif (is_string($field)) {
+            if (is_string($key)) {
+                $field = array('name' => $key, 'check' => $field);
             } else {
-                $db = $pFieldDx->getString('db');
-                $name = $db;
-            }
-            if (!$db && array_key_exists('check', $pField) ) {
                 throw new Exception(
-                    "{$this->culprit}: Key `{$k}=>[...]` with check=\"{$pField['check']}\" requires a `db` attribute."
-                );
+                    "{$this->culprit}: String \"{$field}\" needs a value as string or array."
+                ); 
             }
-            if (is_int($pKey)) {
-                $pKey = $name.'_'.$pFieldDx->getString('check', '');
-            }
-            $this->addParse($pKey, $pField);
         }
-        return $this->setItems;
+        if (is_int($key) && array_key_exists('check', $field)) {
+            $key = $name.'_'.$field['check'];
+        }
+        return true;
+    }
+    protected function beforeAddItem(&$key, &$field)
+    {
+        if (
+            !array_key_exists('db', $field) &&
+            array_key_exists('check', $field)
+        ) {
+            throw new Exception(
+                "{$this->culprit}: Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` attribute."
+            );
+        }
+        return true;
     }
 }

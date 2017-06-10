@@ -192,6 +192,8 @@ class Data2Html_Render
         }
 
         $baseUrl = $this->getControllerUrl();
+        //$requestUrl = $baseUrl .
+          //      "model={$this->modelObj->getModelName()}&form={$gridName}&";
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =

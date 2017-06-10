@@ -6,7 +6,7 @@ class aixada_products extends Data2Html_Model {
         #Set database table
         return array(
             'table' => 'aixada_product',
-            'fields' => array(
+            'base' => array(
                 'id'            => array('integer', 'autoKey', 'required'),
                 'provider_id'           => array('link' => 'providers'),
                 'name'                  => array('length' => 255, 'required'),

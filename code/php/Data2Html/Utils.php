@@ -70,6 +70,12 @@ class Data2Html_Utils
         }
     }
 
+    public static function dump($title, $a) {
+        echo "<h2>Dump of: {$title}</h2>\n<pre>";
+        echo self::toPhp($a);
+        echo "</pre><hr>\n";
+    }
+
     public static function toPhp($a, $level = 0)
     {
         $indent = '    ';

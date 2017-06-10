@@ -29,7 +29,7 @@ class Data2Html_Parse_Link
         $this->full2BaseNames = array();
         $this->baseNames = array();
         
-        $fields = $this->data->getColDs();
+        $fields = $this->data->getBaseFields()->getItems();
         
         foreach ($this->gridBase['columns'] as $k => &$v) {
             $linkedTo = $this->parseLinkedTo('.', $v);
@@ -143,7 +143,7 @@ class Data2Html_Parse_Link
             );
         }
         $toAlias = 'T' . count($this->joins);
-        $toFields = $dataLink->getColDs();
+        $toFields = $dataLink->getBaseFields()->getItems();
         $this->links[$toLinkName] = array(
             'fromLink' => $fromLinkName,
             'model' => $modelName,

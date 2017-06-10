@@ -31,7 +31,7 @@ aixada_member (
         return array(
             'table' => 'aixada_member',
             'title' => 'Membres',
-            'fields' => array(
+            'base' => array(
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(
                     'title' => 'Usuari',
