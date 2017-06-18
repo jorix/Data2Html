@@ -11,7 +11,8 @@ class aixada_ufs extends Data2Html_Model {
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'name'      => array(
                         'title' => 'Nom UF',
-                        'length'=> 255, 'required'
+                        'length'=> 255,
+                        'required'
                 ),
                 'uf_name'   => '=$${name}#$${id}',
                 'uf_mentor_name'   => '=$${mentor_uf[uf_name]}#$${id}',
@@ -22,14 +23,6 @@ class aixada_ufs extends Data2Html_Model {
                     'title' => 'UF mentora',
                     'base'=>'mentor_uf[uf_name]'
                 ),
-            ),
-            'constraints' => (
-                array('uniqueKey' => 'name')
-            ),
-            'filter' => array(
-                'name' => 'EQ',
-                'active' => 'EQ',
-                'mentor_uf' => 'EQ',
             ),
             'grids' => array(
                 'list' => array(

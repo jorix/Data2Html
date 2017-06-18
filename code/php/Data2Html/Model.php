@@ -74,8 +74,21 @@ abstract class Data2Html_Model
             $gridName = 'default';
         }
         if (!array_key_exists($gridName, $this->grids)) {
+            if (!array_key_exists('grids', $this->definitions)) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: The \"grids\" key not exist on definitions.",
+                    $this->definitions
+                );
+            }
+            $gridsDf = $this->definitions['grids'];
+            if (!array_key_exists($gridName, $gridsDf)) {
+                throw new Data2Html_Exception(
+            "{$this->culprit}: The \"{$gridName}\" grid not exist on grid definitions.",
+                    $this->definitions
+                );
+            }
             $this->grids[$gridName] = new Data2Html_Model_Grid(
-                    $this, $gridName, $this->definitions, $this->base
+                    $this, $gridName, $gridsDf[$gridName], $this->base
             );
         }    
         return $this->grids[$gridName];

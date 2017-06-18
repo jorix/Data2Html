@@ -1,6 +1,17 @@
 <?php
 class Data2Html_Utils
 {
+    public static function toCleanName($str, $delimiter = '-') {
+        //test: echo Data2Html_Utils::toCleanName('Xús_i[ sin("lint CC") ]+3');
+        $str = strtolower(trim($str, " '\"_|+-,.[]()"));
+        $str = str_replace("'", '"', $str); // To protect apostrophes to not 
+            // confuse with accented letters converted to ASCII//TRANSLIT, á='a
+        $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+        $str = preg_replace("/[^ \"\_|+-,\.\[\]\(\)a-zA-Z0-9]/", '', $str);
+        $str = preg_replace("/[ \"\_|+-,\.\[\]\(\)]+/", $delimiter, $str);
+        return $str;
+    }
+    
     public static function readFileJson($fileName)
     {
         return json_decode(file_get_contents($fileName), true);

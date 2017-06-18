@@ -181,12 +181,17 @@ abstract class Data2Html_Model_Set
             } elseif ($this->baseItems) {
                 $field = array('base' => $field);
             } else {
-                $field = array('db' => $field);
+                $matches = null;
+                preg_match_all($this->matchLinked, $field, $matches);
+                if (count($matches[0]) > 0) {
+                    $field = array('base' => $field);
+                } else {
+                    $field = array('db' => $field);
+                }
             }
         }
         $fieldDx = new Data2Html_Collection($field);
         $name = is_int($key) ? null : $key;
-        $pKey = $name;
         $pField = array();
         
         $db = null;
@@ -266,22 +271,37 @@ abstract class Data2Html_Model_Set
                     if (!array_key_exists('type', $pField)) {
                         $pField['type'] = 'string';
                     }
-                    $pField['teplateItems'] = $matches;
+                    $tItems = array();
+                    for ($i = 0; $i < count($matches[0]); $i++) {
+                        $tItems[] = array(
+                            'match' => $matches[0][$i],
+                            'base' => $matches[1][$i]
+                        );
+                    }
+                    $pField['teplateItems'] = $tItems;
                 }
             }
-            // Templates as: $${name} | $${link[name]}
-            $matches = null;
-            preg_match_all($this->matchTemplate, $value, $matches);
-            if (count($matches[0]) > 0) {
-                if (!array_key_exists('type', $pField)) {
-                    $pField['type'] = 'string';
-                }
-                $pField['teplateItems'] = $matches;
-            }
+            // // Templates as: $${name} | $${link[name]}
+            // $matches = null;
+            // preg_match_all($this->matchTemplate, $value, $matches);
+            // if (count($matches[0]) > 0) {
+                // if (!array_key_exists('type', $pField)) {
+                    // $pField['type'] = 'string';
+                // }
+                // $pField['teplateItems'] = $matches;
+            // }
         }
         
         // Set the keyName for this field
-        if (is_int($pKey) || array_key_exists($pKey, $this->setItems)) {
+        $pKey = $key;
+        if (is_int($pKey)) {
+            if (array_key_exists('base', $pField)) {
+                $pKey = Data2Html_Utils::toCleanName($pField['base'], '_');
+            } elseif (array_key_exists('db', $pField)) {
+                $pKey = Data2Html_Utils::toCleanName($pField['db'], '_');
+            }
+        }
+        if (is_int($pKey) || array_key_exists($key, $this->setItems)) {
             $this->fCount++;
             $pKey = $this->fPrefix . '_' . $this->fCount;
         }

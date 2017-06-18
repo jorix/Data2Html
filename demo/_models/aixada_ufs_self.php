@@ -11,7 +11,8 @@ class aixada_ufs_self extends Data2Html_Model {
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(
                         'title' => 'Nom UF',
-                        'length'=> 255, 'required'
+                        'length'=> 255,
+                        'required'
                 ),
                 'uf_name'   => '=$${name}#$${id}',
                 'mentor_uf' => array('link' => 'aixada_ufs_self:list'),
@@ -20,22 +21,19 @@ class aixada_ufs_self extends Data2Html_Model {
                     'db'=>'mentor_uf[uf_name]' // Falla: al usar vinculat i plantilla no posa alias al derivats!
                 ),
             ),
-            'constraints' => (
-                array('uniqueKey' => 'name')
-            ),
-            'filter' => array(
-                'name' => 'EQ',
-                'active' => 'EQ',
-                'mentor_uf' => 'EQ',
-            ),
             'grids' => array(
                 'list' => array(
                     'columns' => array('id', 'name'),
-                    'filter' => array()
+                    'filter' => array(
+                        'fieldLayouts' => 'inline',
+                        'fields' => array('name' => 'EQ')
+                    )
                 ),
                 'default' => array(
-                    'columns' => array(),
-                    'filter' => array()
+                    'filter' => array(
+                        'fieldLayouts' => 'inline',
+                        'fields' => array('name' => 'LK')
+                    )
                 )
             )
         );
