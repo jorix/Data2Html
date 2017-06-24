@@ -3,10 +3,10 @@ class Data2Html_Controller
 {
     protected $data;
     protected $debug = false;
-    public function __construct(&$data)
+    public function __construct($model)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->data = $data;
+        $this->model = $data;
     }
     public function manage($request)
     {
@@ -20,8 +20,8 @@ class Data2Html_Controller
             case 'GET':
                 foreach($request as $key => $val) {
                     if (strpos($val, '=') !== false) {
-                        parse_str(str_replace('[,]', '&', $val), $data);
-                        $postData[$key] = $data;
+                        parse_str(str_replace('[,]', '&', $val), $reqArr);
+                        $postData[$key] = $reqArr;
                     } else {
                         $postData[$key] = $val;
                     }
@@ -33,13 +33,14 @@ class Data2Html_Controller
                 break;
             default:
                 throw new Exception(
-                    "Server method {$serverMethod} is not supported.");
+                    "Server method {$serverMethod} is not supported."
+                );
         }
         return $this->oper($db, $request, $postData);
     }
     protected function oper($db, $request, $postData)
     {
-        $data = $this->data;
+        $model = $this->data;
         $r = new Data2Html_Collection($postData);
         $oper = $r->getString('d2h_oper', '');
         $response = array();
@@ -49,9 +50,9 @@ class Data2Html_Controller
                 $gridName = '';
                 if (array_key_exists('model', $request)) {
                     list($modelName, $gridName) =
-                        Data2Html_Model::explodeLink($request['model']);
+                        Data2Html_Handler::explodeLink($request['model']);
                 }
-                $linkedGrid = $data->getLinkedGrid($gridName);
+                $linkedGrid = $model->getLinkedGrid($gridName);
                 $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
                     $linkedGrid,
@@ -67,11 +68,11 @@ class Data2Html_Controller
                     $page->getInteger('pageSize', 0)
                 );
             case 'insert':
-                $response['new_id'] = $this->opInsert($data);
+                $response['new_id'] = $this->opInsert($model);
                 break;
 
             case 'update':
-                $this->opUpdate($id, $data);
+                $this->opUpdate($id, $model);
                 break;
 
             case 'delete':
@@ -90,7 +91,7 @@ class Data2Html_Controller
         if (empty($this->table)) {
             throw new jqGrid_Exception('Table is not defined');
         }
-        if ($this->data->beforeInsert($values) === false) {
+        if ($this->model->beforeInsert($values) === false) {
             exit;
         }
         // Transaction
@@ -102,7 +103,7 @@ class Data2Html_Controller
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
-        $this->data->afterInsert($values, $new_id);
+        $this->model->afterInsert($values, $new_id);
         $this->commit();
 
         return $new_id;
@@ -111,7 +112,7 @@ class Data2Html_Controller
     {
 
         $keyArray = $this->explodePrimaryKey($id);
-        if ($this->data->beforeUpdate($values, $keyArray) === false) {
+        if ($this->model->beforeUpdate($values, $keyArray) === false) {
             exit;
         }
         // Transaction
@@ -123,7 +124,7 @@ class Data2Html_Controller
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
-        $this->data->afterUpdate($values, $keyArray);
+        $this->model->afterUpdate($values, $keyArray);
         $this->commit();
 
         return '1';
@@ -136,7 +137,7 @@ class Data2Html_Controller
         }
 
         $keyArray = $this->explodePrimaryKey($id);
-        if ($this->data->beforeDelete($keyArray) === false) {
+        if ($this->model->beforeDelete($keyArray) === false) {
             exit;
         }
         // Transaction
@@ -151,7 +152,7 @@ class Data2Html_Controller
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
-        $this->data->afterDelete($keyArray);
+        $this->model->afterDelete($keyArray);
         $this->commit();
 
         return '1';

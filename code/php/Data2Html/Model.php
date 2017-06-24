@@ -8,27 +8,20 @@
  
 abstract class Data2Html_Model
 {
-    //protected $db_params;
-    protected static $modelObjects = array();
-    protected static $modelFolder = null;
-    
-    // 
-    protected $configOptions = array();
     protected $debug = false;
-    
-    // Parsed object definitions
-    protected $table = '';
-    protected $definitions = null;
-    protected $title = '';
     protected $modelName = '';
     protected $culprit = '';
+    
+    // Parsed object definitions
+    private $tableName = '';
+    private $title = '';
+    
+    private $definitions = null;
+    
     private $base = null;
     private $grids = array();
     private $forms = array();
     
-    // To parse
-    protected $matchLinkedOnce = '/^[a-z]\w*\[([a-z]\w*|\d+)\]$/';
-
     /**
      * Class constructor, initializes basic properties.
      *
@@ -47,8 +40,8 @@ abstract class Data2Html_Model
         $this->definitions = $this->definitions();
         
         $dx = new Data2Html_Collection($this->definitions);
-        $this->table = $dx->getString('table');
-        $this->title = $dx->getString('title', $this->table);
+        $this->tableName = $dx->getString('table');
+        $this->title = $dx->getString('title', $this->tableName);
         $this->base = new Data2Html_Model_Set_Base(
             $this, null, $dx->getArray('base')
         );
@@ -60,13 +53,9 @@ abstract class Data2Html_Model
     {
         return $this->modelName;
     }
-    public function getControllerUrl()
+    public function getBase()
     {
-        return Data2Html_Config::get('controllerUrl') . '?';
-    }
-    public function getBaseFields()
-    {
-        return $this->fields;
+        return $this->base;
     }
     public function getGrid($gridName = '')
     {
@@ -117,24 +106,15 @@ abstract class Data2Html_Model
         $link = new Data2Html_Parse_Link($this);
         return $link->getGrid($gridName);
     }
-    public function getTable()
+    public function getTableName()
     {
-        return $this->table;
+        return $this->tableName;
     }
     public function getTitle()
     {
         return $this->title;
     }
     
-    protected function parseFilterFields($gridName, $filter, $baseFields)
-    {
-        return;
-    }
-    
-    protected function parseFormFields($formName, $fields, $baseFields)
-    {
-        return;
-    }
     // ========================
     // Events
     // ========================
@@ -168,153 +148,6 @@ abstract class Data2Html_Model
         return true;
     }
     protected function afterDelete($keyArray)
-    {    }
-
-    // ========================
-    // Utils
-    // ========================
-    // -------------
-
-    /**
-     * @param $obj object to send
-     */
-    protected static function responseJson($obj, $debug)
     {
-        if ($debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n" . Data2Html_Value::toJson($obj, $debug). "\n</pre>\n";
-        } else {
-            header('Content-type: application/responseJson; charset=utf-8;');
-            // The prefix `)]}',\n` is used due a security considerations, see: 
-            //    * https://docs.angularjs.org/api/ng/service/$http
-            echo // ")]}',\n" . 
-                Data2Html_Value::toJson($obj, $debug);
-        }
-    }
-    
-    // ========================
-    // Server
-    // ========================
-    /**
-     * Render
-     */    
-    public static function render($request, $template)
-    {
-        try {
-            $payerNames = self::extractPlayerNames($request);
-            $model = self::createModel($payerNames['model']);
-            $render = new Data2Html_Render($template, $model);
-            $resul = $render->render($payerNames);
-            echo 
-                "{$resul['html']}
-                \n<script>{$resul['js']}</script>";
-        } catch(Exception $e) {
-            // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-        }
-    }
-    /**
-     * Controller
-     */    
-    public static function manage($request)
-    {
-        $debug = Data2Html_Config::debug();
-        try {
-            $payerNames = self::extractPlayerNames($request);
-            $model = self::createModel($payerNames['model']);
-            $controller = new Data2Html_Controller($model);
-            self::responseJson($controller->manage($request), $debug);
-        } catch(Exception $e) {
-            // Message to user
-            if ($e instanceof Data2Html_Exception_User) {
-                header('HTTP/1.1 409 Conflict');
-            } else {
-                header('HTTP/1.1 500 Error');
-            }
-            try {
-                self::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
-            } catch(Exception $ee) {
-                header('Content-type: application/responseJson; charset=utf-8;');                
-                echo serialize(Data2Html_Exception::toArray($e, $debug));
-            }
-        }
-    }
-    /**
-     * Load and create one model
-     * $modelName string||array
-     */
-    public static function createModel($modelName)
-    {
-        if (array_key_exists($modelName, self::$modelObjects)) {
-            return self::$modelObjects[$modelName];
-        }
-        if (count(self::$modelObjects) === 0) {
-            self::$modelFolder = Data2Html_Config::get('modelFolder');
-        }
-        if (!$modelName) {
-            throw new Exception("Don't use `createModel()` without modelName.");
-        }
-        if (self::$modelFolder === null) {
-            throw new Exception(
-                'Don\'t use `createGrid()` before load a parent grid.');
-        }
-        $ds = DIRECTORY_SEPARATOR;
-        $modelFile = self::$modelFolder . $ds . $modelName . '.php';
-        if (file_exists($modelFile)) {
-            require $modelFile;
-            $data = new $modelName();
-            self::$modelObjects[$modelName] = $data;
-            return $data;
-        } else {
-            throw new Exception(
-                "load('{$modelName}'): File \"{$modelFile}\" does not exist.");
-        }
-    }
-            
-    public static function extractPlayerNames($request) 
-    {
-        if (!array_key_exists('model', $request)) {
-            throw new Data2Html_Exception(
-                'The URL parameter `?model=` is not set.',
-                $request
-            );
-        }
-        if (array_key_exists('form', $request)) {
-            // as ['model' => 'model_name', 'form' => 'form_name']
-            $response = array('model' => $request['model']);
-            $response['form'] = $request['form'];
-        } elseif (array_key_exists('grid', $request)) {
-            // as ['model' => 'model_name', 'grid' => 'grid_name'}
-            $response = array('model' => $request['model']);
-            $response['grid'] = $request['grid'];
-        } else {
-            // as {'model' => 'model_name:grid_name'}
-            list($modelName, $gridName) = self::explodeLink($request['model']);
-            if ($gridName) {
-                $response = array('model' => $modelName);
-                $response['grid'] = $gridName;
-            }
-        }
-        return $response;
-        
-    }
-    public static function linkToPlayerNames($linkText) 
-    {
-        try {
-            parse_str('model=' . $linkText, $reqArr);
-        } catch(Exception $e) {
-            throw new Exception(
-                "Link \"{$linkText}\" can't be parsed.");
-            return null;
-        }
-        return self::extractPlayerNames($reqArr);
-    }
-    public static function explodeLink($modelLink)
-    {
-        $modelElements = explode(':', $modelLink);
-        $gridName = 
-            count($modelElements) > 1 ?
-            $modelElements[1] :
-            'default';
-        return array($modelElements[0], $gridName);
     }
 }

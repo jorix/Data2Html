@@ -86,7 +86,6 @@ abstract class Data2Html_Model_Set
         } else {
             $this->culprit = 
                 $this->fPrefix . " for \"{$model->getModelName()}\"";
-            
         }
         
         // Read defs
@@ -98,6 +97,26 @@ abstract class Data2Html_Model_Set
         $this->setItems = array();
         $this->parseItems($defs);
     }
+    public function getModel()
+    {
+        return $this->model;
+    }
+    public function getTableName()
+    {
+        return $this->model->getTableName();
+    }
+    
+    public function getKeys()
+    {
+        return $this->keys;
+    }
+    
+    public function getLink()
+    {
+        $link = new Data2Html_Model_Link($this->culprit, $this);
+        $link->addItems($this->setName, $this);
+        return $link;
+    }
     
     public function getItems()
     {
@@ -107,14 +126,9 @@ abstract class Data2Html_Model_Set
     public function dump()
     {
         Data2Html_Utils::dump($this->culprit, array(
-            'setItems' => $this->setItems,
             'keys' => $this->keys,
-            //'matchedFields' => $this->matchedFields,
+            'setItems' => $this->setItems
         ));
-    }
-    public function getName()
-    {
-        return $this->setName;
     }
     
     protected function parseItems($items)
@@ -152,6 +166,14 @@ abstract class Data2Html_Model_Set
                 $linkedTo = $this->getLinkedTo($v['value'], $baseItems);
                 if (count($linkedTo)) {
                     $v['linkedTo'] = $linkedTo;
+                }
+                foreach ($v['teplateItems'] as $kk => $vv) {
+                    $base = $vv['base'];
+                    if (!array_key_exists($base, $baseItems) && !array_key_exists($base, $linkedTo)) {
+                        throw new Exception(
+                            "{$this->culprit}: On template \"{$kk}\", the \"{$base}\" is not a base or link."
+                        );
+                    }
                 }
             }
             if (array_key_exists('key', $v)) {
@@ -206,15 +228,6 @@ abstract class Data2Html_Model_Set
         if ($db) {
             $pField['db'] = $db;
         }
-        // if ($this->baseItems) {
-            // array_key_exists('db', $field)
-            // $field = array('base' => $field);
-            // if (count($linkedTo)) {
-                // $field = array('linkedTo' => $linkedTo);
-            // } else
-        // } else {
-            // $field = array('db' => $field);
-        // }
         $words = $this->keywords['words'];
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
@@ -273,23 +286,13 @@ abstract class Data2Html_Model_Set
                     }
                     $tItems = array();
                     for ($i = 0; $i < count($matches[0]); $i++) {
-                        $tItems[] = array(
-                            'match' => $matches[0][$i],
+                        $tItems[$matches[0][$i]] = array(
                             'base' => $matches[1][$i]
                         );
                     }
                     $pField['teplateItems'] = $tItems;
                 }
             }
-            // // Templates as: $${name} | $${link[name]}
-            // $matches = null;
-            // preg_match_all($this->matchTemplate, $value, $matches);
-            // if (count($matches[0]) > 0) {
-                // if (!array_key_exists('type', $pField)) {
-                    // $pField['type'] = 'string';
-                // }
-                // $pField['teplateItems'] = $matches;
-            // }
         }
         
         // Set the keyName for this field
@@ -321,11 +324,11 @@ abstract class Data2Html_Model_Set
         for ($i = 0; $i < count($matches[0]); $i++) {
             if ($matches[1][$i] && $matches[2][$i]) {
                 $baseLink = $matches[1][$i];
-                array_push($linkedTo, array(
-                    'match' => $matches[0][$i],
+                $match = $matches[0][$i];
+                $linkedTo[$match] = array(
                     'link' => $baseLink,
-                    'base' => $matches[2][$i],
-                ));
+                    'base' => $matches[2][$i]
+                );
                 if (!array_key_exists($baseLink, $baseItems)) {
                     throw new Data2Html_Exception(
                         "{$this->culprit}: Defining \"{$base}\", the link \"{$baseLink}\" was not found.",
@@ -337,6 +340,7 @@ abstract class Data2Html_Model_Set
                         "{$this->culprit}: Defining \"{$base}\", the \"{$baseLink}\" is not a link."
                     );
                 }
+                $linkedTo[$match]['linkedWith'] = $baseItems[$baseLink]['link'];
             }
         }
         return $linkedTo;

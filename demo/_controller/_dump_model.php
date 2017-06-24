@@ -11,17 +11,18 @@
         Data2Html_Autoload::start('../_config');
     
         try {
-            $payerNames = Data2Html_Model::extractPlayerNames($_REQUEST);
-            $gridName = $payerNames['grid'];
-            $model = Data2Html_Model::createModel($payerNames['model']);
+            $names = Data2Html_Handler::parseRequest($_REQUEST);
+            $gridName = $names['grid'];
+            $model = Data2Html_Handler::getModel($names['model']);
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
             die();
         }
         try {
-            
-            $model->getGrid($gridName)->dump();
+            $grid = $model->getGrid($gridName);
+            $grid->getLink()->dump();
+            $grid->dump();
             
 
             // echo "<h2>getGridsDs():</h2>\n<pre>";

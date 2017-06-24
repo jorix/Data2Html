@@ -7,7 +7,7 @@ class aixada_providers extends Data2Html_Model {
             'table' => 'aixada_provider',
             'base' => array(
                 'id' => array('integer', 'autoKey'),
-                'name' => array(),
+                'name' => array('title' => '$$Provider'),
                 //'group' => array(),
                 'text' => array(
                     'sortBy' => null,
@@ -19,7 +19,6 @@ class aixada_providers extends Data2Html_Model {
             ),
             'grids' => array(
                 'default' => array(
-                    'columns' => array(),
                     'sort' => 'name',
                     'filter' => array(
                         'layout' => 'inline',

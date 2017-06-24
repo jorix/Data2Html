@@ -34,12 +34,24 @@ class Data2Html_Model_Grid
         if (array_key_exists('filter', $defs)) {
             $this->filter = new Data2Html_Model_Set_Filter($model,
                 $gridName,
-                $defs['filter'],
+                $defs['filter']['fields'],
                 $baseFields->getItems()
             );
         }
     }
-
+    public function getModel()
+    {
+        return $this->model;
+    }
+    public function getLink()
+    {
+        $link = new Data2Html_Model_Link($this->culprit, $this->table);
+        $link->add('table', $this->table->getItems());
+        if ($this->filter) {
+            $link->add('filter', $this->filter->getItems());
+        }
+        return $link;
+    }
     public function dump()
     {
         if (!$this->debug) {
@@ -53,8 +65,20 @@ class Data2Html_Model_Grid
         $this->baseFields->dump();
     }
 
+    public function getKeys()
+    {
+        return $this->table->getKeys();
+    }
+    public function getTableSet()
+    {
+        return $this->table;
+    }
+    public function getTableName()
+    {
+        return $this->model->getTableName();
+    }
     
-    public function getName()
+    public function getGridName()
     {
         return $this->gridName;
     }

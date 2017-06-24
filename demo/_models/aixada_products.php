@@ -10,6 +10,7 @@ class aixada_products extends Data2Html_Model {
                 'id'            => array('integer', 'autoKey', 'required'),
                 'provider_id'           => array('link' => 'aixada_providers'),
                 'provider_name'         => array('base'=>'provider_id[name]'),
+                'provider_text'         => array('base'=>'provider_id[text]'),
                 'name'                  => array('length' => 255, 'required'),
                 'pr_name'   => '=$${name}#$${id}-$${responsible_uf_id[name]}',
                 'description'           => array('length' => null),
@@ -27,7 +28,25 @@ class aixada_products extends Data2Html_Model {
                 'ts'                    => array('date', 'format' => 'dd-MM-yy HH:mm')// 'medium'
             ),
             'grids' => array(
-                'default' => array()
+                'default' => array(
+                    'columns' => array(
+                        'id',
+                        'provider_id',
+                        'provider_name',
+                        'provider_text',
+                       // 'name',
+                        'pr_name',
+                        'description',
+                        'barcode',
+                        'custom_product_ref',
+                        'active',
+                        'responsible_uf_id',
+                        'responsible_uf_id[name]',
+                        'orderable_type_id',
+                        'order_min_quantity',
+                        'ts'
+                    )
+                )
             ),
             'constraints' => (
                 array('uniqueKey' => array('custom_product_ref', 'provider_id'))
