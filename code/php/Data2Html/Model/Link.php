@@ -89,26 +89,21 @@ class Data2Html_Model_Link
         }
         if (array_key_exists('teplateItems', $item)) {
             foreach ($item['teplateItems'] as $k => &$v) {
-                $itemKey = $item['tableAlias'] . '|' . $v['base'];
-                if (array_key_exists($itemKey, $this->keyItems)) {
-                    $v['ref'] = $itemKey;
+                $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
+                if ($refKey) {
+                    $v['ref'] = $refKey;
+                    unset($item['linkedTo'][$v['base']]);
                 } else {
-                    $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
-                    if ($refKey) {
-                        $v['ref'] = $refKey;
-                        unset($item['linkedTo'][$v['base']]);
+                    if (array_key_exists($v['base'], $this->items[$groupName])) {
+                        $v['ref'] = $v['base'];
                     } else {
-                        if (array_key_exists($v['base'], $this->items[$groupName])) {
-                            $v['ref'] = $v['base'];
-                        } else {
-                            $form = $this->tables[$tableAlias]['from'];
-                            $baseItems = $this->links[$form]['base'];
-                            $baseItem = $baseItems[$v['base']];
-                            if (array_key_exists($v['base'], $baseItems)) {
-                                $baseItem['tableAlias'] = $tableAlias;
-                                $baseItem['ref_link'] = $tableAlias . '|' . $v['base'];
-                                $v['ref'] = $this->addLinkedItem($groupName, null, $baseItem);
-                            }
+                        $form = $this->tables[$tableAlias]['from'];
+                        $baseItems = $this->links[$form]['base'];
+                        $baseItem = $baseItems[$v['base']];
+                        if (array_key_exists($v['base'], $baseItems)) {
+                            $baseItem['tableAlias'] = $tableAlias;
+                            $baseItem['ref_link'] = $tableAlias . '|' . $v['base'];
+                            $v['ref'] = $this->addLinkedItem($groupName, null, $baseItem);
                         }
                     }
                 }
