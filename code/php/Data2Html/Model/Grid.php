@@ -26,13 +26,15 @@ class Data2Html_Model_Grid
             array_key_exists('columns', $defs) ? 
             $defs['columns'] : 
             $baseFields->getItems();
-        $this->table = new Data2Html_Model_Set_Table($model,
+        $this->table = new Data2Html_Model_Set_Table(
+            $model,
             $gridName,
             $colDf,
             $baseFields->getItems()
         );
         if (array_key_exists('filter', $defs)) {
-            $this->filter = new Data2Html_Model_Set_Filter($model,
+            $this->filter = new Data2Html_Model_Set_Filter(
+                $model,
                 $gridName,
                 $defs['filter']['fields'],
                 $baseFields->getItems()

@@ -45,6 +45,17 @@ class aixada_products extends Data2Html_Model {
                         'orderable_type_id',
                         'order_min_quantity',
                         'ts'
+                    ),
+                    'filter' => array(
+                        'layout' => 'inline',
+                        'fields' => array(
+                            'name' => 'LK',
+                            'active' => 'EQ',
+                            'pr_active' => array(
+                                'base' => 'provider_id[active]',
+                                'check' => 'EQ'
+                            )
+                        )
                     )
                 )
             ),

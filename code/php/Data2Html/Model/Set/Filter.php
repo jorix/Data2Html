@@ -26,10 +26,11 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
     {
         if (
             !array_key_exists('db', $field) &&
+            !array_key_exists('base', $field) &&
             array_key_exists('check', $field)
         ) {
             throw new Exception(
-                "{$this->culprit}: Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` attribute."
+                "{$this->culprit}: Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` or `base` attributes."
             );
         }
         return true;

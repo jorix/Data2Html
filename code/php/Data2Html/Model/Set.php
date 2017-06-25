@@ -39,36 +39,37 @@ abstract class Data2Html_Model_Set
         ),
         'display' => array('hidden'),
         'words' => array(
-            'autoKey' => array('type' => 'integer', 'key' => 'autoKey'),
-            'key' => array('key' => true),
-            'email' => array('type' => 'string', 'validations' => array('email' => true)),
-            'emails' => array('type' => 'string', 'validations' => array('emails' => true)),
-            'required' => array('validations' => array('required' => true)),
-            'url' => array('type' => 'string', 'validations' => array('url' => true)),
-            'digits' => array('type' => 'number', 'size' => '[]'),
-            'length' => array('type' => 'string', 'size' => '[]'),
-            'hidden' => array('display' => 'hidden'),
-            'boolean' => array('type' => 'boolean'),
-            'date' => array('type' => 'date'),
-            'float' => array('type' => 'float'),
-            'integer' => array('type' => 'integer'),
-            'number' => array('type' => 'number'),
-            'string' => array('type' => 'string'),
-            'format' => 'string',
+            'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
+            'boolean' =>    array('type' => 'boolean'),
+            'date' =>       array('type' => 'date'),
+            'digits' =>     array('type' => 'number', 'size' => '[]'),
+            'email' =>      array('type' => 'string', 'validations' => array('email' => true)),
+            'emails' =>     array('type' => 'string', 'validations' => array('emails' => true)),
+            'float' =>      array('type' => 'float'),
+            'hidden' =>     array('display' => 'hidden'),
+            'integer' =>    array('type' => 'integer'),
+            'key' =>        array('key' => true),
+            'length' =>     array('type' => 'string', 'size' => '[]'),
+            'number' =>     array('type' => 'number', 'size' => '[]'),
+            'required' =>   array('validations' => array('required' => true)),
+            'string' =>     array('type' => 'string', 'size' => '[]'),
+            'url' =>        array('type' => 'string', 'validations' => array('url' => true)),
             'base' => 'string',
-            'name' => 'string',
             'db' => 'string',
-            'title' => 'string',
+            'default' => null,
+            'description' => 'string',
+            'display' => null,
+            'format' => 'string',
             'link' => 'string',
             'linkedTo' => 'array',
-            'teplateItems' => null,
-            'description' => 'string',
-            'default' => null,
-            'validations' => null,
-            'type' => null,
-            'display' => null,
-            'value' => null,
+            'name' => 'string',
+            'size' => null,
             'sortBy' => 'string',
+            'teplateItems' => null,
+            'title' => 'string',
+            'type' => null,
+            'validations' => null,
+            'value' => null,
             'visualClass' => 'string'
         )
     );
@@ -236,7 +237,16 @@ abstract class Data2Html_Model_Set
                         "{$this->culprit}: Word \"{$vv}\" on field \"{$key}\" is not supported."
                     );
                 }
-                $pField = array_replace_recursive(array(), $words[$vv], $pField);
+                $word = $words[$vv];
+                if (is_Array($word)) {
+                    foreach ($word as $kkk => $vvv) {
+                        if ($vvv === '[]') {
+                            unset($word[$kkk]);
+                            break;
+                        }
+                    }
+                }
+                $pField = array_replace_recursive($word, $pField);
             } else {
                 if (!array_key_exists($kk, $words)) {
                     throw new Exception(
@@ -251,7 +261,7 @@ abstract class Data2Html_Model_Set
                             break;
                         }
                     }
-                    $pField[$kk] = $word;
+                    $pField = array_replace_recursive($pField, $word);
                 } else {
                     $pField[$kk] = $vv;
                 }
