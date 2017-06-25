@@ -49,7 +49,8 @@ class aixada_products extends Data2Html_Model {
                     'filter' => array(
                         'layout' => 'inline',
                         'fields' => array(
-                            'name' => 'LK',
+                            'name' => array('check' => 'LK', 'no-required'),
+                            '%barcode',
                             'active' => 'EQ',
                             'pr_active' => array(
                                 'base' => 'provider_id[active]',
@@ -59,9 +60,9 @@ class aixada_products extends Data2Html_Model {
                     )
                 )
             ),
-            'constraints' => (
-                array('uniqueKey' => array('custom_product_ref', 'provider_id'))
-            )
+            // 'constraints' => (
+                // array('uniqueKey' => array('custom_product_ref', 'provider_id'))
+            // )
         );
 /*
 

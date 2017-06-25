@@ -22,21 +22,17 @@ class Data2Html_Model_Grid
         $this->baseFields = $baseFields;
       
         // Set fields
-        $colDf =
-            array_key_exists('columns', $defs) ? 
-            $defs['columns'] : 
-            $baseFields->getItems();
         $this->table = new Data2Html_Model_Set_Table(
             $model,
             $gridName,
-            $colDf,
+            $defs,
             $baseFields->getItems()
         );
         if (array_key_exists('filter', $defs)) {
             $this->filter = new Data2Html_Model_Set_Filter(
                 $model,
                 $gridName,
-                $defs['filter']['fields'],
+                $defs['filter'],
                 $baseFields->getItems()
             );
         }

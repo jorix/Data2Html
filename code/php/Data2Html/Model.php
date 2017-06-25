@@ -43,7 +43,7 @@ abstract class Data2Html_Model
         $this->tableName = $dx->getString('table');
         $this->title = $dx->getString('title', $this->tableName);
         $this->base = new Data2Html_Model_Set_Base(
-            $this, null, $dx->getArray('base')
+            $this, null, $this->definitions
         );
         //$this->parse();
     }

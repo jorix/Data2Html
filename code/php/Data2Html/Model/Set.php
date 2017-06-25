@@ -10,6 +10,7 @@ abstract class Data2Html_Model_Set
     protected $fCount = 0;
     
     protected $model = null;
+    protected $attributes = null;
     protected $setItems = null;
     protected $keys = null;
     //protected $matchedFields = null;
@@ -20,7 +21,11 @@ abstract class Data2Html_Model_Set
         // fields as: link_name[field_name]
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
         // value as: $${base_name} i $${link_name[field_name]}
-    
+    protected $attributeNames = array();
+    protected $keywords = array();
+    protected $baseAttributeNames = array(
+        'title' => 'attribute'
+    );
     protected $baseKeywords = array(
         'key' => array(
             'single' => true,
@@ -52,6 +57,7 @@ abstract class Data2Html_Model_Set
             'length' =>     array('type' => 'string', 'size' => '[]'),
             'number' =>     array('type' => 'number', 'size' => '[]'),
             'required' =>   array('validations' => array('required' => true)),
+            'no-required' =>   array('validations' => array('required' => false)),
             'string' =>     array('type' => 'string', 'size' => '[]'),
             'url' =>        array('type' => 'string', 'validations' => array('url' => true)),
             'base' => 'string',
@@ -73,9 +79,7 @@ abstract class Data2Html_Model_Set
             'visualClass' => 'string'
         )
     );
-    
-    protected $keywords = array();
-    
+        
     public function __construct($model, $setName, $defs, $baseItems = null)
     {
         $this->debug = Data2Html_Config::debug();
@@ -91,12 +95,32 @@ abstract class Data2Html_Model_Set
         
         // Read defs
         $this->model = $model;
+        $this->attributeNames = array_replace_recursive(
+            $this->baseAttributeNames, $this->attributeNames
+        );
         $this->keywords = array_replace_recursive(
-            array(), $this->baseKeywords, $this->keywords
+            $this->baseKeywords, $this->keywords
         );
         $this->baseItems = $baseItems;
-        $this->setItems = array();
-        $this->parseItems($defs);
+        
+        $attNamesDx = new Data2Html_Collection($this->attributeNames);
+        foreach ($defs as $k => $v) {
+            $attributeType = $attNamesDx->getString($k);
+            if ($attributeType === null) {
+                throw new Exception(
+                    "{$this->culprit}: Attribute \"{$k}\" is not supported."
+                );
+            }
+            switch ($attributeType) {
+                case 'attribute':
+                    $this->attributes[$k] = $v;
+                    break;
+                case 'items':
+                    $this->setItems = array();
+                    $this->parseItems($v);
+                    break;
+            }
+        }
     }
     public function getModel()
     {
@@ -127,6 +151,7 @@ abstract class Data2Html_Model_Set
     public function dump()
     {
         Data2Html_Utils::dump($this->culprit, array(
+            'attributes' => $this->attributes,
             'keys' => $this->keys,
             'setItems' => $this->setItems
         ));
