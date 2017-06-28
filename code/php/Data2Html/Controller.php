@@ -1,12 +1,12 @@
 <?php
 class Data2Html_Controller
 {
-    protected $data;
+    protected $model;
     protected $debug = false;
     public function __construct($model)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->model = $data;
+        $this->model = $model;
     }
     public function manage($request)
     {
@@ -40,19 +40,17 @@ class Data2Html_Controller
     }
     protected function oper($db, $request, $postData)
     {
-        $model = $this->data;
+        $model = $this->model;
         $r = new Data2Html_Collection($postData);
         $oper = $r->getString('d2h_oper', '');
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
-                $gridName = '';
-                if (array_key_exists('model', $request)) {
-                    list($modelName, $gridName) =
-                        Data2Html_Handler::explodeLink($request['model']);
-                }
-                $linkedGrid = $model->getLinkedGrid($gridName);
+                $payerNames = Data2Html_Handler::parseRequest($request);
+                $gridName = $payerNames['grid'];
+                $linkedGrid = $model->getGrid($gridName)->getLink();
+                
                 $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
                     $linkedGrid,

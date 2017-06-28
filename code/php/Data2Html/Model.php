@@ -102,10 +102,6 @@ abstract class Data2Html_Model
         }
         return $this->forms[$formName];
     }
-    public function getLinkedGrid($gridName) {
-        $link = new Data2Html_Parse_Link($this);
-        return $link->getGrid($gridName);
-    }
     public function getTableName()
     {
         return $this->tableName;

@@ -138,7 +138,7 @@ class Data2Html_Handler
         }
         return self::parseRequest($reqArr);
     }
-    public static function explodeLink($modelLink)
+    protected static function explodeLink($modelLink)
     {
         $modelElements = explode(':', $modelLink);
         $gridName = 

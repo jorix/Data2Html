@@ -39,9 +39,6 @@ aixada_member (
                 ),
                 'active'    => array('integer', 'required', 'default' => 1)
             ),
-            'constraints' => (
-                array('uniqueKey' => 'name')
-            ),
             'grids' => array(
                 'default' => array(
                     'columns' => array('id', 'name', 'active'),

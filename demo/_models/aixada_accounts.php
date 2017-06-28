@@ -20,7 +20,7 @@ class aixada_accounts extends Data2Html_Model {
                 ),
                 'operator_id' =>       array('link' => 'aixada_members'),
                 'payment_method_id' => array('link' => 'aixada_payment_methods'),
-                'description' => array('title' => 'Descripció'),
+                'description' => array('title' => '$$Description'),
                 'quantity' => array('number', 
                     'format' => 2, 'visualClass' => 'red:<0'),
                 'balance' => array('currency', 'visualClass' => 'red:<0'),
@@ -42,8 +42,7 @@ class aixada_accounts extends Data2Html_Model {
                         'account_uf_id[text]',
                         //'account_id[1]',
                         'description',
-                        'payment_method_id[1]',
-                        '  ',
+                        'payment_method_id[description]',
                         'balance'),
                     'filter' => array(
                         'layout' => 'inline',

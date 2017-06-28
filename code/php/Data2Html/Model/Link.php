@@ -6,7 +6,6 @@ class Data2Html_Model_Link
     protected $tables = array();
     protected $links = array();
     protected $items = array();
-    protected $keyItems = array();
     
     public function __construct($fromCulprit, $set)
     {
@@ -45,7 +44,6 @@ class Data2Html_Model_Link
         }
         Data2Html_Utils::dump($this->culprit, array(
             'tables' => $this->tables,
-            'keyItems' => $this->keyItems,
            // 'links' => $this->links,
             'items' => $this->items,
         ));
@@ -61,8 +59,11 @@ class Data2Html_Model_Link
     protected function addLinkedItem($groupName, $key, $item) {
         $tableAlias = $item['tableAlias'];
         if (!$key) {
+            $key = Data2Html_Utils::toCleanName($item['ref_link'], '_');
+            if (array_key_exists($key, $this->items[$groupName])) {
+                return $key;
+            }
             $item['virtual'] = true;
-            $key = Data2Html_Utils::toCleanName($item['ref_link'],'_');
         }
         if (array_key_exists('linkedTo', $item)) {
             $itemBase = Data2Html_Value::getItem($item, 'base');
@@ -75,6 +76,7 @@ class Data2Html_Model_Link
                         unset($item['base']);
                         $item = array_replace_recursive(array(), $lkItem, $item);
                         $item['tableAlias'] = $lkAlias;
+                        $tableAlias = $lkAlias; // Refesh table alias
                     } else { // linked with a virtual item
                         $v['ref'] = $this->addLinkedItem($groupName, null, $lkItem);
                     }
@@ -90,20 +92,33 @@ class Data2Html_Model_Link
         if (array_key_exists('teplateItems', $item)) {
             foreach ($item['teplateItems'] as $k => &$v) {
                 $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
+                $baseName = $v['base'];
                 if ($refKey) {
                     $v['ref'] = $refKey;
-                    unset($item['linkedTo'][$v['base']]);
+                    unset($item['linkedTo'][$baseName]);
                 } else {
-                    if (array_key_exists($v['base'], $this->items[$groupName])) {
-                        $v['ref'] = $v['base'];
+                    if (array_key_exists($baseName, $this->items[$groupName])) {
+                        $v['ref'] = $baseName;
                     } else {
                         $form = $this->tables[$tableAlias]['from'];
-                        $baseItems = $this->links[$form]['base'];
-                        $baseItem = $baseItems[$v['base']];
-                        if (array_key_exists($v['base'], $baseItems)) {
-                            $baseItem['tableAlias'] = $tableAlias;
-                            $baseItem['ref_link'] = $tableAlias . '|' . $v['base'];
-                            $v['ref'] = $this->addLinkedItem($groupName, null, $baseItem);
+                        $lkBaseItems = $this->links[$form]['base'];
+                        $lkItems = $this->links[$form]['items'];
+                        if (array_key_exists($baseName, $lkItems)) {
+                            //$v['ref'] = $lkItems; //"array_key_exists($baseName,";
+                            $newItem = $lkItems[$baseName];
+                            $newItem['tableAlias'] = $tableAlias;
+                            $newItem['ref_link'] = $tableAlias . '|' . $v['base'];
+                            $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
+                        } elseif (array_key_exists($baseName, $lkBaseItems)) {
+                            $newItem = $lkBaseItems[$baseName];
+                            $newItem['tableAlias'] = $tableAlias;
+                            $newItem['ref_link'] = $tableAlias . '|' . $v['base'];
+                            $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
+                        } else {
+                            throw new Data2Html_Exception(
+                                "{$this->culprit}: Base \"{$baseName}\" not fount on \"{$key}\".",
+                                $item
+                            );
                         }
                     }
                 }

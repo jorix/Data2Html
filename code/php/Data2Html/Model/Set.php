@@ -56,6 +56,7 @@ abstract class Data2Html_Model_Set
             'key' =>        array('key' => true),
             'length' =>     array('type' => 'string', 'size' => '[]'),
             'number' =>     array('type' => 'number', 'size' => '[]'),
+            'currency' =>     array('type' => 'number', 'size' => '[]'),
             'required' =>   array('validations' => array('required' => true)),
             'no-required' =>   array('validations' => array('required' => false)),
             'string' =>     array('type' => 'string', 'size' => '[]'),
@@ -195,9 +196,13 @@ abstract class Data2Html_Model_Set
                 }
                 foreach ($v['teplateItems'] as $kk => $vv) {
                     $base = $vv['base'];
-                    if (!array_key_exists($base, $baseItems) && !array_key_exists($base, $linkedTo)) {
-                        throw new Exception(
-                            "{$this->culprit}: On template \"{$kk}\", the \"{$base}\" is not a base or link."
+                    if (!array_key_exists($base, $this->setItems) &&
+                        !array_key_exists($base, $baseItems) &&
+                        !array_key_exists($base, $linkedTo)
+                    ) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: On template \"{$kk}\", the \"{$base}\" is not a base or link.",
+                            $this->setItems
                         );
                     }
                 }
