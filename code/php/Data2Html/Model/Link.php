@@ -83,9 +83,6 @@ class Data2Html_Model_Link
                 } else {
                     $v['ref'] = $this->addLinkedItem($groupName, null, $lkItem);
                 }
-                // if (array_key_exists('linkedTo', $item)) {
-                    // $item['linkedTo'][$k] = $v;
-                // }
             }
             unset($v);
         }
@@ -101,18 +98,16 @@ class Data2Html_Model_Link
                         $v['ref'] = $baseName;
                     } else {
                         $form = $this->tables[$tableAlias]['from'];
-                        $lkBaseItems = $this->links[$form]['base'];
-                        $lkItems = $this->links[$form]['items'];
-                        if (array_key_exists($baseName, $lkItems)) {
-                            //$v['ref'] = $lkItems; //"array_key_exists($baseName,";
-                            $newItem = $lkItems[$baseName];
+                        $lk = $this->links[$form];
+                        if (array_key_exists($baseName, $lk['items'])) {
+                            $newItem = $lk['items'][$baseName];
                             $newItem['tableAlias'] = $tableAlias;
-                            $newItem['ref_link'] = $tableAlias . '|' . $v['base'];
+                            $newItem['ref_link'] = $tableAlias . '|' . $baseName;
                             $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
-                        } elseif (array_key_exists($baseName, $lkBaseItems)) {
-                            $newItem = $lkBaseItems[$baseName];
+                        } elseif (array_key_exists($baseName, $lk['base'])) {
+                            $newItem = $lk['base'][$baseName];
                             $newItem['tableAlias'] = $tableAlias;
-                            $newItem['ref_link'] = $tableAlias . '|' . $v['base'];
+                            $newItem['ref_link'] = $tableAlias . '|' . $baseName;
                             $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
                         } else {
                             throw new Data2Html_Exception(
