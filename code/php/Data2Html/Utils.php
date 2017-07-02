@@ -82,6 +82,10 @@ class Data2Html_Utils
     }
 
     public static function dump($title, $a) {
+        if (!Data2Html_Config::debug()) {
+            echo "Debug mode is not activated, activate it to make a dump!";
+            return;
+        }
         echo "<h2>Dump of: {$title}</h2>\n<pre>";
         echo self::toPhp($a);
         echo "</pre><hr>\n";

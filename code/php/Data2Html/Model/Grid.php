@@ -52,10 +52,6 @@ class Data2Html_Model_Grid
     }
     public function dump()
     {
-        if (!$this->debug) {
-            echo "Debug mode is not activated, activate it to make a dump!";
-            return;
-        }
         $this->table->dump();
         if ($this->filter) {
             $this->filter->dump();

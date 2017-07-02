@@ -43,7 +43,7 @@ abstract class Data2Html_Model_Set
             'keys' => array('required', 'email', 'emails', 'url')
         ),
         'display' => array('hidden'),
-        'words' => array(
+        'alias' => array(
             'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
             'boolean' =>    array('type' => 'boolean'),
             'date' =>       array('type' => 'date'),
@@ -60,7 +60,9 @@ abstract class Data2Html_Model_Set
             'required' =>   array('validations' => array('required' => true)),
             'no-required' =>   array('validations' => array('required' => false)),
             'string' =>     array('type' => 'string', 'size' => '[]'),
-            'url' =>        array('type' => 'string', 'validations' => array('url' => true)),
+            'url' =>        array('type' => 'string', 'validations' => array('url' => true))
+        ),
+        'words' => array(
             'base' => 'string',
             'db' => 'string',
             'default' => null,
@@ -71,8 +73,6 @@ abstract class Data2Html_Model_Set
             'linkedTo' => 'array',
             'name' => 'string',
             'size' => null,
-            'sortBy' => 'string',
-            'teplateItems' => null,
             'title' => 'string',
             'type' => null,
             'validations' => null,
@@ -94,7 +94,6 @@ abstract class Data2Html_Model_Set
                 $this->fPrefix . " for \"{$model->getModelName()}\"";
         }
         
-        // Read defs
         $this->model = $model;
         $this->attributeNames = array_replace_recursive(
             $this->baseAttributeNames, $this->attributeNames
@@ -104,6 +103,7 @@ abstract class Data2Html_Model_Set
         );
         $this->baseItems = $baseItems;
         
+        // Read defs
         $attNamesDx = new Data2Html_Collection($this->attributeNames);
         foreach ($defs as $k => $v) {
             $attributeType = $attNamesDx->getString($k);
@@ -149,13 +149,16 @@ abstract class Data2Html_Model_Set
         return $this->setItems;
     }
     
-    public function dump()
+    public function dump($subject = null)
     {
-        Data2Html_Utils::dump($this->culprit, array(
-            'attributes' => $this->attributes,
-            'keys' => $this->keys,
-            'setItems' => $this->setItems
-        ));
+        if (!$subject) {
+            $subject = array(
+                'attributes' => $this->attributes,
+                'keys' => $this->keys,
+                'setItems' => $this->setItems
+            );
+        }
+        Data2Html_Utils::dump($this->culprit, $subject);
     }
     
     protected function parseItems($items)
@@ -169,6 +172,7 @@ abstract class Data2Html_Model_Set
         } else {
             $baseItems = $this->setItems;
         }
+        $keys = array();
         foreach ($this->setItems as $k => &$v) {
             if (array_key_exists('base', $v)) {
                 $base = $v['base'];
@@ -184,11 +188,17 @@ abstract class Data2Html_Model_Set
                     $v = array_replace_recursive(array(), $baseItems[$base], $v);
                 }
             }
-        }
-
-        // Matches values
-        $keys = array();
-        foreach ($this->setItems as $k => &$v) {
+            
+            if (array_key_exists('sortBy', $v)) {                
+                $sortByNew = $this->parseSortBy($v['sortBy'], $baseItems);
+                if ($sortByNew) {
+                    $v['sortBy'] = $sortByNew;
+                } else {
+                    unset($v['sortBy']);
+                }
+            }
+            
+            // Matches values
             if (array_key_exists('teplateItems', $v)) {
                 $linkedTo = $this->getLinkedTo($v['value'], $baseItems);
                 if (count($linkedTo)) {
@@ -212,6 +222,10 @@ abstract class Data2Html_Model_Set
             }
         }
         $this->keys = $keys;
+    }
+    
+    protected function parseSortBy($sortBy, $baseItems) {
+        return null;
     }
     
     protected function beforeParseItem(&$key, &$field)
@@ -259,32 +273,27 @@ abstract class Data2Html_Model_Set
         if ($db) {
             $pField['db'] = $db;
         }
+        $alias = $this->keywords['alias'];
         $words = $this->keywords['words'];
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
-                if (!array_key_exists($vv, $words)) {
-                    throw new Exception(
-                        "{$this->culprit}: Word \"{$vv}\" on field \"{$key}\" is not supported."
-                    );
-                }
-                $word = $words[$vv];
-                if (is_Array($word)) {
+                if (array_key_exists($vv, $alias)) {
+                    $word = $alias[$vv];
                     foreach ($word as $kkk => $vvv) {
                         if ($vvv === '[]') {
                             unset($word[$kkk]);
                             break;
                         }
                     }
-                }
-                $pField = array_replace_recursive($word, $pField);
-            } else {
-                if (!array_key_exists($kk, $words)) {
+                    $pField = array_replace_recursive($pField, $word);
+                } else {
                     throw new Exception(
-                        "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" is not supported."
+                        "{$this->culprit}: Alias \"{$vv}\" on field \"{$key}\" is not supported."
                     );
                 }
-                $word = $words[$kk];
-                if (is_Array($word)) {
+            } else {
+                if (array_key_exists($kk, $alias)) {
+                    $word = $alias[$kk];
                     foreach ($word as &$vvv) {
                         if ($vvv === '[]') {
                             $vvv = $vv;
@@ -292,8 +301,12 @@ abstract class Data2Html_Model_Set
                         }
                     }
                     $pField = array_replace_recursive($pField, $word);
-                } else {
+                } elseif (array_key_exists($kk, $words)) {
                     $pField[$kk] = $vv;
+                } else {
+                    throw new Exception(
+                        "{$this->culprit}: Word or alias \"{$kk}\" on field \"{$key}\" is not supported."
+                    );
                 }
             }
         }

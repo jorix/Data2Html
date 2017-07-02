@@ -4,7 +4,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
     protected $keywords = array(
         'words' => array('check'=> 'string')
     );
-    protected $start2Chk = array(
+    protected $startToChk = array(
         '<=' => 'EQ',
         '>=' => 'EQ',
         '=' => 'EQ',
@@ -17,18 +17,16 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
                 substr($haystack, 0, strlen($needle)) === $needle
             );
         };
-
         if (is_string($field)) {
             if (is_string($key)) {
                 $field = array('base' => $key, 'check' => $field);
             } else {
-                foreach ($this->start2Chk as $k => $v) {
+                foreach ($this->startToChk as $k => $v) {
                     if ($startsWith($field, $k)) {
                         $field = array(
-                            'base' => substr($field, 1),
+                            'base' => substr($field, strlen($k)),
                             'check' => $v
                         );
-                        
                         break;
                     }
                 }
@@ -39,6 +37,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
                 }
             }
         }
+        
         if (is_int($key) && 
             array_key_exists('base', $field) &&
             array_key_exists('check', $field)
