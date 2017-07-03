@@ -15,27 +15,6 @@ class Data2Html_Model_Link
         $this->addTable(null, $set);
     }
 
-    protected function addTable($from, $set) {
-        $model = $set->getModel();
-        $keys = $set->getKeys();
-        $tableName = $set->getTableName();
-        
-        $tableAlias = 'T' . count($this->tables);
-        $from = $from ? $from : $tableAlias;
-
-        $this->links[$from] = array(
-            'alias' => $tableAlias,
-            'items' => $set->getItems(),
-            'base' => $model->getBase()->getItems()
-        );
-        $this->tables[$tableAlias] = array(
-            'from' => $from,
-            'alias' => $tableAlias,
-            'table' => $tableName,
-            'keys' => $keys
-        );
-        return $tableAlias;
-    }
     public function dump()
     {
         if (!$this->debug) {
@@ -51,20 +30,26 @@ class Data2Html_Model_Link
     public function add($groupName, $fromItems) {
         $tableAlias = $this->links['T0']['alias'];
         $baseItems = $this->links['T0']['base'];
+        $this->items[$groupName] = array();
         foreach ($fromItems as $key => $item) {
             $item['tableAlias'] = $tableAlias;
             $this->addLinkedItem($groupName, $key, $item);
         }
+   }
+    protected function addLinkedVirtual($groupName, $tableAlias, $base, $item) {
+        $item['tableAlias'] = $tableAlias;
+        $item['ref_link'] = $tableAlias . '|' . $base;
+        $key = Data2Html_Utils::toCleanName($item['ref_link'], '_');
+        if (array_key_exists($key, $this->items[$groupName])) {
+            return $key;
+        }
+        $item['virtual'] = true;
+        return $this->addLinkedItem($groupName, $key, $item);
     }
     protected function addLinkedItem($groupName, $key, $item) {
         $tableAlias = $item['tableAlias'];
-        if (!$key) {
-            $key = Data2Html_Utils::toCleanName($item['ref_link'], '_');
-            if (array_key_exists($key, $this->items[$groupName])) {
-                return $key;
-            }
-            $item['virtual'] = true;
-        }
+        $this->items[$groupName][$key] = &$item;
+        
         if (array_key_exists('linkedTo', $item)) {
             $itemBase = Data2Html_Value::getItem($item, 'base');
             foreach ($item['linkedTo'] as $k => &$v) {
@@ -78,10 +63,10 @@ class Data2Html_Model_Link
                         $item['tableAlias'] = $lkAlias;
                         $tableAlias = $lkAlias; // Refesh table alias
                     } else { // linked with a virtual item
-                        $v['ref'] = $this->addLinkedItem($groupName, null, $lkItem);
+                        $v['ref'] = $this->addLinkedVirtual($groupName, $lkAlias, $v['base'], $lkItem);
                     }
                 } else {
-                    $v['ref'] = $this->addLinkedItem($groupName, null, $lkItem);
+                    $v['ref'] = $this->addLinkedVirtual($groupName, $lkAlias, $v['base'], $lkItem);
                 }
             }
             unset($v);
@@ -100,15 +85,11 @@ class Data2Html_Model_Link
                         $form = $this->tables[$tableAlias]['from'];
                         $lk = $this->links[$form];
                         if (array_key_exists($baseName, $lk['items'])) {
-                            $newItem = $lk['items'][$baseName];
-                            $newItem['tableAlias'] = $tableAlias;
-                            $newItem['ref_link'] = $tableAlias . '|' . $baseName;
-                            $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
+                            $v['ref'] = $this->addLinkedVirtual(
+                                $groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
                         } elseif (array_key_exists($baseName, $lk['base'])) {
-                            $newItem = $lk['base'][$baseName];
-                            $newItem['tableAlias'] = $tableAlias;
-                            $newItem['ref_link'] = $tableAlias . '|' . $baseName;
-                            $v['ref'] = $this->addLinkedItem($groupName, null, $newItem);
+                            $v['ref'] = $this->addLinkedVirtual(
+                                $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
                             throw new Data2Html_Exception(
                                 "{$this->culprit}: Base \"{$baseName}\" not fount on \"{$key}\".",
@@ -120,11 +101,51 @@ class Data2Html_Model_Link
                 if (array_key_exists('linkedTo', $item) && count($item['linkedTo']) === 0) {
                     unset($item['linkedTo']);
                 }
-                // $item['teplateItems'][$k] = $v;
             }
             unset($v);
         }
-        $this->items[$groupName][$key] = $item;
+        if (array_key_exists('sortBy', $item)) {
+            $sortBy = &$item['sortBy'];
+            if (array_key_exists('linkedTo', $sortBy)) {
+                $itemBase = Data2Html_Value::getItem($sortBy, 'base');
+                foreach ($sortBy['linkedTo'] as $k => &$v) {
+                    $lkItem = $this->getLinkItem($tableAlias, $v);
+                    $lkAlias = $lkItem['tableAlias'];
+                    $v['ref'] = $this->addLinkedVirtual($groupName, $lkAlias, $v['base'], $lkItem);
+                }
+                unset($v);
+            }
+            foreach ($sortBy['items'] as $k => &$v) {
+                $refKey = Data2Html_Value::getItem($sortBy, array('linkedTo', $v['base'] , 'ref'));
+                $baseName = $v['base'];
+                if ($refKey) {
+                    $v['ref'] = $refKey;
+                    unset($sortBy['linkedTo'][$baseName]);
+                } else {
+                    if (array_key_exists($baseName, $this->items[$groupName])) {
+                        $v['ref'] = $baseName;
+                    } else {
+                        $form = $this->tables[$tableAlias]['from'];
+                        $lk = $this->links[$form];
+                        if (array_key_exists($baseName, $lk['items'])) {
+                            $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
+                        } elseif (array_key_exists($baseName, $lk['base'])) {
+                            $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
+                        } else {
+                            throw new Data2Html_Exception(
+                                "{$this->culprit}: sortBy \"{$baseName}\" not fount on \"{$key}\".",
+                                $item
+                            );
+                        }
+                    }
+                }
+                if (array_key_exists('linkedTo', $sortBy) && count($sortBy['linkedTo']) === 0) {
+                    unset($sortBy['linkedTo']);
+                }
+            }
+            unset($v);
+            unset($sortBy);
+        }
         return $key;
     }
     protected function getLinkItem($fromAlias, $v) {
@@ -161,5 +182,27 @@ class Data2Html_Model_Link
         $lkItem['tableAlias'] = $l['alias'];
         $lkItem['ref_link'] = $l['alias'] . '|' . $baseName;
         return $lkItem;
+    }
+
+    protected function addTable($from, $set) {
+        $model = $set->getModel();
+        $keys = $set->getKeys();
+        $tableName = $set->getTableName();
+        
+        $tableAlias = 'T' . count($this->tables);
+        $from = $from ? $from : $tableAlias;
+
+        $this->links[$from] = array(
+            'alias' => $tableAlias,
+            'items' => $set->getItems(),
+            'base' => $model->getBase()->getItems()
+        );
+        $this->tables[$tableAlias] = array(
+            'from' => $from,
+            'alias' => $tableAlias,
+            'table' => $tableName,
+            'keys' => $keys
+        );
+        return $tableAlias;
     }
 }

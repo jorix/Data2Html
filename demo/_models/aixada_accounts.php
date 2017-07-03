@@ -10,7 +10,7 @@ class aixada_accounts extends Data2Html_Model {
             'base' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
                 'account_id' => array(
-                    'sortBy' => array('account_id', '!id'),
+                    'sortBy' => array('account_id', '!id', 'account_uf_id[name]'),
                     'hidden'
                 ),
                 'account_uf_id' => array(
@@ -39,7 +39,7 @@ class aixada_accounts extends Data2Html_Model {
                         'ts',
                         'operator_id[name]',
                         'account_id',
-                        'account_uf_id[text]',
+                       // 'account_uf_id[text]',
                         //'account_id[1]',
                         'description',
                         'payment_method_id[description]',

@@ -24,9 +24,7 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
     {
         // set default for sortBy 
         if (!array_key_exists('sortBy', $field)) {
-            if (array_key_exists('base', $field)) {
-                $field['sortBy'] = $field['base'];
-            } elseif (array_key_exists('db', $field)) {
+            if (array_key_exists('db', $field)) {
                 $field['sortBy'] = $key;
             }
         }
@@ -37,9 +35,10 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
         if (!is_array($sortBy)) {
             $sortBy = array($sortBy);
         } elseif ( // Already parsed 
-            count($sortBy) === 2 && 
-            array_key_exists('linkedTo', $sortBy) &&
-            array_key_exists('items', $sortBy)
+            array_key_exists('items', $sortBy) && (
+                count($sortBy) === 1 || 
+                (count($sortBy) === 2 && array_key_exists('linkedTo', $sortBy))
+            )
         ) {
             return $sortBy; // return as is already parsed
         }
@@ -72,7 +71,13 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
                     );
                 }
             }
-            $sortByNew['items'][$item] = $order;
+            $sortByNew['items'][$item] = array(
+                'base' => $item,
+                'order' => $order
+            );
+        }
+        if (count($sortByNew['linkedTo']) === 0) {
+            unset($sortByNew['linkedTo']);
         }
         return $sortByNew;
     }
