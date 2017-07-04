@@ -35,7 +35,7 @@ class aixada_ufs extends Data2Html_Model {
                 'account' => array(
                     'sort' => 'name',                    
                     'columns' => array(
-                        'value' => array('key', 'db' => '1000+id'),
+                        'value' => array('key', 'db' => '1000 + id'),
                         'text' => '=$${name}#$${value}',
                         'active',
                         'mentor_uf'

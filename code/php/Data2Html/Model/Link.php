@@ -71,6 +71,20 @@ class Data2Html_Model_Link
             }
             unset($v);
         }
+        if (array_key_exists('db', $item)) {
+            $db = $item['db'];
+            if (preg_match('/^\w+$/', $db)) {
+                $item['refDb'] = $tableAlias . '.x.' . $db;
+            } else {
+                $item['refDb'] = preg_replace_callback(
+                    '/(\b[a-z]\w*\b\s*(?![\(]))/i', // TODO: funtionName space ( as '1000 + id + sin (e)'
+                    function ($matches) use ($tableAlias) {
+                        return '[' . $tableAlias . '.' . $matches[0] . ']';
+                    },
+                    $db
+                );
+            }
+        }
         if (array_key_exists('teplateItems', $item)) {
             foreach ($item['teplateItems'] as $k => &$v) {
                 $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
@@ -92,7 +106,7 @@ class Data2Html_Model_Link
                                 $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
                             throw new Data2Html_Exception(
-                                "{$this->culprit}: Base \"{$baseName}\" not fount on \"{$key}\".",
+                                "{$this->culprit}: Base \"{$baseName}\" not fount (on \"{$key}\").",
                                 $item
                             );
                         }
@@ -133,7 +147,7 @@ class Data2Html_Model_Link
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
                             throw new Data2Html_Exception(
-                                "{$this->culprit}: sortBy \"{$baseName}\" not fount on \"{$key}\".",
+                                "{$this->culprit}: Base sortBy \"{$baseName}\" not fount (on \"{$key}\").",
                                 $item
                             );
                         }
@@ -142,6 +156,14 @@ class Data2Html_Model_Link
                 if (array_key_exists('linkedTo', $sortBy) && count($sortBy['linkedTo']) === 0) {
                     unset($sortBy['linkedTo']);
                 }
+                $ref = $v['ref'];
+                if (!array_key_exists('db', $this->items[$groupName][$ref])) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: SortBy base \"{$baseName}\" to ref \"{$ref}\" without db attribute (on \"{$key}\").",
+                        $item
+                    );
+                }
+                $v['refDb'] = $this->items[$groupName][$ref]['refDb'];
             }
             unset($v);
             unset($sortBy);
