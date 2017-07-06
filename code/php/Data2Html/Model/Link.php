@@ -3,6 +3,9 @@ class Data2Html_Model_Link
 {
     protected $culprit = '';
     protected $debug = false;
+    
+    protected $sort = null;
+    
     protected $tables = array();
     protected $links = array();
     protected $items = array();
@@ -14,7 +17,13 @@ class Data2Html_Model_Link
         $this->culprit = "Link of {$fromCulprit}";
         
         $this->addTable(null, $set);
+        $this->sort = $set->getSort();
         $this->add('columns', $set->getItems());
+    }
+    
+        
+    function getSort() {
+        return $this->sort;
     }
 
     public function dump($subject = null)
@@ -38,6 +47,21 @@ class Data2Html_Model_Link
         foreach ($fromItems as $key => $item) {
             $item['tableAlias'] = $tableAlias;
             $this->addLinkedItem($groupName, $key, $item);
+        }
+        if ($groupName === 'columns') {
+            $sort = $this->getSort();
+            if ($sort) {
+                if (substr($sort, 0, 1) === '!') {
+                    $sort = substr($sort, 1);
+                }
+                $sortBy = Data2Html_Value::getItem($this->items[$groupName], array($sort, 'sortBy'));
+                if (!$sortBy) {
+                    throw new Data2Html_Exception(
+                        "getOrderBy(): Default sort '{$sort}' not found or don't have sortBy .",
+                        $this->items[$groupName]
+                    );
+                }
+            }
         }
     }
     

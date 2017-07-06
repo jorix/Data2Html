@@ -47,6 +47,7 @@ class aixada_ufs extends Data2Html_Model {
                 ),
                 'default' => array(
                    // 'layout' => 'grid_man',
+                    'sort' => 'name', 
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array(

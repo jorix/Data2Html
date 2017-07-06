@@ -58,6 +58,8 @@ class Data2Html_Controller
                     $r->getString('d2h_sort')
                 );
                 $page = $r->getCollection('d2h_page', array());
+                
+                TODO continuar aqui...
                 return $db->getQueryArray(
                     $sql,
                     $linkedGrid['columns'],

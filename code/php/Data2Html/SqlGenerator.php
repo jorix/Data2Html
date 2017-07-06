@@ -12,36 +12,38 @@ class Data2Html_SqlGenerator
         $this->db = $db;
     }
 
+    public function dump($subject = null)
+    {
+        Data2Html_Utils::dump($this->culprit, $subject);
+    }
+
     public function getSelect(
         $lkGrid,
         $filterReq = array(),
         $sortReq = null
     ) {
-        $select = $this->getSelectText($lkGrid->get('columns'));
+        $lkColumns = $lkGrid->get('columns');
+        $select = $this->getSelectText($lkColumns);
         if ($select === '') {
             throw new Exception("No data base fields defined.");
         }
         $query = 'select ' . $select;
-        $query .= "\n from {$this->getFrom($lkGrid->getFromTables())}";
-        echo '<pre>' . $query . '</pre>';
-        die($query);
-        $where = $this->getWhere($filterDefs, $filterReq);
+        $query .= "\n from " . $this->getFrom($lkGrid->getFromTables());
+        $where = $this->getWhere($lkGrid->get('filter'), $filterReq);
         if ($where !== '') {
             $query .= "\n where {$where}";
         }
+        
         if (!$sortReq) { // use default sort
-            $sortReq = $gridDx->getString('sort', '');
+            $sortReq = $lkGrid->getSort();
         }
-        $orderBy = $this->getOrderBy($colDefs, $sortReq);
-        if ($orderBy !== '') {
-            $query .= "\n order by {$orderBy}";
+        if ($sortReq) { 
+            $orderBy = $this->getOrderBy($lkColumns, $sortReq);
+            if ($orderBy !== '') {
+                $query .= "\n order by {$orderBy}";
+            }
         }
         return $query;
-    }
-
-    public function dump($subject = null)
-    {
-        Data2Html_Utils::dump($this->culprit, $subject);
     }
     
     protected function getSelectText($lkFields)
@@ -76,229 +78,78 @@ class Data2Html_SqlGenerator
         return $from;
     }
     
-    protected function getOrderBy($colDefs, $colNameRequest)
+    protected function getWhere($filter, $request)
     {
-        if (!$colNameRequest) {
+        if (!$filter) {
             return '';
         }
-        if (substr($colNameRequest, 0, 1) === '!') {
-            $nakedColName = substr($colNameRequest, 1);
-            $reverse = true;
-        } else {
-            $nakedColName = $colNameRequest;
-            $reverse = false;
-        }
-        $sortByDef = Data2Html_Value::getItem(
-            $colDefs,
-            array($nakedColName, 'sortBy')
-        );
-        $c = array();
-        if ($sortByDef) {
-            foreach ($sortByDef as $k => $v) {
-                if ($reverse) {
-                    if ($v === 'asc') {
-                        $v = 'desc';
-                    } else {
-                        $v = 'asc';
-                    }
-                }
-                array_push($c, $k . ' ' . ($v) );
-            }    
-        }
-        return implode(', ', $c);
-    }
-
-    protected function getWhere($filterDefs, $request)
-    {
-        if (!$filterDefs) {
-            return '';
-        }
-        $requestValues = new Data2Html_Collection($request);
         $c = array();
         $itemDx = new Data2Html_Collection();
-        foreach ($filterDefs as $k => $v) {
-            $itemDx->set($v);
-            $fCheck = $itemDx->getString('check');
-            $fieldDb = $itemDx->getString('db'); 
+        foreach ($request as $k => $v) {
+            if (!array_key_exists($k, $filter)) {
+                throw new Data2Html_Exception(
+                    "getWhere(): Requested filter field '{$k}' not found on filter definition.",
+                    $filter
+                );
+            }
+            $itemDx->set($filter[$k]);
+            $refDb = $itemDx->getString('refDb');
+            $check = $itemDx->getString('check');
+            $type = $itemDx->getString('type', 'string');
             if (
-                $fieldDb === null ||
-                $fCheck === null
+                $refDb === null ||
+                $check === null ||
+                $type === null
             ) {
                 continue;
             }
-            $type = $itemDx->getString('type', 'string');
-            // forced value
-            $rr = $itemDx->getValue('value', $type);
-            if ($rr === null) {
-                // requested value
-                $rr = $requestValues->getValue($k, $type);
-            }
-            if ($rr !== null) {
-                switch ($fCheck) {
+            switch ($check) {
                 case 'EQ':
                     $dbCheck = '=';
                     break;
                 case 'LK':
                     $dbCheck = 'like';
-                    if (strpos($rr, '%') === false) {
-                        $rr = '%' . $rr . '%';
+                    if (strpos($v, '%') === false) {
+                        $v = '%' . $v . '%';
                     }
                     break;
                 default:
-                    throw new Exception(
-                        "getWhere(): Check '{$fCheck}' on item '{$k}'=>'{$fieldDb}' is not supported."
-                    );
-                    break;
-                }
-                $r = Data2Html_Value::toSql($this->db, $rr, $type);
-                array_push($c, "{$fieldDb} {$dbCheck} {$r}");
+                    
+                $r = Data2Html_Value::toSql($this->db, $v, $type);
+                array_push($c, "{$refDb} {$dbCheck} {$r}");
             }
         }
         return implode(' and ', $c);
     }
 
-    public function parseSelect($sql) {
-        $sql = trim(str_replace(
-            array("\t", "\r", "\n"),
-            array(' ',' ',' '),
-            $sql
-        ));
-        $sqlUp = strtoupper($sql);
-        // Is select?
-        if (substr($sqlUp, 0, 7) !== "SELECT ") {
-            throw new Exception('putWhere(): \$sql is not a `SELECT`.');
-        }
-        $pos = 6; // After the SELECT_
-        
-        $posFrom = strpos(sqlUp, " FROM ", $pos);
-        
-        // Where
-        $posWhere = strpos(sqlUp, " WHERE ", $pos);
-        if ($posWhere !== false) {
-            // Sub queries
-            $pos = getPosSubSelect($posWhere + 7, $sqlUp);
-        }
-        
-        // Group by
-        $posGroup = strpos($sqlUp, " GROUP BY ", $pos);
-        if ($posGroup !== false) {
-            $pos = $posGroup + 10;
-        }
-        
-        // Having
-        $posHaving = strpos($sqlUp, " HAVING ", $pos);
-        if ($posHaving !== false) {
-            $pos = getPosSubSelect($posHaving + 8, sqlUp);
-        }
-
-        // Order by
-        $posOrderBy = strpos($sqlUp, " ORDER BY ", $pos);
-
-        // end
-        $posEnd = strpos($sqlUp, ";", $pos);
-        if ($posEnd === false) {
-            $posEnd = count($sqlUp);
-        }
-        
-        // pos of parts
-        $endFrom = $posEnd;
-        $endWhere = $posEnd;
-        $endGroup = $posEnd;
-        $endHaving = $posEnd;
-        $endOrderBy = $posEnd;
-        if ($posOrderBy !== false ) {
-            $endFrom = $posOrderBy;
-            $endWhere = $posOrderBy;
-            $endGroup = $posOrderBy;
-            $endHaving = $posOrderBy;
-        }
-        if ($posHaving !== false ) {
-            $endFrom = $posHaving;
-            $endWhere = $posHaving;
-            $endGroup = $posHaving;
-        } 
-        if ($posGroup !== false) {
-            $endFrom = $posGroup;
-            $endWhere = $posGroup;
-        } 
-        if ($posWhere !== false) {
-            $endFrom = $posWhere;
-        }
-        $pos = 6;
-        $selectPart = substr($sql, $pos, $posFrom - $pos);
-        $pos = $posFrom + 6;
-        $fromPart = substr($sql, $pos, $endForm - $pos);
-        
-
-        // Insert order by
-        if ($sortBy !== null) {
-            if ($posOrdrBy === 0) {
-                $posOrderBy = $posEnd;
-            }
-            if ($ordreBy === '') {
-                $sqlUp = substr($sqlUp, 1, $posOrder - 1) . " ORDER BY " . $sortBy & substr($sqlUp, $posFi);
-            } else {
-                $sqlUp = substr($sqlUp, 1, $posOrder - 1) . substr($sqlUp, $posFi);
-            }
-        }
-        
-        // Insert or remove HAVING
-        if ($posGroup !== false && $having !== null) {
-            if ($posOrderBy !== false) {
-                $endHaving = $posOrderBy;
-            } else {
-                $endHaving = $endSql;
-            }
-            if ($posHaving === false) {
-                $posHaving = $endHaving;
-            }
-            if ($having === '') { // remove
-                $sql = substr($sql, 0, $posHaving - 1) . substr($sql, $endHaving);
-            } else {
-                $sql = substr($sql, 0, $posHaving - 1) .
-                    " HAVING " . $having .
-                    substr($sql, $endHaving);
-            }
-        }
-    }
-
-    protected function getPosSubSelect($posStart, $sqlUp) 
+    protected function getOrderBy($columns, $colNameRequest)
     {
-        while (true) {
-            $posSubSel = strpos($sqlUp, "SELECT ", $pos);
-            if ($posSubSel === false) {
-                break;
-            }
-            $aux = substr($sqlUp, $posSubSel - 1, 1);
-            if ($aux === ' ' || $aux === '(') {
-                $pos = $posSubSel + 7;
-                $textStart = '';
-                $level = 1;
-                while (true) {
-                    if ($pos > count($sqlUp)-1) {
-                        throw new Exception(
-                            'getPosSubSelect(): Sub $sql `SELECT` is not valid.'
-                        );
-                    } 
-                    $aux = substr($sqlUp, $pos, 1);
-                    $pos++;
-                    if ($textStart !== '') {
-                        if ($textStart === $aux) {
-                            $textStart = '';
-                        } 
-                    } elseif ($aux = '"' || $aux = "'") {
-                        $textStart = $aux;
-                    } elseif ($aux = "(") {
-                        $level++;
-                    } elseif ($aux = ")") {
-                        $level--;
-                        if ($level === 0) {
-                            break;
-                        }
-                    }
-                }
-            }
+        if (!$colNameRequest) {
+            return '';
         }
-        return $pos;
+        if (substr($colNameRequest, 0, 1) === '!') {
+            $baseName = substr($colNameRequest, 1);
+            $order = -1;
+        } else {
+            $baseName = $colNameRequest;
+            $order = 1;
+        }
+        $sortBy = Data2Html_Value::getItem($columns, array($baseName, 'sortBy', 'items'));
+        if (!$sortBy) {
+            throw new Data2Html_Exception(
+                "getOrderBy(): Requested sort field '{$baseName}' not found or don't have sortBy .",
+                $columns
+            );
+        }
+        $c = array();
+        foreach ($sortBy as $v) {
+            $item = $v['refDb'];
+            if ($v['order'] * $order < 0) {
+                $item .= ' desc';
+            }
+            array_push($c, $item);
+        }
+        return implode(', ', $c);
     }
+
 }

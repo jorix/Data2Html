@@ -49,6 +49,7 @@ class Data2Html_Model_Grid
         }
         return $link;
     }
+    
     public function dump($subject = null)
     {
         if (!$subject) {

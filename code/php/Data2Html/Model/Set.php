@@ -104,6 +104,7 @@ abstract class Data2Html_Model_Set
         $this->baseItems = $baseItems;
         
         // Read defs
+        $this->attributes = array();
         $attNamesDx = new Data2Html_Collection($this->attributeNames);
         foreach ($defs as $k => $v) {
             $attributeType = $attNamesDx->getString($k);
@@ -151,6 +152,10 @@ abstract class Data2Html_Model_Set
     public function getItems()
     {
         return $this->setItems;
+    }
+    
+    public function getSort() {
+        return null;
     }
     
     public function dump($subject = null)

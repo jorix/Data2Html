@@ -1,6 +1,13 @@
 <?php
-class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form 
+class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
 {
+    protected $attributeNames = array(
+        'sort' => false,
+        'layout' => 'attribute',
+        'fieldLayouts' => 'attribute',
+        'fields' => 'items'
+    );
+    
     protected $keywords = array(
         'words' => array('check'=> 'string')
     );
