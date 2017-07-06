@@ -38,7 +38,7 @@
             echo Data2Html_Exception::toHtml($e, true);
             
             echo "<hr><h2>->gxxxxxx()</h2>\n<pre>";
-            echo Data2Html_Utils::toPhp($model->getColDs());
+            //echo Data2Html_Utils::toPhp($model->getColDs());
             echo "</pre>\n";
         }
     ?>

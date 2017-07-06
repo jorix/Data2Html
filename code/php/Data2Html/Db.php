@@ -82,6 +82,14 @@ abstract class Data2Html_Db
             $this->query($q);
         }
     }
+    
+    /**
+     * Return a text for a select field width alias.
+     */
+    public function putAlias($alias, $fieldName)
+    {
+        return $fieldName . ' ' . $alias;
+    }
 
     /**
      * Execute a query and return the array result.

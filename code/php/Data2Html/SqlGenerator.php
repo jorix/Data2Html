@@ -2,32 +2,29 @@
 
 class Data2Html_SqlGenerator
 {
+    protected $culprit = 'SqlGenerator';
+    protected $debug = false;
+    
     protected $db;
 
     public function __construct($db) {
+        $this->debug = Data2Html_Config::debug();
         $this->db = $db;
     }
 
     public function getSelect(
-        $grid,
+        $lkGrid,
         $filterReq = array(),
         $sortReq = null
     ) {
-        $gridDx = new Data2Html_Collection($grid);
-        $colDefs = $gridDx->getArray('columns');
-        $filterDx = $gridDx->getCollection('filter', false);
-        if ($filterDx) {
-            $filterDefs = $filterDx->getArray('fields');
-        } else {
-            $filterDefs = null;
-        }
-
-        $select = $this->getSelectText($colDefs);
-        if (count($select) === '') {
+        $select = $this->getSelectText($lkGrid->get('columns'));
+        if ($select === '') {
             throw new Exception("No data base fields defined.");
         }
         $query = 'select ' . $select;
-        $query .= "\n from {$this->getFrom($gridDx)}";
+        $query .= "\n from {$this->getFrom($lkGrid->getFromTables())}";
+        echo '<pre>' . $query . '</pre>';
+        die($query);
         $where = $this->getWhere($filterDefs, $filterReq);
         if ($where !== '') {
             $query .= "\n where {$where}";
@@ -42,39 +39,39 @@ class Data2Html_SqlGenerator
         return $query;
     }
 
-    protected function getSelectText($pFields)
+    public function dump($subject = null)
+    {
+        Data2Html_Utils::dump($this->culprit, $subject);
+    }
+    
+    protected function getSelectText($lkFields)
     {
         $textFields = array();
-        $itemDx = new Data2Html_Collection();
-        foreach ($pFields as $k=>$v) {
-            $itemDx->set($v);
-            $fieldDb = $itemDx->getString('db');
-            if ($fieldDb !== null) {
-                if ($fieldDb === $k) {
-                    array_push($textFields, $fieldDb);
-                } else { // db-field with alias
-                    array_push($textFields,  $fieldDb . ' ' . $k);
-                }
+        foreach ($lkFields as $k => $v) {
+            $refDb = Data2Html_Value::getItem($v, 'refDb');
+            if ($refDb !== null) {
+                array_push($textFields,  $this->db->putAlias($k, $refDb));
             }
         }
         return implode(', ', $textFields);
     }
 
-    protected function getFrom($gridDx)
+    protected function getFrom($joins)
     {
-        $joins = $gridDx->getArray('joins');
-        if ($joins) {
-            $from = '';
-            foreach ($joins as $v) {
-                if(!$v['fromDbKeys']) {
-                    $from .= " {$v['toTable']} {$v['toAlias']}";
-                } else {
-                    $from .= "\n left join {$v['toTable']} {$v['toAlias']}";
-                    $from .= "\n on {$v['fromDbKeys']} = {$v['toDbKeys']}";
+        $from = '';
+        foreach ($joins as $v) {
+            if($v['from'] === 'T0') {
+                $from .= $this->db->putAlias($v['alias'], $v['table']);
+            } else {
+                $from .= "\n left join " . $this->db->putAlias($v['alias'], $v['table']);
+                $keys = $v['keys'];
+                $fromKeys = $joins[$v['fromAlias']]['keys'];
+                $onKeys = array();
+                for ($i = 0; $i < count($keys); $i++) {
+                    array_push($onKeys, "{$fromKeys[$i]['refDb']} = {$keys[$i]['refDb']}");
                 }
+                $from .= "\n   on " . implode("\n   and ", $onKeys);
             }
-        } else {            
-            $from = $gridDx->getArray('table');
         }
         return $from;
     }

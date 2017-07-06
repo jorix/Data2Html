@@ -127,6 +127,10 @@ abstract class Data2Html_Model_Set
     {
         return $this->model;
     }
+    public function getModelName()
+    {
+        return $this->model->getModelName();
+    }
     public function getTableName()
     {
         return $this->model->getTableName();
@@ -218,7 +222,7 @@ abstract class Data2Html_Model_Set
                 }
             }
             if (array_key_exists('key', $v)) {
-                array_push($keys, $k);
+                $keys[] = array('base' => $k);
             }
         }
         $this->keys = $keys;

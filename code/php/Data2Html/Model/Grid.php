@@ -7,7 +7,7 @@ class Data2Html_Model_Grid
     
     protected $model = null;
     protected $baseFields = null;
-    protected $table = null;
+    protected $columns = null;
     protected $filter = null;
     
     public function __construct($model, $gridName, $defs, $baseFields)
@@ -22,7 +22,7 @@ class Data2Html_Model_Grid
         $this->baseFields = $baseFields;
       
         // Set fields
-        $this->table = new Data2Html_Model_Set_Table(
+        $this->columns = new Data2Html_Model_Set_Table(
             $model,
             $gridName,
             $defs,
@@ -43,30 +43,38 @@ class Data2Html_Model_Grid
     }
     public function getLink()
     {
-        $link = new Data2Html_Model_Link($this->culprit, $this->table);
-        $link->add('table', $this->table->getItems());
+        $link = new Data2Html_Model_Link($this->culprit, $this->columns);
         if ($this->filter) {
             $link->add('filter', $this->filter->getItems());
         }
         return $link;
     }
-    public function dump()
+    public function dump($subject = null)
     {
-        $this->table->dump();
-        if ($this->filter) {
-            $this->filter->dump();
+        if (!$subject) {
+            $this->columns->dump();
+            if ($this->filter) {
+                $this->filter->dump();
+            }
+            $this->baseFields->dump();
+        } else {
+            Data2Html_Utils::dump($this->culprit, $subject);
         }
-        $this->baseFields->dump();
     }
 
     public function getKeys()
     {
-        return $this->table->getKeys();
+        return $this->columns->getKeys();
     }
-    public function getTableSet()
+    public function getColumnsSet()
     {
-        return $this->table;
+        return $this->columns;
     }
+    public function getFilterSet()
+    {
+        return $this->filter;
+    }
+    
     public function getTableName()
     {
         return $this->model->getTableName();
