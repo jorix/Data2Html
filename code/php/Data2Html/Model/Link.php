@@ -31,8 +31,8 @@ class Data2Html_Model_Link
         if (!$subject) {
             $subject = array(
                 'tables' => $this->getFromTables(),
-                'refItems' => $this->refItems,
-                'links' => $this->links,
+               // 'refItems' => $this->refItems,
+              //  'links' => $this->links,
                 'items' => $this->items,
             );
         }
@@ -187,23 +187,20 @@ class Data2Html_Model_Link
                     $v['ref'] = $refKey;
                     unset($item['linkedTo'][$baseName]);
                 } else {
-                    if (array_key_exists($baseName, $this->items[$groupName])) {
-                        $v['ref'] = $baseName;
+                    $form = $this->tables[$tableAlias]['from'];
+                    $lkAlias = $this->tables[$tableAlias]['alias'];
+                    $lk = $this->links[$form];
+                    if (array_key_exists($baseName, $lk['items'])) {
+                        $v['ref'] = $this->addLinkedVirtual(
+                            $groupName, $lkAlias, $baseName, $lk['items'][$baseName]);
+                    } elseif (array_key_exists($baseName, $lk['base'])) {
+                        $v['ref'] = $this->addLinkedVirtual(
+                            $groupName, $lkAlias, $baseName, $lk['base'][$baseName]);
                     } else {
-                        $form = $this->tables[$tableAlias]['from'];
-                        $lk = $this->links[$form];
-                        if (array_key_exists($baseName, $lk['items'])) {
-                            $v['ref'] = $this->addLinkedVirtual(
-                                $groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
-                        } elseif (array_key_exists($baseName, $lk['base'])) {
-                            $v['ref'] = $this->addLinkedVirtual(
-                                $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
-                        } else {
-                            throw new Data2Html_Exception(
-                                "{$this->culprit}: Base \"{$baseName}\" not fount (on \"{$key}\").",
-                                $item
-                            );
-                        }
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Base \"{$baseName}\" not fount (on \"{$key}\").",
+                            $item
+                        );
                     }
                 }
                 if (array_key_exists('linkedTo', $item) && count($item['linkedTo']) === 0) {
@@ -227,17 +224,21 @@ class Data2Html_Model_Link
                 $baseName = $v['base'];
                 if ($refKey) {
                     $v['ref'] = $refKey;
+                     $v['refx'] = 0;
                     unset($sortBy['linkedTo'][$baseName]);
                 } else {
                     if (array_key_exists($baseName, $this->items[$groupName])) {
                         $v['ref'] = $baseName;
+                        $v['refx'] = 1;
                     } else {
                         $form = $this->tables[$tableAlias]['from'];
                         $lk = $this->links[$form];
                         if (array_key_exists($baseName, $lk['items'])) {
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
+                            $v['refx'] = 2;
                         } elseif (array_key_exists($baseName, $lk['base'])) {
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
+                             $v['refx'] = 3;
                         } else {
                             throw new Data2Html_Exception(
                                 "{$this->culprit}: Base sortBy \"{$baseName}\" not fount (on \"{$key}\").",
@@ -335,6 +336,7 @@ class Data2Html_Model_Link
         $this->tables[$tableAlias] = array(
             'from' => $linkId,
             'fromAlias' => $fromAlias[0],
+            'fromField' => ($linkId !== 'T0' ? str_replace('|', '.', $linkId) : null),
             'alias' => $tableAlias,
             'table' => $tableName,
             'keys' => $keys

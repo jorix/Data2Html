@@ -23,7 +23,7 @@ class Data2Html_SqlGenerator
         $sortReq = null
     ) {
         $lkColumns = $lkGrid->get('columns');
-        $select = $this->getSelectText($lkColumns);
+        $select = $this->getSelectItems($lkColumns);
         if ($select === '') {
             throw new Exception("No data base fields defined.");
         }
@@ -46,7 +46,7 @@ class Data2Html_SqlGenerator
         return $query;
     }
     
-    protected function getSelectText($lkFields)
+    protected function getSelectItems($lkFields)
     {
         $textFields = array();
         foreach ($lkFields as $k => $v) {
@@ -67,10 +67,10 @@ class Data2Html_SqlGenerator
             } else {
                 $from .= "\n left join " . $this->db->putAlias($v['alias'], $v['table']);
                 $keys = $v['keys'];
-                $fromKeys = $joins[$v['fromAlias']]['keys'];
                 $onKeys = array();
                 for ($i = 0; $i < count($keys); $i++) {
-                    array_push($onKeys, "{$fromKeys[$i]['refDb']} = {$keys[$i]['refDb']}");
+                    // TODO 'fromField' as multi key
+                    array_push($onKeys, "{$v['fromField']} = {$keys[$i]['refDb']}");
                 }
                 $from .= "\n   on " . implode("\n   and ", $onKeys);
             }

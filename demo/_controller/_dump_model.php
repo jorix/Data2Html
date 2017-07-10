@@ -22,7 +22,7 @@
         try {
             $grid = $model->getGrid($gridName);
             $grid->getLink()->dump();
-            $grid->dump();
+           // $grid->dump();
             
 
             // echo "<h2>getGridsDs():</h2>\n<pre>";
