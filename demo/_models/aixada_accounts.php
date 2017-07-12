@@ -39,10 +39,10 @@ class aixada_accounts extends Data2Html_Model {
                         'ts',
                         'operator_id[name]',
                         'account_id',
-                       // 'account_uf_id[text]',
+                        'account_uf_id[text]',
                         //'account_id[1]',
                         'description',
-                'descriptionx' => array('base' => 'description'),
+                        'descriptionx' => array('base' => 'description'),
                         'payment_method_id[description]',
                         'balance'),
                     'filter' => array(
@@ -52,7 +52,7 @@ class aixada_accounts extends Data2Html_Model {
                                 'base' => 'account_uf_id',
                                 'check'=>'EQ', 'default'=>1005, 'required'
                             ),
-                            array('base' => 'description', 'check'=>'LK', 'required')
+                            'description' => array('base' => 'description', 'check'=>'LK', 'required')
                         )
                     )
                 )

@@ -198,7 +198,7 @@ abstract class Data2Html_Model_Set
                 }
             }
             
-            if (array_key_exists('sortBy', $v)) {                
+            if (array_key_exists('sortBy', $v) && $v['sortBy']) {              
                 $sortByNew = $this->parseSortBy($v['sortBy'], $baseItems);
                 if ($sortByNew) {
                     $v['sortBy'] = $sortByNew;

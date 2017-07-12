@@ -66,8 +66,9 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
                     array_replace($sortByNew['linkedTo'], $linkedTo);
             } else {
                 if (!array_key_exists($item, $this->setItems) && !array_key_exists($item, $baseItems)) {
-                    throw new Exception(
-                        "{$this->culprit}: Defining sortBy \"{$item}\", item and base was not found."
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Defining sortBy \"{$item}\", item and base was not found.",
+                        $sortBy
                     );
                 }
             }
