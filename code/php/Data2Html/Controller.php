@@ -69,7 +69,6 @@ class Data2Html_Controller
                     $r->getArray('d2h_filter', array()),
                     $r->getString('d2h_sort')
                 );
-                
                 $page = $r->getCollection('d2h_page', array());
                 return $this->getDbData(
                     $db,
@@ -115,6 +114,29 @@ class Data2Html_Controller
         $dbTypes = array();
         $values = array();
         $teplateItems = array();
+        $addValue = function($depth, $keyItem, $lkItem)
+                    use(&$addValue, $lkColumns, &$values, &$teplateItems) {
+            if ($depth > 10) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit} getDbData::\$addValue(): Possible circular reference in \"{$keyItem}\" teplateItems.",
+                    $lkItem
+                );
+            }
+            $matches = Data2Html_Value::getItem($lkItem, 'teplateItems');
+            if ($matches) {
+                foreach ($matches as $v) {
+                    $ref = $v['ref'];
+                    $matchItem = $lkColumns[$ref];
+                    if (array_key_exists('value', $matchItem) && 
+                        !array_key_exists($ref, $values)
+                    ) {
+                        $addValue($depth+1, $ref, $matchItem);
+                    }
+                }
+                $teplateItems[$keyItem] = $matches;
+            }
+            $values[$keyItem] = $lkItem['value'];
+        };
         foreach ($lkColumns as $k => $v) {
             $itemDx->set($v);
             $type = $itemDx->getString('type', 'string');
@@ -125,18 +147,8 @@ class Data2Html_Controller
             if ($itemDx->getString('db')) {
                 $dbTypes[$k] = $type;
             }
-            $value = $itemDx->getString('value');
-            if ($value) {
-                $values[$k] = $value;
-                $matches = $itemDx->getArray('teplateItems');
-                if ($matches) {
-                    // TODO: Template form other template
-                    $teplateItems[$k] = $matches;
-                }
-            }
-        }
-        foreach ($teplateItems as $k => $v) {
-            foreach ($v as $vv) {
+            if (array_key_exists('value', $v)) {
+                $addValue(0, $k, $v);
             }
         }
         // Read rs
@@ -165,27 +177,37 @@ class Data2Html_Controller
             }
             unset($v);
             
+            $valueRow = array();
+            foreach ($values as $k => $v) {
+                $valueRow[$k] = $values[$k];
+                if (array_key_exists($k, $teplateItems)) {
+                    $allIsNull = true;
+                    foreach ($teplateItems[$k] as $kk => $vv) {
+                        $ref = $vv['ref'];
+                        if (array_key_exists($ref, $dbRow)) {
+                            $value = $dbRow[$ref];
+                        } elseif (array_key_exists($ref, $valueRow)) {
+                            $value = $valueRow[$ref];
+                        } else {
+                            throw new Data2Html_Exception(
+                                "{$this->culprit} getDbData(): Reference \"{$ref}\" is neither db field nor value.",
+                                array('dbRow' => $dbRow, 'valueRow' => $valueRow)
+                            );
+                        }
+                        $valueRow[$k] = str_replace($kk, $value, $valueRow[$k]);
+                        $allIsNull = $allIsNull && is_null($value);
+                    }
+                    if ($allIsNull) {
+                        $valueRow[$k] = null;
+                    }
+                }
+            }
             $resRow = array();
             foreach ($resTypes as $k => $v) {
                 if (array_key_exists($k, $dbTypes)) {
                     $resRow[$k] = $dbRow[$k];
-                } elseif (array_key_exists($k, $values)) {
-                    $resRow[$k] = $values[$k];
-                    if (array_key_exists($k, $teplateItems)) {
-                        $allIsNull = true;
-                        foreach ($teplateItems[$k] as $kk => $vv) {
-                            $dbValue = $dbRow[$vv['ref']];
-                            $resRow[$k] = str_replace(
-                                $kk,
-                                $dbValue, // TODO: Ref of a other ref
-                                $resRow[$k]
-                            );
-                            $allIsNull = $allIsNull && is_null($dbValue);
-                        }
-                        if ($allIsNull) {
-                            $resRow[$k] = null;
-                        }
-                    }
+                } elseif (array_key_exists($k, $valueRow)) {
+                    $resRow[$k] = $valueRow[$k];
                 }
             }
             $rows[] = $resRow;
@@ -194,6 +216,7 @@ class Data2Html_Controller
         if ($this->debug) {
             $response += array(
                 'sql' => explode("\n", $query),
+                'values' => $values,
                 'teplateItems' => $teplateItems
             );
         }

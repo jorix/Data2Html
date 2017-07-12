@@ -224,21 +224,18 @@ class Data2Html_Model_Link
                 $baseName = $v['base'];
                 if ($refKey) {
                     $v['ref'] = $refKey;
-                     $v['refx'] = 0;
                     unset($sortBy['linkedTo'][$baseName]);
                 } else {
-                    if (array_key_exists($baseName, $this->items[$groupName])) {
-                        $v['ref'] = $baseName;
-                        $v['refx'] = 1;
+                    $ref = $this->getRef($groupName, $tableAlias, $baseName);
+                    if ($ref) {
+                        $v['ref'] = $ref;
                     } else {
                         $form = $this->tables[$tableAlias]['from'];
                         $lk = $this->links[$form];
                         if (array_key_exists($baseName, $lk['items'])) {
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
-                            $v['refx'] = 2;
                         } elseif (array_key_exists($baseName, $lk['base'])) {
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
-                             $v['refx'] = 3;
                         } else {
                             throw new Data2Html_Exception(
                                 "{$this->culprit}: Base sortBy \"{$baseName}\" not fount (on \"{$key}\").",

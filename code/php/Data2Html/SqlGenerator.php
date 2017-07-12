@@ -88,7 +88,7 @@ class Data2Html_SqlGenerator
         foreach ($request as $k => $v) {
             if (!array_key_exists($k, $filter)) {
                 throw new Data2Html_Exception(
-                    "getWhere(): Requested filter field '{$k}' not found on filter definition.",
+                    "{$this->culprit} getWhere(): Requested filter field '{$k}' not found on filter definition.",
                     $filter
                 );
             }
@@ -114,10 +114,16 @@ class Data2Html_SqlGenerator
                     }
                     break;
                 default:
-                    
-                $r = Data2Html_Value::toSql($this->db, $v, $type);
-                array_push($c, "{$refDb} {$dbCheck} {$r}");
+                throw new Data2Html_Exception(
+                    "{$this->culprit} getWhere(): Check '{$check}' on '{$k}' not supported.",
+                    array(
+                        'request' => $request,
+                        'filter' => $filter
+                    )
+                );    
             }
+            $r = Data2Html_Value::toSql($this->db, $v, $type);
+            array_push($c, "{$refDb} {$dbCheck} {$r}");
         }
         return implode(' and ', $c);
     }
@@ -137,7 +143,7 @@ class Data2Html_SqlGenerator
         $sortBy = Data2Html_Value::getItem($columns, array($baseName, 'sortBy', 'items'));
         if (!$sortBy) {
             throw new Data2Html_Exception(
-                "getOrderBy(): Requested sort field '{$baseName}' not found or don't have sortBy .",
+                "{$this->culprit} getOrderBy(): Requested sort field '{$baseName}' not found or don't have sortBy .",
                 $columns
             );
         }
