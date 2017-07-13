@@ -63,11 +63,15 @@ class Data2Html_Controller
                 $gridName = $payerNames['grid'];
                 $linkedGrid = $model->getGrid($gridName)->getLink();
                 
+                $sortBy = $r->getString('d2h_sort');
+                if ($sortBy === 'undefined') {
+                    $sortBy = null;
+                }
                 $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
                     $linkedGrid,
-                    $r->getArray('d2h_filter', array()),
-                    $r->getString('d2h_sort')
+                    $r->getArray('d2h_filter'),
+                    $sortBy
                 );
                 $page = $r->getCollection('d2h_page', array());
                 return $this->getDbData(

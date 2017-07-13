@@ -3,6 +3,7 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base
 {
     protected $attributeNames = array(
         'sort' => 'attribute',
+        'layout' => 'attribute',
         'layouts' => 'attribute',
         'columns' => 'items',
         'filter' => false
@@ -19,6 +20,6 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base
     }
     
     public function getSort() {
-        return Data2Html_Value::getItem($this->attributes, 'sort');
+        return $this->getAttribute('sort');
     }
 }

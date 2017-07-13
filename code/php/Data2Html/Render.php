@@ -51,11 +51,11 @@ class Data2Html_Render
 
     protected function renderGrid($gridName)
     {        
-        $linkedGrid = $this->modelObj->getLinkedGrid($gridName);
-        $gridDx = new Data2Html_Collection($linkedGrid);
-        $layout = $gridDx->getString('layout', 'grid');
+        $grid = $this->modelObj->getGrid($gridName);
+        $linkedGrid = $grid->getLink();
+        $gridLayout = $grid->getAttribute('layout', 'grid');
         
-        $tplGrid = $this->templateObj->getTemplateBranch($layout,
+        $tplGrid = $this->templateObj->getTemplateBranch($gridLayout,
             $this->templateObj->getTemplateRoot()
         );
         $requestUrl = 
@@ -66,21 +66,20 @@ class Data2Html_Render
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             array(),
-            $this->modelObj->getTitle()
+            $grid->getAttribute('title')
         );
         $filterId = $this->idRender . '_filter';
         $filterForm = $this->renderForm(
             $filterId,
             $this->templateObj->getTemplateBranch('filter', $tplGrid),
-            $gridDx->getArray('filter'),
-            $this->modelObj->getTitle()
+            $grid->getFilterSet()->getItems(),
+            $grid->getAttribute('title')
         );
         $gridV = $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $gridDx->getArray('columns'),
-            $gridDx->getArray('columnNames'),
+            $linkedGrid->get('columns'),
             array(
-                'title' => $this->modelObj->getTitle(),
+                $grid->getAttribute('title'),
                 'url' => $requestUrl,
                 'filter' => $filterForm, 
                 'filterId' => $filterId,
@@ -92,10 +91,10 @@ class Data2Html_Render
         return $gridV;
     }
     
-    protected function renderTable($templateTable, $colDs, $colNames, $replaces)
+    protected function renderTable($templateTable, $columns, $replaces)
     {
-        if (!$colDs) {
-            throw new Exception("`\$colDs` parameter is empty.");
+        if (!$columns) {
+            throw new Exception("`\$columns` parameter is empty.");
         }
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
@@ -104,70 +103,69 @@ class Data2Html_Render
         $thead = array();
         $tbody = array();
         $renderCount = 0;
-        $def = new Data2Html_Collection();
-        foreach ($colNames as $k) {
-            $v = $colDs[$k];
-            $def->set($v);
-            $ignore = false;
-            if ($display = $def->toArray('display')) {
-                if (array_search('hidden', $display) !== false ||
-                    array_search('none', $display) !== false) {
-                    $ignore = true;
+        $dx = new Data2Html_Collection();
+        foreach ($columns as $k => $v) {
+            $dx->set($v);
+            if ($dx->getBoolean('virtual')) {
+                continue;
+            }
+            if ($display = $dx->getArray('display')) {
+                if (array_search('none', $display) !== false) {
+                    continue;
                 }
             }
-            if (!$ignore) {
-                ++$renderCount;
-                // head
-                $name = $def->getString('name', $k);
-                $label = $def->getString('title', $name);
-                $this->templateObj->concatContents(
-                    $thead,
-                    $this->templateObj->renderTemplateItem(
-                        'sortable',
-                        $templateHeads,
-                        array(
-                            'name' => $name,
-                            'title' => $label
-                        )
+            
+            ++$renderCount;
+            // head
+            $name = $dx->getString('name', $k);
+            $label = $dx->getString('title', $name);
+            $this->templateObj->concatContents(
+                $thead,
+                $this->templateObj->renderTemplateItem(
+                    'sortable',
+                    $templateHeads,
+                    array(
+                        'name' => $name,
+                        'title' => $label
                     )
-                );
-                // body
-                $type = $def->getString('type');
-                $class = '';
-                $ngClass = '';
-                switch ($type) {
-                    case 'integer':
-                    case 'number':
-                    case 'currency':
-                        $class .= 'text-right';
-                }
-                if ($visual = $def->getString('visualClass')) {
-                    if (strpos($visual, ':') !== false) {
-                        $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
-                    } else {
-                        $class .= ' '.$visual;
-                    }
-                }
-                $formatItem = '';
-                if ($type && $format = $def->getString('format')) {
-                    $formatItem = " | {$type}:'{$format}'";
-                } elseif ($type === 'currency') {
-                    $formatItem = " | {$type}";
-                }
-                $this->templateObj->concatContents(
-                    $tbody,
-                    $this->templateObj->renderTemplateItem(
-                        'default',
-                        $templateCells,
-                        array(
-                            'ngClass' => $ngClass, 'prefix' => 'item.', // angular1
-                            'class' => $class,
-                            'name' => $k,
-                            'format' => $formatItem
-                        )
-                    )
-                );
+                )
+            );
+            // body
+            $type = $dx->getString('type');
+            $class = '';
+            $ngClass = '';
+            switch ($type) {
+                case 'integer':
+                case 'number':
+                case 'currency':
+                    $class .= 'text-right';
             }
+            if ($visual = $dx->getString('visualClass')) {
+                if (strpos($visual, ':') !== false) {
+                    $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
+                } else {
+                    $class .= ' '.$visual;
+                }
+            }
+            $formatItem = '';
+            if ($type && $format = $dx->getString('format')) {
+                $formatItem = " | {$type}:'{$format}'";
+            } elseif ($type === 'currency') {
+                $formatItem = " | {$type}";
+            }
+            $this->templateObj->concatContents(
+                $tbody,
+                $this->templateObj->renderTemplateItem(
+                    'default',
+                    $templateCells,
+                    array(
+                        'ngClass' => $ngClass, 'prefix' => 'item.', // angular1
+                        'class' => $class,
+                        'name' => $k,
+                        'format' => $formatItem
+                    )
+                )
+            );
         }
         $replaces = array_merge($replaces, array(
             'thead' => $thead,

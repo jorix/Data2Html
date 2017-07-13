@@ -17,11 +17,8 @@ class Data2Html_SqlGenerator
         Data2Html_Utils::dump($this->culprit, $subject);
     }
 
-    public function getSelect(
-        $lkGrid,
-        $filterReq = array(),
-        $sortReq = null
-    ) {
+    public function getSelect($lkGrid, $filterReq = null, $sortReq = null)
+    {
         $lkColumns = $lkGrid->get('columns');
         $select = $this->getSelectItems($lkColumns);
         if ($select === '') {
@@ -80,8 +77,12 @@ class Data2Html_SqlGenerator
     
     protected function getWhere($filter, $request)
     {
-        if (!$filter) {
+        if (!$request) {
             return '';
+        }
+        
+        if (!$filter) {
+            $filter = array();
         }
         $c = array();
         $itemDx = new Data2Html_Collection();

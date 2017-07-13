@@ -10,11 +10,7 @@ class Data2Html_Collection
         $this->set($values);
         $this->required = $required;
     }
-    public static function create($values, $required = false)
-    {
-        $c = new Data2Html_Collection($values, $required);
-        return $c;
-    }
+
     public function set(&$values)
     {
         if (!$values) {
@@ -63,10 +59,11 @@ class Data2Html_Collection
     {
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
-            return is_null($default) ? null : !!$default;
+            $val = $default;
+        } else {
+            $val = $this->values[$itemKey];
         }
-        $val = $this->values[$itemKey];
-        if (is_null($val)) {
+        if (is_null($val) && is_null($default) ) {
             return null;
         }
         return !!$val;
@@ -75,10 +72,11 @@ class Data2Html_Collection
     {
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
-            return is_null($default) ? null : strval($default);
+            $val = $default;
+        } else {
+            $val = $this->values[$itemKey];
         }
-        $val = $this->values[$itemKey];
-        if (is_null($val)) {
+        if (is_null($val) && is_null($default) ) {
             return null;
         }
         return Data2Html_Value::parseString($val, $this->strict);
@@ -88,15 +86,12 @@ class Data2Html_Collection
     {
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
-            if (is_null($default)) {
-                return null;
-            }
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val)) {
-                return null;
-            }
+        }
+        if (is_null($val) && is_null($default) ) {
+            return null;
         }
         return Data2Html_Value::parseNumber($val, $this->strict);
     }
@@ -104,15 +99,14 @@ class Data2Html_Collection
     public function getInteger($itemKey, $default = null)
     {
         if (!array_key_exists($itemKey, $this->values)) {
-            if (is_null($default)) {
-                return null;
-            }
+            $this->throwNotExist($itemKey, $default);
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val)) {
-                return null;
-            }
+            
+        }
+        if (is_null($val) && is_null($default) ) {
+            return null;
         }
         return Data2Html_Value::parseInteger($val, $this->strict);
     }
@@ -124,15 +118,12 @@ class Data2Html_Collection
     ) {
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
-            if (is_null($default)) {
-                return null;
-            }
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val)) {
-                return null;
-            }
+        }
+        if (is_null($val) && is_null($default) ) {
+            return null;
         }
         return Data2Html_Value::parseDate($val, $input_format, $this->strict);
     }
@@ -141,15 +132,12 @@ class Data2Html_Collection
     {
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
-            if (is_null($default)) {
-                return null;
-            }
             $val = $default;
         } else {
             $val = $this->values[$itemKey];
-            if (is_null($val)) {
-                return null;
-            }
+        }
+        if (is_null($val) && is_null($default) ) {
+            return null;
         }
         if (!is_array($val) && !is_object($val)) {
             if ($this->strict) {
@@ -161,25 +149,7 @@ class Data2Html_Collection
         }
         return $val;
     }
-    public function toArray($itemKey, $default = null)
-    {
-        if (!array_key_exists($itemKey, $this->values)) {
-            $this->throwNotExist($itemKey, $default);
-            if (is_null($default)) {
-                return null;
-            }
-            $val = $default;
-        } else {
-            $val = $this->values[$itemKey];
-            if (is_null($val)) {
-                return null;
-            }
-        }
-        if (!is_array($val)) {
-            $val = array($val);
-        }
-        return $val;
-    }
+
     public function getCollection($itemKey, $default = null)
     {
         $val = $this->getArray($itemKey, $default);

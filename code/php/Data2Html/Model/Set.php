@@ -51,7 +51,7 @@ abstract class Data2Html_Model_Set
             'email' =>      array('type' => 'string', 'size' => '[]', 'validations' => array('email' => true)),
             'emails' =>     array('type' => 'string', 'size' => '[]', 'validations' => array('emails' => true)),
             'float' =>      array('type' => 'float'),
-            'hidden' =>     array('display' => 'hidden'),
+            'hidden' =>     array('display' => array('none')),
             'integer' =>    array('type' => 'integer'),
             'key' =>        array('key' => true),
             'length' =>     array('type' => 'string', 'size' => '[]'),
@@ -154,8 +154,19 @@ abstract class Data2Html_Model_Set
         return $this->setItems;
     }
     
-    public function getSort() {
+    public function getSort()
+    {
         return null;
+    }
+    
+    public function getAttribute($attrName, $default = null)
+    {
+        if (!array_key_exists($attrName, $this->attributeNames)) {
+            throw new Exception(
+                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is not supported."
+            );
+        }
+        return Data2Html_Value::getItem($this->attributes, $attrName, $default);
     }
     
     public function dump($subject = null)

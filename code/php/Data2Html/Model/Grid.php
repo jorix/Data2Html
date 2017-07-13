@@ -49,6 +49,11 @@ class Data2Html_Model_Grid
         }
         return $link;
     }
+        
+    public function getAttribute($attrName, $default = null)
+    {
+        return $this->columns->getAttribute($attrName, $default);
+    }
     
     public function dump($subject = null)
     {
