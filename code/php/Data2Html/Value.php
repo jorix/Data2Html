@@ -31,6 +31,7 @@ class Data2Html_Value
         }
         return $r;
     }
+    
     public static function toJson($obj, $pretty = false)
     {
         $options = 0;
@@ -89,7 +90,7 @@ class Data2Html_Value
         }
     }
     
-    public static function parseString($value, $strict = false)
+    public static function parseString($value, $default = null, $strict = false)
     {
         if (is_array($value)) {
             throw new Exception(
@@ -107,12 +108,12 @@ class Data2Html_Value
                     "Value is not a string, is null."
                 );
             }
-            return null;
+            return self::parseString($default, null, $strict);
         }
         return strval($value);
     }
     
-    public static function parseNumber($value, $strict = false)
+    public static function parseNumber($value, $default = null, $strict = false)
     {
         if (!is_numeric($value)) {
             if ($strict) {
@@ -120,12 +121,12 @@ class Data2Html_Value
                     "Value `{$value}`  is not a number."
                 );
             }
-            return null;
+            return self::parseNumber($default, null, $strict);
         }
         return $value + 0;
     }
     
-    public static function parseInteger($value, $strict = false)
+    public static function parseInteger($value, $default = null, $strict = false)
     {
         if (!is_numeric($value) || !is_int($value+0)) {
             if ($strict) {
@@ -133,13 +134,14 @@ class Data2Html_Value
                     "Value `{$value}` is not a integer."
                 );
             }
-            return null;
+            return self::parseInteger($default, null, $strict);
         }
         return $value + 0;
     }
 
     public static function parseDate(
         $value,
+        $default = null,
         $input_format = 'Y-m-d H:i:s',
         $strict = false
     ) {
@@ -150,7 +152,7 @@ class Data2Html_Value
                     "Value `{$value}` is not a date."
                 );
             }
-            return null;
+            return self::parseDate($default, null, $input_format, $strict);
         }
         $date = new DateTime();
         $date->setDate($d['year'], $d['month'], $d['day']);
