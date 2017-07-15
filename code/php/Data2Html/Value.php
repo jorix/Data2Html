@@ -108,6 +108,9 @@ class Data2Html_Value
                     "Value is not a string, is null."
                 );
             }
+            if ($default === null) {
+                return null;
+            }
             return self::parseString($default, null, $strict);
         }
         return strval($value);
@@ -121,6 +124,9 @@ class Data2Html_Value
                     "Value `{$value}`  is not a number."
                 );
             }
+            if ($default === null) {
+                return null;
+            }
             return self::parseNumber($default, null, $strict);
         }
         return $value + 0;
@@ -133,6 +139,9 @@ class Data2Html_Value
                 throw new Exception(
                     "Value `{$value}` is not a integer."
                 );
+            }
+            if ($default === null) {
+                return null;
             }
             return self::parseInteger($default, null, $strict);
         }
@@ -151,6 +160,9 @@ class Data2Html_Value
                 throw new Exception(
                     "Value `{$value}` is not a date."
                 );
+            }
+            if ($default === null) {
+                return null;
             }
             return self::parseDate($default, null, $input_format, $strict);
         }

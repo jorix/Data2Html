@@ -92,8 +92,7 @@ class Data2Html_Model_Link
         $groupName = 'main';
         foreach ($this->soutceTables as &$fromTable) {
             $tableAlias = $fromTable['alias'];
-            foreach ($fromTable['keys'] as $k => &$v) {
-                $baseName = $v['base'];
+            foreach ($fromTable['keys'] as $baseName => &$v) {
                 $ref = $this->getRef($groupName, $tableAlias, $baseName);
                 if (!$ref) {
                     $lkItem = $this->getLinkItemByBase($tableAlias, $baseName);

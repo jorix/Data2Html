@@ -286,7 +286,7 @@ abstract class Data2Html_Model_Set
                 }
             }
             if (array_key_exists('key', $v)) {
-                $keys[] = array('base' => $k);
+                $keys[$k] = array();
             }
         }
         $this->keys = $keys;

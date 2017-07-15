@@ -67,10 +67,11 @@ class Data2Html_SqlGenerator
             } else {
                 $from .= "\n left join " . $this->db->putAlias($v['alias'], $v['table']);
                 $keys = $v['keys'];
+                $keyBases = array_keys($keys);
                 $onKeys = array();
-                for ($i = 0; $i < count($keys); $i++) {
+                for ($i = 0; $i < count($keyBases); $i++) {
                     // TODO 'fromField' as multi key
-                    array_push($onKeys, "{$v['fromField']} = {$keys[$i]['refDb']}");
+                    array_push($onKeys, "{$v['fromField']} = {$keys[$keyBases[$i]]['refDb']}");
                 }
                 $from .= "\n   on " . implode("\n   and ", $onKeys);
             }
@@ -90,6 +91,9 @@ class Data2Html_SqlGenerator
         $c = array();
         $itemDx = new Data2Html_Collection();
         foreach ($request as $k => $v) {
+            if ($v === '' || $v === null) {
+                continue;
+            }
             if (!array_key_exists($k, $filterItems)) {
                 throw new Data2Html_Exception(
                     "{$this->culprit} getWhere(): Requested filter field '{$k}' not found on filter definition.",
