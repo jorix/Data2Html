@@ -230,7 +230,7 @@ class Data2Html_Controller
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'dataTypes' => $resTypes,
-            'keys' => $lkGrid->getColumnsSet()->getKeys(),
+            'keys' => array_keys($lkGrid->getColumnsSet()->getKeys()),
             'rows' => $rows
         );
         return $response;
