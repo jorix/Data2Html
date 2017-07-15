@@ -79,7 +79,9 @@ class Data2Html_Render
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             null,
-            $lkGrid->getAttribute('title')
+            array(
+                'title' => $lkGrid->getAttribute('title'),
+            )
         );
         
         $lkFilter = $lkGrid->getLinkedFilter();
@@ -90,8 +92,10 @@ class Data2Html_Render
             $filterForm = $this->renderForm(
                 $filterId,
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
-                $lkFilter,
-                $lkGrid->getAttribute('title')
+                $lkFilter->getLinkedItems(),
+                array(
+                    'title' => $lkGrid->getAttribute('title'),
+                )
             );
         }
         
@@ -114,6 +118,10 @@ class Data2Html_Render
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");
         }
+        if (count($columns) === 0) {
+            return $this->templateObj->emptyRender();
+        }
+        
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
         $templateCells =
@@ -196,19 +204,17 @@ class Data2Html_Render
     protected function renderForm(
         $formId,
         $templateBranch,
-        $lkForm,
-        $title
+        $fieldsDs,
+        $replaces
     ){
-        if ($lkForm) {
-            $fieldsDs = $lkForm->getLinkedItems();
-        } else {
+        if (!$fieldsDs) {
             $fieldsDs = array();
         }
         $fieldsDs = array_replace_recursive(
             $fieldsDs,
             $this->templateObj->getTemplateDefinitions('definitions', $templateBranch)
         );
-        if (!$fieldsDs || count($fieldsDs) === 0) {
+        if (count($fieldsDs) === 0) {
             return $this->templateObj->emptyRender();
         }
 
@@ -267,14 +273,14 @@ class Data2Html_Render
             ++$renderCount;
         }
         
+        $replaces = array_merge($replaces, array(
+            'id' => $formId,
+            'body' => $body,
+            'defaults' => $defaults
+        ));
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
-            array(
-                'id' => $formId,
-                'title' => $title,
-                'body' => $body,
-                'defaults' => $defaults
-            )
+            $replaces
         );
         return $form;
     }
