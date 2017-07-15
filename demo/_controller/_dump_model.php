@@ -21,7 +21,7 @@
         }
         try {
             $grid = $model->getGrid($gridName);
-            $grid->getLink()->dump();
+            $grid->createLink()->dump();
            // $grid->dump();
             
 
@@ -36,10 +36,6 @@
         } catch(Exception $e) {
             // Message to developer from exception
             echo Data2Html_Exception::toHtml($e, true);
-            
-            echo "<hr><h2>->gxxxxxx()</h2>\n<pre>";
-            //echo Data2Html_Utils::toPhp($model->getColDs());
-            echo "</pre>\n";
         }
     ?>
     </div>

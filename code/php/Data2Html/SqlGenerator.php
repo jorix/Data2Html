@@ -19,20 +19,23 @@ class Data2Html_SqlGenerator
 
     public function getSelect($lkGrid, $filterReq = null, $sortReq = null)
     {
-        $lkColumns = $lkGrid->get('columns');
+        $lkColumns = $lkGrid->getColumnsSet()->getLinkedItems();
         $select = $this->getSelectItems($lkColumns);
         if ($select === '') {
             throw new Exception("No data base fields defined.");
         }
         $query = 'select ' . $select;
-        $query .= "\n from " . $this->getFrom($lkGrid->getFromTables());
-        $where = $this->getWhere($lkGrid->get('filter'), $filterReq);
-        if ($where !== '') {
-            $query .= "\n where {$where}";
-        }
+        $query .= "\n from " . $this->getFrom($lkGrid->getLinkedFrom());
         
+        $filter = $lkGrid->getLinkedFilter();
+        if ($filter) {
+            $where = $this->getWhere($filter->getLinkedItems(), $filterReq);
+            if ($where !== '') {
+                $query .= "\n where {$where}";
+            }
+        }
         if (!$sortReq) { // use default sort
-            $sortReq = $lkGrid->getSort();
+            $sortReq = $lkGrid->getColumnsSet()->getSort();
         }
         if ($sortReq) { 
             $orderBy = $this->getOrderBy($lkColumns, $sortReq);
@@ -75,25 +78,25 @@ class Data2Html_SqlGenerator
         return $from;
     }
     
-    protected function getWhere($filter, $request)
+    protected function getWhere($filterItems, $request)
     {
         if (!$request) {
             return '';
         }
         
-        if (!$filter) {
-            $filter = array();
+        if (!$filterItems) {
+            $filterItems = array();
         }
         $c = array();
         $itemDx = new Data2Html_Collection();
         foreach ($request as $k => $v) {
-            if (!array_key_exists($k, $filter)) {
+            if (!array_key_exists($k, $filterItems)) {
                 throw new Data2Html_Exception(
                     "{$this->culprit} getWhere(): Requested filter field '{$k}' not found on filter definition.",
-                    $filter
+                    $filterItems
                 );
             }
-            $itemDx->set($filter[$k]);
+            $itemDx->set($filterItems[$k]);
             $refDb = $itemDx->getString('refDb');
             $check = $itemDx->getString('check');
             $type = $itemDx->getString('type', 'string');
@@ -119,7 +122,7 @@ class Data2Html_SqlGenerator
                     "{$this->culprit} getWhere(): Check '{$check}' on '{$k}' not supported.",
                     array(
                         'request' => $request,
-                        'filter' => $filter
+                        'filterItems' => $filterItems
                     )
                 );    
             }

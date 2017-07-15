@@ -14,7 +14,9 @@ abstract class Data2Html_Model_Set
     protected $setItems = null;
     protected $keys = null;
     //protected $matchedFields = null;
-    protected $baseItems = null;
+    protected $baseSet = null;
+    protected $link = null;
+    protected $linkName = '';
     
     // To parse
     protected $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
@@ -81,7 +83,7 @@ abstract class Data2Html_Model_Set
         )
     );
         
-    public function __construct($model, $setName, $defs, $baseItems = null)
+    public function __construct($model, $setName, $defs, $baseSet = null)
     {
         $this->debug = Data2Html_Config::debug();
         $this->setName = $setName;
@@ -101,7 +103,7 @@ abstract class Data2Html_Model_Set
         $this->keywords = array_replace_recursive(
             $this->baseKeywords, $this->keywords
         );
-        $this->baseItems = $baseItems;
+        $this->baseSet = $baseSet;
         
         // Read defs
         $this->attributes = array();
@@ -124,51 +126,7 @@ abstract class Data2Html_Model_Set
             }
         }
     }
-    public function getModel()
-    {
-        return $this->model;
-    }
-    public function getModelName()
-    {
-        return $this->model->getModelName();
-    }
-    public function getTableName()
-    {
-        return $this->model->getTableName();
-    }
-    
-    public function getKeys()
-    {
-        return $this->keys;
-    }
-    
-    public function getLink()
-    {
-        $link = new Data2Html_Model_Link($this->culprit, $this);
-        $link->addItems($this->setName, $this);
-        return $link;
-    }
-    
-    public function getItems()
-    {
-        return $this->setItems;
-    }
-    
-    public function getSort()
-    {
-        return null;
-    }
-    
-    public function getAttribute($attrName, $default = null)
-    {
-        if (!array_key_exists($attrName, $this->attributeNames)) {
-            throw new Exception(
-                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is not supported."
-            );
-        }
-        return Data2Html_Value::getItem($this->attributes, $attrName, $default);
-    }
-    
+        
     public function dump($subject = null)
     {
         if (!$subject) {
@@ -181,17 +139,107 @@ abstract class Data2Html_Model_Set
         Data2Html_Utils::dump($this->culprit, $subject);
     }
     
+    // -----------------------
+    // Obtaining
+    // -----------------------
+    public function getModelName()
+    {
+        return $this->model->getModelName();
+    }
+
+    public function getTableName()
+    {
+        return $this->model->getTableName();
+    }
+    
+    public function getBase()
+    {
+        return $this->baseSet;
+    }
+    
+    public function getAttribute($attrName, $default = null)
+    {
+        if (!array_key_exists($attrName, $this->attributeNames)) {
+            throw new Exception(
+                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is not supported."
+            );
+        }
+        return Data2Html_Value::getItem($this->attributes, $attrName, $default);
+    }
+    
+    public function getSort()
+    {
+        return null;
+    }
+    
+    public function getItems()
+    {
+        return $this->setItems;
+    }
+    
+    public function getKeys()
+    {
+        return $this->keys;
+    }
+    
+    // -----------------------
+    // Linking
+    // -----------------------
+    public function createLink()
+    {
+        if ($this->link) {
+            return $this->link;
+        }
+        $this->linkName = 'main';
+        $this->link = new Data2Html_Model_Link($this->culprit, $this);
+        return $this->link;
+    }
+    
+    public function addToLink($link)
+    {
+        if (!$this->link) {
+            $this->linkName = $this->fPrefix;
+            $link->add($this->linkName, $this->getItems());
+            $this->link = $link;
+        }
+        return $this->link->getItems($this->linkName);
+    }
+    
+    public function getLinkedFrom()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getLinkedFrom(): Before get the link, must create by createLink()."
+            );
+        }
+        return $this->link->getFrom();
+    }
+    
+    public function getLinkedItems()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getLinkedItems(): Before get the link, must create by createLink()."
+            );
+        }
+        return $this->link->getItems($this->linkName);
+    }
+    
+    // -----------------------
+    // Internal
+    // -----------------------
     protected function parseItems($items)
     {
         foreach ($items as $k => $v) {
             $this->parseItem($k, $v);
         }
         // Extend fields width a base field
-        if ($this->baseItems) {
-            $baseItems = $this->baseItems;
+        if ($this->baseSet) {
+            $baseItems = $this->baseSet->getItems();
         } else {
             $baseItems = $this->setItems;
         }
+        
         $keys = array();
         foreach ($this->setItems as $k => &$v) {
             if (array_key_exists('base', $v)) {
@@ -265,7 +313,7 @@ abstract class Data2Html_Model_Set
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
                 $field = array('value' => substr($field, 1));
-            } elseif ($this->baseItems) {
+            } elseif ($this->baseSet) {
                 $field = array('base' => $field);
             } else {
                 $matches = null;
@@ -324,8 +372,9 @@ abstract class Data2Html_Model_Set
                 } elseif (array_key_exists($kk, $words)) {
                     $pField[$kk] = $vv;
                 } else {
-                    throw new Exception(
-                        "{$this->culprit}: Word or alias \"{$kk}\" on field \"{$key}\" is not supported."
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Word or alias \"{$kk}\" on field \"{$key}\" is not supported.",
+                        $field
                     );
                 }
             }

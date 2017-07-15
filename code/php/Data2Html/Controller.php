@@ -61,7 +61,9 @@ class Data2Html_Controller
             case 'read':
                 $payerNames = Data2Html_Handler::parseRequest($request);
                 $gridName = $payerNames['grid'];
-                $linkedGrid = $model->getGrid($gridName)->getLink();
+                
+                $lkGrid = $model->getGrid($gridName);
+                $lkGrid->createLink();
                 
                 $sortBy = $r->getString('d2h_sort');
                 if ($sortBy === 'undefined') {
@@ -69,7 +71,7 @@ class Data2Html_Controller
                 }
                 $sqlObj = new Data2Html_SqlGenerator($db);
                 $sql = $sqlObj->getSelect(
-                    $linkedGrid,
+                    $lkGrid,
                     $r->getArray('d2h_filter'),
                     $sortBy
                 );
@@ -77,7 +79,7 @@ class Data2Html_Controller
                 return $this->getDbData(
                     $db,
                     $sql,
-                    $linkedGrid,
+                    $lkGrid,
                     $page->getInteger('pageStart', 1),
                     $page->getInteger('pageSize', 0)
                 );
@@ -113,7 +115,7 @@ class Data2Html_Controller
             throw new Exception($e->getMessage());
         };
         $itemDx = new Data2Html_Collection();
-        $lkColumns = $lkGrid->get('columns');
+        $lkColumns = $lkGrid->getColumnsSet()->getLinkedItems();
         $resTypes = array();
         $dbTypes = array();
         $values = array();
@@ -228,6 +230,7 @@ class Data2Html_Controller
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'dataTypes' => $resTypes,
+            'keys' => $lkGrid->getColumnsSet()->getKeys(),
             'rows' => $rows
         );
         return $response;

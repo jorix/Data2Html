@@ -45,18 +45,20 @@ abstract class Data2Html_Model
         $this->base = new Data2Html_Model_Set_Base(
             $this, null, $this->definitions
         );
-        //$this->parse();
     }
+    
     abstract protected function definitions();
  
     public function getModelName()
     {
         return $this->modelName;
     }
+    
     public function getBase()
     {
         return $this->base;
     }
+    
     public function getGrid($gridName = '')
     {
         if (!$gridName) {

@@ -20,6 +20,7 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
         '-' => -1,
         '!' => -1,
     );
+    
     protected function beforeAddItem(&$key, &$field)
     {
         // set default for sortBy 

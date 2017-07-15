@@ -6,11 +6,11 @@ class Data2Html_Model_Grid
     protected $debug = false;
     
     protected $model = null;
-    protected $baseFields = null;
     protected $columns = null;
     protected $filter = null;
+    protected $link = null;
     
-    public function __construct($model, $gridName, $defs, $baseFields)
+    public function __construct($model, $gridName, $defs)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit =
@@ -18,41 +18,22 @@ class Data2Html_Model_Grid
         
         $this->model = $model;
         $this->gridName = $gridName;
-         
-        $this->baseFields = $baseFields;
       
         // Set fields
         $this->columns = new Data2Html_Model_Set_Table(
             $model,
             $gridName,
             $defs,
-            $baseFields->getItems()
+            $model->getBase()
         );
         if (array_key_exists('filter', $defs)) {
             $this->filter = new Data2Html_Model_Set_Filter(
                 $model,
                 $gridName,
                 $defs['filter'],
-                $baseFields->getItems()
+                $model->getBase()
             );
         }
-    }
-    public function getModel()
-    {
-        return $this->model;
-    }
-    public function getLink()
-    {
-        $link = new Data2Html_Model_Link($this->culprit, $this->columns);
-        if ($this->filter) {
-            $link->add('filter', $this->filter->getItems());
-        }
-        return $link;
-    }
-        
-    public function getAttribute($attrName, $default = null)
-    {
-        return $this->columns->getAttribute($attrName, $default);
     }
     
     public function dump($subject = null)
@@ -62,16 +43,12 @@ class Data2Html_Model_Grid
             if ($this->filter) {
                 $this->filter->dump();
             }
-            $this->baseFields->dump();
+            $this->baseSet->dump();
         } else {
             Data2Html_Utils::dump($this->culprit, $subject);
         }
     }
-
-    public function getKeys()
-    {
-        return $this->columns->getKeys();
-    }
+    
     public function getColumnsSet()
     {
         return $this->columns;
@@ -90,5 +67,52 @@ class Data2Html_Model_Grid
     {
         return $this->gridName;
     }
+    public function getKeys()
+    {
+        return $this->columns->getKeys();
+    }
+   
+    public function getModel()
+    {
+        return $this->model;
+    }
+    
+    public function createLink()
+    {
+        if ($this->link) {
+            return $this->link;
+        }
+        $this->link = $this->columns->createLink();
+        if ($this->filter) {
+            $this->filter->addToLink($this->link);
+        }
+        return $this->link;
+    }
+    
+    public function getLinkedFilter()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getFilter(): Before get the linked filter, must create by createLink()."
+            );
+        }
+        return $this->filter;
+    }
+    
+    public function getLinkedFrom()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getLinkedFrom(): Before get the link, must create by createLink()."
+            );
+        }
+        return $this->link->getFrom();
+    }
+    
+    public function getAttribute($attrName, $default = null)
+    {
+        return $this->columns->getAttribute($attrName, $default);
+    }
+    
     
 }

@@ -4,10 +4,11 @@ class Data2Html_Model_Link
     protected $culprit = '';
     protected $debug = false;
     
-    protected $sort = null;
+    protected $originSet = null;
     
-    protected $tables = array();
+    protected $soutceTables = array();
     protected $links = array();
+    protected $linkDone = false;
     protected $items = array();
     protected $refItems = array();
     
@@ -16,21 +17,34 @@ class Data2Html_Model_Link
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Link of {$fromCulprit}";
         
+        $this->originSet = $set;
         $this->addTable(null, $set);
-        $this->sort = $set->getSort();
-        $this->add('columns', $set->getItems());
-    }
-    
+        $this->add('main', $set->getItems());
         
-    function getSort() {
-        return $this->sort;
+        // Check default sort
+        $dafaultSort = $this->originSet->getSort();
+        if ($dafaultSort) {
+            if (substr($dafaultSort, 0, 1) === '!') {
+                $dafaultSort = substr($dafaultSort, 1);
+            }
+            $sortBy = Data2Html_Value::getItem(
+                $this->items['main'],
+                array($dafaultSort, 'sortBy')
+            );
+            if (!$sortBy) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: Default sort '{$dafaultSort}' not found or don't have sortBy .",
+                    $this->items['main']
+                );
+            }
+        }
     }
 
     public function dump($subject = null)
     {
         if (!$subject) {
             $subject = array(
-                'tables' => $this->getFromTables(),
+                'from' => $this->getFrom(),
                // 'refItems' => $this->refItems,
               //  'links' => $this->links,
                 'items' => $this->items,
@@ -38,9 +52,32 @@ class Data2Html_Model_Link
         }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
+           
+    public function getItems($groupName = null) {
+        if (!$this->linkDone) {
+            $this->linkKeys();
+        } 
+        return Data2Html_Value::getItem(
+            $this->items,
+            ($groupName ? $groupName : 'main')
+        );
+    }
+
+    public function getFrom() {
+        if (!$this->linkDone) {
+            $this->linkKeys();
+        } 
+        return $this->soutceTables;
+    }
     
     public function add($groupName, $fromItems)
     {
+        if ($this->linkDone) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: Link is done, It is not possible to add more sets.",
+                $this->items[$groupName]
+            );
+        }
         $tableAlias = $this->links['T0']['alias'];
         $baseItems = $this->links['T0']['base'];
         $this->items[$groupName] = array();
@@ -48,27 +85,12 @@ class Data2Html_Model_Link
             $item['tableAlias'] = $tableAlias;
             $this->addLinkedItem($groupName, $key, $item);
         }
-        if ($groupName === 'columns') {
-            $sort = $this->getSort();
-            if ($sort) {
-                if (substr($sort, 0, 1) === '!') {
-                    $sort = substr($sort, 1);
-                }
-                $sortBy = Data2Html_Value::getItem($this->items[$groupName], array($sort, 'sortBy'));
-                if (!$sortBy) {
-                    throw new Data2Html_Exception(
-                        "getOrderBy(): Default sort '{$sort}' not found or don't have sortBy .",
-                        $this->items[$groupName]
-                    );
-                }
-            }
-        }
     }
     
     protected function linkKeys()
     {
-        $groupName = 'columns';
-        foreach ($this->tables as &$fromTable) {
+        $groupName = 'main';
+        foreach ($this->soutceTables as &$fromTable) {
             $tableAlias = $fromTable['alias'];
             foreach ($fromTable['keys'] as $k => &$v) {
                 $baseName = $v['base'];
@@ -92,15 +114,7 @@ class Data2Html_Model_Link
             unset($v);
         }
         unset($fromTable);
-    }
-    
-    public function get($groupName) {
-        return Data2Html_Value::getItem($this->items, $groupName);
-    }
-
-    public function getFromTables() {
-        $this->linkKeys();
-        return $this->tables;
+        $this->linkDone = true;
     }
     
     protected function getRef($groupName, $tableAlias, $baseName) {
@@ -189,8 +203,8 @@ class Data2Html_Model_Link
                     $v['ref'] = $refKey;
                     unset($item['linkedTo'][$baseName]);
                 } else {
-                    $form = $this->tables[$tableAlias]['from'];
-                    $lkAlias = $this->tables[$tableAlias]['alias'];
+                    $form = $this->soutceTables[$tableAlias]['from'];
+                    $lkAlias = $this->soutceTables[$tableAlias]['alias'];
                     $lk = $this->links[$form];
                     if (array_key_exists($baseName, $lk['items'])) {
                         $v['ref'] = $this->addLinkedVirtual(
@@ -232,7 +246,7 @@ class Data2Html_Model_Link
                     if ($ref) {
                         $v['ref'] = $ref;
                     } else {
-                        $form = $this->tables[$tableAlias]['from'];
+                        $form = $this->soutceTables[$tableAlias]['from'];
                         $lk = $this->links[$form];
                         if (array_key_exists($baseName, $lk['items'])) {
                             $v['ref'] = $this->addLinkedVirtual($groupName, $tableAlias, $baseName, $lk['items'][$baseName]);
@@ -283,7 +297,7 @@ class Data2Html_Model_Link
     }
         
     protected function getLinkItemByBase($fromAlias, $baseName) {
-        $linkId = Data2Html_Value::getItem($this->tables, array($fromAlias, 'from'));
+        $linkId = Data2Html_Value::getItem($this->soutceTables, array($fromAlias, 'from'));
         return $this->getLinkItemById($linkId, $baseName);
     }
     
@@ -292,7 +306,7 @@ class Data2Html_Model_Link
             if (!$linkedWith) {
                 throw new Data2Html_Exception(
                     "{$this->culprit}: LinkId \"{$linkId}\" not exist.",
-                    $this->tables
+                    $this->soutceTables
                 );
             }
             $playerNames = Data2Html_Handler::parseLinkText($linkedWith);
@@ -325,29 +339,28 @@ class Data2Html_Model_Link
     }
 
     protected function addTable($linkId, $set) {
-        $model = $set->getModel();
         $keys = $set->getKeys();
         $tableName = $set->getTableName();
         
-        $tableAlias = 'T' . count($this->tables);
+        $tableAlias = 'T' . count($this->soutceTables);
         $linkId = $linkId ? $linkId : $tableAlias;
         
         $this->links[$linkId] = array(
             'alias' => $tableAlias,
             'items' => $set->getItems(),
-            'base' => $model->getBase()->getItems()
+            'base' => $set->getBase()->getItems()
         );
         $fromId = explode('|', $linkId);
-        $this->tables[$tableAlias] = array(
+        $this->soutceTables[$tableAlias] = array(
             'from' => $linkId,
             'fromAlias' => $fromId[0],
             'alias' => $tableAlias,
             'table' => $tableName,
             'keys' => $keys
         );
-        $groupName = 'columns';
+        $groupName = 'main';
         if ($tableAlias === 'T0') {
-            $this->tables[$tableAlias]['fromField'] = null; 
+            $this->soutceTables[$tableAlias]['fromField'] = null; 
         } else {
             $lkAlias = $fromId[0];
             $lkBaseName = $fromId[1];
@@ -356,7 +369,10 @@ class Data2Html_Model_Link
                 $lkItem = $this->getLinkItemByBase($lkAlias, $lkBaseName);
                 $ref = $this->addLinkedVirtual($groupName, $lkAlias, $lkBaseName, $lkItem);
             }
-            $this->tables[$tableAlias]['fromField'] = Data2Html_Value::getItem($this->items, array($groupName, $ref, 'refDb'));
+            $this->soutceTables[$tableAlias]['fromField'] = 
+                Data2Html_Value::getItem(
+                    $this->items, array($groupName, $ref, 'refDb')
+                );
         }
         return $tableAlias;
     }

@@ -10,9 +10,20 @@ class Data2Html_Render
     public function __construct($templateName, $modelObj)
     {
         $this->debug = Data2Html_Config::debug();
+        $this->culprit = "Render for \"{$modelObj->getModelName()}\"";
+        
         $this->idRender = $this->createIdRender();
         $this->modelObj = $modelObj;
         $this->templateObj = new Data2Html_Render_Template($templateName);
+    }
+    
+    public function dump($subject = null)
+    {
+        if (!$subject) {
+            $subject = array(
+            );
+        }
+        Data2Html_Utils::dump($this->culprit, $subject);
     }
     
     protected function createIdRender() {
@@ -51,9 +62,10 @@ class Data2Html_Render
 
     protected function renderGrid($gridName)
     {        
-        $grid = $this->modelObj->getGrid($gridName);
-        $linkedGrid = $grid->getLink();
-        $gridLayout = $grid->getAttribute('layout', 'grid');
+        $lkGrid = $this->modelObj->getGrid($gridName);
+        $lkGrid->createLink();
+        
+        $gridLayout = $lkGrid->getAttribute('layout', 'grid');
         
         $tplGrid = $this->templateObj->getTemplateBranch($gridLayout,
             $this->templateObj->getTemplateRoot()
@@ -61,30 +73,36 @@ class Data2Html_Render
         $requestUrl = 
                 $this->getControllerUrl() .
                 "model={$this->modelObj->getModelName()}:{$gridName}&";
+        
         $pageId = $this->idRender . '_page';
         $pageForm = $this->renderForm(
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
-            array(),
-            $grid->getAttribute('title')
+            null,
+            $lkGrid->getAttribute('title')
         );
-        $filterId = $this->idRender . '_filter';
-        $filterForm = $this->renderForm(
-            $filterId,
-            $this->templateObj->getTemplateBranch('filter', $tplGrid),
-            $grid->getFilterSet()->getItems(),
-            $grid->getAttribute('title')
-        );
+        
+        $lkFilter = $lkGrid->getLinkedFilter();
+        if (!$lkFilter) {
+            $filterForm = $this->templateObj->emptyRender();
+        } else {
+            $filterId = $this->idRender . '_filter';
+            $filterForm = $this->renderForm(
+                $filterId,
+                $this->templateObj->getTemplateBranch('filter', $tplGrid),
+                $lkFilter,
+                $lkGrid->getAttribute('title')
+            );
+        }
+        
         $gridV = $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $linkedGrid->get('columns'),
+            $lkGrid->getColumnsSet()->getLinkedItems(),
             array(
-                $grid->getAttribute('title'),
+                $lkGrid->getAttribute('title'),
                 'url' => $requestUrl,
-                'filter' => $filterForm, 
-                'filterId' => $filterId,
+                'filter' => $filterForm,
                 'page' => $pageForm,
-                'pageId' => $pageId,
                 'id' => $this->idRender
             )
         );
@@ -178,14 +196,19 @@ class Data2Html_Render
     protected function renderForm(
         $formId,
         $templateBranch,
-        $formDs,
+        $lkForm,
         $title
     ){
-        $formDs = array_replace_recursive(
-            $formDs,
+        if ($lkForm) {
+            $fieldsDs = $lkForm->getLinkedItems();
+        } else {
+            $fieldsDs = array();
+        }
+        $fieldsDs = array_replace_recursive(
+            $fieldsDs,
             $this->templateObj->getTemplateDefinitions('definitions', $templateBranch)
         );
-        if (!$formDs || count($formDs) === 0) {
+        if (!$fieldsDs || count($fieldsDs) === 0) {
             return $this->templateObj->emptyRender();
         }
 
@@ -196,7 +219,6 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
             $this->templateObj->getTemplateBranch('layouts', $templateBranch);
-        $fieldsDs = Data2Html_Value::getItem($formDs, 'fields', array());
         $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'fieldLayouts', 'default');
         $body = array();
         $defaults = array();
@@ -244,6 +266,7 @@ class Data2Html_Render
             }
             ++$renderCount;
         }
+        
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
             array(

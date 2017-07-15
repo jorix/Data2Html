@@ -22,18 +22,12 @@ class Data2Html_Render_Template
         );
     }
     
-    public function dump()
+    public function dump($subject = null)
     {
-        if ($this->debug) {
-            echo "<div style=\"margin-left:.5em\">
-                <h3>Template tree of: \"{$this->templateName}\":</h3>
-                <pre>" .
-                Data2Html_Value::toJson($this->templateTree, true) .
-                '</pre></div>';
-        } else {
-            echo '<h3 style="margin-left:.5em; color:red; test-align:center">
-                Debugging mode must be enabled to can use dump() method!</h3>';
+        if (!$subject) {
+            $subject = $this->templateTree;
         }
+        Data2Html_Utils::dump($this->culprit, $subject);
     }
     
     public function concatContents(&$final, $item) {
@@ -465,10 +459,14 @@ class Data2Html_Render_Template
                         // "{$this->culprit}: Replaces of \"{$matches[0][$i]}\" is array after encoded."
                     // );
                 // }
+                $match = $matches[0][$i];
                 if (is_array($encodedVal)) {
-                    print_r($encodedVal);
+                    throw new Data2Html_Exception(
+                        "{$this->culprit} replaceContent(): Value of match \"{$match}\" is array, must be a string.",
+                        $encodedVal
+                    );
                 }
-                $content = str_replace($matches[0][$i], $encodedVal, $content);
+                $content = str_replace($match, $encodedVal, $content);
             }
         }
         return $content;
