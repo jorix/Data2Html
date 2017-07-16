@@ -72,7 +72,7 @@ class Data2Html_Controller
                     if ($sortBy === 'undefined') {
                         $sortBy = null;
                     }
-                    $sqlObj = new Data2Html_SqlGenerator($db);
+                    $sqlObj = new Data2Html_Controller_SqlGenerator($db);
                     $sql = $sqlObj->getSelect(
                         $lkGrid,
                         $r->getArray('d2h_filter'),

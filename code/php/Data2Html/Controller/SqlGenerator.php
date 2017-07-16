@@ -1,6 +1,6 @@
 <?php
 
-class Data2Html_SqlGenerator
+class Data2Html_Controller_SqlGenerator
 {
     protected $culprit = 'SqlGenerator';
     protected $debug = false;
