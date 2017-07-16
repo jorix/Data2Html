@@ -14,5 +14,7 @@
             "forms/formPage/page_.json.php"
         ]
     },
-    "include": "forms/formEdit/edit.json.php"
+    "form": {
+        "include": "forms/formEdit/edit.json.php"
+    }
 }

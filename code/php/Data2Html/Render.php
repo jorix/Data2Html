@@ -39,20 +39,24 @@ class Data2Html_Render
     {
         if (isset($payerNames['form'])) {
             $formName = $payerNames['form'];
-            $form = $this->modelObj->getForm($formName);
-            $formDx = new Data2Html_Collection($form);
-            $layout = $formDx->getString('layout', 'form');
+            $lkForm = $this->modelObj->getForm($formName);
+            $lkForm->createLink();
             
-            $formId = $this->idRender . '_form_' . $formName;
-            $formV = $this->renderForm(
-                $formId,
-                $this->templateObj->getTemplateBranch($layout, 
-                    $this->templateObj->getTemplateRoot()
-                ),
-                $form,
-                $this->modelObj->getTitle()
+            $tplForm = $this->templateObj->getTemplateBranch(
+                $lkForm->getAttribute('layout', 'form'),
+                $this->templateObj->getTemplateRoot()
             );
-            return $formV;
+            $formId = $this->idRender . '_form_' . $formName;
+            return $this->renderForm(
+                $formId,
+                $this->templateObj->getTemplateBranch('form', $tplForm),
+                $lkForm->getLinkedItems(),
+                array(
+                    'title' => $lkForm->getAttribute('title'),
+                    'url' => $this->getControllerUrl() .
+                        "model={$this->modelObj->getModelName()}&form={$formName}&"
+                )
+            );
         } elseif (isset($payerNames['grid'])) {
             return $this->renderGrid($payerNames['grid']);
         } else {
@@ -65,14 +69,10 @@ class Data2Html_Render
         $lkGrid = $this->modelObj->getGrid($gridName);
         $lkGrid->createLink();
         
-        $gridLayout = $lkGrid->getAttribute('layout', 'grid');
-        
-        $tplGrid = $this->templateObj->getTemplateBranch($gridLayout,
+        $tplGrid = $this->templateObj->getTemplateBranch(
+            $lkGrid->getAttribute('layout', 'grid'),
             $this->templateObj->getTemplateRoot()
         );
-        $requestUrl = 
-                $this->getControllerUrl() .
-                "model={$this->modelObj->getModelName()}:{$gridName}&";
         
         $pageId = $this->idRender . '_page';
         $pageForm = $this->renderForm(
@@ -99,18 +99,18 @@ class Data2Html_Render
             );
         }
         
-        $gridV = $this->renderTable(
+        return $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $lkGrid->getColumnsSet()->getLinkedItems(),
             array(
                 $lkGrid->getAttribute('title'),
-                'url' => $requestUrl,
+                'url' => $this->getControllerUrl() .
+                    "model={$this->modelObj->getModelName()}:{$gridName}&",
                 'filter' => $filterForm,
                 'page' => $pageForm,
                 'id' => $this->idRender
             )
         );
-        return $gridV;
     }
     
     protected function renderTable($templateTable, $columns, $replaces)
@@ -243,7 +243,7 @@ class Data2Html_Render
                 $url = $baseUrl . 'model='.$link.'&';
             }
             $default = Data2Html_Value::getItem($v, 'default');
-            $replaces = array(
+            $fReplaces = array(
                 'id' => $this->createIdRender(),
                 'formId' => $formId,
                 'title' => $vDx->getString('title'),
@@ -256,15 +256,15 @@ class Data2Html_Render
                 'url' => $url,
                 'validations' => implode(' ', $validations)
             );
-            $replaces['html'] = $this->templateObj->renderTemplateItem(
-                $inputTplName, $templateInputs, $replaces
+            $fReplaces['html'] = $this->templateObj->renderTemplateItem(
+                $inputTplName, $templateInputs, $fReplaces
             );
             $this->templateObj->concatContents(
                 $body,
                 $this->templateObj->renderTemplateItem(
                     $vDx->getString('layout', $defaultFieldLayout),
                     $templateLayouts, 
-                    $replaces
+                    $fReplaces
                 )
             );
             if ($default !== null) {
@@ -272,7 +272,6 @@ class Data2Html_Render
             }
             ++$renderCount;
         }
-        
         $replaces = array_merge($replaces, array(
             'id' => $formId,
             'body' => $body,

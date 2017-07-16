@@ -64,6 +64,9 @@ class aixada_providers extends Data2Html_Model {
                         )
                     )
                 )
+            ),
+            'forms' => array(
+                'default' => array()
             )
         );
     }

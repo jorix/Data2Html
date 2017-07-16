@@ -60,29 +60,33 @@ class Data2Html_Controller
             case '':
             case 'read':
                 $payerNames = Data2Html_Handler::parseRequest($request);
-                $gridName = $payerNames['grid'];
-                
-                $lkGrid = $model->getGrid($gridName);
-                $lkGrid->createLink();
-                
-                $sortBy = $r->getString('d2h_sort');
-                if ($sortBy === 'undefined') {
-                    $sortBy = null;
+                if (isset($payerNames['form'])) {
+                    $lkForm = $model->getForm($payerNames['form']);
+                    $lkForm->createLink();
+                    return "TODO this!!!!";
+                } elseif (isset($payerNames['grid'])) {
+                    $lkGrid = $model->getGrid($payerNames['grid']);
+                    $lkGrid->createLink();
+                    
+                    $sortBy = $r->getString('d2h_sort');
+                    if ($sortBy === 'undefined') {
+                        $sortBy = null;
+                    }
+                    $sqlObj = new Data2Html_SqlGenerator($db);
+                    $sql = $sqlObj->getSelect(
+                        $lkGrid,
+                        $r->getArray('d2h_filter'),
+                        $sortBy
+                    );
+                    $page = $r->getCollection('d2h_page', array());
+                    return $this->getDbData(
+                        $db,
+                        $sql,
+                        $lkGrid,
+                        $page->getInteger('pageStart', 1),
+                        $page->getInteger('pageSize', 0)
+                    );
                 }
-                $sqlObj = new Data2Html_SqlGenerator($db);
-                $sql = $sqlObj->getSelect(
-                    $lkGrid,
-                    $r->getArray('d2h_filter'),
-                    $sortBy
-                );
-                $page = $r->getCollection('d2h_page', array());
-                return $this->getDbData(
-                    $db,
-                    $sql,
-                    $lkGrid,
-                    $page->getInteger('pageStart', 1),
-                    $page->getInteger('pageSize', 0)
-                );
             case 'insert':
                 $response['new_id'] = $this->opInsert($model);
                 break;

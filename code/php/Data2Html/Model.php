@@ -12,12 +12,10 @@ abstract class Data2Html_Model
     protected $modelName = '';
     protected $culprit = '';
     
-    // Parsed object definitions
-    private $tableName = '';
-    private $title = '';
-    
+    // original definitions
     private $definitions = null;
     
+    // Parsed object definitions
     private $base = null;
     private $grids = array();
     private $forms = array();
@@ -38,10 +36,6 @@ abstract class Data2Html_Model
         $this->culprit = "Model \"{$this->modelName}\"";
         
         $this->definitions = $this->definitions();
-        
-        $dx = new Data2Html_Collection($this->definitions);
-        $this->tableName = $dx->getString('table');
-        $this->title = $dx->getString('title', $this->tableName);
         $this->base = new Data2Html_Model_Set_Base(
             $this, null, $this->definitions
         );
@@ -74,7 +68,7 @@ abstract class Data2Html_Model
             $gridsDf = $this->definitions['grids'];
             if (!array_key_exists($gridName, $gridsDf)) {
                 throw new Data2Html_Exception(
-            "{$this->culprit}: The \"{$gridName}\" grid not exist on grid definitions.",
+                    "{$this->culprit}: The grid \"{$gridName}\" not exist on grids definitions.",
                     $this->definitions
                 );
             }
@@ -85,32 +79,40 @@ abstract class Data2Html_Model
         return $this->grids[$gridName];
     }
     
+    public function getTableName()
+    {
+        return $this->base->getAttribute('table');
+    }
+    
+    public function getTitle()
+    {
+        return $this->base->getAttribute('title', $this->getTableName());
+    }
+    
     public function getForm($formName = '')
     {
         if (!$formName) {
             $formName = 'default';
         }
         if (!array_key_exists($formName, $this->forms)) {
-            throw new Exception(
-                "{$this->culprit}: Form \"{$formName}\" not exist on `forms`."
+            if (!array_key_exists('forms', $this->definitions)) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: The \"forms\" key not exist on definitions.",
+                    $this->definitions
+                );
+            }
+            $gridsDf = $this->definitions['forms'];
+            if (!array_key_exists($formName, $gridsDf)) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: The form \"{$formName}\" not exist on forms definitions.",
+                    $this->definitions
+                );
+            }
+            $this->forms[$formName] = new Data2Html_Model_Set_FormEdit(
+                    $this, $formName, $gridsDf[$formName], $this->base
             );
-        }
-        if (!Data2Html_Value::getItem($this->forms[$formName],'_parsed')) {
-             $this->forms[$formName] = new Data2Html_Model_Set_Form($this,
-                $formName,
-                Data2Html_Value::getItem($this->forms[$formName], 'fields', array()),
-                $this->fields
-            );
-        }
+        }    
         return $this->forms[$formName];
-    }
-    public function getTableName()
-    {
-        return $this->tableName;
-    }
-    public function getTitle()
-    {
-        return $this->title;
     }
     
     // ========================

@@ -1,6 +1,6 @@
 <?php die("It's uncooked!"); ?>
 <div class="row"
-    xdata-d2h="
+    data-d2h="
         url:'$${url}',
         repeat:'form'
     "
