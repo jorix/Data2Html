@@ -6,42 +6,62 @@ class Data2Html_Controller_SqlGenerator
     protected $debug = false;
     
     protected $db;
+    protected $linkedSet;
+    protected $result = array();
 
-    public function __construct($db) {
+    public function __construct($db, $linkedSet) {
         $this->debug = Data2Html_Config::debug();
+        
         $this->db = $db;
+        $this->linkedSet = $linkedSet;
+        
+        $lkColumns = $linkedSet->getLinkedItems();
+        
+        $this->result['select'] = $this->getSelectItems($lkColumns);
+        if ($this->result['select'] === '') {
+            throw new Exception("No data base fields defined.");
+        }
+        $this->result['form'] =
+            $this->getFrom($linkedSet->getLinkedFrom());
     }
 
     public function dump($subject = null)
     {
         Data2Html_Utils::dump($this->culprit, $subject);
     }
-
-    public function getSelect($lkGrid, $filterReq = null, $sortReq = null)
+    
+    public function addFilter($filter, $filterReq = null)
     {
-        $lkColumns = $lkGrid->getColumnsSet()->getLinkedItems();
-        $select = $this->getSelectItems($lkColumns);
-        if ($select === '') {
-            throw new Exception("No data base fields defined.");
-        }
-        $query = 'select ' . $select;
-        $query .= "\n from " . $this->getFrom($lkGrid->getLinkedFrom());
-        
-        $filter = $lkGrid->getLinkedFilter();
         if ($filter) {
-            $where = $this->getWhere($filter->getLinkedItems(), $filterReq);
-            if ($where !== '') {
-                $query .= "\n where {$where}";
-            }
+            $this->result['where'] = $this->getWhere($filter->getLinkedItems(), $filterReq);
+        }
+    }
+        
+    public function addSort($sortReq = null)
+    {
+        if ($sortReq === 'undefined') {
+            $sortReq = null;
         }
         if (!$sortReq) { // use default sort
-            $sortReq = $lkGrid->getColumnsSet()->getSort();
+            $sortReq = $this->linkedSet->getSort();
         }
         if ($sortReq) { 
-            $orderBy = $this->getOrderBy($lkColumns, $sortReq);
-            if ($orderBy !== '') {
-                $query .= "\n order by {$orderBy}";
-            }
+            $this->result['order_by'] = $this->getOrderBy(
+                $this->linkedSet->getLinkedItems(), $sortReq
+            );
+        }
+    }
+    
+    public function getSelect()
+    {
+        $query = 'select ' . $this->result['select'];
+        $query .= "\n from " . $this->result['form'];
+        
+        if (isset($this->result['where']) && $this->result['where'] !== '') {
+            $query .= "\n where {$this->result['where']}";
+        }
+        if (isset($this->result['order_by']) && $this->result['order_by'] !== '') {
+            $query .= "\n order by {$this->result['order_by']}";
         }
         return $query;
     }

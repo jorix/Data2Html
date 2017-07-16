@@ -77,6 +77,21 @@ class Data2Html_Model_Grid
         return $this->model;
     }
     
+    public function getAttribute($attrName, $default = null)
+    {
+        return $this->columns->getAttribute($attrName, $default);
+    }
+
+    public function getFilter()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getFilter(): Before get the linked filter, must create by createLink()."
+            );
+        }
+        return $this->filter;
+    }
+    
     public function createLink()
     {
         if ($this->link) {
@@ -89,15 +104,6 @@ class Data2Html_Model_Grid
         return $this->link;
     }
     
-    public function getLinkedFilter()
-    {
-        if (!$this->link) {
-            throw new Exception(
-                "{$this->culprit} getFilter(): Before get the linked filter, must create by createLink()."
-            );
-        }
-        return $this->filter;
-    }
     
     public function getLinkedFrom()
     {
@@ -109,9 +115,14 @@ class Data2Html_Model_Grid
         return $this->link->getFrom();
     }
     
-    public function getAttribute($attrName, $default = null)
+    public function getLinkedItems()
     {
-        return $this->columns->getAttribute($attrName, $default);
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getLinkedItems(): Before get the link, must create by createLink()."
+            );
+        }
+        return $this->columns->getLinkedItems();
     }
     
     

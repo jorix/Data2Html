@@ -84,7 +84,7 @@ class Data2Html_Render
             )
         );
         
-        $lkFilter = $lkGrid->getLinkedFilter();
+        $lkFilter = $lkGrid->getFilter();
         if (!$lkFilter) {
             $filterForm = $this->templateObj->emptyRender();
         } else {
@@ -101,7 +101,7 @@ class Data2Html_Render
         
         return $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $lkGrid->getColumnsSet()->getLinkedItems(),
+            $lkGrid->getLinkedItems(),
             array(
                 $lkGrid->getAttribute('title'),
                 'url' => $this->getControllerUrl() .

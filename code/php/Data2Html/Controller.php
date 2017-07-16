@@ -63,21 +63,29 @@ class Data2Html_Controller
                 if (isset($payerNames['form'])) {
                     $lkForm = $model->getForm($payerNames['form']);
                     $lkForm->createLink();
-                    return "TODO this!!!!";
+                    $sqlObj = 
+                        new Data2Html_Controller_SqlGenerator($db, $lkForm );
+                    // $sqlObj->addFilter(
+                        // $lkForm->getFilter(),
+                        // $r->getArray('d2h_filter')
+                    // );
+                    $sql = $sqlObj->getSelect();
+                    return $this->getDbData($db, $sql, $lkForm, 1, 1);
                 } elseif (isset($payerNames['grid'])) {
                     $lkGrid = $model->getGrid($payerNames['grid']);
                     $lkGrid->createLink();
                     
-                    $sortBy = $r->getString('d2h_sort');
-                    if ($sortBy === 'undefined') {
-                        $sortBy = null;
-                    }
-                    $sqlObj = new Data2Html_Controller_SqlGenerator($db);
-                    $sql = $sqlObj->getSelect(
-                        $lkGrid,
-                        $r->getArray('d2h_filter'),
-                        $sortBy
+                    $sqlObj = new Data2Html_Controller_SqlGenerator(
+                        $db,
+                        $lkGrid->getColumnsSet()
                     );
+                    $sqlObj->addFilter(
+                        $lkGrid->getFilter(),
+                        $r->getArray('d2h_filter')
+                    );
+                    $sqlObj->addSort($r->getString('d2h_sort'));
+                    $sql = $sqlObj->getSelect();
+                    
                     $page = $r->getCollection('d2h_page', array());
                     return $this->getDbData(
                         $db,
@@ -110,7 +118,7 @@ class Data2Html_Controller
     /**
      * Execute a query and return the array result.
      */
-    public function getDbData($db, $query, $lkGrid, $pageStart = 1, $pageSize = 0)
+    public function getDbData($db, $query, $lkSet, $pageStart = 1, $pageSize = 0)
     {
         try {
             $pageSize = intval($pageSize);
@@ -119,7 +127,7 @@ class Data2Html_Controller
             throw new Exception($e->getMessage());
         };
         $itemDx = new Data2Html_Collection();
-        $lkColumns = $lkGrid->getColumnsSet()->getLinkedItems();
+        $lkColumns = $lkSet->getLinkedItems();
         $resTypes = array();
         $dbTypes = array();
         $values = array();
@@ -234,7 +242,7 @@ class Data2Html_Controller
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'dataTypes' => $resTypes,
-            'keys' => array_keys($lkGrid->getColumnsSet()->getKeys()),
+            'keys' => array_keys($lkSet->getKeys()),
             'rows' => $rows
         );
         return $response;
