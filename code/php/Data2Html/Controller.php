@@ -31,7 +31,9 @@ class Data2Html_Controller
         switch ($serverMethod) {
             case 'GET':
                 foreach($request as $key => $val) {
-                    if (strpos($val, '=') !== false) {
+                    if (is_array($val)) {
+                        $postData[$key] = $val;
+                    } elseif (strpos($val, '=') !== false) {
                         parse_str(str_replace('[,]', '&', $val), $reqArr);
                         $postData[$key] = $reqArr;
                     } else {
@@ -63,18 +65,20 @@ class Data2Html_Controller
                 if (isset($payerNames['form'])) {
                     $lkForm = $model->getForm($payerNames['form']);
                     $lkForm->createLink();
+                    
+                    // Make sql
                     $sqlObj = 
-                        new Data2Html_Controller_SqlGenerator($db, $lkForm );
-                    // $sqlObj->addFilter(
-                        // $lkForm->getFilter(),
-                        // $r->getArray('d2h_filter')
-                    // );
+                        new Data2Html_Controller_SqlGenerator($db, $lkForm);
+                    $sqlObj->addFilterByKeys($r->getArray('d2h_keys'));
                     $sql = $sqlObj->getSelect();
+                    
+                    // Response
                     return $this->getDbData($db, $sql, $lkForm, 1, 1);
                 } elseif (isset($payerNames['grid'])) {
                     $lkGrid = $model->getGrid($payerNames['grid']);
                     $lkGrid->createLink();
                     
+                    // Make sql
                     $sqlObj = new Data2Html_Controller_SqlGenerator(
                         $db,
                         $lkGrid->getColumnsSet()
@@ -86,11 +90,12 @@ class Data2Html_Controller
                     $sqlObj->addSort($r->getString('d2h_sort'));
                     $sql = $sqlObj->getSelect();
                     
+                    // Response
                     $page = $r->getCollection('d2h_page', array());
                     return $this->getDbData(
                         $db,
                         $sql,
-                        $lkGrid,
+                        $lkGrid->getColumnsSet(),
                         $page->getInteger('pageStart', 1),
                         $page->getInteger('pageSize', 0)
                     );
@@ -234,6 +239,7 @@ class Data2Html_Controller
         if ($this->debug) {
             $response += array(
                 'sql' => explode("\n", $query),
+                'keys' => $lkSet->getLinkedKeys(),
                 'values' => $values,
                 'teplateItems' => $teplateItems
             );
@@ -242,7 +248,6 @@ class Data2Html_Controller
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
             'dataTypes' => $resTypes,
-            'keys' => array_keys($lkSet->getKeys()),
             'rows' => $rows
         );
         return $response;

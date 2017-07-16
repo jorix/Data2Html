@@ -101,7 +101,7 @@ class Data2Html_Render
         
         return $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $lkGrid->getLinkedItems(),
+            $lkGrid->getColumnsSet()->getLinkedItems(),
             array(
                 $lkGrid->getAttribute('title'),
                 'url' => $this->getControllerUrl() .

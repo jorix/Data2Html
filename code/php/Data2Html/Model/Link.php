@@ -70,6 +70,13 @@ class Data2Html_Model_Link
         return $this->soutceTables;
     }
     
+    public function getKeys() {
+        if (!$this->linkDone) {
+            $this->linkKeys();
+        } 
+        return $this->soutceTables['T0']['keys'];
+    }
+    
     public function add($groupName, $fromItems)
     {
         if ($this->linkDone) {

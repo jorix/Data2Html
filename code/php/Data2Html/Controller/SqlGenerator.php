@@ -37,6 +37,12 @@ class Data2Html_Controller_SqlGenerator
         }
     }
         
+    public function addFilterByKeys($keysReq = null)
+    {
+        if ($keysReq) {
+            $this->result['where'] = $this->getWhereByKeys($keysReq);
+        }
+    }    
     public function addSort($sortReq = null)
     {
         if ($sortReq === 'undefined') {
@@ -97,6 +103,43 @@ class Data2Html_Controller_SqlGenerator
             }
         }
         return $from;
+    }
+    
+    protected function getWhereByKeys($request)
+    {   
+        if (!$request) {
+            return '';
+        }
+        if (!is_array($request)) {
+            $request = array($request);
+        }
+        $keys = $this->linkedSet->getLinkedKeys();
+        if (count($request) !== count($keys)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getWhereByKeys(): Requested keys not match number of keys.",
+                array(
+                    'keys' => $keys,
+                    'request' => $request
+                )
+            );
+        }
+        $lkColumns = $this->linkedSet->getLinkedItems();
+        $baseKeys = array_keys($keys);
+        $ix = 0;
+        $c = array();
+        foreach ($request as $v) {
+            $baseName = $baseKeys[$ix];
+            $refDb = $keys[$baseName]['refDb'];
+            if ($v === '' || $v === null) {
+                array_push($c, "{$refDb} is null");
+            } else {
+                $type = $lkColumns[$baseName]['type'];
+                $r = Data2Html_Value::toSql($this->db, $v, $type);
+                array_push($c, "{$refDb} = {$r}");
+            }
+            $ix++;
+        }
+        return implode(' and ', $c);
     }
     
     protected function getWhere($filterItems, $request)

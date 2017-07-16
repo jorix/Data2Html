@@ -219,10 +219,20 @@ abstract class Data2Html_Model_Set
     {
         if (!$this->link) {
             throw new Exception(
-                "{$this->culprit} getLinkedItems(): Before get the link, must create by createLink()."
+                "{$this->culprit} getLinkedItems(): Before get items, must create by createLink()."
             );
         }
         return $this->link->getItems($this->linkName);
+    }
+    
+    public function getLinkedKeys()
+    {
+        if (!$this->link) {
+            throw new Exception(
+                "{$this->culprit} getLinkedKeys(): Before get keys, must create by createLink()."
+            );
+        }
+        return $this->link->getKeys();
     }
     
     // -----------------------

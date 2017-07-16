@@ -103,27 +103,4 @@ class Data2Html_Model_Grid
         }
         return $this->link;
     }
-    
-    
-    public function getLinkedFrom()
-    {
-        if (!$this->link) {
-            throw new Exception(
-                "{$this->culprit} getLinkedFrom(): Before get the link, must create by createLink()."
-            );
-        }
-        return $this->link->getFrom();
-    }
-    
-    public function getLinkedItems()
-    {
-        if (!$this->link) {
-            throw new Exception(
-                "{$this->culprit} getLinkedItems(): Before get the link, must create by createLink()."
-            );
-        }
-        return $this->columns->getLinkedItems();
-    }
-    
-    
 }
