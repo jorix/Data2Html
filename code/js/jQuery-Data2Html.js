@@ -219,9 +219,7 @@
             }
             return $group;
         },
-        loadNext: function(options) {
-            
-        },
+        
         load: function(options) {
             if (!this.settings) {
                 $.error(
