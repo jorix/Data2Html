@@ -107,9 +107,6 @@ class Data2Html_Controller_SqlGenerator
     
     protected function getWhereByKeys($request)
     {   
-        if (!$request) {
-            return '';
-        }
         if (!is_array($request)) {
             $request = array($request);
         }
