@@ -4,33 +4,67 @@
  */
 (function ($) {
 
-    var _initCounter = 0,
-        _waitCounter = 0; // Only one wait
-    
-    var _formDefaults = {
-        url: '',
-        type: 'POST',
-        classChanged: 'd2h_formChanged', // Only set at initial declaration
+    var _initCounter = 0;
+    var _globalDefaults = {
         classWaiting: 'd2h_waiting',
-        
-        afterChange: function() { }
+        classFormChanged: 'd2h_formChanged', // Only set at initial declaration
     };
+    
+    function waitHandler(ele) {
+        this._ele = ele;
+    }
+    waitHandler.prototype = {
+        _ele: null,
+        _classWaiting: '',
+        _waitCounter: 0, // Only one wait
+        hide: function() {
+            if (this._classWaiting) {
+                this._waitCounter--;
+                if (this._waitCounter <=0) {
+                    this._waitCounter = 0;
+                    $('.' + this._classWaiting, this._ele).hide();
+                    this._classWaiting = '';
+                }
+            }   
+        },
+        show: function() { 
+            if (_globalDefaults.classWaiting) {
+                if (this._waitCounter === 0) {
+                    this._classWaiting = _globalDefaults.classWaiting;
+                    $('.' + this._classWaiting, this._ele).show();
+                }
+                this._waitCounter++;
+            }
+        }
+    };
+
+    // FORM handler
     function formHandler(element, container, options) {
         this._formInit(element, container, options);
         $.data(this.formEle, "plugin_data2html", this);
     }
     formHandler.prototype = {
         defaults: {
+            url: '',
+            type: 'POST',
+            
+            beforeSend: function(){ return true; },
+            rowComplete: function(current_row_index, row) {}, //called, after each row
+            complete: function(row_count){}, //called, once loop through data has finished
+                
+            afterChange: function() { }
         },
         formSettings: null,
         formEle: null, // The DOM element
         _parent: null,
+        _wait: null,
         
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
-            this._parent = _parent;
-            var settings = _getElementOptions(formEle, this.defaults, formOptions);
+            this._parent = _parent ? _parent : this;
+            this._wait = new waitHandler(this._parent.getElement());
             
+            var settings = _getElementOptions(formEle, this.defaults, formOptions);
             if (settings.actions) {
                 var _actions = settings.actions;
                 var _fnAction = function() {
@@ -54,9 +88,64 @@
                 }
             }
             formEle.change(function() {
-                formEle.addClass(_parent._classFormChanged);
+                formEle.addClass(_globalDefaults.classFormChanged);
             });
             this.formSettings = settings;
+        },
+        
+        getElement: function() {
+            return this.formEle;
+        },
+        
+        load: function(options) {
+            if (!this.settings) {
+                $.error(
+                    "Data2Html: Can not call 'load' without bat initialization"
+                );
+                return;
+            }
+            var _settings = $.extend({}, this.settings, options);
+            
+            var url = _settings.url;
+            var _this = this,
+                _formEle = this.formEle;
+            $.ajax({
+                type: _settings.type,
+                url: url,		
+                dataType: "json", 
+                beforeSend: function(){
+                    var response = _settings.beforeSend.call(_this, 0);
+                    if (response !== false) {
+                        _this._wait.show();
+                    }
+                    return response;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                XMLHttpRequest.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            XMLHttpRequest.responseText
+                        );
+                    }
+                },
+                success: function(jsonData){
+                    _this._dataTypes = jsonData.dataTypes;
+                    _this._rows = _readRows(jsonData);
+                    _this._showRows();
+                    _settings.complete.call(_this);
+                },
+                complete: function(msg){
+                    _this._wait.hide();
+                    $("*", _formEle).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
         }
     };
     
@@ -69,8 +158,6 @@
             url: '',
             type: 'GET',
             pageSize: 0, //default results per page
-            classFormChanged: 'd2h_formChanged', // Only set at initial declaration
-            classWaiting: 'd2h_waiting',
             
             repeat: '.d2h_repeat',
             filter: '',
@@ -84,11 +171,10 @@
         settings: null,
         groups: null,
         gridEle: null, // The DOM element
+        _wait: null,
         
         _rows: null, //the data once loaded/received
         _dataTypes: null,
-        
-        _classFormChanged: '',
         
         _repeatHtml: '',       // template HTML string
         _repeatStart: 0,
@@ -98,7 +184,7 @@
         // The constructor
         _init: function(gridEle, options) {
             this.gridEle = gridEle;
-            this.groups = {};
+            this._wait = new waitHandler(gridEle);
             
             // settings
             var settings = _getElementOptions(gridEle, this.defaults, options);
@@ -111,12 +197,12 @@
             }
 
             // Set internal selectors
+            this.groups = {};
             _initCounter++;
             var iClassRepeat = 'i_d2h_repeat_' + _initCounter,
                 iClassRepeatParent = iClassRepeat + '_parent';
             this._selectorRepeat = '.' + iClassRepeat;
             this._selectorRepeatParent = '.' + iClassRepeatParent;
-            this._classFormChanged = settings.classFormChanged;
 
             // Check repeat selector
             var $itemRepeat = $(settings.repeat, gridEle);
@@ -220,6 +306,10 @@
             return $group;
         },
         
+        getElement: function() {
+            return this.gridEle;
+        },
+        
         load: function(options) {
             if (!this.settings) {
                 $.error(
@@ -252,10 +342,7 @@
                 beforeSend: function(){
                     var response = _settings.beforeSend.call(_this, 0);
                     if (response !== false) {
-                        if (_settings.classWaiting) {
-                            _waitCounter++;
-                            $('.' + _settings.classWaiting, _gridEle).show();
-                        }
+                        _this._wait.show();
                     }
                     return response;
                 },
@@ -275,47 +362,21 @@
                     }
                 },
                 success: function(jsonData){
-                    var dataTypes = jsonData.dataTypes,
-                        rowsCount = 0;
-                    if (jsonData.rowsAsArray) {
-                        var rows = [],
-                            indexCols = {};
-                        for (var i = 0, len = dataTypes.length; i < len; i++) {
-                            indexCols[dataTypes[i]] = i;
-                        }
-                        var rowsAsArray = jsonData.rowsAsArray;
-                        rowsCount = rowsAsArray.length;
-                        for (var i = 0; i < rowsCount; i++) {
-                            var item = rowsAsArray[i];
-                            for (var tagName in indexCols) {
-                                var row = {};
-                                row[tagName] = item[indexCols[tagName]];
-                                var pattern = new RegExp('\{'+tagName+'\}','gi');		
-                                templateStr = templateStr.replace(pattern, value);
-                            }
-                            rows.push(row);
-                        }
-                    } else {
-                        rows = jsonData.rows;
-                    }
+                    _this._dataTypes = jsonData.dataTypes;
                     if (_settings.add) {
-                        Array.prototype.push.apply(_this._rows, rows);
+                        Array.prototype.push.apply(
+                            _this._rows,
+                            _readRows(jsonData)
+                        );
                     } else {
-                        _this._rows = rows;
+                        _this._rows = _readRows(jsonData);
                     }
-                    _this._dataTypes = dataTypes;
                     _this._showRows();
                     _settings.complete.call(_this);
                 },
                 complete: function(msg){
-                    if (_settings.classWaiting) {
-                        _waitCounter--;
-                        if (_waitCounter <=0) {
-                            _waitCounter = 0;
-                            $('.' + _settings.classWaiting, _gridEle).hide();
-                        }
-                    }
-                    $("*", _gridEle).removeClass(_this._classFormChanged);
+                    _this._wait.hide();
+                    $("*", _gridEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
         },
@@ -372,6 +433,30 @@
     /**
      * Utilities
      */
+    function _readRows(jsonData) {
+        if (jsonData.rowsAsArray) {
+            var rows = [],
+                dataTypes = jsonData.dataTypes,
+                indexCols = {};
+            for (var i = 0, len = dataTypes.length; i < len; i++) {
+                indexCols[dataTypes[i]] = i;
+            }
+            var rowsAsArray = jsonData.rowsAsArray,
+                rowsCount = rowsAsArray.length;
+            for (var i = 0; i < rowsCount; i++) {
+                var item = rowsAsArray[i];
+                var row = {};
+                for (var tagName in indexCols) {
+                    row[tagName] = item[indexCols[tagName]];
+                }
+                rows.push(row);
+            }
+            return rows;
+        } else {
+            return jsonData.rows;
+        }
+    };
+    
     function _getElementPath($elem) {
         if ($elem === undefined) {
             return "undefined";
