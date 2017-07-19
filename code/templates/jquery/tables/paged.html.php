@@ -1,7 +1,7 @@
 <?php die("It's uncooked!"); ?>
 <div class="row"
     id="$${id}"
-    data-d2h="
+    data-d2h-grid="
         url:'$${url}',
         repeat:'table tbody tr',
         filter:['#$${id}_filter', {

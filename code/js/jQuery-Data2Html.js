@@ -2,6 +2,8 @@
  * TODO: right now, the same page can only have one pagination. Should be that pagination with all associated fields is instance specific!!!
  * 
  */
+jQuery.ajaxSetup({ cache: false });
+
 (function ($) {
 
     var _initCounter = 0;
@@ -10,11 +12,9 @@
         classFormChanged: 'd2h_formChanged', // Only set at initial declaration
     };
     
-    function waitHandler(ele) {
-        this._ele = ele;
+    function waitHandler() {
     }
     waitHandler.prototype = {
-        _ele: null,
         _classWaiting: '',
         _waitCounter: 0, // Only one wait
         hide: function() {
@@ -22,7 +22,7 @@
                 this._waitCounter--;
                 if (this._waitCounter <=0) {
                     this._waitCounter = 0;
-                    $('.' + this._classWaiting, this._ele).hide();
+                    $('.' + this._classWaiting).hide();
                     this._classWaiting = '';
                 }
             }   
@@ -31,12 +31,13 @@
             if (_globalDefaults.classWaiting) {
                 if (this._waitCounter === 0) {
                     this._classWaiting = _globalDefaults.classWaiting;
-                    $('.' + this._classWaiting, this._ele).show();
+                    $('.' + this._classWaiting).show();
                 }
                 this._waitCounter++;
             }
         }
     };
+    var _wait = new waitHandler();
 
     // FORM handler
     function formHandler(element, container, options) {
@@ -57,14 +58,18 @@
         formSettings: null,
         formEle: null, // The DOM element
         _parent: null,
-        _wait: null,
         
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
             this._parent = _parent ? _parent : this;
-            this._wait = new waitHandler(this._parent.getElement());
             
-            var settings = _getElementOptions(formEle, this.defaults, formOptions);
+            var $formEle = $(formEle);
+            var settings = _getElementOptions(
+                formEle,
+                'data-d2h-form',
+                this.defaults,
+                formOptions
+            );
             if (settings.actions) {
                 var _actions = settings.actions;
                 var _fnAction = function() {
@@ -87,24 +92,20 @@
                     _fnAction.call(formEle);
                 }
             }
-            formEle.change(function() {
-                formEle.addClass(_globalDefaults.classFormChanged);
+            $formEle.change(function() {
+                $formEle.addClass(_globalDefaults.classFormChanged);
             });
             this.formSettings = settings;
         },
         
-        getElement: function() {
-            return this.formEle;
-        },
-        
         load: function(options) {
-            if (!this.settings) {
+            if (!this.formSettings) {
                 $.error(
                     "Data2Html: Can not call 'load' without bat initialization"
                 );
                 return;
             }
-            var _settings = $.extend({}, this.settings, options);
+            var _settings = $.extend({}, this.formSettings, options);
             
             var url = _settings.url;
             var _this = this,
@@ -116,7 +117,7 @@
                 beforeSend: function(){
                     var response = _settings.beforeSend.call(_this, 0);
                     if (response !== false) {
-                        _this._wait.show();
+                        _wait.show();
                     }
                     return response;
                 },
@@ -138,14 +139,29 @@
                 success: function(jsonData){
                     _this._dataTypes = jsonData.dataTypes;
                     _this._rows = _readRows(jsonData);
-                    _this._showRows();
+                    _this._showData();
                     _settings.complete.call(_this);
                 },
                 complete: function(msg){
-                    _this._wait.hide();
+                    _wait.hide();
                     $("*", _formEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
+        },
+        
+        _showData: function () {
+            //this._clearHtml();
+           
+            var rows = this._rows,
+                rowsCount = rows.length;
+            // loop rows
+            for (var i = 0; i < rowsCount; i++){
+                var row = rows[i];
+                for (tagName in row) {
+                    $('[name=' + tagName + ']', this.formEle).val(row[tagName]);
+                }
+                break;
+            }
         }
     };
     
@@ -184,10 +200,14 @@
         // The constructor
         _init: function(gridEle, options) {
             this.gridEle = gridEle;
-            this._wait = new waitHandler(gridEle);
             
             // settings
-            var settings = _getElementOptions(gridEle, this.defaults, options);
+            var settings = _getElementOptions(
+                gridEle, 
+                'data-d2h-grid',
+                this.defaults,
+                options
+            );
             if (!settings.repeat) {
                 $.error("Data2Html can not initialize a gridHanfler on DOM object '" +
                     _getElementPath(gridEle) +
@@ -303,11 +323,7 @@
                 );
                 return;
             }
-            return $group;
-        },
-        
-        getElement: function() {
-            return this.gridEle;
+            return $group[0];
         },
         
         load: function(options) {
@@ -342,7 +358,7 @@
                 beforeSend: function(){
                     var response = _settings.beforeSend.call(_this, 0);
                     if (response !== false) {
-                        _this._wait.show();
+                        _wait.show();
                     }
                     return response;
                 },
@@ -375,7 +391,7 @@
                     _settings.complete.call(_this);
                 },
                 complete: function(msg){
-                    _this._wait.hide();
+                    _wait.hide();
                     $("*", _gridEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
@@ -475,17 +491,17 @@
         );
         return selectorArr.reverse().join(">");
     };
-    function _getElementOptions($elem, defaultOptions, options) {
+    function _getElementOptions(elem, attName, defaultOptions, options) {
         var optionsEle = null,
-            dataD2h = $($elem).attr('data-d2h');
+            dataD2h = $(elem).attr(attName);
         if (dataD2h) {
             try {
                 var optionsEle = eval('[({' + dataD2h + '})]')[0];
             } catch(e) {
                 $.error(
                     "Can not initialize a data2html handler: " +
-                    "HTML attribute 'data-d2h' have a not valid js syntax on '" + 
-                        _getElementPath(gridEle) + "'" 
+                    "HTML attribute '" + attName + "' have a not valid js syntax on '" + 
+                        _getElementPath(elem) + "'" 
                 );
                 return null;
             }
@@ -493,8 +509,8 @@
         if (!optionsEle && !options) {
             $.error(
                 "Can not initialize a data2html handler: " +
-                "Options or HTML attribute 'data-d2h' are required on '" + 
-                    _getElementPath(gridEle) + "'"
+                "Options or HTML attribute '" + attName + "' are required on '" + 
+                    _getElementPath(elem) + "'"
             );
             return;
         }
@@ -548,7 +564,11 @@
         
         this.each(function() {
             if (!$.data(this, "plugin_data2html") ) {
-                new gridHandler(this, _options);
+                if ($(this).attr('data-d2h-grid')) {
+                    new gridHandler(this, _options);
+                } else if ($(this).attr('data-d2h-form')) {
+                    new formHandler(this, null, _options);
+                }
             }
             if (_method) {
                 var thisObj = $.data(this, "plugin_data2html");

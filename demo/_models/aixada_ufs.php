@@ -61,9 +61,8 @@ class aixada_ufs extends Data2Html_Model {
                 )
             ),
             'forms' => array(
-                'layout' => 'lines',
                 'default' => array(
-                    'columns' => array()
+                   // 'layout' => 'lines',
                 )
             )
         );

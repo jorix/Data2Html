@@ -111,8 +111,9 @@ abstract class Data2Html_Model_Set
         foreach ($defs as $k => $v) {
             $attributeType = $attNamesDx->getString($k);
             if ($attributeType === null) {
-                throw new Exception(
-                    "{$this->culprit}: Attribute \"{$k}\" is not supported."
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: Attribute \"{$k}\" is not supported.",
+                    $defs
                 );
             }
             switch ($attributeType) {

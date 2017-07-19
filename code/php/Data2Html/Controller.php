@@ -69,7 +69,7 @@ class Data2Html_Controller
                     // Make sql
                     $sqlObj = 
                         new Data2Html_Controller_SqlGenerator($db, $lkForm);
-                    $sqlObj->addFilterByKeys($r->getArray('d2h_keys'));
+                    $sqlObj->addFilterByKeys($r->getItem('d2h_keys'));
                     $sql = $sqlObj->getSelect();
                     
                     // Response

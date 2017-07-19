@@ -1,1 +1,1 @@
-$('[data-d2h]').data2html('load');
+$('[data-d2h-grid]').data2html('load');
