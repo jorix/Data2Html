@@ -12,7 +12,7 @@
 
     try {
         $templateObj = new Data2Html_Render_Template(
-            "../../code/templates/angular1/grid_paged.json.php"
+            "../../code/templates/jquery/grid_paged.json.php"
         );
         $templateObj->dump();
     } catch(Exception $e) {
