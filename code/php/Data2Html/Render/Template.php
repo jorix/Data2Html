@@ -17,10 +17,7 @@ class Data2Html_Render_Template
         $pathObj = $this->parsePath($templateName);
         
         $this->templateContents = array();
-        $this->templateTree = $this->loadTemplate(
-            $pathObj['dirname'],
-            $pathObj['basename']
-        );
+        $this->templateTree = $this->loadTemplateTreeFile($templateName);
     }
     
     public function dump($subject = null)
@@ -41,6 +38,14 @@ class Data2Html_Render_Template
         }
         $final['d2hToken_content'] = true;
     }
+
+    protected function loadTemplateTreeFile($fileName)
+    {
+        return $this->loadTemplateTree(
+            $this->setFolderPath(dirname($fileName)),
+            $this->loadArrayFile($fileName)
+        );
+    }
     
     protected function loadTemplateTree($folder, $tree)
     {
@@ -55,36 +60,33 @@ class Data2Html_Render_Template
             switch ($k) {
                 // Declarative words
                 case 'folder':
+                case '_description': // Ignore all: developer descriptions
                     break;
                 case 'prefix':
                     $response[$k] = $v;
-                    break;
-                case '_description': // Ignore all: developer descriptions
                     break; 
-                // Mount the tree
                 case 'definitions':
-                    $response['definitions'] = 
-                        $this->loadDefinitions($folder, $tree['definitions']);
+                    $response[$k] = $this->loadArrayFile($folder . $v);
                     break;
                 case 'template':
-                    $response['template'] = 
-                        $this->loadTemplate($folder, $tree['template']);
-                    $response['template']['d2hToken_template'] = true;
+                    $response[$k] = $this->loadTemplateFile($folder . $v);
+                    $response[$k]['d2hToken_template'] = true;
                     break;
                 case 'templates':
                     $items = array();
-                    foreach($tree['templates'] as $kk => $vv) {
-                        $items[$kk] = $this->loadTemplate($folder, $vv);
+                    foreach($v as $kk => $vv) {
+                        $items[$kk] = $this->loadTemplateFile($folder . $vv);
                         $items[$kk]['d2hToken_template'] = true;
                     }
-                    $response['templates'] = $items;
+                    $response[$k] = $items;
                     break;
+                // Mount the tree
                 case 'include':
-                    $response += $this->loadTemplate($folder, $v);
+                    $response += $this->loadTemplateTreeFile($folder . $v);
                     break;
                 case 'includes':
-                    foreach($tree['includes'] as $vv) {
-                         $response += $this->loadTemplate($folder, $vv);
+                    foreach($v as $vv) {
+                         $response += $this->loadTemplateTreeFile($folder . $vv);
                     }
                     break;
                 default:
@@ -95,25 +97,14 @@ class Data2Html_Render_Template
         return $response;
     }
     
-    protected function setFolderPath($folder)
+    protected function loadArrayFile($fileName)
     {
-        if (strpos('/\\', substr($folder, -1, 1)) === false) {
-            return $folder .= DIRECTORY_SEPARATOR;
-        } else {
-            return $folder;
-        }
-    }
-    
-    protected function loadDefinitions($folder, $definitionsFileName)
-    {
-        $fullFileName = $folder . $definitionsFileName;
-        list($contentKey, $pathObj) = $this->loadContent($fullFileName);
+        list($contentKey, $pathObj) = $this->loadContent($fileName);
         return $this->getContent($contentKey);
     }
     
-    protected function loadTemplate($folder, $templateFileName)
+    protected function loadTemplateFile($fullFileName)
     {
-        $fullFileName = $folder . $templateFileName;
         $folder = $this->setFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->loadContent($fullFileName);
         switch ($pathObj['extension']) {
@@ -139,10 +130,17 @@ class Data2Html_Render_Template
                 return $response;
             case '.js':
                 return array('js' => $contentKey);
-            case '.json':
-                return $this->loadTemplateTree($folder, $this->getContent($contentKey));
             default:
                 throw new Exception("{$this->culprit}: Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported.");
+        }
+    }
+
+    protected function setFolderPath($folder)
+    {
+        if (strpos('/\\', substr($folder, -1, 1)) === false) {
+            return $folder .= DIRECTORY_SEPARATOR;
+        } else {
+            return $folder;
         }
     }
 
