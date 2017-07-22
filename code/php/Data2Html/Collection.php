@@ -58,6 +58,12 @@ class Data2Html_Collection
     }
     public function getItem($itemKey, $default = null)
     {
+        if (!is_array($this->values)) {
+            throw new Data2Html_Exception(
+                "Data2Html_Collection: 'values' must be an array, get '{$itemKey}' is not possible.",
+                $this->values
+            );
+        }
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
             $val = $default;

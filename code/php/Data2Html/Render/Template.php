@@ -7,6 +7,7 @@ class Data2Html_Render_Template
     protected $culprit;
     protected $templateTree;
     protected $templateContents;
+    protected static $renderCount = 0;
     
     public function __construct($templateName)
     {
@@ -106,7 +107,6 @@ class Data2Html_Render_Template
     protected function loadDefinitions($folder, $definitionsFileName)
     {
         $fullFileName = $folder . $definitionsFileName;
-        $folder = $this->setFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->addContent($fullFileName);
         switch ($pathObj['extension']) {
             case '.json':
@@ -175,11 +175,21 @@ class Data2Html_Render_Template
     }
 
     protected function cleanFileName($fileName) {
-        return str_replace(
+        $fileName = str_replace(
             array('\\', '/./'),
             array('/', '/'),
             $fileName
         );
+        $path = explode('/', $fileName);
+        $cleanFile = '';
+        for ($i = 0; $i + 1 < count($path); $i++) {
+            if ($path[$i + 1] === '..') {
+                array_splice($path, $i, 2);
+            } else if ($path[$i + 1] === '.') {
+                array_splice($path, $i + 1, 1);
+            }
+        }
+        return implode('/', $path);
     }
     protected function getContent($key) {
         return $this->templateContents[$key][0];
@@ -209,20 +219,19 @@ class Data2Html_Render_Template
         }
         if ($this->debug) {
             $cleanFileName = $this->cleanFileName($fileName);
+            $rCount = self::$renderCount++;
             switch ($pathObj['extension']) {
                 case '.html':
                     $text = 
-                        "\n<!-- START \"{$cleanFileName}\" [[ -->" .
-                        "\n<!-- ======================================== -->\n" .
+                        "\n<!-- \"{$cleanFileName}\" #{$rCount}# [[ -->" .
                         $text .
-                        "\n<!-- END  \"{$cleanFileName}\" ]] -->\n";
+                        "\n<!-- ]] #{$rCount}# -->\n";
                     break;
                 case '.js':
                     $text = 
-                        "\n// START \"{$cleanFileName}\" [[" .
-                        "\n// ========================================\n" .
+                        "\n// S\"{$cleanFileName}\" #{$rCount}# [[" .
                         $text .
-                        "\n// END  \"{$cleanFileName}\" ]]\n";
+                        "\n// ]] #{$rCount}#\n";
                     break;
             }
         }
@@ -405,6 +414,9 @@ class Data2Html_Render_Template
             $html,
             $all
         );
+        $html = preg_replace("/\r\n\s*\r\n/", "\r\n", $html); // Windows CrLf
+        $html = preg_replace("/\n\s*\n/", "\n", $html); // linux Lf
+        $html = preg_replace("/\r\s*\r/", "\r", $html); // iOs Cr
         return $html;
     }
 
@@ -442,6 +454,9 @@ class Data2Html_Render_Template
             $js,
             $all
         );
+        $js = preg_replace("/\r\n\s*\r\n/", "\r\n", $js); // Windows CrLf
+        $js = preg_replace("/\n\s*\n/", "\n", $js); // linux Lf
+        $js = preg_replace("/\r\s*\r/", "\r", $js); // iOs Cr
         return $js;
     }
     

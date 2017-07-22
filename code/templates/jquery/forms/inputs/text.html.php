@@ -3,5 +3,6 @@
     placeholder="$${description}"
     name="$${name}"
     value="$${default}"
+    data-d2h-default="$${default}"
     $${validations}
 >
