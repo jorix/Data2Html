@@ -41,16 +41,23 @@ class Data2Html_Render_Template
 
     protected function loadTemplateTreeFile($fileName)
     {
+        $treeArray = $this->loadArrayFile($fileName);
+        if (!is_array($treeArray)) {
+             throw new Exception("{$this->culprit}: loadTemplateTreeFile(\"{$fileName}\") Tree must be a array!");
+        }
         return $this->loadTemplateTree(
             $this->setFolderPath(dirname($fileName)),
-            $this->loadArrayFile($fileName)
+           $treeArray
         );
     }
     
     protected function loadTemplateTree($folder, $tree)
     {
         if (!is_array($tree)) {
-             throw new Exception("{$this->culprit}: Tree must be a array!");
+            throw new Data2Html_Exception(
+                "{$this->culprit}: Tree must be a array!",
+                $tree
+            );
         }
         if (array_key_exists('folder', $tree)) {
             $folder = $this->setFolderPath($folder . $tree['folder']);
@@ -65,7 +72,8 @@ class Data2Html_Render_Template
                 case 'prefix':
                     $response[$k] = $v;
                     break; 
-                case 'definitions':
+                case 'startItems':
+                case 'endItems':
                     $response[$k] = $this->loadArrayFile($folder . $v);
                     break;
                 case 'template':
@@ -90,6 +98,12 @@ class Data2Html_Render_Template
                     }
                     break;
                 default:
+                    if (!is_array($v)) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Tree of \"{$k}\"must be a array!",
+                            $tree
+                        );
+                    }
                     $response[$k] = $this->loadTemplateTree($folder, $v);
                     break;
             }
@@ -268,7 +282,7 @@ class Data2Html_Render_Template
     { 
         return array(array(), $this->templateTree);
     }
-    public function getTemplateDefinitions($keys, $templateBranch)
+    public function getTemplateItems($keys, $templateBranch)
     {
         return Data2Html_Value::getItem($templateBranch[1], $keys, array());
     }

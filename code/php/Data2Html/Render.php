@@ -210,9 +210,9 @@ class Data2Html_Render
         if (!$fieldsDs) {
             $fieldsDs = array();
         }
-        $fieldsDs = array_replace_recursive(
-            $fieldsDs,
-            $this->templateObj->getTemplateDefinitions('definitions', $templateBranch)
+        $fieldsDs = array_merge(
+            $this->templateObj->getTemplateItems('startItems', $templateBranch),$fieldsDs,
+            $this->templateObj->getTemplateItems('endItems', $templateBranch)
         );
         if (count($fieldsDs) === 0) {
             return $this->templateObj->emptyRender();
