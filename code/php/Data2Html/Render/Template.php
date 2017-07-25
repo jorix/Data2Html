@@ -193,13 +193,13 @@ class Data2Html_Render_Template
                 switch ($pathObj['extension']) {
                     case '.html':
                         $content = 
-                            "\n<!-- \"{$cleanFileName}\" #{$rCount}# [[ -->" .
+                            "\n<!-- \"{$cleanFileName}\" #{$rCount}# [[ -->\n" .
                             $content .
                             "\n<!-- ]] #{$rCount}# -->\n";
                         break;
                     case '.js':
                         $content = 
-                            "\n// S\"{$cleanFileName}\" #{$rCount}# [[" .
+                            "\n// S\"{$cleanFileName}\" #{$rCount}# [[\n" .
                             $content .
                             "\n// ]] #{$rCount}#\n";
                         break;

@@ -5,7 +5,4 @@
     >
         <div class="form-inline" >$${body}</div>
     </form>
-    <span>
-        Filtered {{filtered.length}} of {{data.length}}
-    </span>
 </div>

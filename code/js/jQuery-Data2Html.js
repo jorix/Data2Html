@@ -70,15 +70,16 @@ jQuery.ajaxSetup({ cache: false });
                 this.defaults,
                 formOptions
             );
+            var _thisForm = this;
             if (settings.actions) {
                 var _actions = settings.actions;
                 var _fnAction = function() {
-                    var $this = $(this),
-                        _onAction = $this.attr('data-d2h-on').split(':');
+                    var $thisEle = $(this),
+                        _onAction = $thisEle.attr('data-d2h-on').split(':');
                     if (_onAction.length === 2) {
-                        $this.on(_onAction[0], function(event) {
+                        $thisEle.on(_onAction[0], function(event) {
                             console.log(_onAction.join('->'));
-                            _actions[_onAction[1]].call(_parent, $this, event);
+                            _actions[_onAction[1]].call(_thisForm._parent, this, event);
                             return false;
                         });
                     }
@@ -88,9 +89,14 @@ jQuery.ajaxSetup({ cache: false });
                     _fnAction.call(this);
                 });
                 // self element
-                if (formEle.attr('data-d2h-on')) {
+                if ($formEle.attr('data-d2h-on')) {
                     _fnAction.call(formEle);
                 }
+            }
+            if (formEle.tagName === 'FORM')  {
+                $formEle.on('submit', function() {
+                    return false;
+                });
             }
             $formEle.change(function() {
                 $formEle.addClass(_globalDefaults.classFormChanged);
@@ -304,17 +310,19 @@ jQuery.ajaxSetup({ cache: false });
             }
             
             // To set up the group element
-            new formHandler(this._selGroup(groupSelector), this, groupOptions);
+            var $group = this._selGroup(groupSelector);
+            new formHandler($group[0], this, groupOptions);
             this.groups[groupName] = groupSelector;
         },
         
         _selGroup: function(groupSelector) {
+            var $group;
             if (groupSelector.substr(0,1) === "#") {
                 $group = $(groupSelector);
             } else {
                 $group = $(groupSelector, this.gridEle);
             }
-            if ($group.length != 1) {
+            if ($group.length !== 1) {
                 $.error(
                     "Data2Html selector '" + groupSelector + 
                     "' of group '" + groupName +
@@ -323,7 +331,7 @@ jQuery.ajaxSetup({ cache: false });
                 );
                 return;
             }
-            return $group[0];
+            return $group;
         },
         
         load: function(options) {
@@ -473,15 +481,15 @@ jQuery.ajaxSetup({ cache: false });
         }
     };
     
-    function _getElementPath($elem) {
-        if ($elem === undefined) {
+    function _getElementPath(elem) {
+        if (elem === undefined) {
             return "undefined";
         }
         var selectorArr = [
-            $elem.tagName.toLowerCase() +
-            ($elem.id ? '#' + $elem.id : '')
+            elem.tagName.toLowerCase() +
+            (elem.id ? '#' + elem.id : '')
         ];
-        $($elem).parents().map(
+        $(elem).parents().map(
             function() {
                 selectorArr.push(
                     this.tagName.toLowerCase() +
