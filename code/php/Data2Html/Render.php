@@ -53,6 +53,7 @@ class Data2Html_Render
                 $lkForm->getLinkedItems(),
                 array(
                     'title' => $lkForm->getAttribute('title'),
+                    'visual' => $lkForm->getVisualItemsJson(),
                     'url' => $this->getControllerUrl() .
                         "model={$this->modelObj->getModelName()}&form={$formName}&"
                 )
@@ -99,15 +100,17 @@ class Data2Html_Render
             );
         }
         
+        $klColumns = $lkGrid->getColumnsSet();
         return $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
-            $lkGrid->getColumnsSet()->getLinkedItems(),
+            $klColumns->getLinkedItems(),
             array(
                 $lkGrid->getAttribute('title'),
                 'url' => $this->getControllerUrl() .
                     "model={$this->modelObj->getModelName()}:{$gridName}&",
                 'filter' => $filterForm,
                 'page' => $pageForm,
+                'visual' => $klColumns->getVisualItemsJson(),
                 'id' => $this->idRender
             )
         );

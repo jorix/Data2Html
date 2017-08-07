@@ -77,6 +77,26 @@ class Data2Html_Model_Link
         return $this->soutceTables['T0']['keys'];
     }
     
+    public function getVisualItems() {
+        $visualItems = array();
+        $words = array('display', 'format', 'size', 'title', 'type', 'validations'); 
+        $lkItems = $this->getItems();
+        foreach ($lkItems as $k => $v) {
+            if (!Data2Html_Value::getItem($v, 'virtual')) {
+                $item = array();
+                $visualItems[$k] = &$item;
+                foreach ($words as $w) {
+                    $vv = Data2Html_Value::getItem($v, $w);
+                    if ($vv) {
+                        $item[$w] = $vv;
+                    }
+                }
+                unset($item);
+            }
+        }
+        return $visualItems;
+    }
+    
     public function add($groupName, $fromItems)
     {
         if ($this->linkDone) {

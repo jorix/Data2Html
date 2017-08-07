@@ -237,7 +237,7 @@ class Data2Html_Controller
         }
         $response = array();
         if ($this->debug) {
-            $response += array(
+            $response['debug'] = array(
                 'sql' => explode("\n", $query),
                 'keys' => $lkSet->getLinkedKeys(),
                 'values' => $values,
@@ -247,9 +247,17 @@ class Data2Html_Controller
         $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'dataTypes' => $resTypes,
-            'rows' => $rows
+            //'dataTypes' => $resTypes,
+            'keys' => array_keys($lkSet->getLinkedKeys())
         );
+        if (true) {
+            $response['rows'] = $rows;
+        } else {
+            $response += array(
+                'dataCols' => array_keys($resTypes),
+                'rowsAsArray' => 'TODO'
+            );
+        }
         return $response;
     }
 

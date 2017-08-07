@@ -4,6 +4,7 @@
     data-d2h-grid="
         url:'$${url}',
         repeat:'table tbody tr',
+        visual: $${visual},
         filter:['#$${id}_filter', {
             actions: {
                 'readPage': function() {this.load();}

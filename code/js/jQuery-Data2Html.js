@@ -57,7 +57,11 @@ jQuery.ajaxSetup({ cache: false });
         },
         formSettings: null,
         formEle: null, // The DOM element
+        
         _parent: null,
+        
+        _rows: null, //the data once loaded/received
+        _visualData: null,
         
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
@@ -111,6 +115,9 @@ jQuery.ajaxSetup({ cache: false });
                 );
                 return;
             }
+            if (!options || !options.keys) {
+                return;
+            }
             var _settings = $.extend({}, this.formSettings, options);
             
             var url = _settings.url;
@@ -118,6 +125,7 @@ jQuery.ajaxSetup({ cache: false });
                 _formEle = this.formEle;
             $.ajax({
                 type: _settings.type,
+                data: {d2h_keys: options.keys},
                 url: url,		
                 dataType: "json", 
                 beforeSend: function(){
@@ -143,21 +151,79 @@ jQuery.ajaxSetup({ cache: false });
                     }
                 },
                 success: function(jsonData){
-                    _this._dataTypes = jsonData.dataTypes;
                     _this._rows = _readRows(jsonData);
                     _this._showData();
                     _settings.complete.call(_this);
                 },
                 complete: function(msg){
                     _wait.hide();
-                    $("*", _formEle).removeClass(_globalDefaults.classFormChanged);
+                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
         },
         
+        save: function(options) {
+            if (!this.formSettings) {
+                $.error(
+                    "Data2Html: Can not call 'save' without bat initialization"
+                );
+                return;
+            }
+            var _settings = $.extend({}, this.formSettings, options);
+            
+            var url = _settings.url;
+            var _this = this,
+                _formEle = this.formEle;
+            var data = {};
+            for (tagName in _this._visualData) {
+                data[tagName] = $('[name=' + tagName + ']', this.formEle).val();
+            }
+            $.ajax({
+                type: 'POST',
+                url: url,		
+                data: JSON.stringify({
+                    d2h_oper: 'save',
+                    d2h_data: data
+                }),
+                dataType: 'json',
+                beforeSend: function(){
+                    var response = _settings.beforeSend.call(_this, 0);
+                    if (response !== false) {
+                        _wait.show();
+                    }
+                    return response;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                XMLHttpRequest.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            XMLHttpRequest.responseText
+                        );
+                    }
+                },
+                success: function(jsonData){
+                    _settings.complete.call(_this);
+                },
+                complete: function(msg){
+                    _wait.hide();
+                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
+        },
+        _clearForm: function () {
+            for (tagName in row) {
+                $('[name=' + tagName + ']', this.formEle).val(row[tagName]);
+            }
+        },
         _showData: function () {
-            //this._clearHtml();
-           
+            //this._clearForm();
             var rows = this._rows,
                 rowsCount = rows.length;
             // loop rows
@@ -193,10 +259,9 @@ jQuery.ajaxSetup({ cache: false });
         settings: null,
         groups: null,
         gridEle: null, // The DOM element
-        _wait: null,
         
         _rows: null, //the data once loaded/received
-        _dataTypes: null,
+        _visualData: null,
         
         _repeatHtml: '',       // template HTML string
         _repeatStart: 0,
@@ -386,7 +451,6 @@ jQuery.ajaxSetup({ cache: false });
                     }
                 },
                 success: function(jsonData){
-                    _this._dataTypes = jsonData.dataTypes;
                     if (_settings.add) {
                         Array.prototype.push.apply(
                             _this._rows,
@@ -460,10 +524,10 @@ jQuery.ajaxSetup({ cache: false });
     function _readRows(jsonData) {
         if (jsonData.rowsAsArray) {
             var rows = [],
-                dataTypes = jsonData.dataTypes,
+                dataCols = jsonData.dataCols, // TODO
                 indexCols = {};
-            for (var i = 0, len = dataTypes.length; i < len; i++) {
-                indexCols[dataTypes[i]] = i;
+            for (var i = 0, len = dataCols.length; i < len; i++) {
+                indexCols[dataCols[i]] = i;
             }
             var rowsAsArray = jsonData.rowsAsArray,
                 rowsCount = rowsAsArray.length;
