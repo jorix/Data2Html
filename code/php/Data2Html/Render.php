@@ -132,13 +132,13 @@ class Data2Html_Render
         $thead = array();
         $tbody = array();
         $renderCount = 0;
-        $dx = new Data2Html_Collection();
+        $vDx = new Data2Html_Collection();
         foreach ($columns as $k => $v) {
-            $dx->set($v);
-            if ($dx->getBoolean('virtual')) {
+            $vDx->set($v);
+            if ($vDx->getBoolean('virtual')) {
                 continue;
             }
-            if ($display = $dx->getArray('display')) {
+            if ($display = $vDx->getArray('display')) {
                 if (array_search('none', $display) !== false) {
                     continue;
                 }
@@ -146,8 +146,8 @@ class Data2Html_Render
             
             ++$renderCount;
             // head
-            $name = $dx->getString('name', $k);
-            $label = $dx->getString('title', $name);
+            $name = $vDx->getString('name', $k);
+            $label = $vDx->getString('title', $name);
             $this->templateObj->concatContents(
                 $thead,
                 $this->templateObj->renderTemplateItem(
@@ -160,7 +160,7 @@ class Data2Html_Render
                 )
             );
             // body
-            $type = $dx->getString('type');
+            $type = $vDx->getString('type');
             $class = '';
             $ngClass = '';
             switch ($type) {
@@ -169,7 +169,7 @@ class Data2Html_Render
                 case 'currency':
                     $class .= 'text-right';
             }
-            if ($visual = $dx->getString('visualClass')) {
+            if ($visual = $vDx->getString('visualClass')) {
                 if (strpos($visual, ':') !== false) {
                     $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
                 } else {
@@ -177,7 +177,7 @@ class Data2Html_Render
                 }
             }
             $formatItem = '';
-            if ($type && $format = $dx->getString('format')) {
+            if ($type && $format = $vDx->getString('format')) {
                 $formatItem = " | {$type}:'{$format}'";
             } elseif ($type === 'currency') {
                 $formatItem = " | {$type}";
@@ -214,7 +214,8 @@ class Data2Html_Render
             $fieldsDs = array();
         }
         $fieldsDs = array_merge(
-            $this->templateObj->getTemplateItems('startItems', $templateBranch),$fieldsDs,
+            $this->templateObj->getTemplateItems('startItems', $templateBranch),
+            $fieldsDs,
             $this->templateObj->getTemplateItems('endItems', $templateBranch)
         );
         if (count($fieldsDs) === 0) {
@@ -236,6 +237,9 @@ class Data2Html_Render
         $fieldPrefix = $this->templateObj->getTemplateItem('prefix', $templateBranch, '');
         foreach ($fieldsDs as $k => $v) {            
             $vDx = new Data2Html_Collection($v);
+            if ($vDx->getBoolean('virtual')) {
+                continue;
+            }
             $input = $vDx->getString('input', 'text');
             $url = $vDx->getString('url', '');
             $validations = $vDx->getArray('validations', array());

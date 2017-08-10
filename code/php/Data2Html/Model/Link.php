@@ -45,7 +45,7 @@ class Data2Html_Model_Link
         if (!$subject) {
             $subject = array(
                 'from' => $this->getFrom(),
-               // 'refItems' => $this->refItems,
+                'refItems' => $this->refItems,
               //  'links' => $this->links,
                 'items' => $this->items,
             );
@@ -107,9 +107,27 @@ class Data2Html_Model_Link
         }
         $tableAlias = $this->links['T0']['alias'];
         $baseItems = $this->links['T0']['base'];
-        $this->items[$groupName] = array();
+        
+        $items = array();
+        $this->items[$groupName] = &$items;
         foreach ($fromItems as $key => $item) {
-            $item['tableAlias'] = $tableAlias;
+            $refItem = $this->getRefByItem($groupName, $tableAlias, $item);
+            if (!$refItem) {
+                $item['tableAlias'] = $tableAlias;
+            } else {
+                if(array_key_exists('virtual', $items[$refItem])) {
+                    $item = $items[$refItem];
+                    unset($item['virtual']);
+                    $baseName = null;
+                    if (array_key_exists('base', $item)) {
+                        $baseName = $item['base'];
+                    } elseif (array_key_exists('db', $item)) {
+                        $baseName = $item['db'];
+                    }
+                    unset($this->refItems[$groupName][$tableAlias][$baseName]);
+                    unset($items[$refItem]);
+                }
+            }
             $this->addLinkedItem($groupName, $key, $item);
         }
     }
@@ -141,6 +159,16 @@ class Data2Html_Model_Link
         }
         unset($fromTable);
         $this->linkDone = true;
+    }
+    
+    protected function getRefByItem($groupName, $tableAlias, $item) {
+        $baseName = null;
+        if (array_key_exists('base', $item)) {
+            $baseName = $item['base'];
+        } elseif (array_key_exists('db', $item)) {
+            $baseName = $item['db'];
+        }
+        return $this->getRef($groupName, $tableAlias, $baseName);
     }
     
     protected function getRef($groupName, $tableAlias, $baseName) {
@@ -286,7 +314,9 @@ class Data2Html_Model_Link
                         }
                     }
                 }
-                if (array_key_exists('linkedTo', $sortBy) && count($sortBy['linkedTo']) === 0) {
+                if (array_key_exists('linkedTo', $sortBy) &&
+                    count($sortBy['linkedTo']) === 0
+                ) {
                     unset($sortBy['linkedTo']);
                 }
                 $ref = $v['ref'];

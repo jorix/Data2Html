@@ -75,6 +75,10 @@ jQuery.ajaxSetup({ cache: false });
                 formOptions
             );
             var _thisForm = this;
+            if (settings.visual) {
+                this._visualData = settings.visual;
+                delete settings.visual;
+            }
             if (settings.actions) {
                 var _actions = settings.actions;
                 var _fnAction = function() {
@@ -217,13 +221,19 @@ jQuery.ajaxSetup({ cache: false });
                 }
             });
         },
-        _clearForm: function () {
-            for (tagName in row) {
-                $('[name=' + tagName + ']', this.formEle).val(row[tagName]);
+        clear: function () {
+            var visualData = this._visualData;
+            for (tagName in visualData) {
+                var val = "",
+                    visualEle = visualData[tagName];
+                if (visualEle.default) {
+                    val = visualEle.default;
+                };
+                $('[name=' + tagName + ']', this.formEle).val(val);
             }
         },
         _showData: function () {
-            //this._clearForm();
+            this.clear();
             var rows = this._rows,
                 rowsCount = rows.length;
             // loop rows

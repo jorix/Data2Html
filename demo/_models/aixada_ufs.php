@@ -17,8 +17,8 @@ class aixada_ufs extends Data2Html_Model {
                 'uf_name'   => array('value' => '$${name}#$${id}', 'sortBy' => 'name'),
                 'mentor_name_val'   => '=$${mentor_uf[uf_name]}',                  
                 'active'    => array('boolean', 'required', 'default' => true),
-                'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_uf' => array('link' => 'aixada_ufs:list'),
+                'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_name' =>  array(
                     'title' => 'UF mentora',
                     'base'=>'mentor_uf[uf_name]'

@@ -2,7 +2,7 @@
 /**
  * Nomenclature
  *  * Variable name suffixes:
- *      * ..Dx: Definitions as a `Data2Html_Collection`.
+ *      * ..vDx: Definitions as a `Data2Html_Collection`.
  *      * ..Ds: Definitions as a array.
  */
  
