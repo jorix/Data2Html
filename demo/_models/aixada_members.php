@@ -40,7 +40,7 @@ aixada_member (
                 'active'    => array('integer', 'required', 'default' => 1)
             ),
             'grids' => array(
-                'default' => array(
+                'main' => array(
                     'columns' => array('id', 'name', 'active'),
                     'filter' => array(
                         'layout' => 'inline',

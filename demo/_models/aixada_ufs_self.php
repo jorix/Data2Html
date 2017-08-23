@@ -29,7 +29,7 @@ class aixada_ufs_self extends Data2Html_Model {
                         'fields' => array('name' => 'EQ')
                     )
                 ),
-                'default' => array(
+                'main' => array(
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array('name' => 'LK')

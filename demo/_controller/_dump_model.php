@@ -11,31 +11,18 @@
         Data2Html_Autoload::start('../_config');
     
         try {
-            $names = Data2Html_Handler::parseRequest($_REQUEST);
-            $gridName = $names['grid'];
-            $model = Data2Html_Handler::getModel($names['model']);
+            $payerNames = Data2Html_Handler::parseRequest($_REQUEST);
+            $model = Data2Html_Handler::getModel($payerNames['model']);
+            if (array_key_exists('form', $payerNames)) {
+                $lkObj = $model->getForm($payerNames['form']);
+            } else {
+                $lkObj = $model->getGrid($payerNames['grid']);
+            }
+            $lkObj->createLink()->dump();
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';
             die();
-        }
-        try {
-            $grid = $model->getGrid($gridName);
-            $grid->createLink()->dump();
-           // $grid->dump();
-            
-
-            // echo "<h2>getGridsDs():</h2>\n<pre>";
-            // //echo Data2Html_Utils::toPhp($model->getGrid($gridName));
-            // echo "</pre><hr>\n";
-            
-            // echo "<h2>Linked getLinkedGrid('{$gridName}'):</h2>\n<pre>";
-            // echo Data2Html_Utils::toPhp($model->getLinkedGrid($gridName));
-            // echo "</pre><hr>\n";
-
-        } catch(Exception $e) {
-            // Message to developer from exception
-            echo Data2Html_Exception::toHtml($e, true);
         }
     ?>
     </div>

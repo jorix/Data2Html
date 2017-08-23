@@ -118,11 +118,9 @@ class Data2Html_Handler
             $response['grid'] = $request['grid'];
         } else {
             // as {'model' => 'model_name:grid_name'}
-            list($modelName, $gridName) = self::explodeLink($request['model']);
-            if ($gridName) {
-                $response = array('model' => $modelName);
-                $response['grid'] = $gridName;
-            }
+            $elements = explode(':', $request['model']);
+            $response = array('model' => $elements[0]);
+            $response['grid'] = count($elements) > 1 ? $elements[1] : '';
         }
         return $response;
         
@@ -137,14 +135,5 @@ class Data2Html_Handler
             return null;
         }
         return self::parseRequest($reqArr);
-    }
-    protected static function explodeLink($modelLink)
-    {
-        $modelElements = explode(':', $modelLink);
-        $gridName = 
-            count($modelElements) > 1 ?
-            $modelElements[1] :
-            'default';
-        return array($modelElements[0], $gridName);
     }
 }

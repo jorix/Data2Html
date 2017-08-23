@@ -52,7 +52,7 @@ class aixada_ufs extends Data2Html_Model {
                         'fields' => array('active' => 'EQ')
                     )
                 ),
-                'default' => array(
+                'main' => array(
                    // 'layout' => 'grid_man',
                     'sort' => 'name', 
                     'filter' => array(
@@ -68,7 +68,7 @@ class aixada_ufs extends Data2Html_Model {
                 )
             ),
             'forms' => array(
-                'default' => array(
+                'main' => array(
                    // 'layout' => 'lines',
                 )
             )

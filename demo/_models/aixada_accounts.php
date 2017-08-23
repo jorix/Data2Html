@@ -31,7 +31,7 @@ class aixada_accounts extends Data2Html_Model {
                 )
             ),
             'grids' => array(
-                'default' => array(
+                'main' => array(
                     'sort' => 'account_id',
                     'layouts' => array('sorted', 'default'),
                     'columns' => array(

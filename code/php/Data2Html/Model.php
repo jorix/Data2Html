@@ -48,37 +48,6 @@ abstract class Data2Html_Model
         return $this->modelName;
     }
     
-    public function getBase()
-    {
-        return $this->base;
-    }
-    
-    public function getGrid($gridName = '')
-    {
-        if (!$gridName) {
-            $gridName = 'default';
-        }
-        if (!array_key_exists($gridName, $this->grids)) {
-            if (!array_key_exists('grids', $this->definitions)) {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: The \"grids\" key not exist on definitions.",
-                    $this->definitions
-                );
-            }
-            $gridsDf = $this->definitions['grids'];
-            if (!array_key_exists($gridName, $gridsDf)) {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: The grid \"{$gridName}\" not exist on grids definitions.",
-                    $this->definitions
-                );
-            }
-            $this->grids[$gridName] = new Data2Html_Model_Grid(
-                    $this, $gridName, $gridsDf[$gridName], $this->base
-            );
-        }    
-        return $this->grids[$gridName];
-    }
-    
     public function getTableName()
     {
         return $this->base->getAttribute('table');
@@ -89,32 +58,73 @@ abstract class Data2Html_Model
         return $this->base->getAttribute('title', $this->getTableName());
     }
     
+    public function getBase()
+    {
+        return $this->base;
+    }
+    
+    public function getGrid($gridName = '')
+    {
+        if (!$gridName) {
+            $gridName = 'main';
+        }
+        if (!array_key_exists($gridName, $this->grids)) {
+            $this->grids[$gridName] = 
+                new Data2Html_Model_Grid(
+                    $this,
+                    $gridName,
+                    $this->getSetDefs($gridName, 'grids'),
+                    $this->base
+                );
+        }    
+        return $this->grids[$gridName];
+    }
+    
     public function getForm($formName = '')
     {
         if (!$formName) {
-            $formName = 'default';
+            $formName = 'main';
         }
         if (!array_key_exists($formName, $this->forms)) {
-            if (!array_key_exists('forms', $this->definitions)) {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: The \"forms\" key not exist on definitions.",
-                    $this->definitions
+            $this->forms[$formName] =
+                new Data2Html_Model_Set_FormEdit(
+                    $this,
+                    $formName, 
+                    $this->getSetDefs($formName, 'forms'),
+                    $this->base
                 );
-            }
-            $gridsDf = $this->definitions['forms'];
-            if (!array_key_exists($formName, $gridsDf)) {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: The form \"{$formName}\" not exist on forms definitions.",
-                    $this->definitions
-                );
-            }
-            $this->forms[$formName] = new Data2Html_Model_Set_FormEdit(
-                    $this, $formName, $gridsDf[$formName], $this->base
-            );
         }    
         return $this->forms[$formName];
     }
     
+    protected function getSetDefs($name, $setName)
+    {
+        if (array_key_exists($setName, $this->definitions)) {
+            $df = $this->definitions[$setName];
+        } else {
+            $df = array();
+        }
+        if (array_key_exists($name, $df)) {
+            $objDf = $df[$name];
+        } else {
+            if ($name === 'main') {
+                $objDf = array();
+            } else {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: \"{$name}\" not exist on \"{$setName}\" definitions.",
+                    $this->definitions
+                );
+            }
+        }
+        if ($objDf === null) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: \"{$name}\" not be used as \"{$setName}\" definition, is null.",
+                $this->definitions
+            );
+        }
+        return $objDf;
+    }
+
     // ========================
     // Events
     // ========================

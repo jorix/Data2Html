@@ -27,9 +27,6 @@ create table aixada_payment_method (
                     'length' => 255,
                     'required'
                 )
-            ),
-            'grids' => array(
-                'default' => array()
             )
         );
 /*

@@ -28,7 +28,7 @@ class aixada_products extends Data2Html_Model {
                 'ts'                    => array('date', 'format' => 'dd-MM-yy HH:mm')// 'medium'
             ),
             'grids' => array(
-                'default' => array(
+                'main' => array(
                     'columns' => array(
                         'id',
                         'provider_id',
