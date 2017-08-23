@@ -14,14 +14,11 @@ class aixada_ufs extends Data2Html_Model {
                         'length'=> 255,
                         'required'
                 ),
-                'uf_name'   => array(
-                    'title' => 'Nom UF',
-                    'value' => '$${name}#$${id}',
-                    'sortBy' => 'name'
-                ),
+                'uf_name'   => array('value' => '$${name}#$${id}', 'sortBy' => 'name'),
+                'mentor_name_val'   => '=$${mentor_uf[uf_name]}',                  
                 'active'    => array('boolean', 'required', 'default' => true),
-                'created'   => array('date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'),
                 'mentor_uf' => array('link' => 'aixada_ufs:list'),
+                'created'   => array('date', 'format' => 'dd-MM-yyyy'),
                 'mentor_name' =>  array(
                     'title' => 'UF mentora',
                     'base'=>'mentor_uf[uf_name]'
@@ -29,7 +26,14 @@ class aixada_ufs extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'columns' => array('id', 'uf_name', 'active'),
+                    'columns' => array('value' =>'id', 'text' => '=$${name}#$${id}', 'active'),
+                    'filter' => array(
+                        'fieldLayouts' => 'inline',
+                        'fields' => array('active' => 'EQ')
+                    )
+                ),
+                'only_name' => array(
+                    'columns' => array('id', 'name'),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array('active' => 'EQ')
@@ -39,8 +43,9 @@ class aixada_ufs extends Data2Html_Model {
                     'sort' => 'name',                    
                     'columns' => array(
                         'value' => array('key', 'db' => '1000 + id'),
-                        'uf_name',
-                        'active'
+                        'text' => '=$${name}#$${value}',
+                        'active',
+                        'mentor_uf'
                     ),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
@@ -53,7 +58,11 @@ class aixada_ufs extends Data2Html_Model {
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array(
-                            '%name', '=active'
+                            //'active' => 'EQ',
+                            //'mentor_uf[name]' => 'LK',
+                            'name' => 'LK'
+                            // 'aaaa' => array('db'=>'mentor_uf[name]' ,'check'=> 'LK'),
+                            // '_niste' => array('default'=>1005),
                         )
                     )
                 )

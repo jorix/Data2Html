@@ -511,7 +511,7 @@ jQuery.ajaxSetup({ cache: false });
                 var row = rows[i];
                 var templateStr = this._repeatHtml;
                 for (tagName in row) {
-                    var pattern = new RegExp('\{'+tagName+'\}','gi');		
+                    var pattern = new RegExp('\\$\\{' + tagName + '\\}', 'gi');	
                     templateStr = templateStr.replace(pattern, row[tagName]);
                 }
                 if (lastItem) {
