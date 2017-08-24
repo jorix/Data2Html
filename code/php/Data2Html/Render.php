@@ -125,6 +125,14 @@ class Data2Html_Render
             return $this->templateObj->emptyRender();
         }
         
+        $columns = array_merge(
+            $this->templateObj->getTemplateItems('startItems', $templateTable),
+            $columns,
+            $this->templateObj->getTemplateItems('endItems', $templateTable)
+        );
+        
+        $defaultLayouts = array('sortable', 'default');        
+        
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
         $templateCells =
@@ -148,10 +156,11 @@ class Data2Html_Render
             // head
             $name = $vDx->getString('name', $k);
             $label = $vDx->getString('title', $name);
+            $layouts = $vDx->getArray('layouts', $defaultLayouts);
             $this->templateObj->concatContents(
                 $thead,
                 $this->templateObj->renderTemplateItem(
-                    'sortable',
+                    $layouts[0],
                     $templateHeads,
                     array(
                         'name' => $name,
@@ -185,13 +194,19 @@ class Data2Html_Render
             $this->templateObj->concatContents(
                 $tbody,
                 $this->templateObj->renderTemplateItem(
-                    'default',
+                    $layouts[1],
                     $templateCells,
                     array(
-                        'ngClass' => $ngClass, 'prefix' => 'item.', // angular1
+                        'ngClass' => $ngClass,
+                        'prefix' => 'item.', // angular1
                         'class' => $class,
+                        'format' => $formatItem,
+                        
                         'name' => $k,
-                        'format' => $formatItem
+                        'title' => $vDx->getString('title'),
+                        'icon' => $vDx->getString('icon'),
+                        'action' => $vDx->getString('action'),
+                        'description' => $vDx->getString('description')
                     )
                 )
             );
@@ -253,12 +268,15 @@ class Data2Html_Render
             $fReplaces = array(
                 'id' => $this->createIdRender(),
                 'formId' => $formId,
+                
+                'name' => $k,
                 'title' => $vDx->getString('title'),
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
                 'description' => $vDx->getString('description'),
+                
                 'prefix' => $fieldPrefix,
-                'name' => $k,
+                
                 'default' => $default,
                 'url' => $url,
                 'validations' => implode(' ', $validations)

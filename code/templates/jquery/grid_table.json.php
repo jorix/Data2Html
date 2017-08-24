@@ -6,13 +6,16 @@
         "heads": {
             "folder": "heads/",
             "templates": {
-                "sortable": "sortable.html.php"
+                "sortable": "sortable.html.php",
+                "none": "none.html"
             }
         },
+        "startItems": "crud.buttons.json.php",
         "cells": {
             "folder": "cells/",
             "templates": {
-                "default": "default.html.php"
+                "default": "default.html.php",
+                "button": "button.html.php"
             }
         }
     }

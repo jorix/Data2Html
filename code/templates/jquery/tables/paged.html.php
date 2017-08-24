@@ -28,7 +28,7 @@
                     $${page}
                 </td>
             </tr></tfoot>
-            <tbody><tr>$${tbody}</tr></tbody>
+            <tbody><tr d2h-keys="${keys}">$${tbody}</tr></tbody>
         </table>
     </div>
 </div>

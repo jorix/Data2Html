@@ -53,7 +53,7 @@ class aixada_ufs extends Data2Html_Model {
                     'filter' => array(
                         'fieldLayouts' => 'inline',
                         'fields' => array(
-                            '%name', '=active'
+                            '%name', '=active', '=mentor_uf'
                         )
                     )
                 )
