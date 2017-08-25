@@ -74,32 +74,12 @@ jQuery.ajaxSetup({ cache: false });
                 this.defaults,
                 formOptions
             );
-            var _thisForm = this;
             if (settings.visual) {
                 this._visualData = settings.visual;
                 delete settings.visual;
             }
             if (settings.actions) {
-                var _actions = settings.actions;
-                var _fnAction = function() {
-                    var $thisEle = $(this),
-                        _onAction = $thisEle.attr('data-d2h-on').split(':');
-                    if (_onAction.length === 2) {
-                        $thisEle.on(_onAction[0], function(event) {
-                            console.log(_onAction.join('->'));
-                            _actions[_onAction[1]].call(_thisForm._parent, this, event);
-                            return false;
-                        });
-                    }
-                };
-                // all sub-elements
-                $('[data-d2h-on]', formEle).each(function() {
-                    _fnAction.call(this);
-                });
-                // self element
-                if ($formEle.attr('data-d2h-on')) {
-                    _fnAction.call(formEle);
-                }
+                _listen.apply(this._parent, [formEle, settings.actions]);
             }
             if (formEle.tagName === 'FORM')  {
                 $formEle.on('submit', function() {
@@ -552,6 +532,9 @@ jQuery.ajaxSetup({ cache: false });
                     this._selectorRepeat + ':last',
                     $parentContainer
                 );
+                if (_settings.actions) {
+                    _listen.apply(this, [lastItem, _settings.actions]);
+                }
                 _settings.rowComplete.call(this, i, lastItem);
             }
         }
@@ -560,6 +543,31 @@ jQuery.ajaxSetup({ cache: false });
     /**
      * Utilities
      */
+     // scope of handler
+     function _listen(handlerEle, _actions) {
+        var _thisHandler = this;
+        var _fnAction = function() {
+            var $thisEle = $(this),
+                _onAction = $thisEle.attr('data-d2h-on').split(':');
+            if (_onAction.length === 2) {
+                $thisEle.on(_onAction[0], function(event) {
+                    console.log(_onAction.join('->'));
+                    _actions[_onAction[1]].call(_thisHandler, this, event);
+                    return false;
+                });
+            }
+        };
+        // all sub-elements
+        $('[data-d2h-on]', handlerEle).each(function() {
+            _fnAction.call(this);
+        });
+        // self element
+        if ($(handlerEle).attr('data-d2h-on')) {
+            _fnAction.call(handlerEle);
+        }
+    }
+    
+    // scope none
     function _readRows(jsonData) {
         if (jsonData.rowsAsArray) {
             var rows = [],
@@ -584,6 +592,7 @@ jQuery.ajaxSetup({ cache: false });
         }
     };
     
+    // scope none
     function _getElementPath(elem) {
         if (elem === undefined) {
             return "undefined";

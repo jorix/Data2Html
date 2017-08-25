@@ -5,6 +5,9 @@
         url:'$${url}',
         repeat:'table tbody tr',
         visual: $${visual},
+        actions: {
+            'read': function() {}
+        },
         filter:['#$${id}_filter', {
             actions: {
                 'readPage': function() {this.load();}
