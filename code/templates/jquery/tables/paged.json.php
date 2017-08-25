@@ -1,7 +1,6 @@
 <?php die("It's uncooked!"); ?>
 {
     "table": {
-        "folder": "tables/",
         "template": "paged.html.php",
         "heads": {
             "folder": "heads/",
