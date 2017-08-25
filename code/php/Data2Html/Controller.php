@@ -175,6 +175,7 @@ class Data2Html_Controller
             }
         }
         // Read rs
+        $keyNames = array_keys($lkSet->getLinkedKeys());
         $rows = array();
         $result = $db->queryPage($query, $pageStart, $pageSize);
         while ($dbRow = $db->fetch($result)) {
@@ -233,6 +234,11 @@ class Data2Html_Controller
                     $resRow[$k] = $valueRow[$k];
                 }
             }
+            $dataKeys = array();
+            foreach ($keyNames as $k) {
+                $dataKeys[] = $dbRow[$k];
+            }
+            $resRow['[keys]'] = $dataKeys;
             $rows[] = $resRow;
         }
         $response = array();
@@ -247,8 +253,8 @@ class Data2Html_Controller
         $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            //'dataTypes' => $resTypes,
-            'keys' => array_keys($lkSet->getLinkedKeys())
+            'keys' => $keyNames,
+            'cols' => array_keys($resTypes)
         );
         if (true) {
             $response['rows'] = $rows;

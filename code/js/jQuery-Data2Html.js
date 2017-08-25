@@ -56,13 +56,13 @@ jQuery.ajaxSetup({ cache: false });
             afterChange: function() { }
         },
         formSettings: null,
+        _visualData: null,
         formEle: null, // The DOM element
         
         _parent: null,
         
         _rows: null, //the data once loaded/received
         _keys: null,
-        _visualData: null,
         
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
@@ -158,7 +158,11 @@ jQuery.ajaxSetup({ cache: false });
                 success: function(jsonData){
                     _this._rows = _readRows(jsonData);
                     _this._keys = jsonData.keys;
-                    _this._showData();
+                    if (_this._rows.length > 0) {
+                        _this.showFormData(_this._rows[0]);
+                    } else {
+                        _this.clearForm();
+                    }
                     _settings.complete.call(_this);
                 },
                 complete: function(msg){
@@ -225,7 +229,7 @@ jQuery.ajaxSetup({ cache: false });
                 }
             });
         },
-        clear: function () {
+        clearForm: function() {
             var visualData = this._visualData;
             for (tagName in visualData) {
                 var val = "",
@@ -236,17 +240,11 @@ jQuery.ajaxSetup({ cache: false });
                 $('[name=' + tagName + ']', this.formEle).val(val);
             }
         },
-        _showData: function () {
-            this.clear();
-            var rows = this._rows,
-                rowsCount = rows.length;
-            // loop rows
-            for (var i = 0; i < rowsCount; i++){
-                var row = rows[i];
-                for (tagName in row) {
-                    $('[name=' + tagName + ']', this.formEle).val(row[tagName]);
-                }
-                break;
+        showFormData: function(row) {
+            
+            for (tagName in row) {
+                var val = row[tagName] !== undefined ? row[tagName] : "";
+                $('[name=' + tagName + ']', this.formEle).val(val);
             }
         }
     };
@@ -276,7 +274,7 @@ jQuery.ajaxSetup({ cache: false });
         
         _rows: null, //the data once loaded/received
         _keys: null, 
-        _visualData: null,
+        _cols: null,
         
         _repeatHtml: '',       // template HTML string
         _repeatStart: 0,
@@ -441,6 +439,7 @@ jQuery.ajaxSetup({ cache: false });
                 _gridEle = this.gridEle;
             _this._rows = null;
             _this._keys = null;
+            _this._cols = null;
             $.ajax({
                 type: _settings.type,
                 url: url,		
@@ -477,6 +476,7 @@ jQuery.ajaxSetup({ cache: false });
                         _this._rows = _readRows(jsonData);
                     }
                     _this._keys = jsonData.keys;
+                    _this._cols = jsonData.cols;
                     _this._showRows();
                     _settings.complete.call(_this);
                 },

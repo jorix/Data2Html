@@ -29,22 +29,21 @@ class aixada_ufs extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'columns' => array('id', 'uf_name', 'active'),
+                    'columns' => array('name'),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
-                        'fields' => array('active' => 'EQ')
+                        'fields' => array('=active')
                     )
                 ),
                 'account' => array(
                     'sort' => 'name',                    
                     'columns' => array(
                         'value' => array('key', 'db' => '1000 + id'),
-                        'uf_name',
-                        'active'
+                        'uf_name'
                     ),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
-                        'fields' => array('active' => 'EQ')
+                        'fields' => array('=active')
                     )
                 ),
                 'main' => array(

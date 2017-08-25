@@ -315,6 +315,9 @@ abstract class Data2Html_Model_Set
                 $keys[$k] = array();
             }
         }
+        if (count($keys) === 0) {
+            $keys = $this->baseSet->getKeys();
+        }
         $this->keys = $keys;
     }
     
