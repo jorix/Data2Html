@@ -62,7 +62,6 @@ jQuery.ajaxSetup({ cache: false });
         _parent: null,
         
         _rows: null, //the data once loaded/received
-        _keys: null,
         
         _formInit: function(formEle, _parent, formOptions) {
             this.formEle = formEle;
@@ -157,7 +156,6 @@ jQuery.ajaxSetup({ cache: false });
                 },
                 success: function(jsonData){
                     _this._rows = _readRows(jsonData);
-                    _this._keys = jsonData.keys;
                     if (_this._rows.length > 0) {
                         _this.showFormData(_this._rows[0]);
                     } else {
@@ -189,7 +187,6 @@ jQuery.ajaxSetup({ cache: false });
                 data[tagName] = $('[name=' + tagName + ']', this.formEle).val();
             }
             _this._rows = null;
-            _this._keys = null;
             $.ajax({
                 type: 'POST',
                 url: url,		
@@ -273,7 +270,6 @@ jQuery.ajaxSetup({ cache: false });
         gridEle: null, // The DOM element
         
         _rows: null, //the data once loaded/received
-        _keys: null, 
         _cols: null,
         
         _repeatHtml: '',       // template HTML string
@@ -438,7 +434,6 @@ jQuery.ajaxSetup({ cache: false });
             var _this = this,
                 _gridEle = this.gridEle;
             _this._rows = null;
-            _this._keys = null;
             _this._cols = null;
             $.ajax({
                 type: _settings.type,
@@ -475,7 +470,6 @@ jQuery.ajaxSetup({ cache: false });
                     } else {
                         _this._rows = _readRows(jsonData);
                     }
-                    _this._keys = jsonData.keys;
                     _this._cols = jsonData.cols;
                     _this._showRows();
                     _settings.complete.call(_this);
@@ -533,7 +527,6 @@ jQuery.ajaxSetup({ cache: false });
                 });
             }
             // loop rows
-            var keyNames = this._keys;
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,
                     row = rows[i];
