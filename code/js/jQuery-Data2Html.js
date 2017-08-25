@@ -61,6 +61,7 @@ jQuery.ajaxSetup({ cache: false });
         _parent: null,
         
         _rows: null, //the data once loaded/received
+        _keys: null,
         _visualData: null,
         
         _formInit: function(formEle, _parent, formOptions) {
@@ -156,6 +157,7 @@ jQuery.ajaxSetup({ cache: false });
                 },
                 success: function(jsonData){
                     _this._rows = _readRows(jsonData);
+                    _this._keys = jsonData.keys;
                     _this._showData();
                     _settings.complete.call(_this);
                 },
@@ -182,6 +184,8 @@ jQuery.ajaxSetup({ cache: false });
             for (tagName in _this._visualData) {
                 data[tagName] = $('[name=' + tagName + ']', this.formEle).val();
             }
+            _this._rows = null;
+            _this._keys = null;
             $.ajax({
                 type: 'POST',
                 url: url,		
@@ -271,6 +275,7 @@ jQuery.ajaxSetup({ cache: false });
         gridEle: null, // The DOM element
         
         _rows: null, //the data once loaded/received
+        _keys: null, 
         _visualData: null,
         
         _repeatHtml: '',       // template HTML string
@@ -422,18 +427,20 @@ jQuery.ajaxSetup({ cache: false });
                 pageStart = 1;
             if (this.groups.filter) {
                 url += '&d2h_filter=' + this._selGroup(this.groups.filter).serialize()
-                    .replace('&', '[,]');
+                    .replace(/&/g, '[,]');
             }
             if (this.groups.page) {
                 if (_settings.add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
                 url += '&d2h_page=pageStart=' + pageStart + '[,]' +
-                    this._selGroup(this.groups.page).serialize().replace('&', '[,]');
+                    this._selGroup(this.groups.page).serialize().replace(/&/g, '[,]');
             }
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
             var _this = this,
                 _gridEle = this.gridEle;
+            _this._rows = null;
+            _this._keys = null;
             $.ajax({
                 type: _settings.type,
                 url: url,		
@@ -469,6 +476,7 @@ jQuery.ajaxSetup({ cache: false });
                     } else {
                         _this._rows = _readRows(jsonData);
                     }
+                    _this._keys = jsonData.keys;
                     _this._showRows();
                     _settings.complete.call(_this);
                 },
@@ -492,8 +500,7 @@ jQuery.ajaxSetup({ cache: false });
             this._clearHtml();
            
             var _settings = this.settings,
-                rows = this._rows,
-                rowsCount = rows.length;
+                rows = this._rows;
             
             var $parentContainer = $(this._selectorRepeatParent, this.gridEle),
                 lastItem = null;
@@ -505,19 +512,42 @@ jQuery.ajaxSetup({ cache: false });
                     $parentContainer.children()[this._repeatStart - 1]
                 );
             }
-        
+            var patt = /\$\{(\[keys\]|[\w\d]+|[\w\d]+\s*\|[\s\w\d,;:\(\)\.\|\-+'"]+)\}/g,
+                repl,
+                replaces = [];
+            while (repl = patt.exec(this._repeatHtml)) {
+                var formatIndex = repl[1].indexOf('|'),
+                    name,
+                    format = '';
+                if (formatIndex >= 0) {
+                    name = repl[1].substr(0, formatIndex -1).trim();
+                    format = repl[1].substr(formatIndex +1).trim();
+                } else {
+                    name = repl[1];
+                }
+                replaces.push({
+                    repl: repl[0],
+                    name: name,
+                    format: format
+                });
+            }
             // loop rows
-            for (var i = 0; i < rowsCount; i++){
-                var row = rows[i];
-                var templateStr = this._repeatHtml;
-                for (tagName in row) {
-                    var pattern = new RegExp('\\$\\{' + tagName + '\\}', 'gi');	
-                    templateStr = templateStr.replace(pattern, row[tagName]);
+            var keyNames = this._keys;
+            for (var i = 0, l = rows.length; i < l; i++){
+                var html = this._repeatHtml,
+                    row = rows[i];
+                for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
+                    var replItem = replaces[ii];
+                    if (replItem.name === '[keys]') {
+                        html = html.replace(replItem.repl, row[keyNames[0]]);
+                    } else {
+                        html = html.replace(replItem.repl, row[replItem.name]);
+                    }
                 }
                 if (lastItem) {
-                    lastItem.after(templateStr);
+                    lastItem.after(html);
                 } else {
-                    $parentContainer.prepend(templateStr);
+                    $parentContainer.prepend(html);
                 }
                 lastItem = $(
                     this._selectorRepeat + ':last',

@@ -42,7 +42,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
             array_key_exists('base', $field) &&
             array_key_exists('check', $field)
         ) {
-            $key = $field['base'] . '_' . $field['check'];
+            $key = $field['base'] . '_' . strtolower($field['check']);
         }
         return true;
     }
