@@ -500,6 +500,7 @@ jQuery.ajaxSetup({ cache: false });
             this._clearHtml();
            
             var _settings = this.settings,
+                cols = this._cols;
                 rows = this._rows;
             
             var $parentContainer = $(this._selectorRepeatParent, this.gridEle),
@@ -537,11 +538,16 @@ jQuery.ajaxSetup({ cache: false });
                 var html = this._repeatHtml,
                     row = rows[i];
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
-                    var replItem = replaces[ii];
-                    if (replItem.name === '[keys]') {
-                        html = html.replace(replItem.repl, row[keyNames[0]]);
+                    var replItem = replaces[ii],
+                        iName = replItem.name;
+                    if (iName === '[keys]') {
+                        html = html.replace(replItem.repl, row['[keys]'].join(','));
                     } else {
-                        html = html.replace(replItem.repl, row[replItem.name]);
+                        if ($.isNumeric(iName)) {
+                            html = html.replace(replItem.repl, row[cols[iName]]);
+                        } else {
+                            html = html.replace(replItem.repl, row[iName]);
+                        }
                     }
                 }
                 if (lastItem) {

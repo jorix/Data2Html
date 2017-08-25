@@ -11,6 +11,7 @@ class Data2Html_Model_Link
     protected $linkDone = false;
     protected $items = array();
     protected $refItems = array();
+
     
     public function __construct($fromCulprit, $set)
     {
@@ -43,8 +44,12 @@ class Data2Html_Model_Link
     public function dump($subject = null)
     {
         if (!$subject) {
+            if (!$this->linkDone) {
+                $this->linkKeys();
+            } 
             $subject = array(
                 'from' => $this->getFrom(),
+                'getKeys()' => $this->getKeys(),
                 'refItems' => $this->refItems,
                 'tableSources' => $this->tableSources,
                 'items' => $this->items,
@@ -190,17 +195,21 @@ class Data2Html_Model_Link
         
     protected function linkVirtualItem($debugOrigin, $groupName, $tableAlias, $base, $item) {
         $item['tableAlias'] = $tableAlias;
-        $item['ref_link'] = $tableAlias . '|' . $base;
-        $key = Data2Html_Utils::toCleanName($item['ref_link'], '_');
-        if (array_key_exists($key, $this->items[$groupName])) {
-            return $key;
+        $newRef = $tableAlias . '_' . $base;
+        if (array_key_exists($newRef, $this->items[$groupName])) {
+            return $newRef;
+        } elseif (
+            $tableAlias === 'T0' &&
+            !array_key_exists($base, $this->items[$groupName])
+        ) {
+            $newRef = $base; // remove T0 if not exist as virtual
         }
         $item['virtual'] = true;
         $item['_debugOrigin'] = $debugOrigin;
-        return $this->linkItem($groupName, $key, $item);
+        return $this->linkItem($groupName, $newRef, $item);
     }
         
-    protected function linkItem($groupName, $key, $item) {
+    protected function linkItem($groupName, $newRef, $item) {
         $tableAlias = $item['tableAlias'];
         
         //Check if item already exist
@@ -210,7 +219,8 @@ class Data2Html_Model_Link
         }
         
         // New item
-        $this->items[$groupName][$key] = &$item;
+        $this->items[$groupName][$newRef] = &$item;
+        $this->addRefByItem($groupName, $tableAlias, $item, $newRef);
         
         if (array_key_exists('linkedTo', $item)) {
             $itemBase = Data2Html_Value::getItem($item, 'base');
@@ -252,6 +262,9 @@ class Data2Html_Model_Link
                 );
             }
         }
+        
+        // Add reference
+        
         if (array_key_exists('teplateItems', $item)) {
             foreach ($item['teplateItems'] as $k => &$v) {
                 $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
@@ -271,7 +284,7 @@ class Data2Html_Model_Link
                             'linkItem()-teplateItems-2', $groupName, $lkAlias, $baseName, $lk['base'][$baseName]);
                     } else {
                         throw new Data2Html_Exception(
-                            "{$this->culprit}: Base \"{$baseName}\" not fount (on \"{$key}\").",
+                            "{$this->culprit}: Base \"{$baseName}\" not fount (on \"{$newRef}\").",
                             $item
                         );
                     }
@@ -282,6 +295,8 @@ class Data2Html_Model_Link
             }
             unset($v);
         }
+        
+        // sortBy
         if (array_key_exists('sortBy', $item) && $item['sortBy']) {
             $sortBy = &$item['sortBy'];
             if (array_key_exists('linkedTo', $sortBy)) {
@@ -308,13 +323,13 @@ class Data2Html_Model_Link
                         $form = $this->tableSources[$tableAlias]['from'];
                         $lk = $this->links[$form];
                         if (array_key_exists($baseName, $lk['items'])) {
-                            $v['ref'] = $baseName;
+                            $v['ref'] = $baseName   ;
                         } elseif (array_key_exists($baseName, $lk['base'])) {
                             $v['ref'] = $this->linkVirtualItem(
                                 'linkItem()-sortBy-base', $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
                             throw new Data2Html_Exception(
-                                "{$this->culprit}: Base sortBy \"{$baseName}\" not fount (on \"{$key}\").",
+                                "{$this->culprit}: Base sortBy \"{$baseName}\" not fount (on \"{$newRef}\").",
                                 $item
                             );
                         }
@@ -328,7 +343,7 @@ class Data2Html_Model_Link
                 $ref = $v['ref'];
                 if (!array_key_exists('db', $this->items[$groupName][$ref])) {
                     throw new Data2Html_Exception(
-                        "{$this->culprit}: SortBy base \"{$baseName}\" to ref \"{$ref}\" without db attribute (on \"{$key}\").",
+                        "{$this->culprit}: SortBy base \"{$baseName}\" to ref \"{$ref}\" without db attribute (on \"{$newRef}\").",
                         $item
                     );
                 }
@@ -338,8 +353,7 @@ class Data2Html_Model_Link
             unset($sortBy);
         }
         
-        // reference
-        return $this->addRefByItem($groupName, $tableAlias, $item, $key);
+        return $newRef;
     }
     
     protected function getLinkItemByLinkTo($fromAlias, $v) {
@@ -388,7 +402,6 @@ class Data2Html_Model_Link
             );
         }
         $lkItem['tableAlias'] = $l['alias'];
-        $lkItem['ref_link'] = $l['alias'] . '|' . $baseName;
         return $lkItem;
     }
 

@@ -5,5 +5,5 @@
     data-d2h-grid="url:'$${url}'"
 >
 <option value="">( . . . )</option>
-<option class="d2h_repeat" value="${0}">${1}</option>
+<option class="d2h_repeat" value="${[keys]}">${0}</option>
 </select>

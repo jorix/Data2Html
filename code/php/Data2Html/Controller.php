@@ -253,7 +253,6 @@ class Data2Html_Controller
         $response += array(
             'pageStart' => $pageStart,
             'pageSize' => $pageSize,
-            'keys' => $keyNames,
             'cols' => array_keys($resTypes)
         );
         if (true) {
