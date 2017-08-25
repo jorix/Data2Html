@@ -469,6 +469,10 @@ jQuery.ajaxSetup({ cache: false });
             }
             $(this._selectorRepeat, $parentContainer).remove();
         },
+        
+        getElemKeys: function(elem) {
+            return $(elem).closest('[data-d2h-keys]').attr('data-d2h-keys');
+        },
     
         _showRows: function () {
             this._clearHtml();
@@ -552,7 +556,7 @@ jQuery.ajaxSetup({ cache: false });
             if (_onAction.length === 2) {
                 $thisEle.on(_onAction[0], function(event) {
                     console.log(_onAction.join('->'));
-                    _actions[_onAction[1]].call(_thisHandler, this, event);
+                    _actions[_onAction[1]].apply(_thisHandler, [this, event]);
                     return false;
                 });
             }

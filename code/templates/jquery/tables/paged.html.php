@@ -6,7 +6,10 @@
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
-            'read': function() {}
+            'edit': function(elem) { console.log( this.getElemKeys(elem) );
+            },
+            'copy': function() {},
+            'delete': function() {}
         },
         filter:['#$${id}_filter', {
             actions: {
@@ -31,7 +34,7 @@
                     $${page}
                 </td>
             </tr></tfoot>
-            <tbody><tr d2h-keys="${[keys]}">$${tbody}</tr></tbody>
+            <tbody><tr data-d2h-keys="${[keys]}">$${tbody}</tr></tbody>
         </table>
     </div>
 </div>
