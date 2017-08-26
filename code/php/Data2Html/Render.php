@@ -45,10 +45,9 @@ class Data2Html_Render
             $lkGrid->getAttribute('layout', 'grid'),
             $this->templateObj->getTemplateRoot()
         );
-        
-        $pageId = $this->idRender . '_page';
+        $gridId = $this->idRender . '_grid_' . $gridName;
         $pageForm = $this->renderFormSet(
-            $pageId,
+            $gridId . '_page',
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             null,
             array(
@@ -60,9 +59,8 @@ class Data2Html_Render
         if (!$lkFilter) {
             $filterForm = $this->templateObj->emptyRender();
         } else {
-            $filterId = $this->idRender . '_filter';
             $filterForm = $this->renderFormSet(
-                $filterId,
+                $gridId . '_filter',
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
                 $lkFilter->getLinkedItems(),
                 array(
@@ -82,7 +80,7 @@ class Data2Html_Render
                 'filter' => $filterForm,
                 'page' => $pageForm,
                 'visual' => $klColumns->getVisualItemsJson(),
-                'id' => $this->idRender
+                'id' => $gridId
             )
         );
     }
