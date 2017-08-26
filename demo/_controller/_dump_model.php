@@ -12,7 +12,7 @@
     
         try {
             $payerNames = Data2Html_Handler::parseRequest($_REQUEST);
-            $model = Data2Html_Handler::getModel($payerNames['model']);
+            $model = Data2Html_Handler::createModel($payerNames['model']);
             if (array_key_exists('form', $payerNames)) {
                 $lkObj = $model->getForm($payerNames['form']);
             } else {

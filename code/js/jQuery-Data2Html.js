@@ -218,8 +218,8 @@ jQuery.ajaxSetup({ cache: false });
             }
         },
         showFormData: function(row) {
-            
-            for (tagName in row) {
+            var visualData = this._visualData;
+            for (tagName in visualData) {
                 var val = row[tagName] !== undefined ? row[tagName] : "";
                 $('[name=' + tagName + ']', this.formEle).val(val);
             }
@@ -413,8 +413,10 @@ jQuery.ajaxSetup({ cache: false });
             url += '&d2h_sort=' +  $('.d2h_sort', this).val();
             var _this = this,
                 _gridEle = this.gridEle;
-            _this._rows = null;
-            _this._cols = null;
+            if (!_settings.add) {
+                _this._rows = null;
+                _this._cols = null;
+            }
             $.ajax({
                 type: _settings.type,
                 url: url,		

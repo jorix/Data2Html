@@ -35,12 +35,18 @@ class Data2Html_Handler
     {
         try {
             $payerNames = self::parseRequest($request);
-            $model = self::getModel($payerNames['model']);
-            $render = new Data2Html_Render($template, $model);
-            $resul = $render->render($payerNames);
-            echo 
-                "{$resul['html']}
-                \n<script>{$resul['js']}</script>";
+            
+            $model = self::createModel($payerNames['model']);
+            
+            $render = new Data2Html_Render($template);
+            if (array_key_exists('form', $payerNames)) {
+                $resul = $render->renderForm($model, $payerNames['form']);
+            } elseif (array_key_exists('grid', $payerNames)) {
+                $resul = $render->renderGrid($model, $payerNames['grid']);
+            } else {
+                throw new Exception("no request object.");
+            }
+            echo "{$resul['html']}\n<script>{$resul['js']}</script>";
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -54,7 +60,7 @@ class Data2Html_Handler
         $debug = Data2Html_Config::debug();
         try {
             $payerNames = self::parseRequest($request);
-            $model = self::getModel($payerNames['model']);
+            $model = self::createModel($payerNames['model']);
             $controller = new Data2Html_Controller($model);
             self::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
@@ -76,10 +82,10 @@ class Data2Html_Handler
      * Load and create one model
      * $modelName string||array
      */
-    public static function getModel($modelName)
+    public static function createModel($modelName)
     {
         if (!$modelName) {
-            throw new Exception("Don't use `getModel()` without modelName.");
+            throw new Exception("Don't use `createModel()` without modelName.");
         }
         if (array_key_exists($modelName, self::$modelObjects)) {
             return self::$modelObjects[$modelName];

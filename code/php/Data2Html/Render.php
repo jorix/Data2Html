@@ -3,17 +3,15 @@
 class Data2Html_Render
 {
     public $debug = false;
-    protected $modelObj;
     protected $templateObj;
     protected $idRender;
     private static $idRenderCount = 0;
-    public function __construct($templateName, $modelObj)
+    public function __construct($templateName)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->culprit = "Render for \"{$modelObj->getModelName()}\"";
+        $this->culprit = "Render";
         
         $this->idRender = $this->createIdRender();
-        $this->modelObj = $modelObj;
         $this->templateObj = new Data2Html_Render_Template($templateName);
     }
     
@@ -35,39 +33,12 @@ class Data2Html_Render
     {
         return Data2Html_Config::get('controllerUrl') . '?';
     }
-    public function render($payerNames)
-    {
-        if (isset($payerNames['form'])) {
-            $formName = $payerNames['form'];
-            $lkForm = $this->modelObj->getForm($formName);
-            $lkForm->createLink();
-            
-            $tplForm = $this->templateObj->getTemplateBranch(
-                $lkForm->getAttribute('layout', 'form'),
-                $this->templateObj->getTemplateRoot()
-            );
-            $formId = $this->idRender . '_form_' . $formName;
-            return $this->renderForm(
-                $formId,
-                $this->templateObj->getTemplateBranch('form', $tplForm),
-                $lkForm->getLinkedItems(),
-                array(
-                    'title' => $lkForm->getAttribute('title'),
-                    'visual' => $lkForm->getVisualItemsJson(),
-                    'url' => $this->getControllerUrl() .
-                        "model={$this->modelObj->getModelName()}&form={$formName}&"
-                )
-            );
-        } elseif (isset($payerNames['grid'])) {
-            return $this->renderGrid($payerNames['grid']);
-        } else {
-            throw new Exception("no request object.");
-        }
-    }
 
-    protected function renderGrid($gridName)
+    public function renderGrid($model, $gridName)
     {        
-        $lkGrid = $this->modelObj->getGrid($gridName);
+        
+        $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
+        $lkGrid = $model->getGrid($gridName);
         $lkGrid->createLink();
         
         $tplGrid = $this->templateObj->getTemplateBranch(
@@ -76,7 +47,7 @@ class Data2Html_Render
         );
         
         $pageId = $this->idRender . '_page';
-        $pageForm = $this->renderForm(
+        $pageForm = $this->renderFormSet(
             $pageId,
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             null,
@@ -90,7 +61,7 @@ class Data2Html_Render
             $filterForm = $this->templateObj->emptyRender();
         } else {
             $filterId = $this->idRender . '_filter';
-            $filterForm = $this->renderForm(
+            $filterForm = $this->renderFormSet(
                 $filterId,
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
                 $lkFilter->getLinkedItems(),
@@ -107,7 +78,7 @@ class Data2Html_Render
             array(
                 $lkGrid->getAttribute('title'),
                 'url' => $this->getControllerUrl() .
-                    "model={$this->modelObj->getModelName()}:{$gridName}&",
+                    "model={$model->getModelName()}:{$gridName}&",
                 'filter' => $filterForm,
                 'page' => $pageForm,
                 'visual' => $klColumns->getVisualItemsJson(),
@@ -116,6 +87,29 @@ class Data2Html_Render
         );
     }
     
+    public function renderForm($model, $formName)
+    {
+        $this->culprit = "Render for form: \"{$model->getModelName()}:{$formName}\"";
+        $lkForm = $model->getForm($formName);
+        $lkForm->createLink();
+        
+        $tplForm = $this->templateObj->getTemplateBranch(
+            $lkForm->getAttribute('layout', 'form'),
+            $this->templateObj->getTemplateRoot()
+        );
+        $formId = $this->idRender . '_form_' . $formName;
+        return $this->renderFormSet(
+            $formId,
+            $this->templateObj->getTemplateBranch('form', $tplForm),
+            $lkForm->getLinkedItems(),
+            array(
+                'title' => $lkForm->getAttribute('title'),
+                'visual' => $lkForm->getVisualItemsJson(),
+                'url' => $this->getControllerUrl() .
+                    "model={$model->getModelName()}&form={$formName}&"
+            )
+        );
+    }
     protected function renderTable($templateTable, $columns, $replaces)
     {
         if (!$columns) {
@@ -219,7 +213,7 @@ class Data2Html_Render
         return $this->templateObj->renderTemplate($templateTable, $replaces);
     }
 
-    protected function renderForm(
+    protected function renderFormSet(
         $formId,
         $templateBranch,
         $fieldsDs,
@@ -238,8 +232,6 @@ class Data2Html_Render
         }
 
         $baseUrl = $this->getControllerUrl();
-        //$requestUrl = $baseUrl .
-          //      "model={$this->modelObj->getModelName()}&form={$gridName}&";
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =

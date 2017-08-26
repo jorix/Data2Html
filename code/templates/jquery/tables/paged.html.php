@@ -6,7 +6,9 @@
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
-            'edit': function(elem) { console.log( this.getElemKeys(elem) );
+            'edit': function(elem) { 
+                var a = this.getElemKeys(elem);
+                $('#d2h_1_form_main').data2html('load', {keys:a}).show();
             },
             'copy': function() {},
             'delete': function() {}

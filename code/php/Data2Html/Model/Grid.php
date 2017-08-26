@@ -71,12 +71,7 @@ class Data2Html_Model_Grid
     {
         return $this->columns->getKeys();
     }
-   
-    public function getModel()
-    {
-        return $this->model;
-    }
-    
+
     public function getAttribute($attrName, $default = null)
     {
         return $this->columns->getAttribute($attrName, $default);
