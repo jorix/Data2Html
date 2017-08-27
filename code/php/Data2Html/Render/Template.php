@@ -363,9 +363,9 @@ class Data2Html_Render_Template
                 $finalReplaces[$k] = $v;
             }
         }
-        $resul = array();
+        $result = array();
         if ($html) {
-            $resul['html'] = $this->renderHtml($html, $finalReplaces, false);
+            $result['html'] = $this->renderHtml($html, $finalReplaces, false);
         }
         if (array_key_exists('js', $templateLeaf[1])) {
             $js = $this->renderJs(
@@ -375,10 +375,10 @@ class Data2Html_Render_Template
             ) . $js;
         }
         if ($js) {
-            $resul['js'] = $js;
+            $result['js'] = $js;
         }
-        $resul['d2hToken_content'] = true;
-        return $resul;
+        $result['d2hToken_content'] = true;
+        return $result;
         //==================================
         
         $result = array();

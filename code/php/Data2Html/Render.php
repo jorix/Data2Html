@@ -70,7 +70,8 @@ class Data2Html_Render
         }
         
         $klColumns = $lkGrid->getColumnsSet();
-        return $this->renderTable(
+        
+        $result = $this->renderTable(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $klColumns->getLinkedItems(),
             array(
@@ -83,6 +84,8 @@ class Data2Html_Render
                 'id' => $gridId
             )
         );
+        $result['id'] = $gridId;
+        return $result;
     }
     
     public function renderForm($model, $formName)
@@ -96,7 +99,8 @@ class Data2Html_Render
             $this->templateObj->getTemplateRoot()
         );
         $formId = $this->idRender . '_form_' . $formName;
-        return $this->renderFormSet(
+        
+        $result = $this->renderFormSet(
             $formId,
             $this->templateObj->getTemplateBranch('form', $tplForm),
             $lkForm->getLinkedItems(),
@@ -106,7 +110,9 @@ class Data2Html_Render
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}&form={$formName}&"
             )
-        );
+        );        
+        $result['id'] = $formId;
+        return $result;
     }
     protected function renderTable($templateTable, $columns, $replaces)
     {

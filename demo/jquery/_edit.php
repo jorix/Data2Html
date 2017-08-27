@@ -8,6 +8,7 @@
     <link  href="../../external/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="../../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
     <script src="../../code/js/jQuery-Data2Html.js" ></script>
+    <script src="../../code/js/d2h_switchTo.js" ></script>
     <style>
     .d2h_waiting {
         position: fixed; left: 50%; top: 50%;
@@ -45,15 +46,23 @@
         $render = new Data2Html_Render('../../code/templates/jquery/grid_paged.json.php');
     
     // Grid    
-        $resul = $render->renderGrid($model, 'main');
-        echo "{$resul['html']} \n<script>{$resul['js']}</script>";
+        $result = $render->renderGrid($model, 'main');
+        $idGrid = $result['id'];
+        echo "{$result['html']} \n<script>{$result['js']}</script>";
         
     echo '<hr>';
     // Form edit
-        $resul = $render->renderForm($model, 'main');
-        echo "{$resul['html']} \n<script>{$resul['js']}</script>";
+        $result = $render->renderForm($model, 'main');
+        $idEdit = $result['id'];
+        echo "{$result['html']} \n<script>{$result['js']}</script>";
         
     ?>
+    <script>
+        (function() {
+            var a = new d2h_switchTo('#<?=$idGrid?>');
+            a.add('#<?=$idEdit?>').show('grid');
+        })();
+    </script>
     </div>
     <div class="d2h_waiting"></div>
 </body>

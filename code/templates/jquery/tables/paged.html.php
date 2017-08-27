@@ -8,7 +8,7 @@
         actions: {
             'edit': function(elem) { 
                 var a = this.getElemKeys(elem);
-                $('#d2h_1_form_main').data2html('load', {keys:a}).show();
+                $('#d2h_1_form_main').data2html('load', {keys:a, switchTo:true});
             },
             'copy': function() {},
             'delete': function() {}

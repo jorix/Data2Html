@@ -58,6 +58,8 @@ jQuery.ajaxSetup({ cache: false });
         formSettings: null,
         _visualData: null,
         formEle: null, // The DOM element
+        type: null,
+        switchToObj: null,
         
         _parent: null,
         
@@ -74,6 +76,8 @@ jQuery.ajaxSetup({ cache: false });
                 this.defaults,
                 formOptions
             );
+            this.type = 'edit';
+            
             if (settings.visual) {
                 this._visualData = settings.visual;
                 delete settings.visual;
@@ -91,6 +95,14 @@ jQuery.ajaxSetup({ cache: false });
             });
             this.formSettings = settings;
         },
+                
+        addSwitch: function(switchToObj) {
+            this.switchToObj = switchToObj;
+            return this.type;
+        },
+        switchTo: function(type) {
+            this.switchToObj.show(type);
+        },
         
         load: function(options) {
             if (!this.formSettings) {
@@ -101,6 +113,9 @@ jQuery.ajaxSetup({ cache: false });
             }
             if (!options || !options.keys) {
                 return;
+            }
+            if (options.switchTo) {
+                this.switchTo(this.type);
             }
             var _settings = $.extend({}, this.formSettings, options);
             
@@ -206,7 +221,10 @@ jQuery.ajaxSetup({ cache: false });
                 }
             });
         },
-        clearForm: function() {
+        clearForm: function(options) {
+            if (options && options.switchTo) {
+                this.switchTo(this.type);
+            }
             var visualData = this._visualData;
             for (tagName in visualData) {
                 var val = "",
@@ -248,6 +266,8 @@ jQuery.ajaxSetup({ cache: false });
         settings: null,
         groups: null,
         gridEle: null, // The DOM element
+        type: null,
+        switchToObj: null,
         
         _rows: null, //the data once loaded/received
         _cols: null,
@@ -275,6 +295,7 @@ jQuery.ajaxSetup({ cache: false });
                 );
                 return;
             }
+            this.type = 'grid';
 
             // Set internal selectors
             this.groups = {};
@@ -386,6 +407,14 @@ jQuery.ajaxSetup({ cache: false });
                 return;
             }
             return $group;
+        },
+        
+        addSwitch: function(switchToObj) {
+            this.switchToObj = switchToObj;
+            return this.type;
+        },
+        switchTo: function(type) {
+            this.switchToObj.show(type);
         },
         
         load: function(options) {
@@ -671,7 +700,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             break;
         case 2:
-            if (typeof arguments[0] === "string" && $.isPlainObject(arguments[1])) {
+            if (typeof arguments[0] === "string") {
                 _method = arguments[0];
                 _options = arguments[1];
             } else {
@@ -688,6 +717,7 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         }
         
+        var _response;
         this.each(function() {
             if (!$.data(this, "plugin_data2html") ) {
                 if ($(this).attr('data-d2h-grid')) {
@@ -698,9 +728,13 @@ jQuery.ajaxSetup({ cache: false });
             }
             if (_method) {
                 var thisObj = $.data(this, "plugin_data2html");
-                thisObj[_method].call(thisObj, _options);
+                _response = thisObj[_method].call(thisObj, _options);
             }
         });
-        return this; // chain jQuery functions
+        if (this.length === 1 && _response !== undefined) {
+            return _response; // is a function to retrieve a value.
+        } else {
+            return this; // chain jQuery functions
+        }
     };
 })(jQuery);

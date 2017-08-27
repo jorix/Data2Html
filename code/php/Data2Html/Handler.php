@@ -40,13 +40,13 @@ class Data2Html_Handler
             
             $render = new Data2Html_Render($template);
             if (array_key_exists('form', $payerNames)) {
-                $resul = $render->renderForm($model, $payerNames['form']);
+                $result = $render->renderForm($model, $payerNames['form']);
             } elseif (array_key_exists('grid', $payerNames)) {
-                $resul = $render->renderGrid($model, $payerNames['grid']);
+                $result = $render->renderGrid($model, $payerNames['grid']);
             } else {
                 throw new Exception("no request object.");
             }
-            echo "{$resul['html']}\n<script>{$resul['js']}</script>";
+            echo "{$result['html']}\n<script>{$result['js']}</script>";
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());

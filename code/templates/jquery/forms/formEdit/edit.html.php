@@ -1,12 +1,15 @@
 <?php die("It's uncooked!"); ?>
-<div id="$${id}" class="row" style="display:none"
+<div id="$${id}" class="row"
         data-d2h-form="
             url:    '$${url}',
             type:   'GET',
             actions: {
                 'none': function() { return false; },
                 'readPage': function() {this.load();},
-                'save': function() {this.save();}
+                'save': function() {this.save();},
+                'back': function() {
+                    this.switchTo('grid');
+                }
             },
             visual: $${visual}
         "

@@ -31,5 +31,13 @@ $return = array(
         'title' => '$Save',
         'description' => null,
         'action' => 'save'
+    ),
+    array(
+        'layout' => 'none',
+        'input' => 'button',
+        'icon' => 'arrow-left',
+        'title' => '$Back',
+        'description' => null,
+        'action' => 'back'
     )
 );
