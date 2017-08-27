@@ -14,14 +14,17 @@ d2h_switchTo.prototype = {
     
     show: function(name) {
         var iName,
+        $selected
             sels = this._selectors;
         for (iName in sels) {
             if (iName === name) {
-                $(sels[iName]).show();
+                $selected = $(sels[iName]).show();
             } else {
                 $(sels[iName]).hide();
             }
         }
-        return this;
+        if ($selected) {
+            return $selected.data2html('get');
+        }
     }
 };

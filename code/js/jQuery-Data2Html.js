@@ -101,7 +101,10 @@ jQuery.ajaxSetup({ cache: false });
             return this.type;
         },
         switchTo: function(type) {
-            this.switchToObj.show(type);
+            return this.switchToObj.show(type);
+        },        
+        get: function() {
+            return this;
         },
         
         load: function(options) {
@@ -414,7 +417,10 @@ jQuery.ajaxSetup({ cache: false });
             return this.type;
         },
         switchTo: function(type) {
-            this.switchToObj.show(type);
+            return this.switchToObj.show(type);
+        },
+        get: function() {
+            return this;
         },
         
         load: function(options) {
