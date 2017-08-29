@@ -2,12 +2,18 @@
 class Data2Html_Controller
 {
     protected $model;
+    protected $db;
     protected $debug = false;
     public function __construct($model)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Controler for \"{$model->getModelName()}\"";
         
+        // Data base
+        $dbConfig = Data2Html_Config::getSection('db');
+        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
+        $this->db = new $db_class($dbConfig);
+
         $this->model = $model;
     }
 
@@ -22,9 +28,6 @@ class Data2Html_Controller
     
     public function manage($request)
     {
-        $dbConfig = Data2Html_Config::getSection('db');
-        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
-        $db = new $db_class($dbConfig);
 
         $postData = array();
         $serverMethod = $_SERVER['REQUEST_METHOD'];
@@ -50,9 +53,9 @@ class Data2Html_Controller
                     "Server method {$serverMethod} is not supported."
                 );
         }
-        return $this->oper($db, $request, $postData);
+        return $this->oper($request, $postData);
     }
-    protected function oper($db, $request, $postData)
+    protected function oper($request, $postData)
     {
         $model = $this->model;
         $r = new Data2Html_Collection($postData);
@@ -68,19 +71,19 @@ class Data2Html_Controller
                     
                     // Make sql
                     $sqlObj = 
-                        new Data2Html_Controller_SqlGenerator($db, $lkForm);
+                        new Data2Html_Controller_SqlSelect($this->db, $lkForm);
                     $sqlObj->addFilterByKeys($r->getItem('d2h_keys'));
                     $sql = $sqlObj->getSelect();
                     
                     // Response
-                    return $this->getDbData($db, $sql, $lkForm, 1, 1);
+                    return $this->getDbData($sql, $lkForm, 1, 1);
                 } elseif (isset($payerNames['grid'])) {
                     $lkGrid = $model->getGrid($payerNames['grid']);
                     $lkGrid->createLink();
                     
                     // Make sql
-                    $sqlObj = new Data2Html_Controller_SqlGenerator(
-                        $db,
+                    $sqlObj = new Data2Html_Controller_SqlSelect(
+                        $this->db,
                         $lkGrid->getColumnsSet()
                     );
                     $sqlObj->addFilter(
@@ -93,7 +96,6 @@ class Data2Html_Controller
                     // Response
                     $page = $r->getCollection('d2h_page', array());
                     return $this->getDbData(
-                        $db,
                         $sql,
                         $lkGrid->getColumnsSet(),
                         $page->getInteger('pageStart', 1),
@@ -105,7 +107,10 @@ class Data2Html_Controller
                 break;
 
             case 'update':
-                $this->opUpdate($id, $model);
+                $data = $postData['d2h_data'];
+                $keys = $data['[keys]'];
+                unset($data['[keys]']);
+                $this->opUpdate($keys, $data);
                 break;
 
             case 'delete':
@@ -113,7 +118,7 @@ class Data2Html_Controller
                 break;
 
             default:
-                throw new Exception("Oper {$oper} is not defined");
+                throw new Exception("Oper '{$oper}' is not defined");
                 break;
         }
         $response['success'] = 1;
@@ -123,7 +128,7 @@ class Data2Html_Controller
     /**
      * Execute a query and return the array result.
      */
-    public function getDbData($db, $query, $lkSet, $pageStart = 1, $pageSize = 0)
+    protected function getDbData($query, $lkSet, $pageStart = 1, $pageSize = 0)
     {
         try {
             $pageSize = intval($pageSize);
@@ -177,8 +182,8 @@ class Data2Html_Controller
         // Read rs
         $keyNames = array_keys($lkSet->getLinkedKeys());
         $rows = array();
-        $result = $db->queryPage($query, $pageStart, $pageSize);
-        while ($dbRow = $db->fetch($result)) {
+        $result = $this->db->queryPage($query, $pageStart, $pageSize);
+        while ($dbRow = $this->db->fetch($result)) {
             foreach ($dbRow as $k => &$v) {
                 switch ($dbTypes[$k]) {
                 case 'integer':
@@ -275,37 +280,37 @@ class Data2Html_Controller
             exit;
         }
         // Transaction
-        $this->startTransaction();
+        $this->db->startTransaction();
         try {
-            $new_id = $this->db->insert($this->table, $values, true);
+            $new_id = $this->db->insert($this->model->getTableName(), $values, true);
         } catch (Exception $e) {
-            $this->rollback();
+            $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
         $this->model->afterInsert($values, $new_id);
-        $this->commit();
+        $this->db->commit();
 
         return $new_id;
     }
-    protected function opUpdate($id, $values)
+    protected function opUpdate($keys, $values)
     {
 
-        $keyArray = $this->explodePrimaryKey($id);
+        $keyArray = explode(',', $keys);
         if ($this->model->beforeUpdate($values, $keyArray) === false) {
             exit;
         }
         // Transaction
-        $this->startTransaction();
+        $this->db->startTransaction();
         try {
-            $this->db->update($this->table, $values, $keyArray);
+            $this->db->update($this->model->getTableName(), $values, $keyArray);
         } catch (Exception $e) {
-            $this->rollback();
+            $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
         $this->model->afterUpdate($values, $keyArray);
-        $this->commit();
+        $this->db->commit();
 
         return '1';
     }
@@ -321,19 +326,19 @@ class Data2Html_Controller
             exit;
         }
         // Transaction
-        $this->startTransaction();
+        $this->db->startTransaction();
         try {
             $this->db->delete(
-                $this->table,
+                $this->model->getTableName(),
                 $this->whereSql($keyArray)
             );
         } catch (Exception $e) {
-            $this->rollback();
+            $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage());
         }
         $this->model->afterDelete($keyArray);
-        $this->commit();
+        $this->db->commit();
 
         return '1';
     }

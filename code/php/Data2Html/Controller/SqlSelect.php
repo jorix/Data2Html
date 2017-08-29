@@ -1,6 +1,6 @@
 <?php
 
-class Data2Html_Controller_SqlGenerator
+class Data2Html_Controller_SqlSelect
 {
     protected $culprit = 'SqlGenerator';
     protected $debug = false;
@@ -59,6 +59,20 @@ class Data2Html_Controller_SqlGenerator
     }
     
     public function getSelect()
+    {
+        $query = 'select ' . $this->result['select'];
+        $query .= "\n from " . $this->result['form'];
+        
+        if (isset($this->result['where']) && $this->result['where'] !== '') {
+            $query .= "\n where {$this->result['where']}";
+        }
+        if (isset($this->result['order_by']) && $this->result['order_by'] !== '') {
+            $query .= "\n order by {$this->result['order_by']}";
+        }
+        return $query;
+    }
+       
+    public function getUpdate()
     {
         $query = 'select ' . $this->result['select'];
         $query .= "\n from " . $this->result['form'];

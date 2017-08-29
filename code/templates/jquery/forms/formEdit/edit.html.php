@@ -1,19 +1,19 @@
 <?php die("It's uncooked!"); ?>
 <div id="$${id}" class="row"
-        data-d2h="
-            url:    '$${url}',
-            type:   'form',
-            actions: {
-                'none': function() { return false; },
-                'readPage': function() {this.load();},
-                'save': function() {this.save();},
-                'back': function() {
-                    this.switchTo('grid');
-                }
-            },
-            visual: $${visual}
-        "
-        xxxx-data-d2h-on="change:readPage"
+    data-d2h-keys="${[keys]}"
+    data-d2h="
+        url:    '$${url}',
+        type:   'form',
+        actions: {
+            'none': function() { return false; },
+            'readPage': function() {this.load();},
+            'save': function() {this.save();},
+            'back': function() {
+                this.switchTo('grid');
+            }
+        },
+        visual: $${visual}
+    "
 >
 <!--
 <input class="form-control" placeholder="id" id="get_id" type="text">
@@ -26,7 +26,7 @@
 </button>
 -->
     <form class="simple-form"
-        data-d2h-keys="${[keys]}"
+        
     >
         <div class="form-inline">$${body}</div>
     </form>

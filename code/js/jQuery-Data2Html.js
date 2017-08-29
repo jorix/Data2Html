@@ -551,21 +551,29 @@ jQuery.ajaxSetup({ cache: false });
             });
         },
         
-        saveFrom: function(options) {
+        save: function(options) {
             var _settings = $.extend({}, this.settings, options);
             
             var _this = this,
-                _formEle = this.objElem;
-            var data = {};
+                _formEle = this.objElem,
+                d2h_oper,
+                data = {};
             for (tagName in _this._visualData) {
                 data[tagName] = $('[name=' + tagName + ']', this.objElem).val();
             }
+            data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
+            if (data['[keys]']) {
+                d2h_oper = 'update';
+            } else {
+                d2h_oper = 'insert';
+            }
+            
             _this._rows = null;
             $.ajax({
                 type: 'POST',
                 url: _settings.url,		
                 data: JSON.stringify({
-                    d2h_oper: 'save',
+                    d2h_oper: d2h_oper,
                     d2h_data: data
                 }),
                 dataType: 'json',
@@ -613,13 +621,15 @@ jQuery.ajaxSetup({ cache: false });
                 };
                 $('[name=' + tagName + ']', this.objElem).val(val);
             }
+            $(this.objElem).attr('data-d2h-keys', '');
         },
         showFormData: function(row) {
             var visualData = this._visualData;
             for (tagName in visualData) {
                 var val = row[tagName] !== undefined ? row[tagName] : "";
-                $('[name=' + tagName + ']', this.objElem).val(val);
+                    $('[name=' + tagName + ']', this.objElem).val(val);
             }
+            $(this.objElem).attr('data-d2h-keys', row['[keys]'].join(','));
         }
     });
     

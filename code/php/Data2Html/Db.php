@@ -26,6 +26,9 @@ abstract class Data2Html_Db
      */
     abstract public function queryPage($sql, $pageStart = 1, $pageSize = 0);
     abstract public function query($query);
+    abstract public function startTransaction();
+    abstract public function commit();
+    abstract public function rollback();
 
     /**
      * Fetch-assoc one row.
@@ -101,7 +104,7 @@ abstract class Data2Html_Db
      */
     abstract public function insert($tblName, array $row);
 
-    protected function insert_($tblName, array $row, $post_sql = '')
+    protected function insert_($tblName, array $row)
     {
         $row = $this->cleanArray($row, $types);
         $q = "INSERT INTO {$tblName} (".
@@ -124,9 +127,8 @@ abstract class Data2Html_Db
      *
      * @return mixed
      */
-    public function update($tblName, array $upd, $cond, $row_count = false)
+    public function update($tblName, array $data, $keys, $row_count = false)
     {
-        $tblName = jqGrid_Utils::checkAlphanum($tblName);
         $upd = $this->cleanArray($upd);
 
         $set = array();
@@ -155,8 +157,11 @@ abstract class Data2Html_Db
         }
 
         #Execute
-        $q = "UPDATE $tblName SET ".implode(', ', $set).' WHERE '.($where ? implode(' AND ', $where) : $cond);
-
+        $q = "UPDATE {$tblName} SET " .
+            implode(', ', $set) . 
+            ' WHERE '.($where ? implode(' AND ', $where) : $cond);
+echo $q;
+return;
         $result = $this->query($q);
 
         if ($row_count) {
@@ -176,7 +181,6 @@ abstract class Data2Html_Db
      */
     public function delete($tblName, $cond)
     {
-        $tblName = jqGrid_Utils::checkAlphanum($tblName);
         $where = array();
 
         #Build 'where'

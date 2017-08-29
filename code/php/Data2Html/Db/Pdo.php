@@ -55,6 +55,21 @@ class Data2Html_Db_Pdo extends Data2Html_Db
             );
         };
     }
+    
+    public function startTransaction()
+    {
+        $this->query("START TRANSACTION;");
+    }
+
+    public function commit()
+    {
+        $this->query("COMMIT;");
+    }
+
+    public function rollback()
+    {
+        $this->query("ROLLBACK;");
+    }
 
     public function fetch($result)
     {
