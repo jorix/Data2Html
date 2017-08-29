@@ -1,14 +1,13 @@
 <?php die("It's uncooked!"); ?>
 <div class="row"
     id="$${id}"
-    data-d2h-grid="
+    data-d2h="
         url:'$${url}',
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
             'edit': function(elem) {
-                var a = this.getElemKeys(elem);
-                this.switchTo('edit').load({keys:a, switchTo:true});
+                this.switchTo('form').load({elemKeys:elem});
             },
             'copy': function() {},
             'delete': function() {}

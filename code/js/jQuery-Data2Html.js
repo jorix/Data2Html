@@ -39,272 +39,178 @@ jQuery.ajaxSetup({ cache: false });
     };
     var _wait = new waitHandler();
 
-    // FORM handler
-    function formHandler(element, container, options) {
-        this._formInit(element, container, options);
-        $.data(this.formEle, "plugin_data2html", this);
+    // ----------------
+    // Data handler
+    // ----------------
+
+    // Base class
+    function dataBase(objElem, container, options) {
+        this._init(objElem, container, options);
     }
-    formHandler.prototype = {
+    dataBase.prototype = {
         defaults: {
             url: '',
-            type: 'POST',
+            ajaxType: 'GET',
+            auto: null,
             
-            beforeSend: function(){ return true; },
-            rowComplete: function(current_row_index, row) {}, //called, after each row
-            complete: function(row_count){}, //called, once loop through data has finished
-                
-            afterChange: function() { }
+            beforeRead: function() { return true; },
+            afterRead: function(row_count) {} //called, once loop through data has finished
         },
-        formSettings: null,
-        _visualData: null,
-        formEle: null, // The DOM element
-        type: null,
+        
+        settings: null,
+        objElem: null, // The DOM element
+        _container: null,        
+        _initId: 0,
+        
         switchToObj: null,
         
-        _parent: null,
-        
+        _visualData: null,
         _rows: null, //the data once loaded/received
         
-        _formInit: function(formEle, _parent, formOptions) {
-            this.formEle = formEle;
-            this._parent = _parent ? _parent : this;
+        _init: function(objElem, container, options) {
+            this.defaults =
+                $.extend({}, dataBase.prototype.defaults, this.defaults);
+            this.objElem = objElem;
+            this._initId = _initCounter++;
+            this._container = container ? container : this;
             
-            var $formEle = $(formEle);
-            var settings = _getElementOptions(
-                formEle,
-                'data-d2h-form',
-                this.defaults,
-                formOptions
-            );
-            this.type = 'edit';
-            
+            // settings
+            var settings = $.extend({}, this.defaults, options); 
+            this.settings = settings;
+
+            // 
             if (settings.visual) {
                 this._visualData = settings.visual;
                 delete settings.visual;
             }
             if (settings.actions) {
-                _listen.apply(this._parent, [formEle, settings.actions]);
+                this.listen(objElem, settings.actions);
             }
-            if (formEle.tagName === 'FORM')  {
-                $formEle.on('submit', function() {
-                    return false;
-                });
-            }
-            $formEle.change(function() {
-                $formEle.addClass(_globalDefaults.classFormChanged);
-            });
-            this.formSettings = settings;
+            
+            // Add pluguin
+            $.data(this.objElem, "plugin_data2html", this);
         },
-                
-        addSwitch: function(switchToObj) {
-            this.switchToObj = switchToObj;
-            return this.type;
-        },
-        switchTo: function(type) {
-            return this.switchToObj.show(type);
-        },        
+        
         get: function() {
             return this;
         },
-        
-        load: function(options) {
-            if (!this.formSettings) {
-                $.error(
-                    "Data2Html: Can not call 'load' without bat initialization"
-                );
-                return;
-            }
-            if (!options || !options.keys) {
-                return;
-            }
-            if (options.switchTo) {
-                this.switchTo(this.type);
-            }
-            var _settings = $.extend({}, this.formSettings, options);
-            
-            var url = _settings.url;
-            var _this = this,
-                _formEle = this.formEle;
-            $.ajax({
-                type: _settings.type,
-                data: {d2h_keys: options.keys},
-                url: url,		
-                dataType: "json", 
-                beforeSend: function(){
-                    var response = _settings.beforeSend.call(_this, 0);
-                    if (response !== false) {
-                        _wait.show();
-                    }
-                    return response;
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown){
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                XMLHttpRequest.responseText + "</strong></div>",												
-                        });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            XMLHttpRequest.responseText
-                        );
-                    }
-                },
-                success: function(jsonData){
-                    _this._rows = _readRows(jsonData);
-                    if (_this._rows.length > 0) {
-                        _this.showFormData(_this._rows[0]);
-                    } else {
-                        _this.clearForm();
-                    }
-                    _settings.complete.call(_this);
-                },
-                complete: function(msg){
-                    _wait.hide();
-                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
-                }
-            });
+        getElem: function() {
+            return this.objElem;
         },
         
-        save: function(options) {
-            if (!this.formSettings) {
-                $.error(
-                    "Data2Html: Can not call 'save' without bat initialization"
-                );
-                return;
-            }
-            var _settings = $.extend({}, this.formSettings, options);
-            
-            var url = _settings.url;
-            var _this = this,
-                _formEle = this.formEle;
-            var data = {};
-            for (tagName in _this._visualData) {
-                data[tagName] = $('[name=' + tagName + ']', this.formEle).val();
-            }
-            _this._rows = null;
-            $.ajax({
-                type: 'POST',
-                url: url,		
-                data: JSON.stringify({
-                    d2h_oper: 'save',
-                    d2h_data: data
-                }),
-                dataType: 'json',
-                beforeSend: function(){
-                    var response = _settings.beforeSend.call(_this, 0);
-                    if (response !== false) {
-                        _wait.show();
-                    }
-                    return response;
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown){
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                XMLHttpRequest.responseText + "</strong></div>",												
+        // Listen actions
+        listen: function(handlerEle, _actions) {
+            var _container = this._container;
+            // Scope handlerEle
+            var _fnAction = function() {
+                var $thisEle = $(this),
+                    _onAction = $thisEle.attr('data-d2h-on').split(':');
+                if (_onAction.length === 2) {
+                    var _function = _actions[_onAction[1]];
+                    if (_function) {
+                        $thisEle.on(_onAction[0], function(event) {
+                            console.log('#' + _container.getElem().id + ': ' + _onAction.join('->'));
+                            _function.apply(_container, [this, event]);
+                            return false;
                         });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            XMLHttpRequest.responseText
-                        );
                     }
-                },
-                success: function(jsonData){
-                    _settings.complete.call(_this);
-                },
-                complete: function(msg){
-                    _wait.hide();
-                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
                 }
+            };
+            // all sub-elements
+            $('[data-d2h-on]', handlerEle).each(function() {
+                _fnAction.call(this);
             });
-        },
-        clearForm: function(options) {
-            if (options && options.switchTo) {
-                this.switchTo(this.type);
-            }
-            var visualData = this._visualData;
-            for (tagName in visualData) {
-                var val = "",
-                    visualEle = visualData[tagName];
-                if (visualEle.default) {
-                    val = visualEle.default;
-                };
-                $('[name=' + tagName + ']', this.formEle).val(val);
+            // self element
+            if ($(handlerEle).attr('data-d2h-on')) {
+                _fnAction.call(handlerEle);
             }
         },
-        showFormData: function(row) {
-            var visualData = this._visualData;
-            for (tagName in visualData) {
-                var val = row[tagName] !== undefined ? row[tagName] : "";
-                $('[name=' + tagName + ']', this.formEle).val(val);
+        
+        // Switch
+        addSwitch: function(switchToObj) {
+            this.switchToObj = switchToObj;
+            return this.settings.type;
+        },
+        switchTo: function(type) {
+            return this.switchToObj.show(type);
+        },
+
+        // Data manage
+        getElemKeys: function(elem) {
+            return $(elem).closest('[data-d2h-keys]').attr('data-d2h-keys');
+        },
+        
+        setRows: function(jsonData, add) {
+            if (jsonData.rowsAsArray) {
+                var rows = [],
+                    dataCols = jsonData.dataCols, // TODO
+                    indexCols = {};
+                for (var i = 0, len = dataCols.length; i < len; i++) {
+                    indexCols[dataCols[i]] = i;
+                }
+                var rowsAsArray = jsonData.rowsAsArray,
+                    rowsCount = rowsAsArray.length;
+                for (var i = 0; i < rowsCount; i++) {
+                    var item = rowsAsArray[i];
+                    var row = {};
+                    for (var tagName in indexCols) {
+                        row[tagName] = item[indexCols[tagName]];
+                    }
+                    rows.push(row);
+                }
+            } else {
+                rows = jsonData.rows;
+            }
+            if (add) {
+                Array.prototype.push.apply(this._rows, rows);
+            } else {
+                this._rows = rows;
             }
         }
     };
     
-    function gridHandler(element, options) {
-        this._init(element, options);
-        $.data(this.gridEle, "plugin_data2html", this);
+    function dataGrid(objElem, container, options) {
+        this._init(objElem, container, options);
+        var autoCall = this.settings.auto;
+        if (autoCall) {
+            this[autoCall].call(this, this.settings);
+        }
     }
-    gridHandler.prototype = {
+
+    // ------
+    // Grid
+    // ------
+    $.extend(dataGrid.prototype, dataBase.prototype, {
         defaults: {
-            url: '',
-            type: 'GET',
+            type: 'grid',
+            auto: 'load',
+            repeat: '.d2h_repeat',
             pageSize: 0, //default results per page
             
-            repeat: '.d2h_repeat',
-            filter: '',
-            page: '',
+            filter: null,
+            page: null,
             
-            beforeSend: function(){ return true; },
-            rowComplete: function(current_row_index, row) {}, //called, after each row
-            complete: function(row_count){} //called, once loop through data has finished
+            //called, after show each row
+            afterShowGridRow: function(row_index, elemRow) {},
         },
         
-        settings: null,
-        groups: null,
-        gridEle: null, // The DOM element
-        type: null,
-        switchToObj: null,
-        
-        _rows: null, //the data once loaded/received
-        _cols: null,
-        
+        components: null,
+
+        // repeat
         _repeatHtml: '',       // template HTML string
         _repeatStart: 0,
         _selectorRepeat: '',
         _selectorRepeatParent: '',
-        
-        // The constructor
-        _init: function(gridEle, options) {
-            this.gridEle = gridEle;
-            
-            // settings
-            var settings = _getElementOptions(
-                gridEle, 
-                'data-d2h-grid',
-                this.defaults,
-                options
-            );
-            if (!settings.repeat) {
-                $.error("Data2Html can not initialize a gridHanfler on DOM object '" +
-                    _getElementPath(gridEle) +
-                    "': Option 'repeat' is missing."
-                );
-                return;
-            }
-            this.type = 'grid';
+
+        _init: function(objElem, container, options) {
+            dataBase.prototype._init.apply(this, [objElem, container, options]);
+            var settings = this.settings,
+                gridEle = this.objElem;
 
             // Set internal selectors
-            this.groups = {};
-            _initCounter++;
-            var iClassRepeat = 'i_d2h_repeat_' + _initCounter,
-                iClassRepeatParent = iClassRepeat + '_parent';
+            this.components = {};
+            var iClassRepeat = 'i_d2h_repeat_' + this._initId,
+                iClassRepeatParent = iClassRepeat + '_container';
             this._selectorRepeat = '.' + iClassRepeat;
             this._selectorRepeatParent = '.' + iClassRepeatParent;
 
@@ -355,109 +261,89 @@ jQuery.ajaxSetup({ cache: false });
             // Set template
             this._repeatHtml = $itemRepeat.get(0).outerHTML;
             this._repeatStart = $parentContainer.children().index($itemRepeat);
-            // clear
-            this._clearHtml();
             
             // additional calls
             if (settings.filter) {
-                this._initGroup('filter', settings.filter);
+                this._initComponent('filter', settings.filter);
             }
             if (settings.page) {
-                this._initGroup('page', settings.page);
+                this._initComponent('page', settings.page);
             }
             
-            // All ok, so save settings
-            this.settings = settings;
+            // clear
+            this.clear();
         },
-        _initGroup: function(groupName, groupSelector) {
+        
+        _initComponent: function(compomentName, selector) {
             // Check arguments
-            var groupOptions = null;
-            if (!groupSelector) { return; }
-            if ($.isArray(groupSelector)) {
-                if (groupSelector.length < 1 || groupSelector.length > 2) {
+            var compomentOptions = null;
+            if (!selector) { return; }
+            if ($.isArray(selector)) {
+                if (selector.length < 1 || selector.length > 2) {
                     $.error(
-                        "Data2Html can not initialize group '" + groupName +
+                        "Data2Html can not initialize compoment '" + 
+                        compomentName +
                         "'. When selector is array must have 1 or 2 items!"
                     );
                     return;
                 }
-                if (groupSelector.length >= 2) {
-                    groupOptions = groupSelector[1];
+                if (selector.length >= 2) {
+                    compomentOptions = selector[1];
                 }
-                groupSelector = groupSelector[0];
+                selector = selector[0];
             }
             
-            // To set up the group element
-            var $group = this._selGroup(groupSelector);
-            new formHandler($group[0], this, groupOptions);
-            this.groups[groupName] = groupSelector;
-        },
-        
-        _selGroup: function(groupSelector) {
-            var $group;
-            if (groupSelector.substr(0,1) === "#") {
-                $group = $(groupSelector);
+            // To set up the components
+            var $elem;
+            if (selector.substr(0,1) === "#") {
+                $elem = $(selector);
             } else {
-                $group = $(groupSelector, this.gridEle);
+                $elem = $(selector, this.objElem);
             }
-            if ($group.length !== 1) {
+            if ($elem.length !== 1) {
                 $.error(
-                    "Data2Html selector '" + groupSelector + 
-                    "' of group '" + groupName +
-                    "' has selected " + $group.length +
+                    "Data2Html: Selector '" + selector + 
+                    "' of component '" + componentName +
+                    "' has selected " + $elem.length +
                     "  elements. Must select only one element!"
                 );
                 return;
             }
-            return $group;
+            this.components[compomentName] =
+                new dataForm($elem[0], this, compomentOptions);
         },
-        
-        addSwitch: function(switchToObj) {
-            this.switchToObj = switchToObj;
-            return this.type;
-        },
-        switchTo: function(type) {
-            return this.switchToObj.show(type);
-        },
-        get: function() {
-            return this;
-        },
-        
+
         load: function(options) {
-            if (!this.settings) {
-                $.error(
-                    "Data2Html: Can not call 'load' without bat initialization"
-                );
-                return;
-            }
             var _settings = $.extend({}, this.settings, options);
-            
-            var url = _settings.url,
+            var data = {},
                 pageStart = 1;
-            if (this.groups.filter) {
-                url += '&d2h_filter=' + this._selGroup(this.groups.filter).serialize()
+            if (this.components.filter) {
+                data['d2h_filter'] = $(this.components.filter.getElem())
+                    .serialize()
                     .replace(/&/g, '[,]');
             }
-            if (this.groups.page) {
+            if (this.components.page) {
                 if (_settings.add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
-                url += '&d2h_page=pageStart=' + pageStart + '[,]' +
-                    this._selGroup(this.groups.page).serialize().replace(/&/g, '[,]');
+                data['d2h_page'] = 'pageStart=' + pageStart + '[,]' +
+                     $(this.components.page.getElem())
+                        .serialize()
+                        .replace(/&/g, '[,]');
             }
-            url += '&d2h_sort=' +  $('.d2h_sort', this).val();
+            data['d2h_sort'] = $('.d2h_sort', this).val();
             var _this = this,
-                _gridEle = this.gridEle;
+                _gridEle = this.objElem;
             if (!_settings.add) {
                 _this._rows = null;
-                _this._cols = null;
             }
             $.ajax({
-                type: _settings.type,
-                url: url,		
+                type: _settings.ajaxType,
+                url: _settings.url,
+                data: data,
                 dataType: "json", 
                 beforeSend: function(){
-                    var response = _settings.beforeSend.call(_this, 0);
+                    var response = _settings.beforeRead.call(_this);
                     if (response !== false) {
                         _wait.show();
                     }
@@ -479,17 +365,9 @@ jQuery.ajaxSetup({ cache: false });
                     }
                 },
                 success: function(jsonData){
-                    if (_settings.add) {
-                        Array.prototype.push.apply(
-                            _this._rows,
-                            _readRows(jsonData)
-                        );
-                    } else {
-                        _this._rows = _readRows(jsonData);
-                    }
-                    _this._cols = jsonData.cols;
-                    _this._showRows();
-                    _settings.complete.call(_this);
+                    _this.setRows(jsonData, _settings.add);
+                    _this.showGridData(jsonData.cols);
+                    _settings.afterRead.call(_this);
                 },
                 complete: function(msg){
                     _wait.hide();
@@ -498,30 +376,25 @@ jQuery.ajaxSetup({ cache: false });
             });
         },
 
-        // Manage HTML
-        _clearHtml: function () {
-            var $parentContainer = $(this._selectorRepeatParent, this.gridEle);
+        // Manage grid HTML
+        clear: function () {
+            var $parentContainer = $(this._selectorRepeatParent, this.objElem);
             if ($parentContainer.length === 0) {
-                $parentContainer = $(this.gridEle);
+                $parentContainer = $(this.objElem);
             }
             $(this._selectorRepeat, $parentContainer).remove();
         },
-        
-        getElemKeys: function(elem) {
-            return $(elem).closest('[data-d2h-keys]').attr('data-d2h-keys');
-        },
     
-        _showRows: function () {
-            this._clearHtml();
+        showGridData: function (cols) {
+            this.clear();
            
             var _settings = this.settings,
-                cols = this._cols;
                 rows = this._rows;
             
-            var $parentContainer = $(this._selectorRepeatParent, this.gridEle),
+            var $parentContainer = $(this._selectorRepeatParent, this.objElem),
                 lastItem = null;
             if ($parentContainer.length === 0) {
-                $parentContainer = $(this.gridEle);
+                $parentContainer = $(this.objElem);
             }
             if (this._repeatStart > 0) {
                 lastItem = $(
@@ -574,65 +447,187 @@ jQuery.ajaxSetup({ cache: false });
                     $parentContainer
                 );
                 if (_settings.actions) {
-                    _listen.apply(this, [lastItem, _settings.actions]);
+                    this.listen(lastItem, _settings.actions);
                 }
-                _settings.rowComplete.call(this, i, lastItem);
+                _settings.afterShowGridRow.call(this, i, lastItem);
             }
         }
-    };
+    });
+        
+    // ------
+    // Form
+    // ------
+    function dataForm(objElem, container, options) {
+        this._init(objElem, container, options);
+        var autoCall = this.settings.auto;
+        if (autoCall) {
+            autoCall.call(this, this.settings);
+        }
+    }
+    $.extend(dataForm.prototype, dataBase.prototype, {
+        defaults: {
+            type: 'form',            
+            beforeSave: function() { return true; },
+            afterSave: function() {}
+        },
+        _init: function(objElem, container, options) {
+            dataBase.prototype._init.apply(this, [objElem, container, options]);
+            
+            // prevent submit
+            var formEle = this.objElem,
+                $formEle = $(formEle);
+            if (formEle.tagName === 'FORM')  {
+                $formEle.on('submit', function() {
+                    return false;
+                });
+            }
+            $formEle.change(function() {
+                $formEle.addClass(_globalDefaults.classFormChanged);
+            });
+                   
+            // clear
+            this.clear();
+        },
+        load: function(options) {
+            if (!options) {
+                $.error(
+                    "Data2Html: Can not load form without options, it must exist 'keys' or 'elemKeys' parameter."
+                );
+            }
+            var _settings = $.extend({}, this.settings, options);
+            var _this = this,
+                _formEle = this.objElem,
+                keys;
+            if (options.elemKeys) { 
+                // Keys are on patent element into a attribute 'data-d2h-keys'
+                keys = this.getElemKeys(options.elemKeys);
+            } else if (options.keys) {
+                keys = options.keys;
+            } else {
+                $.error(
+                    "Data2Html: Can not load form without 'keys' or 'elemKeys' parameter."
+                );
+            }
+            $.ajax({
+                type: _settings.ajaxType,
+                url: _settings.url,		
+                data: {d2h_keys: keys},
+                dataType: "json", 
+                beforeSend: function(){
+                    var response = _settings.beforeRead.call(_this, 0);
+                    if (response !== false) {
+                        _wait.show();
+                    }
+                    return response;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                XMLHttpRequest.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            XMLHttpRequest.responseText
+                        );
+                    }
+                },
+                success: function(jsonData){
+                    _this.setRows(jsonData);
+                    if (_this._rows.length > 0) {
+                        _this.showFormData(_this._rows[0]);
+                    } else {
+                        _this.clear();
+                    }
+                    _settings.afterRead.call(_this);
+                },
+                complete: function(msg){
+                    _wait.hide();
+                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
+        },
+        
+        saveFrom: function(options) {
+            var _settings = $.extend({}, this.settings, options);
+            
+            var _this = this,
+                _formEle = this.objElem;
+            var data = {};
+            for (tagName in _this._visualData) {
+                data[tagName] = $('[name=' + tagName + ']', this.objElem).val();
+            }
+            _this._rows = null;
+            $.ajax({
+                type: 'POST',
+                url: _settings.url,		
+                data: JSON.stringify({
+                    d2h_oper: 'save',
+                    d2h_data: data
+                }),
+                dataType: 'json',
+                beforeSend: function(){
+                    var response = _settings.beforeSave.call(_this);
+                    if (response !== false) {
+                        _wait.show();
+                    }
+                    return response;
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown){
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                XMLHttpRequest.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            XMLHttpRequest.responseText
+                        );
+                    }
+                },
+                success: function(jsonData){
+                    _settings.afterSave.call(_this);
+                },
+                complete: function(msg){
+                    _wait.hide();
+                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
+        },
+        clear: function(options) {
+            if (options && options.switchTo) {
+                this.switchTo(this.type);
+            }
+            var visualData = this._visualData;
+            for (tagName in visualData) {
+                var val = "",
+                    visualEle = visualData[tagName];
+                if (visualEle.default) {
+                    val = visualEle.default;
+                };
+                $('[name=' + tagName + ']', this.objElem).val(val);
+            }
+        },
+        showFormData: function(row) {
+            var visualData = this._visualData;
+            for (tagName in visualData) {
+                var val = row[tagName] !== undefined ? row[tagName] : "";
+                $('[name=' + tagName + ']', this.objElem).val(val);
+            }
+        }
+    });
+    
     
     /**
      * Utilities
      */
-     // scope of handler
-     function _listen(handlerEle, _actions) {
-        var _thisHandler = this;
-        var _fnAction = function() {
-            var $thisEle = $(this),
-                _onAction = $thisEle.attr('data-d2h-on').split(':');
-            if (_onAction.length === 2) {
-                $thisEle.on(_onAction[0], function(event) {
-                    console.log(_onAction.join('->'));
-                    _actions[_onAction[1]].apply(_thisHandler, [this, event]);
-                    return false;
-                });
-            }
-        };
-        // all sub-elements
-        $('[data-d2h-on]', handlerEle).each(function() {
-            _fnAction.call(this);
-        });
-        // self element
-        if ($(handlerEle).attr('data-d2h-on')) {
-            _fnAction.call(handlerEle);
-        }
-    }
-    
-    // scope none
-    function _readRows(jsonData) {
-        if (jsonData.rowsAsArray) {
-            var rows = [],
-                dataCols = jsonData.dataCols, // TODO
-                indexCols = {};
-            for (var i = 0, len = dataCols.length; i < len; i++) {
-                indexCols[dataCols[i]] = i;
-            }
-            var rowsAsArray = jsonData.rowsAsArray,
-                rowsCount = rowsAsArray.length;
-            for (var i = 0; i < rowsCount; i++) {
-                var item = rowsAsArray[i];
-                var row = {};
-                for (var tagName in indexCols) {
-                    row[tagName] = item[indexCols[tagName]];
-                }
-                rows.push(row);
-            }
-            return rows;
-        } else {
-            return jsonData.rows;
-        }
-    };
-    
+     
     // scope none
     function _getElementPath(elem) {
         if (elem === undefined) {
@@ -651,18 +646,19 @@ jQuery.ajaxSetup({ cache: false });
             }
         );
         return selectorArr.reverse().join(">");
-    };
-    function _getElementOptions(elem, attName, defaultOptions, options) {
-        var optionsEle = null,
-            dataD2h = $(elem).attr(attName);
+    }
+    
+    function _getElementOptions(objElem, defaultOptions, options) {
+        var optionsEle = {},
+            dataD2h = $(objElem).attr('data-d2h');
         if (dataD2h) {
             try {
                 var optionsEle = eval('[({' + dataD2h + '})]')[0];
             } catch(e) {
                 $.error(
                     "Can not initialize a data2html handler: " +
-                    "HTML attribute '" + attName + "' have a not valid js syntax on '" + 
-                        _getElementPath(elem) + "'" 
+                    "HTML attribute 'data-d2h' have a not valid js syntax on '" + 
+                        _getElementPath(objElem) + "'" 
                 );
                 return null;
             }
@@ -670,12 +666,12 @@ jQuery.ajaxSetup({ cache: false });
         if (!optionsEle && !options) {
             $.error(
                 "Can not initialize a data2html handler: " +
-                "Options or HTML attribute '" + attName + "' are required on '" + 
-                    _getElementPath(elem) + "'"
+                "Options or HTML attribute 'data-d2h' are required on '" + 
+                    _getElementPath(objElem) + "'"
             );
             return;
         }
-        return $.extend({}, defaultOptions, optionsEle, options);
+        return $.extend(optionsEle, options); 
     }
     
     /**
@@ -726,10 +722,14 @@ jQuery.ajaxSetup({ cache: false });
         var _response;
         this.each(function() {
             if (!$.data(this, "plugin_data2html") ) {
-                if ($(this).attr('data-d2h-grid')) {
-                    new gridHandler(this, _options);
-                } else if ($(this).attr('data-d2h-form')) {
-                    new formHandler(this, null, _options);
+                var opData = _getElementOptions(this, _options);
+                switch (opData.type) {
+                    case 'form':
+                        new dataForm(this, null, opData);
+                        break;
+                    default:
+                        new dataGrid(this, null, opData);
+                        break;
                 }
             }
             if (_method) {

@@ -1,8 +1,8 @@
 <?php die("It's uncooked!"); ?>
 <div id="$${id}" class="row"
-        data-d2h-form="
+        data-d2h="
             url:    '$${url}',
-            type:   'GET',
+            type:   'form',
             actions: {
                 'none': function() { return false; },
                 'readPage': function() {this.load();},
@@ -26,6 +26,7 @@
 </button>
 -->
     <form class="simple-form"
+        data-d2h-keys="${[keys]}"
     >
         <div class="form-inline">$${body}</div>
     </form>
