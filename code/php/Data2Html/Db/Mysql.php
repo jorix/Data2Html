@@ -72,30 +72,32 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         $result = $this->query($sql);
         return $result->rowCount();
     }
-
-    public function lastInsertId()
-    {
-        return $this->link->lastInsertId();
-    }
     
     public function startTransaction()
     {
-        $this->link->beginTransaction();
+        $this->execute("START TRANSACTION;");
     }
 
     public function commit()
     {
-        $this->link->commit();
+        $this->execute("COMMIT;");
     }
 
     public function rollback()
     {
-        $this->link->rollback();
+        $this->execute("ROLLBACK;");
+    }
+
+    public function lastInsertId();
+        return $this->link->lastInsertId();
     }
 
     // Utils
     public function stringToSql($val)
     {
+        if (is_null($val)) {
+            return 'null';
+        }
         return $this->link->quote($val);
     }
 }

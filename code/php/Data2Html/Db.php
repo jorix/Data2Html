@@ -9,42 +9,64 @@ abstract class Data2Html_Db
     protected $debug = false;
 
     /**
-     * Establish connection to database.
+     * Establish connection to database and set it into $this->link
      *
-     * @abstract
+     * @param $parameters array    Connection parameters.
      */
     abstract protected function link($parameters);
+    
+    /**
+     * Executes a sql 'select'
+     *
+     * @param $sql string       Select sentence.
+     *
+     * @return resultSet        Result set
+     */
+    abstract public function query($query);
 
     /**
-     * Execute SQL-query.
+     * Executes a paged sql 'select'
      *
-     * @abstract
+     * @param $sql string       Select sentence.
+     * @param $pageStart int    Index of the start row of the page.
+     * @param $pageSize int     Number of rows on a page to return.
      *
-     * @param $query
-     *
-     * @return resource
+     * @return resultSet
      */
     abstract public function queryPage($sql, $pageStart = 1, $pageSize = 0);
-    abstract public function query($query);
+
+    /**
+     * Fetch one row of a result set as associative array.
+     *
+     * @param $result resultSet
+     *
+     * @return array|null    A associative array, null if no more records.
+     */
+    abstract public function fetch($result);
+    
+    /**
+     * Close a resultSet
+     *
+     * @param $rs resultSet
+     */
+    abstract public function closeQuery($rs);
+    
+    /**
+     * Executes a sql sentence
+     *
+     * @param $sql string   Sql sentence.
+     *
+     * @return int          Affected rows
+     */
+    abstract public function execute($sql);
+    abstract public function lastInsertId();
+    
     abstract public function startTransaction();
     abstract public function commit();
     abstract public function rollback();
 
     /**
-     * Fetch-assoc one row.
-     *
-     * @abstract
-     *
-     * @param resource $result
-     *
-     * @return array
-     */
-    abstract public function fetch($result);
-
-    /**
-     * 
-     *
-     * @abstract
+     * Escape a string to use as into a sql sentence as string
      *
      * @param mixed $value
      *
@@ -53,155 +75,73 @@ abstract class Data2Html_Db
     abstract public function stringToSql($value);
 
     /**
-     * Like PDO::rowCount and *_affected_rows.
-     *
-     * @abstract
-     *
-     * @param resource $result
-     *
-     * @return int
-     */
-    abstract public function rowCount($result);
-
-    /**
      * @param jqGridLoader $loader
      */
     public function __construct($parameters)
     {
         $this->debug = Data2Html_Config::debug();
         $this->link($parameters);
-        $this->queries($this->init_query);
+        $this->executeArray($this->init_query);
         if (isset($parameters['init_query'])) {
-            $this->queries($parameters['init_query']);
-        }
-    }
-
-    /**
-     * Execute a list of queries.
-     */
-    public function queries($queries)
-    {
-        foreach ($queries as $q) {
-            $this->query($q);
+            $this->executeArray($parameters['init_query']);
         }
     }
     
     /**
      * Return a text for a select field width alias.
      */
+    public function toSql($value, $type, $strict = false)
+    {
+        if (is_null($value)) {
+            return 'null';
+        }
+        switch ($type) {
+            case 'number':
+            case 'currency':            
+                $r = '' . Data2Html_Value::parseNumber($value, $strict);
+                break;
+            case 'integer':
+            case 'boolean':
+                $r = '' . Data2Html_Value::parseInteger($value, $strict);
+                break;
+            case 'string':
+                $r = $this->stringToSql(
+                    Data2Html_Value::parseString($value, $strict)
+                );
+                break;
+            case 'date':
+                $r = "'" . Data2Html_Value::parseDate($value, $strict)."'";
+                break;
+            default:
+                throw new Exception(
+                    "`{$type}` is not defined."
+                );
+        }
+        return $r;
+    }
+    
     public function putAlias($alias, $fieldName)
     {
         return $fieldName . ' ' . $alias;
     }
     
-    /**
-     * INSERT query wrapper.
-     *
-     * @param string $tblName - table name
-     * @param array  $ins     - key => value pairs
-     *
-     * @return the last insert id
-     */
-    abstract public function insert($tblName, array $row);
-
-    protected function insert_($tblName, array $row)
+    public function getRow($query, $not_found = null)
     {
-        $row = $this->cleanArray($row, $types);
-        $q = "INSERT INTO {$tblName} (".
-            implode(', ', array_keys($row)).
-        ') VALUES ('.
-            implode(', ', $row).
-        ')';
-
-        return $this->query($q);
+        $rs = $this->query($query);
+        $row = $rs->fetch();
+        if (!$row) {
+            return $not_found;
+        }
+        $this->closeQuery($rs);
+        return $row;
     }
-
-    /**
-     * UPDATE query wrapper
-     * Be careful with string $cond - it is not clean!
-     *
-     * @param string $tblName   - table name
-     * @param array  $upd       - key => value pairs
-     * @param mixed  $cond      - key => value pairs, integer (for id=) or string
-     * @param bool   $row_count - if true - return row count (affected_rows)
-     *
-     * @return mixed
-     */
-    public function update($tblName, array $data, $keys, $row_count = false)
+    
+    public function executeArray($sqlArray)
     {
-        $upd = $this->cleanArray($upd);
-
-        $set = array();
-        $where = array();
-
-        #Build 'set'
-        foreach ($upd as $k => $v) {
-            $set[] = $k.'='.$v;
+        $results = array();
+        foreach ($sqlArray as $q) {
+            $results[] = $this->execute($q);
         }
-
-        #Build 'where'
-        if (is_numeric($cond)) {
-            //simple id=
-
-            $where[] = 'id='.intval($cond);
-        } elseif (is_array($cond)) {
-            $cond = $this->cleanArray($cond);
-
-            foreach ($cond as $k => $v) {
-                if ($v === 'NULL') {
-                    $where[] = $k.' IS NULL';
-                } else {
-                    $where[] = $k.'='.$v;
-                }
-            }
-        }
-
-        #Execute
-        $q = "UPDATE {$tblName} SET " .
-            implode(', ', $set) . 
-            ' WHERE '.($where ? implode(' AND ', $where) : $cond);
-echo $q;
-return;
-        $result = $this->query($q);
-
-        if ($row_count) {
-            return $this->rowCount($result);
-        }
-
-        return $result;
-    }
-
-    /**
-     * DELETE query wrapper.
-     *
-     * @param string $tblName - table name
-     * @param mixed  $cond    - key => value pairs, integer (for id=) or string
-     *
-     * @return resource
-     */
-    public function delete($tblName, $cond)
-    {
-        $where = array();
-
-        #Build 'where'
-        if (is_numeric($cond)) {
-            $where[] = 'id='.intval($cond);
-        } elseif (is_array($cond)) {
-            $cond = $this->cleanArray($cond);
-
-            foreach ($cond as $k => $v) {
-                if ($v === 'NULL') {
-                    $where[] = $k.' IS NULL';
-                } else {
-                    $where[] = $k.'='.$v;
-                }
-            }
-        }
-
-        $q = "DELETE FROM $tblName WHERE ".($where ? implode(' AND ', $where) : $cond);
-
-        $result = $this->query($q);
-
-        return $result;
+        return $results;
     }
 }

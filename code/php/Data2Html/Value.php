@@ -17,8 +17,6 @@ class Data2Html_Value
                 $r = ''.self::parseInteger($value, $strict);
                 break;
             case 'string':
-            case 'email':
-            case 'url':
                 $r = $db->stringToSql(self::parseString($value, $strict));
                 break;
             case 'date':

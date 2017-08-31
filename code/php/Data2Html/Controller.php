@@ -60,11 +60,11 @@ class Data2Html_Controller
         $model = $this->model;
         $r = new Data2Html_Collection($postData);
         $oper = $r->getString('d2h_oper', '');
+        $payerNames = Data2Html_Handler::parseRequest($request);
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
-                $payerNames = Data2Html_Handler::parseRequest($request);
                 if (isset($payerNames['form'])) {
                     $lkForm = $model->getForm($payerNames['form']);
                     $lkForm->createLink();
@@ -110,7 +110,10 @@ class Data2Html_Controller
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opUpdate($keys, $data);
+                
+                $this->opUpdate(
+                    $model->getForm($payerNames['form']), $data, $keys
+                );
                 break;
 
             case 'delete':
@@ -246,6 +249,8 @@ class Data2Html_Controller
             $resRow['[keys]'] = $dataKeys;
             $rows[] = $resRow;
         }
+        $this->db->closeQuery($result);
+        
         $response = array();
         if ($this->debug) {
             $response['debug'] = array(
@@ -293,26 +298,31 @@ class Data2Html_Controller
 
         return $new_id;
     }
-    protected function opUpdate($keys, $values)
+    protected function opUpdate($set, $values, $keys)
     {
 
-        $keyArray = explode(',', $keys);
+        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
+        $sqlObj->checkSingleRow($keys);
+        
         if ($this->model->beforeUpdate($values, $keyArray) === false) {
             exit;
         }
+        
         // Transaction
+        $result = null;
         $this->db->startTransaction();
+            $sql = $sqlObj->getUpdate($values);
         try {
-            $this->db->update($this->model->getTableName(), $values, $keyArray);
+            $result = $this->db->execute($sql);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
+            die($e->getMessage() . $sql);
         }
         $this->model->afterUpdate($values, $keyArray);
         $this->db->commit();
 
-        return '1';
+        return $result;
     }
     protected function opDelete($id)
     {

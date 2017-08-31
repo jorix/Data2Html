@@ -131,33 +131,33 @@ abstract class Data2Html_Model
     /**
      * Insert events
      */
-    public function beforeInsert($values)
+    public function beforeInsert(&$values)
     {
         return true;
     }
-    public function afterInsert($values, $keyArray)
+    public function afterInsert(&$values, &$keys)
     {
     }
 
     /**
      * Update events
      */
-    public function beforeUpdate($values, $keyArray)
+    public function beforeUpdate(&$values, &$keys)
     {
         return true;
     }
-    public function afterUpdate($values, $keyArray)
+    public function afterUpdate(&$values, &$keys)
     {
     }
 
     /**
      * Delete events
      */
-    protected function beforeDelete($keyArray)
+    protected function beforeDelete(&$keys)
     {
         return true;
     }
-    protected function afterDelete($keyArray)
+    protected function afterDelete(&$keys)
     {
     }
 }

@@ -2,7 +2,7 @@
 
 class Data2Html_Controller_SqlSelect
 {
-    protected $culprit = 'SqlGenerator';
+    protected $culprit = '';
     protected $debug = false;
     
     protected $db;
@@ -11,6 +11,7 @@ class Data2Html_Controller_SqlSelect
 
     public function __construct($db, $linkedSet) {
         $this->debug = Data2Html_Config::debug();
+        $this->culprit = "SqlSelect for " . $linkedSet->getCulprit();
         
         $this->db = $db;
         $this->linkedSet = $linkedSet;
@@ -21,12 +22,15 @@ class Data2Html_Controller_SqlSelect
         if ($this->result['select'] === '') {
             throw new Exception("No data base fields defined.");
         }
-        $this->result['form'] =
+        $this->result['from'] =
             $this->getFrom($linkedSet->getLinkedFrom());
     }
 
     public function dump($subject = null)
     {
+        if (!$subject) {
+            $subject = $result;
+        }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
     
@@ -61,21 +65,7 @@ class Data2Html_Controller_SqlSelect
     public function getSelect()
     {
         $query = 'select ' . $this->result['select'];
-        $query .= "\n from " . $this->result['form'];
-        
-        if (isset($this->result['where']) && $this->result['where'] !== '') {
-            $query .= "\n where {$this->result['where']}";
-        }
-        if (isset($this->result['order_by']) && $this->result['order_by'] !== '') {
-            $query .= "\n order by {$this->result['order_by']}";
-        }
-        return $query;
-    }
-       
-    public function getUpdate()
-    {
-        $query = 'select ' . $this->result['select'];
-        $query .= "\n from " . $this->result['form'];
+        $query .= "\n from " . $this->result['from'];
         
         if (isset($this->result['where']) && $this->result['where'] !== '') {
             $query .= "\n where {$this->result['where']}";
