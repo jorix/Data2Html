@@ -46,7 +46,7 @@ abstract class Data2Html_Model_Set
         ),
         'display' => array('hidden'),
         'alias' => array(
-            'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
+            'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey', 'autoKey' => 'autoKey'),
             'boolean' =>    array('type' => 'boolean'),
             'date' =>       array('type' => 'date'),
             'digits' =>     array('type' => 'number', 'size' => '[]'),
@@ -55,7 +55,7 @@ abstract class Data2Html_Model_Set
             'float' =>      array('type' => 'float'),
             'hidden' =>     array('display' => array('none')),
             'integer' =>    array('type' => 'integer'),
-            'key' =>        array('key' => true),
+            'key' =>        array('key' => 'key'),
             'length' =>     array('type' => 'string', 'size' => '[]'),
             'number' =>     array('type' => 'number', 'size' => '[]'),
             'currency' =>     array('type' => 'number', 'size' => '[]'),
@@ -71,6 +71,8 @@ abstract class Data2Html_Model_Set
             'description' => 'string',
             'display' => null,
             'format' => 'string',
+            'key' => null,
+            'autoKey' => 'string', // TODO: remove this, check key and autoKey alias works!!
             'link' => 'string',
             'linkedTo' => 'array',
             'name' => 'string',

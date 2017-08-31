@@ -6,11 +6,10 @@
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
-            'edit': function(elem) {
-                this.switchTo('form').load({elemKeys:elem});
-            },
+            'edit': function(elem) {this.switchTo('form').load({elemKeys:elem}); },
             'copy': function() {},
-            'delete': function() {}
+            'delete': function() {},
+            'create': function() {this.switchTo('form').clear();}
         },
         filter:['#$${id}_filter', {
             actions: {

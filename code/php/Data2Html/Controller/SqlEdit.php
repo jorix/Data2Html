@@ -130,4 +130,45 @@ class Data2Html_Controller_SqlEdit
                     SET " . implode(",\n", $assigns) . "
                     WHERE {$this->result['where']}";
     }
+    
+        
+    public function getInsert($values)
+    {
+        if (array_key_exists('where', $this->result)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getInsert(): Keys are not required.",
+                $this->result
+            );
+        }
+        $assigns = array();
+        $names = array();
+        $items = $this->set->getItems();
+        foreach($values as $k => $v) {
+            if (array_key_exists($k, $items)) {
+                $item = $items[$k];
+                if (array_key_exists('db', $item)) {
+                    if (Data2Html_Value::getItem($item, 'key') !== 'autoKey') {
+                        $type = Data2Html_Value::getItem($item, 'type', 'string');
+                        $names[] = $item['db'];
+                        $assigns[] =  $this->db->toSql($v, $type);
+                    }
+                }
+            }
+        }
+        if (count($assigns) === 0) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getInsert(): Nothing to SET.",
+                array(
+                    'items' => $items,
+                    'values' => $values,
+                    'result' => $this->result
+                )
+            );
+        }
+        return "INSERT INTO {$this->result['table']}\n(". 
+                implode(', ', $names) . 
+            ") \nVALUES (\n" .
+                implode(",\n", $assigns) .
+            "\n)";
+    }
 }

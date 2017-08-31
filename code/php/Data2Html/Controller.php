@@ -103,7 +103,8 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $response['new_id'] = $this->opInsert($model);
+                //$response['new_id'] = $this->opInsert($model);
+                $this->opInsert($model->getForm($payerNames['form']), $postData['d2h_data']);
                 break;
 
             case 'update':
@@ -276,23 +277,25 @@ class Data2Html_Controller
         return $response;
     }
 
-    protected function opAdd($values)
+    protected function opInsert($set, $values)
     {
-        if (empty($this->table)) {
-            throw new jqGrid_Exception('Table is not defined');
-        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
+        
         if ($this->model->beforeInsert($values) === false) {
             exit;
         }
+        $sql = $sqlObj->getInsert($values);
+        
         // Transaction
         $this->db->startTransaction();
         try {
-            $new_id = $this->db->insert($this->model->getTableName(), $values, true);
+            $result = $this->db->execute($sql);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
+            die($e->getMessage() . $sql);
         }
+        $new_id = $this->db->lastInsertId();
         $this->model->afterInsert($values, $new_id);
         $this->db->commit();
 

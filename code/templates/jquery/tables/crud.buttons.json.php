@@ -16,9 +16,16 @@
     },
     {
         "layouts": ["none", "button"],
-        "icon": "trash",
+        "icon": "remove",
         "title": "$Delete",
         "description": null,
         "action": "delete"
+    },
+    {
+        "layouts": ["none", "button"],
+        "icon": "plus",
+        "title": "$Add",
+        "description": null,
+        "action": "create"
     }
 ]

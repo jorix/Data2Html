@@ -92,7 +92,7 @@ abstract class Data2Html_Db
      */
     public function toSql($value, $type, $strict = false)
     {
-        if (is_null($value)) {
+        if (is_null($value) || $value === '') {
             return 'null';
         }
         switch ($type) {
