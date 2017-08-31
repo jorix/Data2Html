@@ -307,11 +307,11 @@ class Data2Html_Controller
         if ($this->model->beforeUpdate($values, $keyArray) === false) {
             exit;
         }
+        $sql = $sqlObj->getUpdate($values);
         
         // Transaction
         $result = null;
         $this->db->startTransaction();
-            $sql = $sqlObj->getUpdate($values);
         try {
             $result = $this->db->execute($sql);
         } catch (Exception $e) {

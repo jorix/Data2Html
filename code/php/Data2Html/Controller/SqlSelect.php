@@ -135,7 +135,7 @@ class Data2Html_Controller_SqlSelect
                 array_push($c, "{$refDb} is null");
             } else {
                 $type = $lkColumns[$baseName]['type'];
-                $r = Data2Html_Value::toSql($this->db, $v, $type);
+                $r = $this->db->toSql($v, $type);
                 array_push($c, "{$refDb} = {$r}");
             }
             $ix++;
@@ -194,7 +194,7 @@ class Data2Html_Controller_SqlSelect
                     )
                 );    
             }
-            $r = Data2Html_Value::toSql($this->db, $v, $type);
+            $r = $this->db->toSql($v, $type);
             array_push($c, "{$refDb} {$dbCheck} {$r}");
         }
         return implode(' and ', $c);

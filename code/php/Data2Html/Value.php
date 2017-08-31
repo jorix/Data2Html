@@ -2,34 +2,6 @@
 
 class Data2Html_Value
 {
-    public static function toSql($db, $value, $type, $strict = false)
-    {
-        if ($value === null) {
-            return 'null';
-        }
-        switch ($type) {
-            case 'number':
-            case 'currency':            
-                $r = ''.self::parseNumber($value, $strict);
-                break;
-            case 'integer':
-            case 'boolean':
-                $r = ''.self::parseInteger($value, $strict);
-                break;
-            case 'string':
-                $r = $db->stringToSql(self::parseString($value, $strict));
-                break;
-            case 'date':
-                $r = "'".self::parseDate($value, $strict)."'";
-                break;
-            default:
-                throw new Exception(
-                    "`{$type}` is not defined."
-                );
-        }
-        return $r;
-    }
-    
     public static function toJson($obj, $pretty = false)
     {
         $options = 0;

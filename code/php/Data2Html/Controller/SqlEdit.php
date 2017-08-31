@@ -89,7 +89,7 @@ class Data2Html_Controller_SqlEdit
                 array_push($c, "{$db} is null");
             } else {
                 $type = $items[$k]['type'];
-                $r = Data2Html_Value::toSql($this->db, $req, $type);
+                $r = $this->db->toSql($req, $type);
                 array_push($c, "{$db} = {$r}");
             }
             $ix++;
