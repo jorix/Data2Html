@@ -60,6 +60,33 @@ class Data2Html_Value
         }
     }
     
+    public static function parseValue($value, $type, $strict = false)
+    {
+        switch ($type) {
+            case 'number':
+            case 'currency':            
+                $r = Data2Html_Value::parseNumber($value, $strict);
+                break;
+            case 'integer':
+            case 'boolean':
+                $r = Data2Html_Value::parseInteger($value, $strict);
+                break;
+            case 'string':
+                $r = $this->stringToSql(
+                    Data2Html_Value::parseString($value, $strict)
+                );
+                break;
+            case 'date':
+                $r = Data2Html_Value::parseDate($value, $strict);
+                break;
+            default:
+                throw new Exception(
+                    "parseValue(): `{$type}` is not defined."
+                );
+        }
+        return $r;
+    }
+    
     public static function parseString($value, $default = null, $strict = false)
     {
         if (is_array($value)) {

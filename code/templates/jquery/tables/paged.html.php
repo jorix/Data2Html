@@ -8,7 +8,7 @@
         actions: {
             'edit': function(elem) {this.switchTo('form').load({elemKeys:elem}); },
             'copy': function() {},
-            'delete': function() {},
+            'delete': function(elem) {this.switchTo('form').load({elemKeys:elem});},
             'create': function() {this.switchTo('form').clear();}
         },
         filter:['#$${id}_filter', {

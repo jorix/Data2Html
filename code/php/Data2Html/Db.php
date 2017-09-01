@@ -135,6 +135,22 @@ abstract class Data2Html_Db
         $this->closeQuery($rs);
         return $row;
     }
+
+    public function getValue($query, $type, $not_found = null)
+    {
+        $row = $this->getRow($query, $not_found);
+        if (is_array($row)) {
+            if (count($row) > 0) {
+                $k = array_keys($row);
+                $result = $row[$k[0]];
+            } else {
+                $result = $not_found;
+            }
+        } else {
+            $result = $row;
+        }
+        return Data2Html_Value::parseValue($result, $type);
+    }
     
     public function executeArray($sqlArray)
     {

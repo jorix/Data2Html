@@ -5,12 +5,10 @@
         url:    '$${url}',
         type:   'form',
         actions: {
-            'none': function() { return false; },
-            'readPage': function() {this.load();},
+            'readPage': function() { return false; },
             'save': function() {this.save();},
-            'back': function() {
-                this.switchTo('grid');
-            }
+            'delete': function() {this.delete();},
+            'back': function() {this.switchTo('grid');}
         },
         visual: $${visual}
     "

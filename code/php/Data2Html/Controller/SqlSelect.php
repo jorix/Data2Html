@@ -134,6 +134,15 @@ class Data2Html_Controller_SqlSelect
             if ($v === '' || $v === null) {
                 array_push($c, "{$refDb} is null");
             } else {
+                if (!array_key_exists('type', $lkColumns[$baseName])) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit} getWhereByKeys(): Requested key withot type.",
+                        array(
+                            'baseName' => $baseName,
+                            'item' => $lkColumns[$baseName]
+                        )
+                    );
+                }
                 $type = $lkColumns[$baseName]['type'];
                 $r = $this->db->toSql($v, $type);
                 array_push($c, "{$refDb} = {$r}");

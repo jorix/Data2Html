@@ -467,8 +467,10 @@ jQuery.ajaxSetup({ cache: false });
     $.extend(dataForm.prototype, dataBase.prototype, {
         defaults: {
             type: 'form',            
-            beforeSave: function() { return true; },
-            afterSave: function() {}
+            beforeSave: function(data) { return true; },
+            afterSave: function(data) {},
+            beforeDelete: function(data) { return true; },
+            afterDelete: function(data) {}
         },
         _init: function(objElem, container, options) {
             dataBase.prototype._init.apply(this, [objElem, container, options]);
@@ -550,7 +552,6 @@ jQuery.ajaxSetup({ cache: false });
                 }
             });
         },
-        
         save: function(options) {
             var _settings = $.extend({}, this.settings, options);
             
@@ -569,44 +570,92 @@ jQuery.ajaxSetup({ cache: false });
             }
             
             _this._rows = null;
-            $.ajax({
-                type: 'POST',
-                url: _settings.url,		
-                data: JSON.stringify({
-                    d2h_oper: d2h_oper,
-                    d2h_data: data
-                }),
-                dataType: 'json',
-                beforeSend: function(){
-                    var response = _settings.beforeSave.call(_this);
-                    if (response !== false) {
+            if (_settings.beforeSave.call(_this, data) !== false) {
+                $.ajax({
+                    type: 'POST',
+                    url: _settings.url,		
+                    data: JSON.stringify({
+                        d2h_oper: d2h_oper,
+                        d2h_data: data
+                    }),
+                    dataType: 'json',
+                    beforeSend: function(){
                         _wait.show();
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        if (typeof bootbox != 'undefined'){
+                            bootbox.alert({
+                                title : "Error",
+                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                    XMLHttpRequest.responseText + "</strong></div>",												
+                            });
+                        } else {
+                            alert(
+                                'An error "' + errorThrown + '", status "' + 
+                                textStatus + '" occurred during loading data: ' + 
+                                XMLHttpRequest.responseText
+                            );
+                        }
+                    },
+                    success: function(jsonData){
+                        _settings.afterSave.call(_this);
+                    },
+                    complete: function(msg){
+                        _wait.hide();
+                        $(_formEle).removeClass(_globalDefaults.classFormChanged);
                     }
-                    return response;
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown){
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                XMLHttpRequest.responseText + "</strong></div>",												
-                        });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            XMLHttpRequest.responseText
-                        );
+                });
+            }
+        },
+        'delete': function(options) {
+            var _settings = $.extend({}, this.settings, options);
+            
+            var _this = this,
+                _formEle = this.objElem,
+                d2h_oper,
+                data = {};
+            for (tagName in _this._visualData) {
+                data[tagName] = $('[name=' + tagName + ']', this.objElem).val();
+            }
+            data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
+            
+            _this._rows = null;
+            if (_settings.beforeDelete.call(_this, data) !== false) {
+                $.ajax({
+                    type: 'POST',
+                    url: _settings.url,		
+                    data: JSON.stringify({
+                        d2h_oper: 'delete',
+                        d2h_data: data
+                    }),
+                    dataType: 'json',
+                    beforeSend: function(){
+                        _wait.show();
+                    },
+                    error: function(XMLHttpRequest, textStatus, errorThrown){
+                        if (typeof bootbox != 'undefined'){
+                            bootbox.alert({
+                                title : "Error",
+                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                    XMLHttpRequest.responseText + "</strong></div>",												
+                            });
+                        } else {
+                            alert(
+                                'An error "' + errorThrown + '", status "' + 
+                                textStatus + '" occurred during loading data: ' + 
+                                XMLHttpRequest.responseText
+                            );
+                        }
+                    },
+                    success: function(jsonData){
+                        _settings.afterDelete.call(_this);
+                    },
+                    complete: function(msg){
+                        _wait.hide();
+                        $(_formEle).removeClass(_globalDefaults.classFormChanged);
                     }
-                },
-                success: function(jsonData){
-                    _settings.afterSave.call(_this);
-                },
-                complete: function(msg){
-                    _wait.hide();
-                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
-                }
-            });
+                });
+            }
         },
         clear: function(options) {
             if (options && options.switchTo) {

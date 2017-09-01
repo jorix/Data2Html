@@ -55,6 +55,7 @@ class Data2Html_Controller
         }
         return $this->oper($request, $postData);
     }
+    
     protected function oper($request, $postData)
     {
         $model = $this->model;
@@ -76,7 +77,7 @@ class Data2Html_Controller
                     $sql = $sqlObj->getSelect();
                     
                     // Response
-                    return $this->getDbData($sql, $lkForm, 1, 1);
+                    return $this->opRead($sql, $lkForm, 1, 1);
                 } elseif (isset($payerNames['grid'])) {
                     $lkGrid = $model->getGrid($payerNames['grid']);
                     $lkGrid->createLink();
@@ -95,7 +96,7 @@ class Data2Html_Controller
                     
                     // Response
                     $page = $r->getCollection('d2h_page', array());
-                    return $this->getDbData(
+                    return $this->opRead(
                         $sql,
                         $lkGrid->getColumnsSet(),
                         $page->getInteger('pageStart', 1),
@@ -103,7 +104,6 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                //$response['new_id'] = $this->opInsert($model);
                 $this->opInsert($model->getForm($payerNames['form']), $postData['d2h_data']);
                 break;
 
@@ -111,14 +111,14 @@ class Data2Html_Controller
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                
-                $this->opUpdate(
-                    $model->getForm($payerNames['form']), $data, $keys
-                );
+                $this->opUpdate($model->getForm($payerNames['form']), $data, $keys);
                 break;
 
             case 'delete':
-                $this->opDelete($id);
+                $data = $postData['d2h_data'];
+                $keys = $data['[keys]'];
+                unset($data['[keys]']);
+                $this->opDelete($model->getForm($payerNames['form']), $data, $keys);
                 break;
 
             default:
@@ -132,7 +132,7 @@ class Data2Html_Controller
     /**
      * Execute a query and return the array result.
      */
-    protected function getDbData($query, $lkSet, $pageStart = 1, $pageSize = 0)
+    protected function opRead($query, $lkSet, $pageStart = 1, $pageSize = 0)
     {
         try {
             $pageSize = intval($pageSize);
@@ -281,7 +281,7 @@ class Data2Html_Controller
     {
         $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
         
-        if ($this->model->beforeInsert($values) === false) {
+        if ($this->model->beforeInsert($this->db, $values) === false) {
             exit;
         }
         $sql = $sqlObj->getInsert($values);
@@ -295,19 +295,19 @@ class Data2Html_Controller
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage() . $sql);
         }
-        $new_id = $this->db->lastInsertId();
-        $this->model->afterInsert($values, $new_id);
+        //$new_id = $this->db->lastInsertId();  
+        $this->model->afterInsert($this->db, $values, $new_id);
         $this->db->commit();
 
         return $new_id;
     }
+    
     protected function opUpdate($set, $values, $keys)
     {
-
         $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
         $sqlObj->checkSingleRow($keys);
-        
-        if ($this->model->beforeUpdate($values, $keyArray) === false) {
+
+        if ($this->model->beforeUpdate($this->db, $values, $keys) === false) {
             exit;
         }
         $sql = $sqlObj->getUpdate($values);
@@ -322,37 +322,34 @@ class Data2Html_Controller
             header('HTTP/1.0 401 '.$e->getMessage());
             die($e->getMessage() . $sql);
         }
-        $this->model->afterUpdate($values, $keyArray);
+        $this->model->afterUpdate($this->db, $values, $keys);
         $this->db->commit();
 
         return $result;
     }
-    protected function opDelete($id)
+    
+    protected function opDelete($set, $values, $keys)
     {
-        
-        if (empty($this->table)) {
-            throw new jqGrid_Exception('Table is not defined');
-        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
+        $sqlObj->checkSingleRow($keys);
 
-        $keyArray = $this->explodePrimaryKey($id);
-        if ($this->model->beforeDelete($keyArray) === false) {
+        if ($this->model->beforeDelete($this->db, $values, $keys) === false) {
             exit;
         }
+        $sql = $sqlObj->getDelete();
+        
         // Transaction
         $this->db->startTransaction();
         try {
-            $this->db->delete(
-                $this->model->getTableName(),
-                $this->whereSql($keyArray)
-            );
+            $result = $this->db->execute($sql);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage());
+            die($e->getMessage() . $sql);
         }
-        $this->model->afterDelete($keyArray);
+        $this->model->afterDelete($this->db, $values, $keys);
         $this->db->commit();
 
-        return '1';
+        return $result;
     }
 }

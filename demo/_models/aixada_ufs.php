@@ -8,7 +8,7 @@ class aixada_ufs extends Data2Html_Model {
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
             'base' => array(
-                'id'        => array('key', 'required', 'hidden'),
+                'id'        => array('key', 'integer', 'required', 'hidden'),
                 'name'      => array(
                         'title' => 'Nom UF',
                         'length'=> 255,
@@ -63,5 +63,12 @@ class aixada_ufs extends Data2Html_Model {
                 )
             )
         );
+    }
+    
+    public function beforeInsert($db, &$values)
+    {
+        $values['id'] = 
+            $db->getValue('select max(id) + 1 from  aixada_uf', 'integer');
+        return true;
     }
 }

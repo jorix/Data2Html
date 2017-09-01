@@ -39,10 +39,10 @@ class Data2Html_Controller_SqlEdit
             );
         }
         $this->result['where'] = $this->getWhereByKeys($keysReq);
-        $count = $this->db->getRow(
-            "select {$this->db->putAlias('rows','count(*)')}
-                from {$this->result['table']}
-                where {$this->result['where']}"
+        $count = $this->db->getValue(
+            "select count(*) from {$this->result['table']}
+                where {$this->result['where']}",
+            'integer'
         );
         if (!$count) {
             throw new Data2Html_Exception(
@@ -53,9 +53,9 @@ class Data2Html_Controller_SqlEdit
                 )
             );
         }
-        if ($count['rows'] > 1) {
+        if ($count > 1) {
             throw new Data2Html_Exception(
-                "{$this->culprit} checkSingleRow(): The keys has {$count['rows']} rows, only single row is valid.",
+                "{$this->culprit} checkSingleRow(): The keys has {$count} rows, only single row is valid.",
                 array(
                     'keys' => $keysReq,
                     'result' => $this->result
@@ -97,40 +97,6 @@ class Data2Html_Controller_SqlEdit
         return implode(' and ', $c);
     }
     
-    public function getUpdate($values)
-    {
-        if (!array_key_exists('where', $this->result)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getUpdate(): Keys are required, use checkSingleRow() before getUpdate().",
-                $this->result
-            );
-        }
-        $assigns = array();
-        $items = $this->set->getItems();
-        foreach($values as $k => $v) {
-            if (array_key_exists($k, $items)) {
-                $item = $items[$k];
-                if (array_key_exists('db', $item)) {
-                    $type = Data2Html_Value::getItem($item, 'type', 'string');
-                    $assigns[] =  $item['db'] . ' = ' . $this->db->toSql($v, $type);
-                }
-            }
-        }
-        if (count($assigns) === 0) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getUpdate(): Nothing to SET.",
-                array(
-                    'items' => $items,
-                    'values' => $values,
-                    'result' => $this->result
-                )
-            );
-        }
-        return "UPDATE {$this->result['table']}
-                    SET " . implode(",\n", $assigns) . "
-                    WHERE {$this->result['where']}";
-    }
-    
         
     public function getInsert($values)
     {
@@ -170,5 +136,51 @@ class Data2Html_Controller_SqlEdit
             ") \nVALUES (\n" .
                 implode(",\n", $assigns) .
             "\n)";
+    }
+    
+    public function getUpdate($values)
+    {
+        if (!array_key_exists('where', $this->result)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getUpdate(): Keys are required, use checkSingleRow() before getUpdate().",
+                $this->result
+            );
+        }
+        $assigns = array();
+        $items = $this->set->getItems();
+        foreach($values as $k => $v) {
+            if (array_key_exists($k, $items)) {
+                $item = $items[$k];
+                if (array_key_exists('db', $item)) {
+                    $type = Data2Html_Value::getItem($item, 'type', 'string');
+                    $assigns[] =  $item['db'] . ' = ' . $this->db->toSql($v, $type);
+                }
+            }
+        }
+        if (count($assigns) === 0) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getUpdate(): Nothing to SET.",
+                array(
+                    'items' => $items,
+                    'values' => $values,
+                    'result' => $this->result
+                )
+            );
+        }
+        return "UPDATE {$this->result['table']}
+                    SET " . implode(",\n", $assigns) . "
+                    WHERE {$this->result['where']}";
+    }
+
+    public function getDelete()
+    {
+        if (!array_key_exists('where', $this->result)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit} getUpdate(): Keys are required, use checkSingleRow() before getDelete().",
+                $this->result
+            );
+        }
+        return 
+            "DELETE FROM {$this->result['table']} WHERE {$this->result['where']}";
     }
 }

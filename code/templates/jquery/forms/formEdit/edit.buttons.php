@@ -22,7 +22,7 @@ $return = array(
         'icon' => 'remove',
         'title' => '$Delete',
         'description' => null,
-        'action' => 'readPage'
+        'action' => 'delete'
     ),
     array(
         'layout' => 'none',
