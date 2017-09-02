@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-<button class="btn btn-default hidden-xs "
+<button class="btn btn-default"
     title="$${title}"
     data-d2h-on="click:$${action}">
     <span class="glyphicon glyphicon-$${icon}"

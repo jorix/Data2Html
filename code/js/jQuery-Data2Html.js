@@ -313,6 +313,19 @@ jQuery.ajaxSetup({ cache: false });
                 new dataForm($elem[0], this, compomentOptions);
         },
 
+        showSort: function(options) {
+            if (options && options.sortBy) {
+                var sortBy = options.sortBy;
+                if (sortBy) {
+                    $('span.d2h_sort_asc,span.d2h_sort_desc', this.objElem)
+                        .removeClass('d2h_sort_asc d2h_sort_desc')
+                        .addClass('d2h_sort_no');
+                }
+                var a = $('[data-d2h-sort=' + sortBy + ']', this.objElem);
+                a.removeClass('d2h_sort_no').addClass('d2h_sort_asc');
+            }
+        },
+        
         load: function(options) {
             var _settings = $.extend({}, this.settings, options);
             var data = {},
@@ -331,7 +344,9 @@ jQuery.ajaxSetup({ cache: false });
                         .serialize()
                         .replace(/&/g, '[,]');
             }
-            data['d2h_sort'] = $('.d2h_sort', this).val();
+            if (_settings.sort) {
+                data['d2h_sort'] = $(_settings.sort, this).val();
+            }
             var _this = this,
                 _gridEle = this.objElem;
             if (!_settings.add) {

@@ -180,7 +180,8 @@ class Data2Html_Render
             } else {
                 $layouts = $vDx->getArray('layouts', array('base', 'base'));
             }
-            if ($vDx->getArray('sortBy')) {
+            $isSorted = !!$vDx->getArray('sortBy');
+            if ($isSorted) {
                 $layouts[0] = 'sortable';
             }
             
@@ -194,6 +195,8 @@ class Data2Html_Render
                     $sinputTplName,
                     $templateInputs,
                     array(
+                        'id' => null,
+                        'name' => null,
                         'format' => $svDx->getString('format'),
                         'type' => $svDx->getString('type'),
                         'title' => $svDx->getString('title'),

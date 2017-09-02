@@ -10,6 +10,18 @@
     <script src="../../code/js/jQuery-Data2Html.js" ></script>
     <script src="../../code/js/d2h_switchTo.js" ></script>
     <style>
+    
+    .d2h_sort_no .d2h_sort_no {color: #777}
+    .d2h_sort_asc .d2h_sort_asc,
+    .d2h_sort_desc .d2h_sort_desc,
+    .d2h_sort_no .d2h_sort_no {display: inline;}
+    .d2h_sort_asc .d2h_sort_desc,
+    .d2h_sort_asc .d2h_sort_no, 
+    .d2h_sort_desc .d2h_sort_asc,
+    .d2h_sort_desc .d2h_sort_no,
+    .d2h_sort_no .d2h_sort_asc,
+    .d2h_sort_no .d2h_sort_desc {display: none;}
+    
     .d2h_waiting {
         position: fixed; left: 50%; top: 50%;
         display: none;

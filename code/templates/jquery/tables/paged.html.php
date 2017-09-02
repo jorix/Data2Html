@@ -7,7 +7,7 @@
         visual: $${visual},
         actions: {
             'edit': function(elem) {this.switchTo('form').load({elemKeys:elem}); },
-            'copy': function() {},
+            'copy': function() {this.showSort({sortBy:'name'});},
             'delete': function(elem) {this.switchTo('form').load({elemKeys:elem});},
             'create': function() {this.switchTo('form').clear();}
         },
@@ -22,11 +22,14 @@
                 'nextPage': function() {this.load({add:true});}
             }
         }],
-        sort:  '#$${id}_sort'"
+        sort:  '#$${id}_sort',
+        sortBy: '$${sortBy}'"
+        
 >
     $${filter}
     <div class="col-md-12">
         <h3>$${title}</h3>
+        <input id="#$${id}_sort" type="text">
         <table class="table table-striped table-bordered">
             <thead><tr>$${thead}</tr></thead>
             <tfoot><tr>
