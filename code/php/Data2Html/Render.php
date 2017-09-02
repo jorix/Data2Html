@@ -129,16 +129,28 @@ class Data2Html_Render
             $this->templateObj->getTemplateItems('endItems', $templateTable)
         );
         
-        $defaultLayouts = array('sortable', 'default');        
-        
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
+        $templateHeadsLayouts =
+            $this->templateObj->getTemplateBranch('heads_layouts', $templateTable);
         $templateCells =
             $this->templateObj->getTemplateBranch('cells', $templateTable);
+        $templateCellsLayouts =
+            $this->templateObj->getTemplateBranch('cells_layouts', $templateTable);
+            
+        // Use optional input template
+        $templateInputs =
+            $this->templateObj->getTemplateBranch('inputs', $templateTable, false);
+        if ($templateInputs) {
+            $templateInputsLayouts =
+                $this->templateObj->getTemplateBranch('inputs_layouts', $templateTable);
+        }
+        
         $thead = array();
         $tbody = array();
         $renderCount = 0;
         $vDx = new Data2Html_Collection();
+        $svDx = new Data2Html_Collection();
         foreach ($columns as $k => $v) {
             $vDx->set($v);
             if ($vDx->getBoolean('virtual')) {
@@ -151,23 +163,62 @@ class Data2Html_Render
             }
             
             ++$renderCount;
+            $inputTplName = $vDx->getString('input');
+            $type = $vDx->getString('type');
+            $iReplaces = array(
+                'id' => null,
+                'name' => $k,
+                'format' => $vDx->getString('format'),
+                'type' => $vDx->getString('type'),
+                'title' => $vDx->getString('title'),
+                'icon' => $vDx->getString('icon'),
+                'action' => $vDx->getString('action'),
+                'description' => $vDx->getString('description')
+            );
+            if ($inputTplName) {
+                $layouts = $vDx->getArray('layouts', array('blank', 'base'));
+            } else {
+                $layouts = $vDx->getArray('layouts', array('base', 'base'));
+            }
+            if ($vDx->getArray('sortBy')) {
+                $layouts[0] = 'sortable';
+            }
+            
             // head
-            $name = $vDx->getString('name', $k);
-            $label = $vDx->getString('title', $name);
-            $layouts = $vDx->getArray('layouts', $defaultLayouts);
+            $lReplaces = $iReplaces;
+            if (is_array($layouts[0]) && $templateInputs) {
+                // TODO: Make it generic
+                $svDx->set($layouts[0]);
+                $sinputTplName = $svDx->getString('input');
+                $lReplaces['html'] = $this->templateObj->renderTemplateItem(
+                    $sinputTplName,
+                    $templateInputs,
+                    array(
+                        'format' => $svDx->getString('format'),
+                        'type' => $svDx->getString('type'),
+                        'title' => $svDx->getString('title'),
+                        'icon' => $svDx->getString('icon'),
+                        'action' => $svDx->getString('action'),
+                        'description' => $svDx->getString('description')
+                    )
+                );
+            } else {
+                $lReplaces['html'] = $this->templateObj->renderTemplateItem(
+                    $layouts[0],
+                    $templateHeads,
+                    $iReplaces
+                );
+            }
             $this->templateObj->concatContents(
                 $thead,
                 $this->templateObj->renderTemplateItem(
-                    $layouts[0],
-                    $templateHeads,
-                    array(
-                        'name' => $name,
-                        'title' => $label
-                    )
+                    'base',
+                    $templateHeadsLayouts,
+                    $lReplaces
                 )
             );
+            
             // body
-            $type = $vDx->getString('type');
             $class = '';
             $ngClass = '';
             switch ($type) {
@@ -183,29 +234,30 @@ class Data2Html_Render
                     $class .= ' '.$visual;
                 }
             }
-            $formatItem = '';
-            if ($type && $format = $vDx->getString('format')) {
-                $formatItem = " | {$type}:'{$format}'";
-            } elseif ($type === 'currency') {
-                $formatItem = " | {$type}";
+            
+            $bReplaces = $iReplaces + array(
+                'class' => $class,
+                'ngClass' => $ngClass
+            );
+            if ($inputTplName && $templateInputs) {
+                $bReplaces['html'] = $this->templateObj->renderTemplateItem(
+                    $inputTplName,
+                    $templateInputs,
+                    $iReplaces
+                );
+            } else {
+                $bReplaces['html'] = $this->templateObj->renderTemplateItem(
+                    $layouts[1],
+                    $templateCells,
+                    $iReplaces
+                );
             }
             $this->templateObj->concatContents(
                 $tbody,
                 $this->templateObj->renderTemplateItem(
-                    $layouts[1],
-                    $templateCells,
-                    array(
-                        'ngClass' => $ngClass,
-                        'prefix' => 'item.', // angular1
-                        'class' => $class,
-                        'format' => $formatItem,
-                        
-                        'name' => $k,
-                        'title' => $vDx->getString('title'),
-                        'icon' => $vDx->getString('icon'),
-                        'action' => $vDx->getString('action'),
-                        'description' => $vDx->getString('description')
-                    )
+                    'base',
+                    $templateCellsLayouts,
+                    $bReplaces
                 )
             );
         }
@@ -239,13 +291,12 @@ class Data2Html_Render
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
-            $this->templateObj->getTemplateBranch('layouts', $templateBranch);
-        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'fieldLayouts', 'default');
+            $this->templateObj->getTemplateBranch('inputs_layouts', $templateBranch);
+        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'fieldLayouts', 'base');
         $body = array();
         $defaults = array();
         $renderCount = 0;
         
-        $fieldPrefix = $this->templateObj->getTemplateItem('prefix', $templateBranch, '');
         foreach ($fieldsDs as $k => $v) {            
             $vDx = new Data2Html_Collection($v);
             if ($vDx->getBoolean('virtual')) {
@@ -262,16 +313,14 @@ class Data2Html_Render
             }
             $default = Data2Html_Value::getItem($v, 'default');
             $fReplaces = array(
-                'id' => $this->createIdRender(),
                 'formId' => $formId,
                 
+                'id' => $this->createIdRender(),
                 'name' => $k,
                 'title' => $vDx->getString('title'),
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
                 'description' => $vDx->getString('description'),
-                
-                'prefix' => $fieldPrefix,
                 
                 'default' => $default,
                 'url' => $url,

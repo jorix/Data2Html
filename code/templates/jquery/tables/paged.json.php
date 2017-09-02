@@ -2,20 +2,36 @@
 {
     "table": {
         "template": "paged.html.php",
+        "startItems": "crud.buttons.php",
         "heads": {
             "folder": "heads/",
             "templates": {
-                "sortable": "sortable.html.php",
-                "none": "none.html"
+                "base": "base.html.php",
+                "blank": "blank.html",
+                "sortable": "sortable.html.php"
             }
         },
-        "startItems": "crud.buttons.json.php",
+        "heads_layouts": {
+            "folder": "heads_layouts/",
+            "templates": {
+                "base": "base.html.php"
+            }
+        },
         "cells": {
             "folder": "cells/",
             "templates": {
-                "default": "default.html.php",
-                "button": "button.html.php"
+                "base": "base.html.php"
             }
-        }
+        },
+        "cells_layouts": {
+            "folder": "cells_layouts/",
+            "templates": {
+                "base": "base.html.php"
+            }
+        },
+        "includes": [
+            "../forms/inputs_layouts.json.php",
+            "../forms/inputs_fields.json.php"
+        ]
     }
 }

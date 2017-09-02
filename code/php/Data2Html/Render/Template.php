@@ -286,22 +286,27 @@ class Data2Html_Render_Template
     {
         return Data2Html_Value::getItem($templateBranch[1], $keys, array());
     }
-    public function getTemplateBranch($keys, $templateBranch)
+    public function getTemplateBranch($keys, $templateBranch, $required = true)
     {
         if (!is_array($keys)) {
             $keys = array($keys);
         }
         $finalKeys = array_merge($templateBranch[0], $keys);
         $tree = Data2Html_Value::getItem($templateBranch[1], $keys);
-        if (!$tree) {
-            throw new Data2Html_Exception(
-                "{$this->culprit}: Key \"" .
-                    implode('=>', $finalKeys) .
-                    "\" does not exist.",
-                $templateBranch[1]
-            ); 
+        if ($tree) {
+            $result = array($finalKeys, $tree);
+        } else {
+            if ($required) {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: Key \"" .
+                        implode('=>', $finalKeys) .
+                        "\" does not exist.",
+                    $templateBranch[1]
+                );
+            } 
+            $result = null;
         }
-        return array($finalKeys, $tree);       
+        return $result;
     }
     public function getTemplateItem($keys, $templateBranch, $default = null)
     {

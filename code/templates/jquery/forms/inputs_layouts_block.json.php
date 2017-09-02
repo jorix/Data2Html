@@ -1,11 +1,11 @@
 <?php die("It's uncooked!"); ?>
 {
-    "layouts":  {
-        "folder": "./layouts/",
+    "inputs_layouts":  {
+        "folder": "./inputs_layouts/",
         "templates": {
-            "default": "block.html.php",
-            "block": "block.html.php",
-            "none": "none.html.php"
+            "base": "block.html.php",
+            "bare": "bare.html.php",
+            "block": "block.html.php"
         }
     }
 }

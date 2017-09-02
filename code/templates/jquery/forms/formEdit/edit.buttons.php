@@ -1,7 +1,7 @@
 <?php
 $return = array(
     array(
-        'layout' => 'none',
+        'layout' => 'bare',
         'input' => 'button',
         'icon' => 'step-backward',
         'title' => '$Previus_PHP',
@@ -9,7 +9,7 @@ $return = array(
         'action' => 'readPage'
     ),
     array(
-        'layout' => 'none',
+        'layout' => 'bare',
         'input' => 'button',
         'icon' => 'step-forward',
         'title' => '$Next',
@@ -17,7 +17,7 @@ $return = array(
         'action' => 'readPage'
     ),
     array(
-        'layout' => 'none',
+        'layout' => 'bare',
         'input' => 'button',
         'icon' => 'remove',
         'title' => '$Delete',
@@ -25,7 +25,7 @@ $return = array(
         'action' => 'delete'
     ),
     array(
-        'layout' => 'none',
+        'layout' => 'bare',
         'input' => 'button',
         'icon' => 'ok',
         'title' => '$Save',
@@ -33,7 +33,7 @@ $return = array(
         'action' => 'save'
     ),
     array(
-        'layout' => 'none',
+        'layout' => 'bare',
         'input' => 'button',
         'icon' => 'arrow-left',
         'title' => '$Back',

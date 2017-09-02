@@ -3,7 +3,7 @@
     "page": {
         "folder": "./",
         "template": "page.html.php",
-        "startItems": "page.def.json.php",
+        "startItems": "page.inputs.json.php",
         "includes": [
             "../inputs_layouts.json.php",
             "../inputs_fields.json.php"
