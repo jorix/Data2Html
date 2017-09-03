@@ -317,12 +317,23 @@ jQuery.ajaxSetup({ cache: false });
             if (options && options.sortBy) {
                 var sortBy = options.sortBy;
                 if (sortBy) {
-                    $('span.d2h_sort_asc,span.d2h_sort_desc', this.objElem)
-                        .removeClass('d2h_sort_asc d2h_sort_desc')
-                        .addClass('d2h_sort_no');
+                    $('.d2h_sortBy_asc, .d2h_sortBy_desc', this.objElem)
+                        .removeClass('d2h_sortBy_asc d2h_sortBy_desc')
+                        .addClass('d2h_sortBy_no');
                 }
-                var a = $('[data-d2h-sort=' + sortBy + ']', this.objElem);
-                a.removeClass('d2h_sort_no').addClass('d2h_sort_asc');
+                var order = 'd2h_sortBy_asc';
+                switch (sortBy.substr(0, 1)) {
+                    case '!': case '-': case '>':
+                        sortBy = sortBy.substr(1);
+                        order = 'd2h_sortBy_desc';
+                        break;
+                    case '+': case '<':
+                        sortBy = sortBy.substr(1);
+                        break;
+                }
+                $('[data-d2h-sort=' + sortBy + ']', this.objElem)
+                    .removeClass('d2h_sortBy_no')
+                    .addClass(order);
             }
         },
         

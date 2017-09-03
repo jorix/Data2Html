@@ -214,12 +214,18 @@ class Data2Html_Controller_SqlSelect
         if (!$colNameRequest) {
             return '';
         }
-        if (substr($colNameRequest, 0, 1) === '!') {
-            $baseName = substr($colNameRequest, 1);
-            $order = -1;
-        } else {
-            $baseName = $colNameRequest;
-            $order = 1;
+        switch (substr($colNameRequest, 0, 1)) {
+            case '!':  case '-':  case '>':
+                $baseName = substr($colNameRequest, 1);
+                $order = -1;
+                break;
+            case '+': case '<':
+                $baseName = substr($colNameRequest, 1);
+                $order = 1;
+                break;
+            default:
+                $baseName = $colNameRequest;
+                $order = 1;
         }
         $sortBy = Data2Html_Value::getItem($columns, array($baseName, 'sortBy', 'items'));
         if (!$sortBy) {

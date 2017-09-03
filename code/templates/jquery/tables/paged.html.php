@@ -7,7 +7,7 @@
         visual: $${visual},
         actions: {
             'edit': function(elem) {this.switchTo('form').load({elemKeys:elem}); },
-            'copy': function() {this.showSort({sortBy:'name'});},
+            'copy': function() {this.showSort({sortBy:'!name'});},
             'delete': function(elem) {this.switchTo('form').load({elemKeys:elem});},
             'create': function() {this.switchTo('form').clear();}
         },

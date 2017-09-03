@@ -17,7 +17,7 @@ class aixada_ufs extends Data2Html_Model {
                 'uf_name'   => array(
                     'title' => 'Nom UF',
                     'value' => '$${name}#$${id}',
-                    'sortBy' => 'name'
+                    'sortBy' => '!name'
                 ),
                 'active'    => array('boolean', 'required', 'default' => true),
                 'created'   => array('date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'),
@@ -29,7 +29,7 @@ class aixada_ufs extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'sort' => 'name',
+                    'sort' => '!name',
                     'columns' => array('uf_name'),
                     'filter' => array(
                         'fieldLayouts' => 'inline',
