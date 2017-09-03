@@ -259,6 +259,11 @@ jQuery.ajaxSetup({ cache: false });
                 this._initComponent('page', settings.page);
             }
             
+            // sortBy
+            if (settings.sortElem) {
+                d2h_sortBy.create(this, settings.sortElem, settings.sortBy);
+            }
+            
             // clear
             this.clear();
         },
@@ -300,30 +305,6 @@ jQuery.ajaxSetup({ cache: false });
             }
             this.components[compomentName] =
                 new dataForm($elem[0], this, compomentOptions);
-        },
-
-        showSort: function(options) {
-            if (options && options.sortBy) {
-                var sortBy = options.sortBy;
-                if (sortBy) {
-                    $('.d2h_sortBy_asc, .d2h_sortBy_desc', this.objElem)
-                        .removeClass('d2h_sortBy_asc d2h_sortBy_desc')
-                        .addClass('d2h_sortBy_no');
-                }
-                var order = 'd2h_sortBy_asc';
-                switch (sortBy.substr(0, 1)) {
-                    case '!': case '-': case '>':
-                        sortBy = sortBy.substr(1);
-                        order = 'd2h_sortBy_desc';
-                        break;
-                    case '+': case '<':
-                        sortBy = sortBy.substr(1);
-                        break;
-                }
-                $('[data-d2h-sort=' + sortBy + ']', this.objElem)
-                    .removeClass('d2h_sortBy_no')
-                    .addClass(order);
-            }
         },
         
         load: function(options) {

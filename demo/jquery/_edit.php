@@ -9,6 +9,7 @@
     <script src="../../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
     <script src="../../code/js/jQuery-Data2Html.js" ></script>
     <script src="../../code/js/d2h_switchTo.js" ></script>
+    <script src="../../code/js/d2h_sortBy.js" ></script>
     <style>
     
     .d2h_sortBy_no .d2h_sort_no {color: #777}
