@@ -325,8 +325,8 @@ jQuery.ajaxSetup({ cache: false });
                         .serialize()
                         .replace(/&/g, '[,]');
             }
-            if (_settings.sort) {
-                data['d2h_sort'] = $(_settings.sort, this).val();
+            if (_settings.sortElem) {
+                data['d2h_sort'] = $(_settings.sortElem, this.objElem).val();
             }
             var _this = this,
                 _gridEle = this.objElem;

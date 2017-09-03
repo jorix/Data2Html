@@ -23,6 +23,7 @@ d2h_sortBy.prototype = {
             );
         }
         
+        this.dataObj = d2h_data;
         this.dataElem = d2h_data.getElem();
         this.sortElem = $sort[0];
         $.data(this.dataElem, "Data2Html_sortBy", this);
@@ -35,9 +36,11 @@ d2h_sortBy.prototype = {
             var _sortByName = $(this).attr('data-d2h-sort');
             $('.d2h_sort_no, .d2h_sort_desc', this).on('click', function() {
                 _this.show(_sortByName);
+                _this.dataObj.load();
             });
             $('.d2h_sort_asc', this).on('click', function() {
                 _this.show('!' + _sortByName);
+                _this.dataObj.load();
             });
         });
     },
