@@ -47,14 +47,13 @@ d2h_switchTo.prototype = {
                 $(sels[iName]).hide();
             }
         }
-        if ($selected) {
-            this._currentName = name;
-            return $selected.data2html('get');
-        } else {
+        if (!$selected) {
             $.error(
                 "d2h_switchTo.go(): Name '" + name + 
                 "' not exist on selectors. Must add it!"
             );
         }
+        this._currentName = name;
+        return $selected.data2html('get');
     }
 };

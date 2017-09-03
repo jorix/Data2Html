@@ -3,17 +3,17 @@ function d2h_sortBy() {
 }
 
 // Static
-d2h_sortBy.create = function(d2h_data, sortSelector, sortBy) {
-    return new this(d2h_data, sortSelector, sortBy);
+d2h_sortBy.create = function(d2h_data, sortSelector) {
+    return new this(d2h_data, sortSelector);
 };
 d2h_sortBy.show = function(d2h_data, sortBy) {
     var sortByObj = $.data(d2h_data.getElem(), "Data2Html_sortBy");
-    sortByObj.show(sortBy);
+    return sortByObj.show(sortBy);
 };
 
 // Class
 d2h_sortBy.prototype = {
-    _init: function(d2h_data, sortSelector, sortBy) {
+    _init: function(d2h_data, sortSelector) {
         var $sort = $(sortSelector);
         if ($sort.length !== 1) {
             $.error(
@@ -27,26 +27,21 @@ d2h_sortBy.prototype = {
         this.dataElem = d2h_data.getElem();
         this.sortElem = $sort[0];
         $.data(this.dataElem, "Data2Html_sortBy", this);
-        if (sortBy) {
-            this.show(sortBy);
-        }
         
         var _this = this;
         $('[data-d2h-sort]', this.dataElem).each(function() {
             var _sortByName = $(this).attr('data-d2h-sort');
             $('.d2h_sort_no, .d2h_sort_desc', this).on('click', function() {
-                _this.show(_sortByName);
-                _this.dataObj.load();
+                _this.show(_sortByName).load();
             });
             $('.d2h_sort_asc', this).on('click', function() {
-                _this.show('!' + _sortByName);
-                _this.dataObj.load();
+                _this.show('!' + _sortByName).load();
             });
         });
     },
     show: function(sortBy) {
         if (!sortBy) {
-            $.error("d2h_sortBy.show(): Argument sortBy is required!");
+            $.error("d2h_sortBy.show(): Argument 'sortBy' is required!");
         }
         $('.d2h_sortBy_asc, .d2h_sortBy_desc', this.dataElem)
             .removeClass('d2h_sortBy_asc d2h_sortBy_desc')
@@ -62,11 +57,16 @@ d2h_sortBy.prototype = {
                 sortByName = sortBy.substr(1);
                 break;
             case '$': // ERROR on server template
-                return;
+                return this;
         }
         $('[data-d2h-sort=' + sortByName + ']', this.dataElem)
             .removeClass('d2h_sortBy_no')
             .addClass(order);
         $(this.sortElem).val(sortBy);
+        return this;
+    },
+    load: function() {
+        this.dataObj.load();
+        return this;
     }
 };

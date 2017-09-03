@@ -258,10 +258,10 @@ jQuery.ajaxSetup({ cache: false });
             if (settings.page) {
                 this._initComponent('page', settings.page);
             }
-            
             // sortBy
-            if (settings.sortElem) {
-                d2h_sortBy.create(this, settings.sortElem, settings.sortBy);
+            if (settings.sort) {
+                d2h_sortBy.create(this, settings.sort)
+                    .show($(settings.sort).val());
             }
             
             // clear
@@ -325,8 +325,8 @@ jQuery.ajaxSetup({ cache: false });
                         .serialize()
                         .replace(/&/g, '[,]');
             }
-            if (_settings.sortElem) {
-                data['d2h_sort'] = $(_settings.sortElem, this.objElem).val();
+            if (_settings.sort) {
+                data['d2h_sort'] = $(_settings.sort, this.objElem).val();
             }
             var _this = this,
                 _gridEle = this.objElem;

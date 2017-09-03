@@ -76,12 +76,13 @@ class Data2Html_Render
             $klColumns->getLinkedItems(),
             array(
                 $lkGrid->getAttribute('title'),
+                'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}&",
-                'filter' => $filterForm,
-                'page' => $pageForm,
+                'sortBy' => $lkGrid->getAttribute('sort'),
                 'visual' => $klColumns->getVisualItemsJson(),
-                'id' => $gridId
+                'filter' => $filterForm,
+                'page' => $pageForm
             )
         );
         $result['id'] = $gridId;

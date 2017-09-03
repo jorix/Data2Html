@@ -7,7 +7,7 @@
         visual: $${visual},
         actions: {
             'edit': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem}); },
-            'copy': function() {d2h_sortBy.show(this, '!name');},
+            'copy': function() {},
             'delete': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem});},
             'create': function() {d2h_switchTo.go(this, 'edit').clear();}
         },
@@ -22,14 +22,13 @@
                 'nextPage': function() {this.load({add:true});}
             }
         }],
-        sortElem: '#$${id}_sort',
-        sortBy: '$${sortBy}'"
-        
+        sort: '#$${id}_sort'
+    "
 >
     $${filter}
     <div class="col-md-12">
         <h3>$${title}</h3>
-        <input id="$${id}_sort" type="text">
+        <input id="$${id}_sort" type="text" value="$${sortBy}">
         <table class="table table-striped table-bordered">
             <thead><tr>$${thead}</tr></thead>
             <tfoot><tr>
