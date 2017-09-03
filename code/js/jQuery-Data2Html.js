@@ -62,8 +62,6 @@ jQuery.ajaxSetup({ cache: false });
         _container: null,        
         _initId: 0,
         
-        switchToObj: null,
-        
         _visualData: null,
         _rows: null, //the data once loaded/received
         
@@ -88,7 +86,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             
             // Add pluguin
-            $.data(this.objElem, "plugin_data2html", this);
+            $.data(this.objElem, "Data2Html_data", this);
         },
         
         get: function() {
@@ -124,15 +122,6 @@ jQuery.ajaxSetup({ cache: false });
             if ($(handlerEle).attr('data-d2h-on')) {
                 _fnAction.call(handlerEle);
             }
-        },
-        
-        // Switch
-        addSwitch: function(switchToObj) {
-            this.switchToObj = switchToObj;
-            return this.settings.type;
-        },
-        switchTo: function(type) {
-            return this.switchToObj.show(type);
         },
 
         // Data manage
@@ -806,7 +795,7 @@ jQuery.ajaxSetup({ cache: false });
         
         var _response;
         this.each(function() {
-            if (!$.data(this, "plugin_data2html") ) {
+            if (!$.data(this, "Data2Html_data") ) {
                 var opData = _getElementOptions(this, _options);
                 switch (opData.type) {
                     case 'form':
@@ -818,7 +807,7 @@ jQuery.ajaxSetup({ cache: false });
                 }
             }
             if (_method) {
-                var thisObj = $.data(this, "plugin_data2html");
+                var thisObj = $.data(this, "Data2Html_data");
                 _response = thisObj[_method].call(thisObj, _options);
             }
         });

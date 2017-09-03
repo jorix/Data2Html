@@ -1,23 +1,44 @@
-function d2h_switchTo(selector) {
+function d2h_switchTo(selector, name) {
     this._selectors = {};
+    this._currentName = null;
     if (selector) {
-        this.add(selector);
+        this.add(selector, name);
     }
 }
-d2h_switchTo.create = function(selector) {
-    return new this(selector);
+
+// Static
+d2h_switchTo.create = function(selector, name) {
+    return new this(selector, name);
 };
+d2h_switchTo.go = function(d2h_data, name) {
+    var switchToObj = $.data(d2h_data.getElem(), "Data2Html_switchTo");
+    if (!name) {
+        name = switchToObj._currentName;
+    }
+    return switchToObj.go(name);
+};
+
+// Class
 d2h_switchTo.prototype = {
     _selectors: null,
     
-    add: function(selector) {
-        this._selectors[$(selector).data2html('addSwitch', this)] = selector;
+    add: function(selector, name) {
+        $elem = $(selector);
+        if ($elem.length !== 1) {
+            $.error(
+                "d2h_switchTo.add(): Selector '" + selector + 
+                "' has selected " + $elem.length +
+                "  elements. Must select only one element!"
+            );
+        }
+        $.data($elem[0], "Data2Html_switchTo", this);
+        this._selectors[name] = selector;
         return this;
     },
     
-    show: function(name) {
+    go: function(name) {
         var iName,
-        $selected
+            $selected,
             sels = this._selectors;
         for (iName in sels) {
             if (iName === name) {
@@ -27,7 +48,13 @@ d2h_switchTo.prototype = {
             }
         }
         if ($selected) {
+            this._currentName = name;
             return $selected.data2html('get');
+        } else {
+            $.error(
+                "d2h_switchTo.go(): Name '" + name + 
+                "' not exist on selectors. Must add it!"
+            );
         }
     }
 };

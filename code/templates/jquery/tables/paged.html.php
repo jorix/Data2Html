@@ -6,10 +6,10 @@
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
-            'edit': function(elem) {this.switchTo('form').load({elemKeys:elem}); },
+            'edit': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem}); },
             'copy': function() {this.showSort({sortBy:'!name'});},
-            'delete': function(elem) {this.switchTo('form').load({elemKeys:elem});},
-            'create': function() {this.switchTo('form').clear();}
+            'delete': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem});},
+            'create': function() {d2h_switchTo.go(this, 'edit').clear();}
         },
         filter:['#$${id}_filter', {
             actions: {
