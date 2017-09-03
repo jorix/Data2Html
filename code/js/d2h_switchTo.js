@@ -4,6 +4,9 @@ function d2h_switchTo(selector) {
         this.add(selector);
     }
 }
+d2h_switchTo.create = function(selector) {
+    return new this(selector);
+};
 d2h_switchTo.prototype = {
     _selectors: null,
     

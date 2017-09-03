@@ -71,8 +71,9 @@
     ?>
     <script>
         (function() {
-            var a = new d2h_switchTo('#<?=$idGrid?>');
-            a.add('#<?=$idEdit?>').show('grid');
+            d2h_switchTo.create('#<?=$idGrid?>')
+                .add('#<?=$idEdit?>')
+                .show('grid');
         })();
     </script>
     </div>
