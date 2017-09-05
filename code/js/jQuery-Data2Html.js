@@ -312,9 +312,18 @@ jQuery.ajaxSetup({ cache: false });
             var data = {},
                 pageStart = 1;
             if (this.components.filter) {
-                data['d2h_filter'] = $(this.components.filter.getElem())
-                    .serialize()
-                    .replace(/&/g, '[,]');
+                var values = $(this.components.filter.getElem()).serialize();
+                values = values.concat(
+                    $(
+                        'input[type=checkbox]:not(:checked)',
+                        this.components.filter.getElem()
+                    ).map(
+                        function() {
+                            return {"name": this.name, "value": this.value}
+                        }
+                    ).get()
+                );
+                data['d2h_filter'] = values.replace(/&/g, '[,]');
             }
             if (this.components.page) {
                 if (_settings.add) {
@@ -556,7 +565,13 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_oper,
                 data = {};
             for (tagName in _this._visualData) {
-                data[tagName] = $('[name=' + tagName + ']', this.objElem).val();
+                var $elem = $('[name=' + tagName + ']', this.objElem),
+                    type = $elem.attr('type');
+                if (type && type==='checkbox') {
+                    data[tagName] = $elem.prop('checked') ? 1 : 0;
+                } else {
+                    data[tagName] = $elem.val();
+                }
             }
             data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
             if (data['[keys]']) {
@@ -657,7 +672,8 @@ jQuery.ajaxSetup({ cache: false });
             if (options && options.switchTo) {
                 this.switchTo(this.type);
             }
-            var visualData = this._visualData;
+            var tagName,
+                visualData = this._visualData;
             for (tagName in visualData) {
                 var val = "",
                     visualEle = visualData[tagName];
@@ -669,7 +685,8 @@ jQuery.ajaxSetup({ cache: false });
             $(this.objElem).attr('data-d2h-keys', '');
         },
         showFormData: function(row) {
-            var visualData = this._visualData;
+            var tagName,
+                visualData = this._visualData;
             for (tagName in visualData) {
                 var val = row[tagName] !== undefined ? row[tagName] : "";
                     $('[name=' + tagName + ']', this.objElem).val(val);

@@ -310,10 +310,13 @@ class Data2Html_Render
             $url = $vDx->getString('url', '');
             $validations = $vDx->getArray('validations', array());
             $link = $vDx->getString('link');
+            $type = $vDx->getString('type');
             $inputTplName = $input;
             if ($link) {
                 $inputTplName = 'ui-select';
                 $url = $baseUrl . 'model='.$link.'&';
+            } elseif ($type === 'boolean') {
+                $inputTplName = 'checkbox';
             }
             $default = Data2Html_Value::getItem($v, 'default');
             $fReplaces = array(
