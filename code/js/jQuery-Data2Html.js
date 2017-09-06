@@ -312,17 +312,8 @@ jQuery.ajaxSetup({ cache: false });
             var data = {},
                 pageStart = 1;
             if (this.components.filter) {
-                var values = $(this.components.filter.getElem()).serialize();
-                values = values.concat(
-                    $(
-                        'input[type=checkbox]:not(:checked)',
-                        this.components.filter.getElem()
-                    ).map(
-                        function() {
-                            return {"name": this.name, "value": this.value}
-                        }
-                    ).get()
-                );
+                var values =
+                    d2h_jQvalues.serialize($(this.components.filter.getElem()));
                 data['d2h_filter'] = values.replace(/&/g, '[,]');
             }
             if (this.components.page) {
@@ -330,8 +321,7 @@ jQuery.ajaxSetup({ cache: false });
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
                 data['d2h_page'] = 'pageStart=' + pageStart + '[,]' +
-                     $(this.components.page.getElem())
-                        .serialize()
+                    d2h_jQvalues.serialize($(this.components.page.getElem()))
                         .replace(/&/g, '[,]');
             }
             if (_settings.sort) {
@@ -565,13 +555,9 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_oper,
                 data = {};
             for (tagName in _this._visualData) {
-                var $elem = $('[name=' + tagName + ']', this.objElem),
-                    type = $elem.attr('type');
-                if (type && type==='checkbox') {
-                    data[tagName] = $elem.prop('checked') ? 1 : 0;
-                } else {
-                    data[tagName] = $elem.val();
-                }
+                data[tagName] = d2h_jQvalues.get(
+                    $('[name=' + tagName + ']', this.objElem)
+                );
             }
             data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
             if (data['[keys]']) {
@@ -626,7 +612,9 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_oper,
                 data = {};
             for (tagName in _this._visualData) {
-                data[tagName] = $('[name=' + tagName + ']', this.objElem).val();
+                data[tagName] = d2h_jQvalues.get(
+                    $('[name=' + tagName + ']', this.objElem)
+                );
             }
             data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
             
@@ -680,7 +668,7 @@ jQuery.ajaxSetup({ cache: false });
                 if (visualEle.default) {
                     val = visualEle.default;
                 };
-                $('[name=' + tagName + ']', this.objElem).val(val);
+                d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
             }
             $(this.objElem).attr('data-d2h-keys', '');
         },
@@ -689,7 +677,7 @@ jQuery.ajaxSetup({ cache: false });
                 visualData = this._visualData;
             for (tagName in visualData) {
                 var val = row[tagName] !== undefined ? row[tagName] : "";
-                    $('[name=' + tagName + ']', this.objElem).val(val);
+                d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
             }
             $(this.objElem).attr('data-d2h-keys', row['[keys]'].join(','));
         }
