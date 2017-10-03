@@ -43,12 +43,34 @@ class Data2Html_Render_Template
     {
         $treeArray = $this->loadArrayFile($fileName);
         if (!is_array($treeArray)) {
-             throw new Exception("{$this->culprit}: loadTemplateTreeFile(\"{$fileName}\") Tree must be a array!");
+            throw new Exception("{$this->culprit}: loadTemplateTreeFile(\"{$fileName}\") Tree must be a array!");
         }
         return $this->loadTemplateTree(
             $this->setFolderPath(dirname($fileName)),
-           $treeArray
+            $treeArray
         );
+    }
+    
+    protected function loadTemplateTreeFolder($folderName, $items)
+    {
+        $response = array();
+        foreach ($items as $k => $v) {
+            $names = array();
+            foreach (new DirectoryIterator($folderName . $v) as $fInfo) {
+                if ($fInfo->isFile()) {
+                    $fileName = $fInfo->getFilename();
+                    $pathObj = $this->parsePath($fileName);
+                    $names[$pathObj['filename']] = $fileName;
+                }
+            }
+            $folderItems = array();
+            $folderItems[$k] = array('templates' => $names);
+            $response += $this->loadTemplateTree(
+                $this->setFolderPath($folderName . $v),
+                $folderItems
+            );
+        }
+        return $response;
     }
     
     protected function loadTemplateTree($folder, $tree)
@@ -92,6 +114,10 @@ class Data2Html_Render_Template
                 case 'include':
                     $response += $this->loadTemplateTreeFile($folder . $v);
                     break;
+                case 'includeFolder':
+                case 'includeFolders':
+                    $response += $this->loadTemplateTreeFolder($folder, $v);
+                    break;
                 case 'includes':
                     foreach($v as $vv) {
                          $response += $this->loadTemplateTreeFile($folder . $vv);
@@ -124,8 +150,7 @@ class Data2Html_Render_Template
         switch ($pathObj['extension']) {
             case '.html':
                 $response = array('html' => $contentKey);
-                $jsFileName =
-                    $pathObj['dirname'] . $pathObj['filename'] . '.js';
+                $jsFileName = $pathObj['dirname'] . $pathObj['filename'] . '.js';
                 if (!file_exists($jsFileName)) {
                     if ($pathObj['wrap'] === '') { // js not found
                         $jsFileName = '';
@@ -166,25 +191,15 @@ class Data2Html_Render_Template
                     "{$this->culprit}: The \"{$fileName}\" file does not exist."
                 );
             }        
+            $content = file_get_contents($fileName);
             $pathObj = $this->parsePath($fileName);
-            if ($pathObj['extension'] !== '.php') {
-                $content = file_get_contents($fileName);
-            } else {
-                $pathObj2 = $this->parsePath(
-                    $pathObj['dirname'] . $pathObj['filename']
-                );
-                if (strpos('.html.js.json', $pathObj2['extension']) !== false) {
-                // Is a wrapped text into a php died.
-                    $content = file_get_contents($fileName);
-                    $pathObj2['wrap'] = $pathObj['extension'];
-                    $pathObj = $pathObj2;
-                    $phpEnd = strpos($content, "?>\n");
-                    if ($phpEnd === false) {
-                        $phpEnd = strpos($content, "?>\r");
-                    }
-                    if ($phpEnd !== false) {
-                        $content = substr($content, $phpEnd + 3);
-                    }
+            if ($pathObj['wrap'] === '.php') {
+                $phpEnd = strpos($content, "?>\n");
+                if ($phpEnd === false) {
+                    $phpEnd = strpos($content, "?>\r");
+                }
+                if ($phpEnd !== false) {
+                    $content = substr($content, $phpEnd + 3);
                 }
             }
             if ($this->debug && $pathObj['extension'] !== '.php') {
@@ -272,6 +287,16 @@ class Data2Html_Render_Template
             $pathObj['dirname'] .= DIRECTORY_SEPARATOR;
         }
         $pathObj['wrap'] = '';
+        
+        if ($pathObj['extension'] === '.php') {
+            $pathObj2 = $this->parsePath(
+                $pathObj['dirname'] . $pathObj['filename']
+            );
+            if (strpos('.html.js.json', $pathObj2['extension']) !== false) {
+                $pathObj2['wrap'] = $pathObj['extension'];
+                $pathObj = $pathObj2;
+            }
+        }
         return $pathObj;
     }
     

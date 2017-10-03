@@ -5,6 +5,10 @@ class Data2Html_Render
     public $debug = false;
     protected $templateObj;
     protected $idRender;
+    protected $typeToInput = array(
+        'boolean' =>    'checkbox',
+        'date' =>       'datetimepicker'
+    );
     private static $idRenderCount = 0;
     public function __construct($templateName)
     {
@@ -306,17 +310,23 @@ class Data2Html_Render
             if ($vDx->getBoolean('virtual')) {
                 continue;
             }
-            $input = $vDx->getString('input', 'text');
             $url = $vDx->getString('url', '');
             $validations = $vDx->getArray('validations', array());
             $link = $vDx->getString('link');
             $type = $vDx->getString('type');
-            $inputTplName = $input;
-            if ($link) {
-                $inputTplName = 'ui-select';
-                $url = $baseUrl . 'model='.$link.'&';
-            } elseif ($type === 'boolean') {
-                $inputTplName = 'checkbox';
+
+            $inputTplName = $vDx->getString('input');
+            if (!$inputTplName) {
+                if ($link) {
+                    $inputTplName = 'ui-select';
+                    $url = $baseUrl . 'model=' . $link . '&';
+                } else {
+                    $inputTplName = Data2Html_Value::getItem(
+                        $this->typeToInput,
+                        $type,
+                        'text'
+                    );
+                }
             }
             $default = Data2Html_Value::getItem($v, 'default');
             $fReplaces = array(

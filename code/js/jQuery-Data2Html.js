@@ -102,7 +102,7 @@ jQuery.ajaxSetup({ cache: false });
             // Scope handlerEle
             var _fnAction = function() {
                 var $thisEle = $(this),
-                    _onAction = $thisEle.attr('data-d2h-on').split(':');
+                    _onAction = $thisEle.data('d2h-on').split(':');
                 if (_onAction.length === 2) {
                     var _function = _actions[_onAction[1]];
                     if (_function) {
@@ -559,7 +559,7 @@ jQuery.ajaxSetup({ cache: false });
                     $('[name=' + tagName + ']', this.objElem)
                 );
             }
-            data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
+            data['[keys]'] = $(this.objElem).data('d2h-keys');
             if (data['[keys]']) {
                 d2h_oper = 'update';
             } else {
@@ -616,7 +616,7 @@ jQuery.ajaxSetup({ cache: false });
                     $('[name=' + tagName + ']', this.objElem)
                 );
             }
-            data['[keys]'] = $(this.objElem).attr('data-d2h-keys');
+            data['[keys]'] = $(this.objElem).data('d2h-keys');
             
             _this._rows = null;
             if (_settings.beforeDelete.call(_this, data) !== false) {
@@ -670,7 +670,7 @@ jQuery.ajaxSetup({ cache: false });
                 };
                 d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
             }
-            $(this.objElem).attr('data-d2h-keys', '');
+            $(this.objElem).data('d2h-keys', '');
         },
         showFormData: function(row) {
             var tagName,
@@ -679,7 +679,7 @@ jQuery.ajaxSetup({ cache: false });
                 var val = row[tagName] !== undefined ? row[tagName] : "";
                 d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
             }
-            $(this.objElem).attr('data-d2h-keys', row['[keys]'].join(','));
+            $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
         }
     });
     
