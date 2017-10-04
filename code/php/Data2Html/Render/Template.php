@@ -57,10 +57,13 @@ class Data2Html_Render_Template
         foreach ($items as $k => $v) {
             $names = array();
             foreach (new DirectoryIterator($folderName . $v) as $fInfo) {
+                
                 if ($fInfo->isFile()) {
                     $fileName = $fInfo->getFilename();
                     $pathObj = $this->parsePath($fileName);
-                    $names[$pathObj['filename']] = $fileName;
+                    if ($pathObj['extension'] === '.html') {
+                        $names[$pathObj['filename']] = $fileName;
+                    }
                 }
             }
             $folderItems = array();

@@ -313,7 +313,7 @@ jQuery.ajaxSetup({ cache: false });
                 pageStart = 1;
             if (this.components.filter) {
                 var values =
-                    d2h_jQvalues.serialize($(this.components.filter.getElem()));
+                    d2h_values.serialize($(this.components.filter.getElem()));
                 data['d2h_filter'] = values.replace(/&/g, '[,]');
             }
             if (this.components.page) {
@@ -321,7 +321,7 @@ jQuery.ajaxSetup({ cache: false });
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
                 data['d2h_page'] = 'pageStart=' + pageStart + '[,]' +
-                    d2h_jQvalues.serialize($(this.components.page.getElem()))
+                    d2h_values.serialize($(this.components.page.getElem()))
                         .replace(/&/g, '[,]');
             }
             if (_settings.sort) {
@@ -382,9 +382,6 @@ jQuery.ajaxSetup({ cache: false });
     
         showGridData: function (cols) {
             this.clear();
-           
-            var _settings = this.settings,
-                rows = this._rows;
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
                 lastItem = null;
@@ -415,21 +412,28 @@ jQuery.ajaxSetup({ cache: false });
                     format: format
                 });
             }
-            // loop rows
+            // loop rows           
+            var _settings = this.settings,
+                rows = this._rows,
+                visualData = this._visualData;
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,
                     row = rows[i];
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
                     var replItem = replaces[ii],
-                        iName = replItem.name;
+                        iName = replItem.name,
+                        visualEle = visualData ? visualData[iName] : null,
+                        dataType =  visualEle ? visualEle.type : null,
+                        val;
                     if (iName === '[keys]') {
                         html = html.replace(replItem.repl, row['[keys]'].join(','));
                     } else {
                         if ($.isNumeric(iName)) {
-                            html = html.replace(replItem.repl, row[cols[iName]]);
+                            val = row[cols[iName]];
                         } else {
-                            html = html.replace(replItem.repl, row[iName]);
+                            val = row[iName];
                         }
+                        html = html.replace(replItem.repl, d2h_values.toHtml(val, dataType));
                     }
                 }
                 if (lastItem) {
@@ -554,8 +558,8 @@ jQuery.ajaxSetup({ cache: false });
                 _formEle = this.objElem,
                 d2h_oper,
                 data = {};
-            for (tagName in _this._visualData) {
-                data[tagName] = d2h_jQvalues.get(
+            for (tagName in this._visualData) {
+                data[tagName] = d2h_values.get(
                     $('[name=' + tagName + ']', this.objElem)
                 );
             }
@@ -566,8 +570,8 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_oper = 'insert';
             }
             
-            _this._rows = null;
-            if (_settings.beforeSave.call(_this, data) !== false) {
+            this._rows = null;
+            if (_settings.beforeSave.call(this, data) !== false) {
                 $.ajax({
                     type: 'POST',
                     url: _settings.url,		
@@ -612,7 +616,7 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_oper,
                 data = {};
             for (tagName in _this._visualData) {
-                data[tagName] = d2h_jQvalues.get(
+                data[tagName] = d2h_values.get(
                     $('[name=' + tagName + ']', this.objElem)
                 );
             }
@@ -668,7 +672,7 @@ jQuery.ajaxSetup({ cache: false });
                 if (visualEle.default) {
                     val = visualEle.default;
                 };
-                d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
+                d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
             }
             $(this.objElem).data('d2h-keys', '');
         },
@@ -676,8 +680,9 @@ jQuery.ajaxSetup({ cache: false });
             var tagName,
                 visualData = this._visualData;
             for (tagName in visualData) {
-                var val = row[tagName] !== undefined ? row[tagName] : "";
-                d2h_jQvalues.put($('[name=' + tagName + ']', this.objElem), val);
+                var val = row[tagName] !== undefined ? row[tagName] : "",
+                    visualEle = visualData[tagName];
+                d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
             }
             $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
         }

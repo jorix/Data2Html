@@ -7,15 +7,16 @@
     <script src="../../external/jquery-2.1.0/jquery.js" ></script>
     <link  href="../../external/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="../../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
-    <script src="../../code/js/jQuery-Data2Html.js" ></script>
-    <script src="../../code/js/d2h_switchTo.js" ></script>
-    <script src="../../code/js/d2h_sortBy.js" ></script>
-    <script src="../../code/js/d2h_jQvalues.js" ></script>
     
     <script src="../../external/date_time/moment-2.18.1/min/moment-with-locales.js" ></script>
     <script src="../../external/date_time/moment-timezone-0.5.13/builds/moment-timezone-with-data.min.js" ></script>
     <link  href="../../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <script src="../../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
+    
+    <script src="../../code/js/jQuery-Data2Html.js" ></script>
+    <script src="../../code/js/d2h_switchTo.js" ></script>
+    <script src="../../code/js/d2h_sortBy.js" ></script>
+    <script src="../../code/js/d2h_values.js" ></script>
     
     <style>    
     .d2h_sortBy_no .d2h_sort_no {color: #777}

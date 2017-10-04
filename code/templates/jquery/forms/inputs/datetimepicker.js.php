@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-$('#' + '${id}').datetimepicker({locale: 'ca'});
+$('#' + '$${id}').datetimepicker({locale: 'ca'});
