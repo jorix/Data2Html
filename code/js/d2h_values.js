@@ -25,6 +25,14 @@ d2h_values = {
                 return val;
         }
     },
+    toValue: function(val, dataType) {
+        switch (dataType) {
+            case 'date':
+                return moment(val).format('L LT')
+            default:
+                return val;
+        }
+    },
     serialize: function($elem) {
         var vals = $elem.serialize();
         vals = vals.concat($('input[type=checkbox]:not(:checked)', $elem).map(

@@ -98,4 +98,12 @@ class Data2Html_Db_Pdo extends Data2Html_Db
     {
         return $this->link->quote($val);
     }
+    public function dateToSql($val)
+    {
+        return "'" . Data2Html_Value::parseDate($val, 'Y-m-d H:i:s'). "'";
+    }
+    public function toDate($val)
+    {
+        return Data2Html_Value::parseDate($val, null, 'Y-m-d H:i:s');
+    }
 }

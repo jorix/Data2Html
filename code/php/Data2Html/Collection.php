@@ -87,7 +87,7 @@ class Data2Html_Collection
         if (is_null($val) && is_null($default) ) {
             return null;
         }
-        return Data2Html_Value::parseString($val, $this->strict);
+        return Data2Html_Value::parseString($val, $default, $this->strict);
     }
     
     public function getNumber($itemKey, $default = null)
@@ -96,7 +96,7 @@ class Data2Html_Collection
         if (is_null($val) && is_null($default) ) {
             return null;
         }
-        return Data2Html_Value::parseNumber($val, $this->strict);
+        return Data2Html_Value::parseNumber($val, $default, $this->strict);
     }
     
     public function getInteger($itemKey, $default = null)
@@ -105,7 +105,7 @@ class Data2Html_Collection
         if (is_null($val) && is_null($default) ) {
             return null;
         }
-        return Data2Html_Value::parseInteger($val, $this->strict);
+        return Data2Html_Value::parseInteger($val, $default, $this->strict);
     }
 
     public function getDate(
@@ -117,7 +117,7 @@ class Data2Html_Collection
         if (is_null($val) && is_null($default) ) {
             return null;
         }
-        return Data2Html_Value::parseDate($val, $input_format, $this->strict);
+        return Data2Html_Value::parseDate($val, $default, $input_format, $this->strict);
     }
         
     public function getArray($itemKey, $default = null)

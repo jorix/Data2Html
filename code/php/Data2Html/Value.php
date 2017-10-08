@@ -60,24 +60,24 @@ class Data2Html_Value
         }
     }
     
-    public static function parseValue($value, $type, $strict = false)
+    public static function parseValue($value, $type, $default = null)
     {
         switch ($type) {
             case 'number':
             case 'currency':            
-                $r = Data2Html_Value::parseNumber($value, $strict);
+                $r = Data2Html_Value::parseNumber($value, $default);
                 break;
             case 'integer':
             case 'boolean':
-                $r = Data2Html_Value::parseInteger($value, $strict);
+                $r = Data2Html_Value::parseInteger($value, $default);
                 break;
             case 'string':
                 $r = $this->stringToSql(
-                    Data2Html_Value::parseString($value, $strict)
+                    Data2Html_Value::parseString($value, $default)
                 );
                 break;
             case 'date':
-                $r = Data2Html_Value::parseDate($value, $strict);
+                $r = Data2Html_Value::parseDate($value, $default);
                 break;
             default:
                 throw new Exception(

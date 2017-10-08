@@ -189,24 +189,7 @@ class Data2Html_Controller
         $result = $this->db->queryPage($query, $pageStart, $pageSize);
         while ($dbRow = $this->db->fetch($result)) {
             foreach ($dbRow as $k => &$v) {
-                switch ($dbTypes[$k]) {
-                case 'integer':
-                case 'number':
-                case 'boolean':
-                case 'currency':
-                    if (!is_null($v)) {
-                        $v = $v + 0; // convert to number
-                    }
-                    break;
-                case 'date';
-                    if (!is_null($v)) {
-                        $date = DateTime::createFromFormat('Y-m-d H:i:s', $v);
-                        // convert to a string as "2015-04-15T08:39:19+01:00"
-                        $v = date('c', $date->getTimestamp());
-                    }
-                    unset($date);
-                    break;
-                }
+                $v = $this->db->toValue($v, $dbTypes[$k]);
             }
             unset($v);
             

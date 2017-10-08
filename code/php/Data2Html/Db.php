@@ -73,6 +73,8 @@ abstract class Data2Html_Db
      * @return string
      */
     abstract public function stringToSql($value);
+    abstract public function dateToSql($value);
+    abstract public function toDate($value);
 
     /**
      * @param jqGridLoader $loader
@@ -90,7 +92,7 @@ abstract class Data2Html_Db
     /**
      * Return a text for a select field width alias.
      */
-    public function toSql($value, $type, $strict = false)
+    public function toSql($value, $type)
     {
         if (is_null($value) || $value === '') {
             return 'null';
@@ -98,24 +100,46 @@ abstract class Data2Html_Db
         switch ($type) {
             case 'number':
             case 'currency':            
-                $r = '' . Data2Html_Value::parseNumber($value, $strict);
+                $r = '' . Data2Html_Value::parseNumber($value);
                 break;
             case 'integer':
             case 'boolean':
-                $r = '' . Data2Html_Value::parseInteger($value, $strict);
+                $r = '' . Data2Html_Value::parseInteger($value);
                 break;
             case 'string':
-                $r = $this->stringToSql(
-                    Data2Html_Value::parseString($value, $strict)
-                );
+                $r = $this->stringToSql(Data2Html_Value::parseString($value));
                 break;
             case 'date':
-                $r = "'" . Data2Html_Value::parseDate($value, $strict)."'";
+                $r = $this->dateToSql($v);
                 break;
             default:
-                throw new Exception(
-                    "`{$type}` is not defined."
-                );
+                throw new Exception("`{$type}` is not defined.");
+        }
+        return $r;
+    }
+    public function toValue($v, $type)
+    {
+        if (is_null($v)) {
+            return null;
+        }
+        switch ($type) {
+            case 'number':
+            case 'currency':
+            case 'integer':
+                $r = $v + 0; // convert to number
+                break;
+            case 'boolean':
+                $r = !!$v;
+                break;
+            case 'string':
+                $r = $v;
+                break;
+            case 'date':
+                // Convert date to a string as "2015-04-15T08:39:19+01:00"
+                $r = date('c', $this->toDate($v)->getTimestamp());
+                break;
+            default:
+                throw new Exception("`{$type}` is not defined.");
         }
         return $r;
     }
