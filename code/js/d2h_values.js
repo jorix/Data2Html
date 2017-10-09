@@ -1,17 +1,17 @@
 // Static
 moment.locale('ca');
 d2h_values = {
-    get: function($elem) {
-        var type = $elem.attr('type');
-        if (type && type==='checkbox') {
+    get: function($elem, dataType) {
+        var elemType = $elem.attr('type');
+        if (elemType && elemType === 'checkbox') {
             return $elem.prop('checked') ? 1 : 0;
         } else {
-            return $elem.val();
+            return d2h_values.toValue($elem.val(), dataType);
         }
     },
     put: function($elem, val, dataType) {
         var elemType = $elem.attr('type');
-        if (elemType && elemType==='checkbox') {
+        if (elemType && elemType === 'checkbox') {
             return $elem.prop('checked', val);
         } else {
             return $elem.val(d2h_values.toHtml(val, dataType));
@@ -20,7 +20,7 @@ d2h_values = {
     toHtml: function(val, dataType) {
         switch (dataType) {
             case 'date':
-                return moment(val).format('L LT')
+                return moment(val).format('L LT');
             default:
                 return val;
         }
@@ -28,7 +28,7 @@ d2h_values = {
     toValue: function(val, dataType) {
         switch (dataType) {
             case 'date':
-                return moment(val).format('L LT')
+                return moment(val, 'L LT').format();
             default:
                 return val;
         }

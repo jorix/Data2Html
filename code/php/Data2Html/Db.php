@@ -110,7 +110,12 @@ abstract class Data2Html_Db
                 $r = $this->stringToSql(Data2Html_Value::parseString($value));
                 break;
             case 'date':
-                $r = $this->dateToSql($v);
+                $date = Data2Html_Value::parseDate($value, null, 'Y-m-d\TH:i:sP');
+                if ($date) {
+                    $r = $this->dateToSql($date);
+                } else {
+                    $r = 'null';
+                }
                 break;
             default:
                 throw new Exception("`{$type}` is not defined.");
@@ -136,7 +141,7 @@ abstract class Data2Html_Db
                 break;
             case 'date':
                 // Convert date to a string as "2015-04-15T08:39:19+01:00"
-                $r = date('c', $this->toDate($v)->getTimestamp());
+                $r = $this->toDate($v)->format('Y-m-d\TH:i:sP');
                 break;
             default:
                 throw new Exception("`{$type}` is not defined.");

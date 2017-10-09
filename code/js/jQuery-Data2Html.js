@@ -80,6 +80,8 @@ jQuery.ajaxSetup({ cache: false });
             if (settings.visual) {
                 this._visualData = settings.visual;
                 delete settings.visual;
+            } else {
+                this._visualData = {};
             }
             if (settings.actions) {
                 this.listen(objElem, settings.actions);
@@ -422,7 +424,7 @@ jQuery.ajaxSetup({ cache: false });
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
                     var replItem = replaces[ii],
                         iName = replItem.name,
-                        visualEle = visualData ? visualData[iName] : null,
+                        visualEle = visualData[iName],
                         dataType =  visualEle ? visualEle.type : null,
                         val;
                     if (iName === '[keys]') {
@@ -552,15 +554,14 @@ jQuery.ajaxSetup({ cache: false });
             });
         },
         save: function(options) {
-            var _settings = $.extend({}, this.settings, options);
-            
-            var _this = this,
-                _formEle = this.objElem,
+            var visualData = this._visualData,
                 d2h_oper,
                 data = {};
-            for (tagName in this._visualData) {
-                data[tagName] = d2h_values.get(
-                    $('[name=' + tagName + ']', this.objElem)
+            for (iName in this._visualData) {
+                var visualEle = visualData[iName];
+                data[iName] = d2h_values.get(
+                    $('[name=' + iName + ']', this.objElem),
+                    visualEle ? visualEle.type : null
                 );
             }
             data['[keys]'] = $(this.objElem).data('d2h-keys');
@@ -571,6 +572,9 @@ jQuery.ajaxSetup({ cache: false });
             }
             
             this._rows = null;
+            var _settings = $.extend({}, this.settings, options),
+                _this = this,
+                _formEle = this.objElem;
             if (_settings.beforeSave.call(this, data) !== false) {
                 $.ajax({
                     type: 'POST',
@@ -609,20 +613,22 @@ jQuery.ajaxSetup({ cache: false });
             }
         },
         'delete': function(options) {
-            var _settings = $.extend({}, this.settings, options);
-            
-            var _this = this,
-                _formEle = this.objElem,
+            var visualData = this._visualData,
                 d2h_oper,
                 data = {};
-            for (tagName in _this._visualData) {
-                data[tagName] = d2h_values.get(
-                    $('[name=' + tagName + ']', this.objElem)
+            for (iName in _this._visualData) {
+                var visualEle = visualData[iName];
+                data[iName] = d2h_values.get(
+                    $('[name=' + iName + ']', this.objElem),
+                    visualEle ? visualEle.type : null
                 );
             }
             data['[keys]'] = $(this.objElem).data('d2h-keys');
             
-            _this._rows = null;
+            this._rows = null;
+            var _settings = $.extend({}, this.settings, options);
+                _this = this,
+                _formEle = this.objElem;
             if (_settings.beforeDelete.call(_this, data) !== false) {
                 $.ajax({
                     type: 'POST',
