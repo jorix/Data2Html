@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-<label class="col-md-3 form-group">$${title}: $${html}</label>
+<div class="form-group"><label for="$${id}">$${title}</label>$${html}</div>
