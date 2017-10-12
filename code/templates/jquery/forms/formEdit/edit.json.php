@@ -5,11 +5,9 @@
         "template": "edit.html.php",
         "startItems": "edit.buttons.php",
         "endItems": "edit.buttons.php",
-        "includes": [
-            "../inputs_layouts_block.json.php"
-        ],
         "includeFolders": {
-            "inputs": "../inputs"
+            "inputs":         "../inputs",
+            "inputs_layouts": "../i_layouts_block"
         }
     }
 }

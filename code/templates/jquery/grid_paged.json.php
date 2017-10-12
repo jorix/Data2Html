@@ -3,15 +3,15 @@
     "grid": {
         "include": "tables/paged.json.php",
         "includes": [
-            "forms/formFilter/filter_auto_.json.php",
-            "forms/formPage/page_.json.php"
+            "forms/formFilter/filter_auto.json.php",
+            "forms/formPage/page.json.php"
         ]
     },
     "grid_man": {
         "include": "tables/paged.json.php",
         "includes": [
-            "forms/formFilter/filter_man_.json.php",
-            "forms/formPage/page_.json.php"
+            "forms/formFilter/filter_man.json.php",
+            "forms/formPage/page.json.php"
         ]
     },
     "form": {

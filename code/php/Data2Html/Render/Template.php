@@ -358,6 +358,15 @@ class Data2Html_Render_Template
     
     public function renderTemplateItem($itemKey, $templateBranch, $replaces)
     {
+        if (!is_string($itemKey)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: 'itemKey' is not a string.",
+                array(
+                    'itemKey' => $itemKey,
+                    'templateBranch' => $templateBranch[1]
+                )
+            );
+        }
         $templateLeaf = $this->getTemplateBranch(
             array('templates', $itemKey),
             $templateBranch

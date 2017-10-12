@@ -35,22 +35,21 @@ class Data2Html_Handler
     {
         try {
             $payerNames = self::parseRequest($request);
-            
-            $model = self::createModel($payerNames['model']);
-            
-            $render = new Data2Html_Render($template);
-            if (array_key_exists('form', $payerNames)) {
-                $result = $render->renderForm($model, $payerNames['form']);
-            } elseif (array_key_exists('grid', $payerNames)) {
-                $result = $render->renderGrid($model, $payerNames['grid']);
-            } else {
-                throw new Exception("no request object.");
-            }
-            echo "{$result['html']}\n<script>{$result['js']}</script>";
+            $model = self::createModel($payerNames['model']);            
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            stop();
         }
+        $render = self::createRender($template);
+        if (array_key_exists('form', $payerNames)) {
+            $result = self::renderForm($render, $model, $payerNames['form']);
+        } elseif (array_key_exists('grid', $payerNames)) {
+            $result = self::renderGrid($render, $model, $payerNames['grid']);
+        } else {
+            throw new Exception("no request object.");
+        }
+        echo "{$result['html']}\n<script>{$result['js']}</script>";
     }
     /**
      * Controller
@@ -78,6 +77,42 @@ class Data2Html_Handler
             }
         }
     }
+ 
+    /**
+     * Wrap renders
+     */ 
+    public static function createRender($template)
+    {
+        try {
+            return new Data2Html_Render($template);
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            stop();
+        }
+    }
+    public static function renderGrid($render, $model, $gridName)
+    {
+        try {
+            return $render->renderGrid($model, $gridName);            
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            stop();
+        }
+    }
+    
+    public static function renderForm($render, $model, $formName)
+    {
+        try {
+            return $render->renderForm($model, $formName);            
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            stop();
+        }
+    }
+    
     /**
      * Load and create one model
      * $modelName string||array

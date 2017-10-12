@@ -29,9 +29,9 @@
                 "base": "base.html.php"
             }
         },
-        "includes": [
-            "../forms/inputs_layouts.json.php",
-            "../forms/inputs_fields.json.php"
-        ]
+        "includeFolders": {
+            "inputs":         "../forms/inputs",
+            "inputs_layouts": "../forms/i_layouts_inline"
+        }
     }
 }

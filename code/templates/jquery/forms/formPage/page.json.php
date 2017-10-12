@@ -4,9 +4,9 @@
         "folder": "./",
         "template": "page.html.php",
         "startItems": "page.inputs.json.php",
-        "includes": [
-            "../inputs_layouts.json.php",
-            "../inputs_fields.json.php"
-        ]
+        "includeFolders": {
+            "inputs":         "../inputs",
+            "inputs_layouts": "../i_layouts_inline"
+        }
     }
 }
