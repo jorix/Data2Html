@@ -231,22 +231,7 @@ abstract class Data2Html_Model_Set
         }
         return $this->link->getItems($this->linkName);
     }
-        
-    public function getVisualItems()
-    {
-        if (!$this->link) {
-            throw new Exception(
-                "{$this->culprit} getLinkedItems(): Before get items, must create by createLink()."
-            );
-        }
-        return $this->link->getVisualItems();
-    }
-    public function getVisualItemsJson()
-    {
-        return str_replace('"', "'", 
-            Data2Html_Value::toJson($this->getVisualItems())
-        );
-    }
+
     public function getLinkedKeys()
     {
         if (!$this->link) {

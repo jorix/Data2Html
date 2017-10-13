@@ -9,6 +9,9 @@ class Data2Html_Render
         'boolean' =>    'checkbox',
         'date' =>       'datetimepicker'
     );
+    protected $visualWords = array(
+        'display', 'format', 'size', 'title', 'type', 'validations', 'default'
+    );
     private static $idRenderCount = 0;
     public function __construct($templateName)
     {
@@ -84,7 +87,6 @@ class Data2Html_Render
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}&",
                 'sortBy' => $lkGrid->getAttribute('sort'),
-                'visual' => $klColumns->getVisualItemsJson(),
                 'filter' => $filterForm,
                 'page' => $pageForm
             )
@@ -111,7 +113,6 @@ class Data2Html_Render
             $lkForm->getLinkedItems(),
             array(
                 'title' => $lkForm->getAttribute('title'),
-                'visual' => $lkForm->getVisualItemsJson(),
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}&form={$formName}&"
             )
@@ -272,7 +273,8 @@ class Data2Html_Render
         $replaces = array_merge($replaces, array(
             'thead' => $thead,
             'tbody' => $tbody,
-            'colCount' => $renderCount
+            'colCount' => $renderCount,
+            'visual' => $this->getVisualItemsJson($columns)
         ));
         return $this->templateObj->renderTemplate($templateTable, $replaces);
     }
@@ -304,7 +306,6 @@ class Data2Html_Render
         $defaultFieldLayout = 'base'; //Data2Html_Value::getItem($formDs, 'fieldLayouts', 'base');
         
         $body = array();
-        $defaults = array();
         $renderCount = 0;
         
         foreach ($fieldsDs as $k => $v) {            
@@ -330,7 +331,6 @@ class Data2Html_Render
                     );
                 }
             }
-            $default = Data2Html_Value::getItem($v, 'default');
             $fReplaces = array(
                 'formId' => $formId,
                 'id' => $this->createIdRender(),
@@ -339,7 +339,6 @@ class Data2Html_Render
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
                 'description' => $vDx->getString('description'),
-                'default' => $default,
                 'url' => $url,
                 'validations' => implode(' ', $validations)
             );
@@ -354,20 +353,37 @@ class Data2Html_Render
                     $fReplaces
                 )
             );
-            if ($default !== null) {
-                $defaults[$k] = $default;
-            }
             ++$renderCount;
         }
         $replaces = array_merge($replaces, array(
             'id' => $formId,
             'body' => $body,
-            'defaults' => $defaults
+            'visual' => $this->getVisualItemsJson($fieldsDs)
         ));
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
             $replaces
         );
         return $form;
+    }
+    
+    protected function getVisualItemsJson($lkItems) {
+        $visualItems = array();
+        foreach ($lkItems as $k => $v) {
+            if (!Data2Html_Value::getItem($v, 'virtual')) {
+                if (!is_numeric($k)) {
+                    $item = array();
+                    $visualItems[$k] = &$item;
+                    foreach ($this->visualWords as $w) {
+                        $vv = Data2Html_Value::getItem($v, $w);
+                        if ($vv) {
+                            $item[$w] = $vv;
+                        }
+                    }
+                    unset($item);
+                }
+            }
+        }
+        return str_replace('"', "'", Data2Html_Value::toJson($visualItems));
     }
 }

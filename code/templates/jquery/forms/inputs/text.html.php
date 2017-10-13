@@ -2,7 +2,6 @@
 <input type="text" class="form-control"
     placeholder="$${description}"
     name="$${name}"
-    value="$${default}"
-    data-d2h-default="$${default}"
+    value=""
     $${validations}
 >
