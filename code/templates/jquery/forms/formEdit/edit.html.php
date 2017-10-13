@@ -14,3 +14,4 @@
     "
 >
 <form class="form-horizontal">$${body}</form>
+</div>

@@ -32,7 +32,6 @@ class aixada_ufs extends Data2Html_Model {
                     'sort' => 'name',
                     'columns' => array('uf_name'),
                     'filter' => array(
-                        'fieldLayouts' => 'inline',
                         'fields' => array('=active')
                     )
                 ),
@@ -43,14 +42,12 @@ class aixada_ufs extends Data2Html_Model {
                         'uf_name'
                     ),
                     'filter' => array(
-                        'fieldLayouts' => 'inline',
                         'fields' => array('=active')
                     )
                 ),
                 'main' => array(
                     'sort' => 'name', 
                     'filter' => array(
-                        'fieldLayouts' => 'inline',
                         'fields' => array(
                             '%name', '=active', '=mentor_uf'
                         )

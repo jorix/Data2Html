@@ -30,8 +30,7 @@
             }
         },
         "includeFolders": {
-            "inputs":         "../forms/inputs",
-            "inputs_layouts": "../forms/i_layouts_inline"
+            "inputs": "../forms/inputs"
         }
     }
 }

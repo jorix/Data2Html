@@ -1,8 +1,8 @@
 <?php die("It's uncooked!"); ?>
 <div class="row" >
-    <form id="$${id}" class="simple-form"
+    <form id="$${id}" class="form-inline" 
         data-d2h-visual="$${visual}"
     >
-    <div class="form-inline" >$${body}</div>
+    $${body}
     </form>
 </div>

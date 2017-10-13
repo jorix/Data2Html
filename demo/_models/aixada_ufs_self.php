@@ -25,13 +25,11 @@ class aixada_ufs_self extends Data2Html_Model {
                 'list' => array(
                     'columns' => array('id', 'name'),
                     'filter' => array(
-                        'fieldLayouts' => 'inline',
                         'fields' => array('name' => 'EQ')
                     )
                 ),
                 'main' => array(
                     'filter' => array(
-                        'fieldLayouts' => 'inline',
                         'fields' => array('name' => 'LK')
                     )
                 )

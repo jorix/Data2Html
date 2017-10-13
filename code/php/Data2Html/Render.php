@@ -147,10 +147,6 @@ class Data2Html_Render
         // Use optional input template
         $templateInputs =
             $this->templateObj->getTemplateBranch('inputs', $templateTable, false);
-        if ($templateInputs) {
-            $templateInputsLayouts =
-                $this->templateObj->getTemplateBranch('inputs_layouts', $templateTable);
-        }
         
         $thead = array();
         $tbody = array();
@@ -303,7 +299,8 @@ class Data2Html_Render
         $templateLayouts =
             $this->templateObj->getTemplateBranch('inputs_layouts', $templateBranch);
             
-        $defaultFieldLayout = 'base'; //Data2Html_Value::getItem($formDs, 'fieldLayouts', 'base');
+        $defaultInputLayout = 'base';
+        $defaultInputType = 'text';
         
         $body = array();
         $renderCount = 0;
@@ -327,7 +324,7 @@ class Data2Html_Render
                     $inputTplName = Data2Html_Value::getItem(
                         $this->typeToInput,
                         $type,
-                        'text'
+                        $defaultInputType
                     );
                 }
             }
@@ -348,7 +345,7 @@ class Data2Html_Render
             $this->templateObj->concatContents(
                 $body,
                 $this->templateObj->renderTemplateItem(
-                    $vDx->getString('layout', $defaultFieldLayout),
+                    $vDx->getString('layout', $defaultInputLayout),
                     $templateLayouts, 
                     $fReplaces
                 )
