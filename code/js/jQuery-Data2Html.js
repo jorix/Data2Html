@@ -81,7 +81,7 @@ jQuery.ajaxSetup({ cache: false });
                 this._visualData = settings.visual;
                 delete settings.visual;
             } else {
-                this._visualData = {};
+                this._visualData = _getElementJsData(objElem, 'd2h-visual');;
             }
             if (settings.actions) {
                 this.listen(objElem, settings.actions);
@@ -291,7 +291,7 @@ jQuery.ajaxSetup({ cache: false });
             
             // To set up the components
             var $elem;
-            if (selector.substr(0,1) === "#") {
+            if (selector.substr(0, 1) === "#") {
                 $elem = $(selector);
             } else {
                 $elem = $(selector, this.objElem);
@@ -720,20 +720,7 @@ jQuery.ajaxSetup({ cache: false });
     }
     
     function _getElementOptions(objElem, defaultOptions, options) {
-        var optionsEle = {},
-            dataD2h = $(objElem).attr('data-d2h');
-        if (dataD2h) {
-            try {
-                var optionsEle = eval('[({' + dataD2h + '})]')[0];
-            } catch(e) {
-                $.error(
-                    "Can not initialize a data2html handler: " +
-                    "HTML attribute 'data-d2h' have a not valid js syntax on '" + 
-                        _getElementPath(objElem) + "'" 
-                );
-                return null;
-            }
-        }
+        var optionsEle = _getElementJsData(objElem, 'd2h');
         if (!optionsEle && !options) {
             $.error(
                 "Can not initialize a data2html handler: " +
@@ -743,6 +730,27 @@ jQuery.ajaxSetup({ cache: false });
             return;
         }
         return $.extend(optionsEle, options); 
+    }
+    
+    function _getElementJsData(objElem, dataName) {
+        var optionsEle = {},
+            dataD2h = $(objElem).data(dataName);
+        if (dataD2h) {
+            if (dataD2h.substr(0, 1) !== '{') {
+                dataD2h = '{' + dataD2h + '}';
+            }
+            try {
+                optionsEle = eval('[(' + dataD2h + ')]')[0];
+            } catch(e) {
+                $.error(
+                    "Can not initialize a data2html handler: " +
+                    "HTML attribute 'data-' " + dataName + "' have a not valid js syntax on '" + 
+                        _getElementPath(objElem) + "'" 
+                );
+                return null;
+            }
+        }
+        return optionsEle;
     }
     
     /**

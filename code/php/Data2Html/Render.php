@@ -300,7 +300,9 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('inputs', $templateBranch);
         $templateLayouts =
             $this->templateObj->getTemplateBranch('inputs_layouts', $templateBranch);
-        $defaultFieldLayout = Data2Html_Value::getItem($formDs, 'fieldLayouts', 'base');
+            
+        $defaultFieldLayout = 'base'; //Data2Html_Value::getItem($formDs, 'fieldLayouts', 'base');
+        
         $body = array();
         $defaults = array();
         $renderCount = 0;
@@ -331,14 +333,12 @@ class Data2Html_Render
             $default = Data2Html_Value::getItem($v, 'default');
             $fReplaces = array(
                 'formId' => $formId,
-                
                 'id' => $this->createIdRender(),
                 'name' => $k,
                 'title' => $vDx->getString('title'),
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
                 'description' => $vDx->getString('description'),
-                
                 'default' => $default,
                 'url' => $url,
                 'validations' => implode(' ', $validations)

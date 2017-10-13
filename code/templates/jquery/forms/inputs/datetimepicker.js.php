@@ -1,2 +1,7 @@
 <?php die("It's uncooked!"); ?>
-$('#' + '$${id}').datetimepicker({locale: 'ca'});
+$(function () {
+    var $dp = $('#' + '$${id}').datetimepicker({locale: 'ca'});
+    $('input', $dp).click(function() {
+        $dp.data('DateTimePicker').toggle();
+    });
+});

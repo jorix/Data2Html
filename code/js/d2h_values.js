@@ -34,13 +34,15 @@ d2h_values = {
         }
     },
     serialize: function($elem) {
-        var vals = $elem.serialize();
-        vals = vals.concat($('input[type=checkbox]:not(:checked)', $elem).map(
+        var vals = $elem.serialize(),
+            checkOff = $('input[type=checkbox]:not(:checked)', $elem).map(
                 function() {
-                    return {"name": this.name, "value": 0}
+                    return this.name + '=0';
                 }
-            ).get()
-        );
+            ).get();
+        if (checkOff.length) {
+            vals = vals + (vals ? '&' : '') + checkOff.join('&');
+        }
         return vals;
     }
 };
