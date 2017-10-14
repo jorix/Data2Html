@@ -11,10 +11,11 @@ abstract class Data2Html_Model_Set
     
     protected $model = null;
     protected $attributes = null;
+    protected $baseSet = null;
     protected $setItems = null;
     protected $keys = null;
-    //protected $matchedFields = null;
-    protected $baseSet = null;
+    
+    // Link
     protected $link = null;
     protected $linkName = '';
     
