@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-<input type="checkbox" class="form-control"
+<input type="checkbox"
     placeholder="$${description}"
     name="$${name}"
     value="1"

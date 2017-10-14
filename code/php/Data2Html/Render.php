@@ -5,9 +5,10 @@ class Data2Html_Render
     public $debug = false;
     protected $templateObj;
     protected $idRender;
-    protected $typeToInput = array(
-        'boolean' =>    'checkbox',
-        'date' =>       'datetimepicker'
+    protected $typeToInputTemplates = array(
+        '[default]' =>    array('base', 'text'),
+        'boolean' =>    array('checkbox', 'checkbox'),
+        'date' =>       array('base', 'datetimepicker')
     );
     protected $visualWords = array(
         'display', 'format', 'size', 'title', 'type', 'validations', 'default'
@@ -299,8 +300,7 @@ class Data2Html_Render
         $templateLayouts =
             $this->templateObj->getTemplateBranch('inputs_layouts', $templateBranch);
             
-        $defaultInputLayout = 'base';
-        $defaultInputType = 'text';
+        $defaultInputTemplates = $this->typeToInputTemplates['[default]'];
         
         $body = array();
         $renderCount = 0;
@@ -316,15 +316,17 @@ class Data2Html_Render
             $type = $vDx->getString('type');
 
             $inputTplName = $vDx->getString('input');
-            if (!$inputTplName) {
+            if ($inputTplName) {
+                $inputTemplates = array($defaultInputTemplates[0], $inputTplName);
+            } else {
                 if ($link) {
-                    $inputTplName = 'ui-select';
+                    $inputTemplates = array($defaultInputTemplates[0], 'select');
                     $url = $baseUrl . 'model=' . $link . '&';
                 } else {
-                    $inputTplName = Data2Html_Value::getItem(
-                        $this->typeToInput,
+                    $inputTemplates = Data2Html_Value::getItem(
+                        $this->typeToInputTemplates,
                         $type,
-                        $defaultInputType
+                        $defaultInputTemplates
                     );
                 }
             }
@@ -340,12 +342,12 @@ class Data2Html_Render
                 'validations' => implode(' ', $validations)
             );
             $fReplaces['html'] = $this->templateObj->renderTemplateItem(
-                $inputTplName, $templateInputs, $fReplaces
+                $inputTemplates[1], $templateInputs, $fReplaces
             );
             $this->templateObj->concatContents(
                 $body,
                 $this->templateObj->renderTemplateItem(
-                    $vDx->getString('layout', $defaultInputLayout),
+                    $vDx->getString('layout', $inputTemplates[0]),
                     $templateLayouts, 
                     $fReplaces
                 )
