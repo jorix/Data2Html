@@ -81,7 +81,7 @@ class Data2Html_Controller_SqlSelect
         $textFields = array();
         foreach ($lkFields as $k => $v) {
             $refDb = Data2Html_Value::getItem($v, 'refDb');
-            if ($refDb !== null) {
+            if ($refDb) {
                 array_push($textFields,  $this->db->putAlias($k, $refDb));
             }
         }

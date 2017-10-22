@@ -4,12 +4,14 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
     protected $keywords = array(
         'words' => array('check'=> 'string')
     );
+    
     protected $startToChk = array(
         '<=' => 'EQ',
         '>=' => 'EQ',
         '=' => 'EQ',
         '%' => 'LK'
     );
+    
     protected function beforeParseItem(&$key, &$field)
     {
         $startsWith = function($haystack, $needle) {
@@ -46,6 +48,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
         }
         return true;
     }
+    
     protected function beforeAddItem(&$key, &$field)
     {
         if (
@@ -58,5 +61,9 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
             );
         }
         return true;
+    }
+    
+    protected function parseSortBy($sortBy, $baseItems) {
+        return null;
     }
 }

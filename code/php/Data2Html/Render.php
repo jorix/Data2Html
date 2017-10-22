@@ -370,7 +370,7 @@ class Data2Html_Render
         $visualItems = array();
         foreach ($lkItems as $k => $v) {
             if (!Data2Html_Value::getItem($v, 'virtual')) {
-                if (!is_numeric($k)) {
+                if (!is_int($k)) {
                     $item = array();
                     $visualItems[$k] = &$item;
                     foreach ($this->visualWords as $w) {

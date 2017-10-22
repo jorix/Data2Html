@@ -43,7 +43,7 @@ class Data2Html_Model_Grid
             if ($this->filter) {
                 $this->filter->dump();
             }
-            $this->baseSet->dump();
+            $this->columns->getBase()->dump();
         } else {
             Data2Html_Utils::dump($this->culprit, $subject);
         }

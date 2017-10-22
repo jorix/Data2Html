@@ -39,7 +39,7 @@ class Data2Html_Handler
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            stop();
+            exit();
         }
         $render = self::createRender($template);
         if (array_key_exists('form', $payerNames)) {
@@ -88,7 +88,7 @@ class Data2Html_Handler
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            stop();
+            exit();
         }
     }
     public static function renderGrid($render, $model, $gridName)
@@ -98,7 +98,7 @@ class Data2Html_Handler
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            stop();
+            exit();
         }
     }
     
@@ -109,7 +109,7 @@ class Data2Html_Handler
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            stop();
+            exit();
         }
     }
     

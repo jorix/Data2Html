@@ -18,7 +18,10 @@
             } else {
                 $lkObj = $model->getGrid($payerNames['grid']);
             }
+            
+            //$lkObj->dump();
             $lkObj->createLink()->dump();
+            
         } catch(Exception $e) {
             echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
             '</span></h3>';

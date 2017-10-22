@@ -112,7 +112,7 @@ class Data2Html_Controller_SqlEdit
         foreach($values as $k => $v) {
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];
-                if (array_key_exists('db', $item)) {
+                if (isset($item['db'])) {
                     if (Data2Html_Value::getItem($item, 'key') !== 'autoKey') {
                         $type = Data2Html_Value::getItem($item, 'type', 'string');
                         $names[] = $item['db'];
@@ -151,7 +151,7 @@ class Data2Html_Controller_SqlEdit
         foreach($values as $k => $v) {
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];
-                if (array_key_exists('db', $item)) {
+                if (isset($item['db'])) {
                     $type = Data2Html_Value::getItem($item, 'type', 'string');
                     $assigns[] =  $item['db'] . ' = ' . $this->db->toSql($v, $type);
                 }

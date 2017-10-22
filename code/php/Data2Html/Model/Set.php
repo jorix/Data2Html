@@ -74,6 +74,8 @@ abstract class Data2Html_Model_Set
             'format' => 'string',
             'key' => null,
             'autoKey' => 'string', // TODO: remove this, check key and autoKey alias works!!
+            'items' => 'array',
+            'level' => 'integer',
             'link' => 'string',
             'linkedTo' => 'array',
             'name' => 'string',
@@ -248,9 +250,8 @@ abstract class Data2Html_Model_Set
     // -----------------------
     protected function parseItems($items)
     {
-        foreach ($items as $k => $v) {
-            $this->parseItem($k, $v);
-        }
+        $this->parseSetItems(0, '', $items);
+
         // Extend fields width a base field
         if ($this->baseSet) {
             $baseItems = $this->baseSet->getItems();
@@ -270,6 +271,9 @@ abstract class Data2Html_Model_Set
                         throw new Exception(
                             "{$this->culprit}: Defining field \"{$k}\", the base \"{$base}\" was not found."
                         );
+                    }
+                    if ($v['db'] === null) {
+                        unset($v['db']);
                     }
                     $v = array_replace_recursive(array(), $baseItems[$base], $v);
                 }
@@ -314,9 +318,57 @@ abstract class Data2Html_Model_Set
     }
     
     protected function parseSortBy($sortBy, $baseItems) {
-        return null;
+        if (!is_array($sortBy)) {
+            $sortBy = array($sortBy);
+        } elseif ( // Already parsed 
+            array_key_exists('items', $sortBy) && (
+                count($sortBy) === 1 || 
+                (count($sortBy) === 2 && array_key_exists('linkedTo', $sortBy))
+            )
+        ) {
+            return $sortBy; // return as is already parsed
+        }
+        
+        // Create a empty parsed sort
+        $sortByNew = array('linkedTo' => array(), 'items' => array());
+        
+        $startsWith = function($haystack, $needle) {
+            return (
+                substr($haystack, 0, strlen($needle)) === $needle
+            );
+        };
+        foreach ($sortBy as $item) {
+            $order = 1;
+            foreach ($this->startToOrder as $k => $v) {
+                if ($startsWith($item, $k)) {
+                    $item = substr($item, strlen($k));
+                    $order = $v;
+                    break;
+                }
+            }
+            $linkedTo = $this->getLinkedTo($item, $baseItems);
+            if (count($linkedTo)) {
+                $sortByNew['linkedTo'] =
+                    array_replace($sortByNew['linkedTo'], $linkedTo);
+            } else {
+                if (!array_key_exists($item, $this->setItems) && !array_key_exists($item, $baseItems)) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Defining sortBy \"{$item}\", item and base was not found.",
+                        $sortBy
+                    );
+                }
+            }
+            $sortByNew['items'][$item] = array(
+                'base' => $item,
+                'order' => $order
+            );
+        }
+        if (count($sortByNew['linkedTo']) === 0) {
+            unset($sortByNew['linkedTo']);
+        }
+        return $sortByNew;
     }
-    
+
     protected function beforeParseItem(&$key, &$field)
     {
         return true;
@@ -325,7 +377,23 @@ abstract class Data2Html_Model_Set
     {
         return true;
     }
-    protected function parseItem($key, $field)
+     
+    private function parseSetItems($level, $prefix, $items)
+    {
+        foreach ($items as $k => $v) {
+            $key = is_int($k) ? $k : $prefix . $k;
+            $this->parseItem($level, $key, $v);
+            if (is_array($v) && array_key_exists('items', $v)) {
+                $this->parseSetItems(
+                    $level + 1,
+                    Data2Html_Value::getItem($v, 'prefix', ''),
+                    $v['items']
+                );
+            }
+        }
+    }
+    
+    private function parseItem($level, $key, $field)
     {
         if (!$this->beforeParseItem($key, $field)) {
             return;
@@ -346,25 +414,23 @@ abstract class Data2Html_Model_Set
                 }
             }
         }
-        $fieldDx = new Data2Html_Collection($field);
+
         $name = is_int($key) ? null : $key;
-        $pField = array();
-        
         $db = null;
-        if (array_key_exists('db', $field)) {
+        if (isset($field['db'])) {
             $db = $field['db'];
         } elseif ($name && 
             !array_key_exists('value', $field) && 
-            !array_key_exists('base', $field)
-        ) {
+            !array_key_exists('base', $field) &&
+            !array_key_exists('db', $field)) {
             $db = $name;
         }
-        if ($db) {
-            $pField['db'] = $db;
-        }
+        
         $alias = $this->keywords['alias'];
         $words = $this->keywords['words'];
+        $pField = array();
         foreach ($field as $kk => $vv) {
+            if ($kk === 'items') { continue; }
             if (is_int($kk)) {
                 if (array_key_exists($vv, $alias)) {
                     $word = $alias[$vv];
@@ -400,6 +466,12 @@ abstract class Data2Html_Model_Set
                 }
             }
         }
+        
+        if (!array_key_exists('level', $pField)) {
+            $pField['level'] = $level;
+        }
+        $pField['db'] = $db ? $db : null;
+        
         if (!array_key_exists('base', $pField)) {
             if (!array_key_exists('title', $pField) && $name) {
                 $pField['title'] = $name;
@@ -412,14 +484,12 @@ abstract class Data2Html_Model_Set
         if (array_key_exists('value', $pField)) {
             $value = $pField['value'];
             if ($value) {
-                if (array_key_exists('db', $field) ) {
-                    if (isset($field['db'])) {
-                        throw new Exception(
-                            "{$this->culprit}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
-                        );
-                    }
-                    unset($field['db']);
+                if (isset($field['db'])) {
+                    throw new Exception(
+                        "{$this->culprit}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
+                    );
                 }
+                $field['db'] = null;
                 $matches = null;
                 // $${name} | $${link[name]}
                 preg_match_all($this->matchTemplate, $value, $matches);
@@ -443,7 +513,7 @@ abstract class Data2Html_Model_Set
         if (is_int($pKey)) {
             if (array_key_exists('base', $pField)) {
                 $pKey = Data2Html_Utils::toCleanName($pField['base'], '_');
-            } elseif (array_key_exists('db', $pField)) {
+            } elseif (isset($pField['db'])) {
                 $pKey = Data2Html_Utils::toCleanName($pField['db'], '_');
             }
         }
