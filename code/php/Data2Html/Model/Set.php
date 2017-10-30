@@ -30,22 +30,6 @@ abstract class Data2Html_Model_Set
         'title' => 'attribute'
     );
     protected $baseKeywords = array(
-        'key' => array(
-            'single' => true,
-            'keys' => array('autoKey', 'key')
-        ),
-        'type' => array(
-            'single' => true,
-            'keys' => array('boolean', 'date', 'float', 'integer', 'number', 'string')
-        ),
-        'size' => array(
-            'type' => 'integer',
-            'keys' => array('digits', 'length')
-        ),
-        'validations' => array(
-            'keys' => array('required', 'email', 'emails', 'url')
-        ),
-        'display' => array('hidden'),
         'alias' => array(
             'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey', 'autoKey' => 'autoKey'),
             'boolean' =>    array('type' => 'boolean'),
@@ -70,24 +54,51 @@ abstract class Data2Html_Model_Set
             'db' => 'string',
             'default' => null,
             'description' => 'string',
-            'display' => null,
+            'display' => array(
+                'single' => true,
+                'options' => array(
+                    'none' => null, 'html' => null, 'input' => null, 'all' => null
+                )
+            ),
             'format' => 'string',
-            'key' => null,
+            'key' => array(
+                'single' => true,
+                'options' => array(
+                    'autoKey' => null, 'key' => null
+                )
+            ),
             'autoKey' => 'string', // TODO: remove this, check key and autoKey alias works!!
             'items' => 'array',
             'level' => 'integer',
             'link' => 'string',
             'linkedTo' => 'array',
             'name' => 'string',
-            'size' => null,
+            'size' => 'array[integer]',
             'title' => 'string',
-            'type' => null,
-            'validations' => null,
+            'type' => array(
+                'single' => true,
+                'options' => array(
+                    'boolean' => null, 'date' => null, 'float' => null, 'integer' => null, 'number' => null, 'string' => null
+                )
+            ),
+            'validations' => array(
+                'options' => array(
+                    'required' => null, 'email' => null, 'emails' => null, 'url' => null
+                )
+            ),
             'value' => null,
             'visualClass' => 'string'
         )
     );
-        
+    
+    protected $sortByStartToOrder = array(
+        '<' => 1,
+        '>' => -1,
+        '+' => 1,
+        '-' => -1,
+        '!' => -1,
+    );
+    
     public function __construct($model, $setName, $defs, $baseSet = null)
     {
         $this->debug = Data2Html_Config::debug();
@@ -339,7 +350,7 @@ abstract class Data2Html_Model_Set
         };
         foreach ($sortBy as $item) {
             $order = 1;
-            foreach ($this->startToOrder as $k => $v) {
+            foreach ($this->sortByStartToOrder as $k => $v) {
                 if ($startsWith($item, $k)) {
                     $item = substr($item, strlen($k));
                     $order = $v;
@@ -434,12 +445,6 @@ abstract class Data2Html_Model_Set
             if (is_int($kk)) {
                 if (array_key_exists($vv, $alias)) {
                     $word = $alias[$vv];
-                    foreach ($word as $kkk => $vvv) {
-                        if ($vvv === '[]') {
-                            unset($word[$kkk]);
-                            break;
-                        }
-                    }
                     $pField = array_replace_recursive($pField, $word);
                 } else {
                     throw new Exception(
