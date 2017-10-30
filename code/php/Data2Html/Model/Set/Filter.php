@@ -1,9 +1,7 @@
 <?php
 class Data2Html_Model_Set_Filter extends Data2Html_Model_Set_Form
 {
-    protected $keywords = array(
-        'words' => array('check'=> 'string')
-    );
+    protected $keywords = array('check'=> 'string');
     
     protected $startToChk = array(
         '<=' => 'EQ',

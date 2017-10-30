@@ -11,7 +11,7 @@ class aixada_ufs_self extends Data2Html_Model {
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(
                         'title' => 'Nom UF',
-                        'length'=> 255,
+                        'string'=> 255,
                         'required'
                 ),
                 'uf_name'   => '=$${name}#$${id}',

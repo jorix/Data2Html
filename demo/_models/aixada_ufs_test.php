@@ -11,7 +11,7 @@ class aixada_ufs extends Data2Html_Model {
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'name'      => array(
                         'title' => 'Nom UF',
-                        'length'=> 255,
+                        'string'=> 255,
                         'required'
                 ),
                 'uf_name'   => array('value' => '$${name}#$${id}', 'sortBy' => 'name'),

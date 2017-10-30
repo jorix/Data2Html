@@ -8,10 +8,8 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
         'forms' => false
     );
     protected $keywords = array(
-        'words' => array(
-            'sortBy' => 'string',
-            'teplateItems' => null
-        )
+        'sortBy' => null,
+        'teplateItems' => 'array'
     );
 
     protected function beforeAddItem(&$key, &$field)

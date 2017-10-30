@@ -19,12 +19,12 @@ create table aixada_payment_method (
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'description'      => array(
                     'title' => 'Moviment',
-                    'length' => 50,
+                    'string' => 50,
                     'required'
                 ),
                 'details'      => array(
                     'title' => 'Descripció',
-                    'length' => 255,
+                    'string' => 255,
                     'required'
                 )
             )

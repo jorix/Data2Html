@@ -25,70 +25,58 @@ abstract class Data2Html_Model_Set
     protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
         // value as: $${base_name} i $${link_name[field_name]}
     protected $attributeNames = array();
+    protected $wordsAlias = array();
     protected $keywords = array();
     protected $baseAttributeNames = array(
         'title' => 'attribute'
     );
+    protected $baseWordsAlias = array(
+        'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
+        'boolean' =>    array('type' => 'boolean'),
+        'date' =>       array('type' => 'date'),
+        'email' =>      array('type' => 'string', 'size' => '[]', 'validations' => 'email'),
+        'emails' =>     array('type' => 'string', 'size' => '[]', 'validations' => array('emails')),
+        'float' =>      array('type' => 'float'),
+        'hidden' =>     array('display' => 'none'),
+        'integer' =>    array('type' => 'integer'),
+        'key' =>        array('key' => 'key'),
+        'number' =>     array('type' => 'number', 'size' => '[]'),
+        'currency' =>   array('type' => 'number', 'size' => '[]'),
+        'required' =>   array('validations' => array('required')),
+        'string' =>     array('type' => 'string', 'size' => '[]'),
+        'text' =>       array('type' => 'text'),
+        'url' =>        array('type' => 'string', 'validations' => 'url')
+    );
     protected $baseKeywords = array(
-        'alias' => array(
-            'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey', 'autoKey' => 'autoKey'),
-            'boolean' =>    array('type' => 'boolean'),
-            'date' =>       array('type' => 'date'),
-            'digits' =>     array('type' => 'number', 'size' => '[]'),
-            'email' =>      array('type' => 'string', 'size' => '[]', 'validations' => array('email' => true)),
-            'emails' =>     array('type' => 'string', 'size' => '[]', 'validations' => array('emails' => true)),
-            'float' =>      array('type' => 'float'),
-            'hidden' =>     array('display' => array('none')),
-            'integer' =>    array('type' => 'integer'),
-            'key' =>        array('key' => 'key'),
-            'length' =>     array('type' => 'string', 'size' => '[]'),
-            'number' =>     array('type' => 'number', 'size' => '[]'),
-            'currency' =>     array('type' => 'number', 'size' => '[]'),
-            'required' =>   array('validations' => array('required' => true)),
-            'no-required' =>   array('validations' => array('required' => false)),
-            'string' =>     array('type' => 'string', 'size' => '[]'),
-            'url' =>        array('type' => 'string', 'validations' => array('url' => true))
+        'base' => 'string',
+        'db' => 'string|null',
+        'default' => null,
+        'description' => 'string',
+        'display' => array(
+            'options' => array('none', 'html', 'input', 'all')
         ),
-        'words' => array(
-            'base' => 'string',
-            'db' => 'string',
-            'default' => null,
-            'description' => 'string',
-            'display' => array(
-                'single' => true,
-                'options' => array(
-                    'none' => null, 'html' => null, 'input' => null, 'all' => null
-                )
-            ),
-            'format' => 'string',
-            'key' => array(
-                'single' => true,
-                'options' => array(
-                    'autoKey' => null, 'key' => null
-                )
-            ),
-            'autoKey' => 'string', // TODO: remove this, check key and autoKey alias works!!
-            'items' => 'array',
-            'level' => 'integer',
-            'link' => 'string',
-            'linkedTo' => 'array',
-            'name' => 'string',
-            'size' => 'array[integer]',
-            'title' => 'string',
-            'type' => array(
-                'single' => true,
-                'options' => array(
-                    'boolean' => null, 'date' => null, 'float' => null, 'integer' => null, 'number' => null, 'string' => null
-                )
-            ),
-            'validations' => array(
-                'options' => array(
-                    'required' => null, 'email' => null, 'emails' => null, 'url' => null
-                )
-            ),
-            'value' => null,
-            'visualClass' => 'string'
-        )
+        'format' => 'string',
+        'key' => array(
+            'options' => array('autoKey', 'key')
+        ),
+        'items' => 'array',
+        'level' => 'integer',
+        'link' => 'string',
+        'linkedTo' => 'array',
+        'name' => 'string',
+        'size' => '(array)integer',
+        'title' => 'string',
+        'type' => array(
+            'options' => array(
+                'boolean', 'date', 'float', 'integer', 'number', 'string', 'text'
+            )
+        ),
+        'validations' => array(
+            'multiple' => true,
+            'options' => array('required', 'email', 'emails', 'url')
+        ),
+        'value' => null,
+        'visualClass' => 'string'
     );
     
     protected $sortByStartToOrder = array(
@@ -113,10 +101,13 @@ abstract class Data2Html_Model_Set
         }
         
         $this->model = $model;
-        $this->attributeNames = array_replace_recursive(
+        $this->attributeNames = array_replace(
             $this->baseAttributeNames, $this->attributeNames
         );
-        $this->keywords = array_replace_recursive(
+        $this->wordsAlias = array_replace(
+            $this->baseWordsAlias, $this->wordsAlias
+        );
+        $this->keywords = array_replace(
             $this->baseKeywords, $this->keywords
         );
         $this->baseSet = $baseSet;
@@ -437,15 +428,16 @@ abstract class Data2Html_Model_Set
             $db = $name;
         }
         
-        $alias = $this->keywords['alias'];
-        $words = $this->keywords['words'];
+        $alias = $this->wordsAlias;
+        $words = $this->keywords;
+
+        // Create parsed field
         $pField = array();
         foreach ($field as $kk => $vv) {
             if ($kk === 'items') { continue; }
             if (is_int($kk)) {
                 if (array_key_exists($vv, $alias)) {
-                    $word = $alias[$vv];
-                    $pField = array_replace_recursive($pField, $word);
+                    $this->applyAlias($pField, $vv, $alias[$vv]);
                 } else {
                     throw new Exception(
                         "{$this->culprit}: Alias \"{$vv}\" on field \"{$key}\" is not supported."
@@ -453,30 +445,97 @@ abstract class Data2Html_Model_Set
                 }
             } else {
                 if (array_key_exists($kk, $alias)) {
-                    $word = $alias[$kk];
-                    foreach ($word as &$vvv) {
-                        if ($vvv === '[]') {
-                            $vvv = $vv;
-                            break;
-                        }
-                    }
-                    $pField = array_replace_recursive($pField, $word);
-                } elseif (array_key_exists($kk, $words)) {
-                    $pField[$kk] = $vv;
+                    $this->applyAlias($pField, $vv, $alias[$kk]);
                 } else {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Word or alias \"{$kk}\" on field \"{$key}\" is not supported.",
-                        $field
-                    );
+                    $pField[$kk] = $vv; // Is a word, so pending to check
                 }
             }
         }
-        
+
+        // Check words
+        foreach ($pField as $kk => &$vv) {
+            if (array_key_exists($kk, $words)) {
+                $word = $words[$kk];
+                if (is_array($word)) {
+                    if (array_key_exists('multiple', $word) && $word['multiple'] === true) {
+                        $vv = (array)$vv;
+                        foreach ($vv as $vvv) {
+                            if (!in_array($vvv, $word['options']) ) {
+                                throw new Data2Html_Exception(
+                                    "{$this->culprit}: Option \"{$vvv}\" on word \"{$kk}\" on field \"{$key}\" is not valid.",
+                                    $pField
+                                );
+                            }
+                        }
+                    } else {
+                        if (!in_array($vv, $word['options']) ) {
+                            throw new Data2Html_Exception(
+                                "{$this->culprit}: Option \"{$vv}\" on word \"{$kk}\" on field \"{$key}\" is not valid.",
+                                $pField
+                            );
+                        }
+                    }
+                } else {
+                    switch ($word) {
+                        case 'string':
+                            if (!is_string($vv)) {
+                                throw new Data2Html_Exception(
+                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'string'.",
+                                    $pField
+                                );
+                            }
+                            break;
+                        case 'string|null':
+                            if (!is_string($vv) && !is_null($vv)) {
+                                throw new Data2Html_Exception(
+                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'string' o null.",
+                                    $pField
+                                );
+                            }
+                            break;
+                        case 'integer':
+                            if (!is_int($vv)) {
+                                throw new Data2Html_Exception(
+                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'integer'.",
+                                    $pField
+                                );
+                            }
+                            break;
+                        case 'array':
+                            if (!is_array($vv)) {
+                                throw new Data2Html_Exception(
+                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'array'.",
+                                    $pField
+                                );
+                            }
+                            break;
+                        case '(array)integer':
+                            $vv = (array)$vv;
+                            foreach ($vv as $vvv) {
+                                if (!is_int($vvv)) {
+                                    throw new Data2Html_Exception(
+                                        "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a array of integers.",
+                                        $pField
+                                    );
+                                }
+                            }
+                            break;
+                    }
+                }
+            } else {
+                throw new Data2Html_Exception(
+                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" is not supported.",
+                    $field
+                );
+            }
+        }
+        unset($vv);
+
+        // Final words: level, db, value and teplateItems
         if (!array_key_exists('level', $pField)) {
             $pField['level'] = $level;
         }
         $pField['db'] = $db ? $db : null;
-        
         if (!array_key_exists('base', $pField)) {
             if (!array_key_exists('title', $pField) && $name) {
                 $pField['title'] = $name;
@@ -533,6 +592,26 @@ abstract class Data2Html_Model_Set
         return $pKey;
     }
    
+    protected function applyAlias(&$pField, $aliasValue, $toWord)
+    {
+        // $word = $alias[$kk];
+        foreach ($toWord as $k => $v) {
+            if ($v === '[]') {
+                $v = $aliasValue;
+            }
+            if (!array_key_exists($k, $pField)) {
+                $pField[$k] = $v;
+            } elseif (is_array($pField[$k])) {
+                foreach ((array)$v as $vv) {
+                    if (!in_array($vv, $pField[$k])) {
+                        $pField[$k][] = $vv;
+                    }
+                }
+            }
+        }
+        //$pField = array_replace_recursive($pField, $toWord);
+    }
+    
     protected function getLinkedTo($base, $baseItems)
     {
         $matches = null;
