@@ -7,13 +7,13 @@ class aixada_providers extends Data2Html_Model {
             'table' => 'aixada_provider',
             'base' => array(
                 'id' => array('integer', 'autoKey'),
-                'name' => array('title' => '$$Provider', 'string' => 255),
+                'name' => array('title' => '$$Provider', 'string' => 255, 'required'),
                 'contact' => array('title' => '$$Provider_contact', 'string' => 255),
                 'address' => array('title' => '$$Provider_address', 'string' => 255),
                 'nif' => array('title' => '$$Nif', 'string' => 15),
                 'zip' => array('title' => '$$Zip', 'string' => 10),
                 
-                'email' => array('title' => '$$Provider_email', 'email' => 100),
+                'email' => array('title' => '$$Provider_email', 'email' => 100, 'required'),
                 'text' => array(
                     'sortBy' => null,
                     'value' => '$${name} #$${id}'

@@ -265,7 +265,7 @@ abstract class Data2Html_Model_Set
         foreach ($this->setItems as $k => &$v) {
             if (array_key_exists('base', $v)) {
                 $base = $v['base'];
-                $linkedTo = $this->getLinkedTo($base, $baseItems);
+                $linkedTo = $this->parseLinkedTo($base, $baseItems);
                 if (count($linkedTo)) {
                     $v['linkedTo'] = $linkedTo;                    
                 } else {
@@ -292,7 +292,7 @@ abstract class Data2Html_Model_Set
             
             // Matches values
             if (array_key_exists('teplateItems', $v)) {
-                $linkedTo = $this->getLinkedTo($v['value'], $baseItems);
+                $linkedTo = $this->parseLinkedTo($v['value'], $baseItems);
                 if (count($linkedTo)) {
                     $v['linkedTo'] = $linkedTo;
                 }
@@ -318,7 +318,43 @@ abstract class Data2Html_Model_Set
         }
         $this->keys = $keys;
     }
+
+    private function parseSetItems($level, $prefix, $items)
+    {
+        foreach ($items as $k => $v) {
+            $fieldName = is_int($k) ? $k : $prefix . $k;
+            
+            // Parse item
+            if ($this->beforeParseItem($fieldName, $v)) {
+                list($pName, $pField) = $this->parseItem($level, $fieldName, $v);
+                if ($this->beforeAddItem($pName, $pField)) {
+                    $this->setItems[$pName] = $pField; // Add the ITEM!
+                }
+            }
+            
+            if (is_array($v) && array_key_exists('items', $v)) {
+                $this->parseSetItems(
+                    $level + 1,
+                    Data2Html_Value::getItem($v, 'prefix', ''),
+                    $v['items']
+                );
+            }
+        }
+    }
     
+    // -----------------------
+    // To overwrite in the subclasses
+    // -----------------------
+    protected function beforeParseItem(&$fieldName, &$field)
+    {
+        return true;
+    }
+    protected function beforeAddItem(&$parsedName, &$parsedField)
+    {
+        return true;
+    }
+
+    // Overwrite this function to `{ return null; }` to ignore sortBy.
     protected function parseSortBy($sortBy, $baseItems) {
         if (!is_array($sortBy)) {
             $sortBy = array($sortBy);
@@ -348,7 +384,7 @@ abstract class Data2Html_Model_Set
                     break;
                 }
             }
-            $linkedTo = $this->getLinkedTo($item, $baseItems);
+            $linkedTo = $this->parseLinkedTo($item, $baseItems);
             if (count($linkedTo)) {
                 $sortByNew['linkedTo'] =
                     array_replace($sortByNew['linkedTo'], $linkedTo);
@@ -370,249 +406,11 @@ abstract class Data2Html_Model_Set
         }
         return $sortByNew;
     }
-
-    protected function beforeParseItem(&$key, &$field)
-    {
-        return true;
-    }
-    protected function beforeAddItem(&$key, &$field)
-    {
-        return true;
-    }
-     
-    private function parseSetItems($level, $prefix, $items)
-    {
-        foreach ($items as $k => $v) {
-            $key = is_int($k) ? $k : $prefix . $k;
-            $this->parseItem($level, $key, $v);
-            if (is_array($v) && array_key_exists('items', $v)) {
-                $this->parseSetItems(
-                    $level + 1,
-                    Data2Html_Value::getItem($v, 'prefix', ''),
-                    $v['items']
-                );
-            }
-        }
-    }
     
-    private function parseItem($level, $key, $field)
-    {
-        if (!$this->beforeParseItem($key, $field)) {
-            return;
-        }
-        
-        if (is_string($field)) {
-            if (substr($field, 0, 1) === '=') {
-                $field = array('value' => substr($field, 1));
-            } elseif ($this->baseSet) {
-                $field = array('base' => $field);
-            } else {
-                $matches = null;
-                preg_match_all($this->matchLinked, $field, $matches);
-                if (count($matches[0]) > 0) {
-                    $field = array('base' => $field);
-                } else {
-                    $field = array('db' => $field);
-                }
-            }
-        }
-
-        $name = is_int($key) ? null : $key;
-        $db = null;
-        if (isset($field['db'])) {
-            $db = $field['db'];
-        } elseif ($name && 
-            !array_key_exists('value', $field) && 
-            !array_key_exists('base', $field) &&
-            !array_key_exists('db', $field)) {
-            $db = $name;
-        }
-        
-        $alias = $this->wordsAlias;
-        $words = $this->keywords;
-
-        // Create parsed field
-        $pField = array();
-        foreach ($field as $kk => $vv) {
-            if ($kk === 'items') { continue; }
-            if (is_int($kk)) {
-                if (array_key_exists($vv, $alias)) {
-                    $this->applyAlias($pField, $vv, $alias[$vv]);
-                } else {
-                    throw new Exception(
-                        "{$this->culprit}: Alias \"{$vv}\" on field \"{$key}\" is not supported."
-                    );
-                }
-            } else {
-                if (array_key_exists($kk, $alias)) {
-                    $this->applyAlias($pField, $vv, $alias[$kk]);
-                } else {
-                    $pField[$kk] = $vv; // Is a word, so pending to check
-                }
-            }
-        }
-
-        // Check words
-        foreach ($pField as $kk => &$vv) {
-            if (array_key_exists($kk, $words)) {
-                $word = $words[$kk];
-                if (is_array($word)) {
-                    if (array_key_exists('multiple', $word) && $word['multiple'] === true) {
-                        $vv = (array)$vv;
-                        foreach ($vv as $vvv) {
-                            if (!in_array($vvv, $word['options']) ) {
-                                throw new Data2Html_Exception(
-                                    "{$this->culprit}: Option \"{$vvv}\" on word \"{$kk}\" on field \"{$key}\" is not valid.",
-                                    $pField
-                                );
-                            }
-                        }
-                    } else {
-                        if (!in_array($vv, $word['options']) ) {
-                            throw new Data2Html_Exception(
-                                "{$this->culprit}: Option \"{$vv}\" on word \"{$kk}\" on field \"{$key}\" is not valid.",
-                                $pField
-                            );
-                        }
-                    }
-                } else {
-                    switch ($word) {
-                        case 'string':
-                            if (!is_string($vv)) {
-                                throw new Data2Html_Exception(
-                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'string'.",
-                                    $pField
-                                );
-                            }
-                            break;
-                        case 'string|null':
-                            if (!is_string($vv) && !is_null($vv)) {
-                                throw new Data2Html_Exception(
-                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'string' o null.",
-                                    $pField
-                                );
-                            }
-                            break;
-                        case 'integer':
-                            if (!is_int($vv)) {
-                                throw new Data2Html_Exception(
-                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'integer'.",
-                                    $pField
-                                );
-                            }
-                            break;
-                        case 'array':
-                            if (!is_array($vv)) {
-                                throw new Data2Html_Exception(
-                                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a 'array'.",
-                                    $pField
-                                );
-                            }
-                            break;
-                        case '(array)integer':
-                            $vv = (array)$vv;
-                            foreach ($vv as $vvv) {
-                                if (!is_int($vvv)) {
-                                    throw new Data2Html_Exception(
-                                        "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" must be a array of integers.",
-                                        $pField
-                                    );
-                                }
-                            }
-                            break;
-                    }
-                }
-            } else {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: Word \"{$kk}\" on field \"{$key}\" is not supported.",
-                    $field
-                );
-            }
-        }
-        unset($vv);
-
-        // Final words: level, db, value and teplateItems
-        if (!array_key_exists('level', $pField)) {
-            $pField['level'] = $level;
-        }
-        $pField['db'] = $db ? $db : null;
-        if (!array_key_exists('base', $pField)) {
-            if (!array_key_exists('title', $pField) && $name) {
-                $pField['title'] = $name;
-            }
-            if (!array_key_exists('description', $pField) &&
-                array_key_exists('title', $pField)) {
-                $pField['description'] = $pField['title'];
-            }
-        }
-        if (array_key_exists('value', $pField)) {
-            $value = $pField['value'];
-            if ($value) {
-                if (isset($field['db'])) {
-                    throw new Exception(
-                        "{$this->culprit}: Field \"{$key}\": `db` and `value` can not be used simultaneously."
-                    );
-                }
-                $field['db'] = null;
-                $matches = null;
-                // $${name} | $${link[name]}
-                preg_match_all($this->matchTemplate, $value, $matches);
-                if (count($matches[0]) > 0) {
-                    if (!array_key_exists('type', $pField)) {
-                        $pField['type'] = 'string';
-                    }
-                    $tItems = array();
-                    for ($i = 0; $i < count($matches[0]); $i++) {
-                        $tItems[$matches[0][$i]] = array(
-                            'base' => $matches[1][$i]
-                        );
-                    }
-                    $pField['teplateItems'] = $tItems;
-                }
-            }
-        }
-        
-        // Set the keyName for this field
-        $pKey = $key;
-        if (is_int($pKey)) {
-            if (array_key_exists('base', $pField)) {
-                $pKey = Data2Html_Utils::toCleanName($pField['base'], '_');
-            } elseif (isset($pField['db'])) {
-                $pKey = Data2Html_Utils::toCleanName($pField['db'], '_');
-            }
-        }
-        if (is_int($pKey) || array_key_exists($key, $this->setItems)) {
-            $this->fCount++;
-            $pKey = $this->fPrefix . '_' . $this->fCount;
-        }
-        if (!$this->beforeAddItem($pKey, $pField)) {
-            return;
-        }
-        $this->setItems[$pKey] = $pField;
-        return $pKey;
-    }
-   
-    protected function applyAlias(&$pField, $aliasValue, $toWord)
-    {
-        // $word = $alias[$kk];
-        foreach ($toWord as $k => $v) {
-            if ($v === '[]') {
-                $v = $aliasValue;
-            }
-            if (!array_key_exists($k, $pField)) {
-                $pField[$k] = $v;
-            } elseif (is_array($pField[$k])) {
-                foreach ((array)$v as $vv) {
-                    if (!in_array($vv, $pField[$k])) {
-                        $pField[$k][] = $vv;
-                    }
-                }
-            }
-        }
-        //$pField = array_replace_recursive($pField, $toWord);
-    }
-    
-    protected function getLinkedTo($base, $baseItems)
+    // -----------------------
+    // Private functions
+    // -----------------------
+    private function parseLinkedTo($base, $baseItems)
     {
         $matches = null;
         preg_match_all($this->matchLinked, $base, $matches);
@@ -641,5 +439,225 @@ abstract class Data2Html_Model_Set
             }
         }
         return $linkedTo;
+    }
+    
+    private function parseItem($level, $fieldName, $field)
+    {
+        
+        if (is_string($field)) {
+            if (substr($field, 0, 1) === '=') {
+                $field = array('value' => substr($field, 1));
+            } elseif ($this->baseSet) {
+                $field = array('base' => $field);
+            } else {
+                $matches = null;
+                preg_match_all($this->matchLinked, $field, $matches);
+                if (count($matches[0]) > 0) {
+                    $field = array('base' => $field);
+                } else {
+                    $field = array('db' => $field);
+                }
+            }
+        }
+
+        $name = is_int($fieldName) ? null : $fieldName;
+        $db = null;
+        if (isset($field['db'])) {
+            $db = $field['db'];
+        } elseif ($name && 
+            !array_key_exists('value', $field) && 
+            !array_key_exists('base', $field) &&
+            !array_key_exists('db', $field)) {
+            $db = $name;
+        }
+        
+        $alias = $this->wordsAlias;
+        $words = $this->keywords;
+
+        // Create parsed field
+        $pField = array();
+        foreach ($field as $kk => $vv) {
+            if ($kk === 'items') { continue; }
+            if (is_int($kk)) {
+                if (array_key_exists($vv, $alias)) {
+                    $this->applyAlias($fieldName, $pField, $vv, $alias[$vv]);
+                } else {
+                    throw new Exception(
+                        "{$this->culprit}: Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
+                    );
+                }
+            } else {
+                if (array_key_exists($kk, $alias)) {
+                    $this->applyAlias($fieldName,$pField, $vv, $alias[$kk]);
+                } else {
+                    $this->applyWord($fieldName, $pField, $kk, $vv);
+                }
+            }
+        }
+
+        // Final words: level, db, value and teplateItems
+        if (!array_key_exists('level', $pField)) {
+            $pField['level'] = $level;
+        }
+        $pField['db'] = $db ? $db : null;
+        if (!array_key_exists('base', $pField)) {
+            if (!array_key_exists('title', $pField) && $name) {
+                $pField['title'] = $name;
+            }
+            if (!array_key_exists('description', $pField) &&
+                array_key_exists('title', $pField)) {
+                $pField['description'] = $pField['title'];
+            }
+        }
+        if (array_key_exists('value', $pField)) {
+            $value = $pField['value'];
+            if ($value) {
+                if (isset($field['db'])) {
+                    throw new Exception(
+                        "{$this->culprit}: Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
+                    );
+                }
+                $field['db'] = null;
+                $matches = null;
+                // $${name} | $${link[name]}
+                preg_match_all($this->matchTemplate, $value, $matches);
+                if (count($matches[0]) > 0) {
+                    if (!array_key_exists('type', $pField)) {
+                        $pField['type'] = 'string';
+                    }
+                    $tItems = array();
+                    for ($i = 0; $i < count($matches[0]); $i++) {
+                        $tItems[$matches[0][$i]] = array(
+                            'base' => $matches[1][$i]
+                        );
+                    }
+                    $pField['teplateItems'] = $tItems;
+                }
+            }
+        }
+        
+        // Set the keyName for this field
+        $pKey = $fieldName;
+        if (is_int($pKey)) {
+            if (array_key_exists('base', $pField)) {
+                $pKey = Data2Html_Utils::toCleanName($pField['base'], '_');
+            } elseif (isset($pField['db'])) {
+                $pKey = Data2Html_Utils::toCleanName($pField['db'], '_');
+            }
+        }
+        if (is_int($pKey) || array_key_exists($fieldName, $this->setItems)) {
+            $this->fCount++;
+            $pKey = $this->fPrefix . '_' . $this->fCount;
+        }
+        return array($pKey, $pField);
+    }
+    
+    private function applyAlias($fieldName, &$pField, $aliasValue, $toWord)
+    {
+        // $word = $alias[$kk];
+        foreach ($toWord as $k => $v) {
+            if ($v === '[]') {
+                $v = $aliasValue;
+            }
+            if (!array_key_exists($k, $pField)) {
+                $this->applyWord($fieldName, $pField, $k, $v);
+            } elseif (is_array($pField[$k])) {
+                $this->dump([$v, $pField]);
+                foreach ((array)$v as $vv) {
+                    if (!in_array($vv, $pField[$k])) {
+                        $this->applyWord(
+                            $fieldName, $pField, $k, $vv
+                        );
+                    }
+                }
+            }
+        }
+    }
+    
+    private function applyWord($fieldName, &$pField, $wordName, $word)
+    {
+        if (!array_key_exists($wordName, $this->keywords)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: Word \"{$wordName}\" on field \"{$fieldName}\" is not supported.",
+                $pField
+            );
+        }
+        $keyword = $this->keywords[$wordName];
+        if (is_array($keyword)) {
+            if (array_key_exists('multiple', $keyword) && $keyword['multiple'] === true) {
+                $word = (array)$word;
+                if (array_key_exists($wordName, $pField)) {
+                    $newWord = $pField[$wordName];
+                } else {
+                    $newWord = array();
+                }
+                foreach ($word as $vvv) {
+                    if (!in_array($vvv, $keyword['options'])) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Option \"{$vvv}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                            $pField
+                        );
+                    }
+                    if (!in_array($vvv, $newWord)) {
+                        array_push($newWord, $vvv);
+                    }
+                }
+                $word = $newWord;
+            } else {
+                if (!in_array($word, $keyword['options']) ) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Option \"{$word}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                        $pField
+                    );
+                }
+            }
+        } else {
+            switch ($keyword) {
+                case 'string':
+                    if (!is_string($word)) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string'.",
+                            $pField
+                        );
+                    }
+                    break;
+                case 'string|null':
+                    if (!is_string($word) && !is_null($word)) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string' o null.",
+                            $pField
+                        );
+                    }
+                    break;
+                case 'integer':
+                    if (!is_int($word)) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'integer'.",
+                            $pField
+                        );
+                    }
+                    break;
+                case 'array':
+                    if (!is_array($word)) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'array'.",
+                            $pField
+                        );
+                    }
+                    break;
+                case '(array)integer':
+                    $word = (array)$word;
+                    foreach ($word as $vvv) {
+                        if (!is_int($vvv)) {
+                            throw new Data2Html_Exception(
+                                "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a array of integers.",
+                                $pField
+                            );
+                        }
+                    }
+                    break;
+            }
+        }
+        $pField[$wordName] = $word;
     }
 }
