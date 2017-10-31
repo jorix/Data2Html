@@ -487,7 +487,7 @@ abstract class Data2Html_Model_Set
                     );
                 }
             } else {
-                if (array_key_exists($kk, $alias)) {
+                if (array_key_exists($kk, $alias) && !array_key_exists($kk, $words)) {
                     $this->applyAlias($fieldName,$pField, $vv, $alias[$kk]);
                 } else {
                     $this->applyWord($fieldName, $pField, $kk, $vv);
@@ -554,15 +554,11 @@ abstract class Data2Html_Model_Set
     
     private function applyAlias($fieldName, &$pField, $aliasValue, $toWord)
     {
-        // $word = $alias[$kk];
         foreach ($toWord as $k => $v) {
             if ($v === '[]') {
                 $v = $aliasValue;
             }
-            if (!array_key_exists($k, $pField)) {
-                $this->applyWord($fieldName, $pField, $k, $v);
-            } elseif (is_array($pField[$k])) {
-                $this->dump([$v, $pField]);
+            if (array_key_exists($k, $pField) && is_array($pField[$k])) {
                 foreach ((array)$v as $vv) {
                     if (!in_array($vv, $pField[$k])) {
                         $this->applyWord(
@@ -570,6 +566,8 @@ abstract class Data2Html_Model_Set
                         );
                     }
                 }
+            } else {
+                $this->applyWord($fieldName, $pField, $k, $v);
             }
         }
     }
@@ -607,6 +605,12 @@ abstract class Data2Html_Model_Set
                 if (!in_array($word, $keyword['options']) ) {
                     throw new Data2Html_Exception(
                         "{$this->culprit}: Option \"{$word}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                        $pField
+                    );
+                }
+                if (array_key_exists($wordName, $pField) && $pField[$wordName] !== $word) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" not allows multiple values, additional option \"{$word}\" refused.",
                         $pField
                     );
                 }

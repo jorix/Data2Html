@@ -8,11 +8,11 @@ class aixada_ufs extends Data2Html_Model {
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
             'base' => array(
-                'id'        => array('key', 'integer', 'required', 'hidden'),
+                'id'        => array('autoKey', 'hidden'),
                 'name'      => array(
-                        'title' => 'Nom UF',
-                        'string'=> 255,
-                        'required'
+                    'title' => 'Nom UF',
+                    'string'=> 255,
+                    'required'
                 ),
                 'uf_name'   => array(
                     'title' => 'Nom UF',

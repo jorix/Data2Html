@@ -23,9 +23,7 @@
             $lkObj->createLink()->dump();
             
         } catch(Exception $e) {
-            echo '<h3>Error: <span style="color:red">' . $e->getMessage() .
-            '</span></h3>';
-            die();
+            echo Data2Html_Exception::toHtml($e, true);
         }
     ?>
     </div>
