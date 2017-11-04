@@ -16,7 +16,7 @@ abstract class Data2Html_Model
     private $definitions = null;
     
     // Parsed object definitions
-    private $base = null;
+    private $baseSet = null;
     private $grids = array();
     private $forms = array();
     
@@ -36,7 +36,7 @@ abstract class Data2Html_Model
         $this->culprit = "Model \"{$this->modelName}\"";
         
         $this->definitions = $this->definitions();
-        $this->base = new Data2Html_Model_Set_Base(
+        $this->baseSet = new Data2Html_Model_Set_Base(
             $this, null, $this->definitions
         );
     }
@@ -48,19 +48,9 @@ abstract class Data2Html_Model
         return $this->modelName;
     }
     
-    public function getTableName()
-    {
-        return $this->base->getAttribute('table');
-    }
-    
-    public function getTitle()
-    {
-        return $this->base->getAttribute('title', $this->getTableName());
-    }
-    
     public function getBase()
     {
-        return $this->base;
+        return $this->baseSet;
     }
     
     public function getGrid($gridName = '')
@@ -74,7 +64,7 @@ abstract class Data2Html_Model
                     $this,
                     $gridName,
                     $this->getSetDefs($gridName, 'grids'),
-                    $this->base
+                    $this->baseSet
                 );
         }    
         return $this->grids[$gridName];
@@ -91,7 +81,7 @@ abstract class Data2Html_Model
                     $this,
                     $formName, 
                     $this->getSetDefs($formName, 'forms'),
-                    $this->base
+                    $this->baseSet
                 );
         }    
         return $this->forms[$formName];

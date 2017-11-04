@@ -58,11 +58,6 @@ class Data2Html_Model_Grid
         return $this->filter;
     }
     
-    public function getTableName()
-    {
-        return $this->model->getTableName();
-    }
-    
     public function getGridName()
     {
         return $this->gridName;

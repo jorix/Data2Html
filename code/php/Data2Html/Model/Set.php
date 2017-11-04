@@ -2,14 +2,13 @@
 //abstract 
 abstract class Data2Html_Model_Set
 {
-    protected $setName = '';
     protected $culprit = '';
     protected $debug = false;
     
     protected $fPrefix = '';
     protected $fCount = 0;
     
-    protected $model = null;
+    protected $tableName = null;
     protected $attributes = null;
     protected $baseSet = null;
     protected $setItems = null;
@@ -90,20 +89,21 @@ abstract class Data2Html_Model_Set
     public function __construct($model, $setName, $defs, $baseSet = null)
     {
         $this->debug = Data2Html_Config::debug();
-        $this->setName = $setName;
         $this->fPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
-        if ($setName) {
+        if (!$model) {
+            $this->culprit = $this->fPrefix . " for setName \"{$setName}\"";
+        } elseif ($setName) {
             $this->culprit = $this->fPrefix . 
-                " for \"{$model->getModelName()}->{$this->setName}\"";
+                " for \"{$model->getModelName()}->{$setName}\"";
         } else {
             $this->culprit = 
                 $this->fPrefix . " for \"{$model->getModelName()}\"";
         }
         
-        $this->model = $model;
         $this->attributeNames = array_replace(
             $this->baseAttributeNames, $this->attributeNames
         );
+        
         $this->wordsAlias = array_replace(
             $this->baseWordsAlias, $this->wordsAlias
         );
@@ -154,14 +154,11 @@ abstract class Data2Html_Model_Set
     // -----------------------
     // Obtaining
     // -----------------------
-    public function getModelName()
-    {
-        return $this->model->getModelName();
-    }
-
     public function getTableName()
     {
-        return $this->model->getTableName();
+        if ($this->baseSet) {
+            return $this->baseSet->getAttribute('table');
+        }
     }
     
     public function getBase()
