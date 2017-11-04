@@ -50,7 +50,7 @@ abstract class Data2Html_Model_Set
         'base' => 'string',
         'db' => 'string|null',
         'default' => null,
-        'description' => 'string',
+        'description' => 'string|null',
         'display' => array(
             'options' => array('none', 'html', 'input', 'all')
         ),
@@ -310,7 +310,7 @@ abstract class Data2Html_Model_Set
                 $keys[$k] = array();
             }
         }
-        if (count($keys) === 0) {
+        if (count($keys) === 0 && $this->baseSet) {
             $keys = $this->baseSet->getKeys();
         }
         $this->keys = $keys;

@@ -8,7 +8,7 @@ class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
     
     protected $keywords = array(
         'sortBy' => null,
-        'teplateItems' => null
+        'teplateItems' => 'array'
     );
     
     public function __construct($model, $setName, $defs, $baseSet = null) {

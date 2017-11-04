@@ -6,6 +6,14 @@ class Data2Html_Model_Set_Form extends Data2Html_Model_Set
         'layout' => 'attribute',
         'fields' => 'items'
     );
+    
+    protected $keywords = array(
+        'layouts' => 'array',
+        'icon' => 'string',
+        'action' => 'string',
+        'input' => 'string'
+        
+    );
         
     protected function parseSortBy($sortBy, $baseItems) {
         return null;

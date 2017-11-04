@@ -130,11 +130,9 @@ class Data2Html_Render
             return $this->templateObj->emptyRender();
         }
         
-        $columns = array_merge(
-            $this->templateObj->getTemplateItems('startItems', $templateTable),
-            $columns,
-            $this->templateObj->getTemplateItems('endItems', $templateTable)
-        );
+        $startItems = $this->parseFormSet('startItems', $templateTable);
+        $endItems = $this->parseFormSet('endItems', $templateTable);
+        $columns = array_merge($startItems, $columns, $endItems);
         
         $templateHeads =
             $this->templateObj->getTemplateBranch('heads', $templateTable);
@@ -276,6 +274,16 @@ class Data2Html_Render
         return $this->templateObj->renderTemplate($templateTable, $replaces);
     }
 
+    protected function parseFormSet($setName, $templateBranch){
+        $items = $this->templateObj->getTemplateItems($setName, $templateBranch);
+        if (count($items) === 0) {
+            return array();
+        } else {
+            $tempModel = new Data2Html_Model_Set_Form(null, $setName, $items);
+            return $tempModel->getItems();
+        }
+    }
+
     protected function renderFormSet(
         $formId,
         $templateBranch,
@@ -285,11 +293,11 @@ class Data2Html_Render
         if (!$fieldsDs) {
             $fieldsDs = array();
         }
-        $fieldsDs = array_merge(
-            $this->templateObj->getTemplateItems('startItems', $templateBranch),
-            $fieldsDs,
-            $this->templateObj->getTemplateItems('endItems', $templateBranch)
-        );
+        
+        $startItems = $this->templateObj->getTemplateItems('startItems', $templateBranch);
+        $endItems = $this->templateObj->getTemplateItems('endItems', $templateBranch);
+        $fieldsDs = array_merge($startItems, $fieldsDs, $endItems);
+        
         if (count($fieldsDs) === 0) {
             return $this->templateObj->emptyRender();
         }
