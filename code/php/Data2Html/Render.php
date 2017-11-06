@@ -3,14 +3,19 @@
 class Data2Html_Render
 {
     public $debug = false;
-    protected $templateObj;
-    protected $idRender;
-    protected $typeToInputTemplates = array(
+    private $templateObj;
+    private $idRender;
+    private $typeToInputTemplates = array(
         '[default]' =>    array('base', 'text'),
         'boolean' =>    array('checkbox', 'checkbox'),
         'date' =>       array('base', 'datetimepicker')
     );
-    protected $visualWords = array(
+    private $typeToHtmlClass = array(
+        'integer' => 'text-right',
+        'number' => 'text-right',
+        'float' => 'text-right'
+    );
+    private $visualWords = array(
         'display', 'format', 'size', 'title', 'type', 'validations', 'default'
     );
     private static $idRenderCount = 0;
@@ -32,7 +37,7 @@ class Data2Html_Render
         Data2Html_Utils::dump($this->culprit, $subject);
     }
     
-    protected function createIdRender() {
+    private function createIdRender() {
         self::$idRenderCount++;
         return 'd2h_' . self::$idRenderCount;
     }
@@ -157,10 +162,9 @@ class Data2Html_Render
             if ($vDx->getBoolean('virtual')) {
                 continue;
             }
-            if ($display = $vDx->getArray('display')) {
-                if (array_search('none', $display) !== false) {
-                    continue;
-                }
+            $display = $vDx->getString('display', 'html');
+            if ($display === 'none') {
+                continue;
             }
             
             ++$renderCount;
@@ -188,31 +192,31 @@ class Data2Html_Render
             
             // head
             $lReplaces = $iReplaces;
-            if (is_array($layouts[0]) && $templateInputs) {
-                // TODO: Make it generic
-                $svDx->set($layouts[0]);
-                $sinputTplName = $svDx->getString('input');
-                $lReplaces['html'] = $this->templateObj->renderTemplateItem(
-                    $sinputTplName,
-                    $templateInputs,
-                    array(
-                        'id' => null,
-                        'name' => null,
-                        'format' => $svDx->getString('format'),
-                        'type' => $svDx->getString('type'),
-                        'title' => $svDx->getString('title'),
-                        'icon' => $svDx->getString('icon'),
-                        'action' => $svDx->getString('action'),
-                        'description' => $svDx->getString('description')
-                    )
-                );
-            } else {
+            // if (is_array($layouts[0]) && $templateInputs) {
+                // // TODO: Make it generic
+                // $svDx->set($layouts[0]);
+                // $sinputTplName = $svDx->getString('input');
+                // $lReplaces['html'] = $this->templateObj->renderTemplateItem(
+                    // $sinputTplName,
+                    // $templateInputs,
+                    // array(
+                        // 'id' => null,
+                        // 'name' => null,
+                        // 'format' => $svDx->getString('format'),
+                        // 'type' => $svDx->getString('type'),
+                        // 'title' => $svDx->getString('title'),
+                        // 'icon' => $svDx->getString('icon'),
+                        // 'action' => $svDx->getString('action'),
+                        // 'description' => $svDx->getString('description')
+                    // )
+                // );
+            // } else {
                 $lReplaces['html'] = $this->templateObj->renderTemplateItem(
                     $layouts[0],
                     $templateHeads,
                     $iReplaces
                 );
-            }
+            // }
             $this->templateObj->concatContents(
                 $thead,
                 $this->templateObj->renderTemplateItem(
@@ -223,14 +227,8 @@ class Data2Html_Render
             );
             
             // body
-            $class = '';
             $ngClass = '';
-            switch ($type) {
-                case 'integer':
-                case 'number':
-                case 'currency':
-                    $class .= 'text-right';
-            }
+            $class = Data2Html_Value::getItem($this->typeToHtmlClass, $type, '');
             if ($visual = $vDx->getString('visualClass')) {
                 if (strpos($visual, ':') !== false) {
                     $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
@@ -294,8 +292,8 @@ class Data2Html_Render
             $fieldsDs = array();
         }
         
-        $startItems = $this->templateObj->getTemplateItems('startItems', $templateBranch);
-        $endItems = $this->templateObj->getTemplateItems('endItems', $templateBranch);
+        $startItems = $this->parseFormSet('startItems', $templateBranch);
+        $endItems = $this->parseFormSet('endItems', $templateBranch);
         $fieldsDs = array_merge($startItems, $fieldsDs, $endItems);
         
         if (count($fieldsDs) === 0) {

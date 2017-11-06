@@ -6,7 +6,8 @@ abstract class Data2Html_Model_Set
     protected $debug = false;
     
     protected $fPrefix = '';
-    protected $fCount = 0;
+    protected $fNamePrefix = '';
+    protected $fNameCount = 0;
     
     protected $tableName = null;
     protected $attributes = null;
@@ -90,6 +91,10 @@ abstract class Data2Html_Model_Set
     {
         $this->debug = Data2Html_Config::debug();
         $this->fPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
+        $this->fNamePrefix = $this->fPrefix;
+        if ($setName) {
+            $this->fNamePrefix .= '_' . $setName;
+        }
         if (!$model) {
             $this->culprit = $this->fPrefix . " for setName \"{$setName}\"";
         } elseif ($setName) {
@@ -543,8 +548,8 @@ abstract class Data2Html_Model_Set
             }
         }
         if (is_int($pKey) || array_key_exists($fieldName, $this->setItems)) {
-            $this->fCount++;
-            $pKey = $this->fPrefix . '_' . $this->fCount;
+            $this->fNameCount++;
+            $pKey = $this->fNamePrefix . '_' . $this->fNameCount;
         }
         return array($pKey, $pField);
     }

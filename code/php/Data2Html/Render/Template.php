@@ -295,7 +295,7 @@ class Data2Html_Render_Template
             $pathObj2 = $this->parsePath(
                 $pathObj['dirname'] . $pathObj['filename']
             );
-            if (strpos('.html.js.json', $pathObj2['extension']) !== false) {
+            if ($pathObj2['extension'] && strpos('.html.js.json', $pathObj2['extension']) !== false) {
                 $pathObj2['wrap'] = $pathObj['extension'];
                 $pathObj = $pathObj2;
             }

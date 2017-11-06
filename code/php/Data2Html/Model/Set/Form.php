@@ -8,6 +8,7 @@ class Data2Html_Model_Set_Form extends Data2Html_Model_Set
     );
     
     protected $keywords = array(
+        'layout' => 'string',
         'layouts' => 'array',
         'icon' => 'string',
         'action' => 'string',
