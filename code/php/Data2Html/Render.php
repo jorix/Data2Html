@@ -10,11 +10,6 @@ class Data2Html_Render
         'boolean' =>    array('checkbox', 'checkbox'),
         'date' =>       array('base', 'datetimepicker')
     );
-    private $typeToHtmlClass = array(
-        'integer' => 'text-right',
-        'number' => 'text-right',
-        'float' => 'text-right'
-    );
     private $visualWords = array(
         'display', 'format', 'size', 'title', 'type', 'validations', 'default'
     );
@@ -81,7 +76,6 @@ class Data2Html_Render
                 )
             );
         }
-        
         $klColumns = $lkGrid->getColumnsSet();
         
         $result = $this->renderTable(
@@ -135,29 +129,29 @@ class Data2Html_Render
             return $this->templateObj->emptyRender();
         }
         
-        $startItems = $this->parseFormSet('startItems', $templateTable);
-        $endItems = $this->parseFormSet('endItems', $templateTable);
-        $columns = array_merge($startItems, $columns, $endItems);
+        $heads = array_merge(
+            $this->parseFormSet('startItems', $templateTable, null, 'heads'),
+            $columns,
+            $this->parseFormSet('endItems', $templateTable, null, 'heads')
+        );        
+        $tHeads = $this->templateObj->getTemplateBranch('heads', $templateTable);
         
+        $assingHeads = Data2Html_Value::getItem(
+            $tHeads[1], 
+            "assignTemplate", 
+            function() { return array('base', 'base'); }
+        );
         $templateHeads =
-            $this->templateObj->getTemplateBranch('heads', $templateTable);
+            $this->templateObj->getTemplateBranch('contents', $tHeads);
         $templateHeadsLayouts =
-            $this->templateObj->getTemplateBranch('heads_layouts', $templateTable);
-        $templateCells =
-            $this->templateObj->getTemplateBranch('cells', $templateTable);
-        $templateCellsLayouts =
-            $this->templateObj->getTemplateBranch('cells_layouts', $templateTable);
+            $this->templateObj->getTemplateBranch('layouts', $tHeads);
             
-        // Use optional input template
-        $templateInputs =
-            $this->templateObj->getTemplateBranch('inputs', $templateTable, false);
         
         $thead = array();
-        $tbody = array();
         $renderCount = 0;
         $vDx = new Data2Html_Collection();
-        $svDx = new Data2Html_Collection();
-        foreach ($columns as $k => $v) {
+        $previusLevel = -1;
+        foreach ($heads as $k => $v) {
             $vDx->set($v);
             if ($vDx->getBoolean('virtual')) {
                 continue;
@@ -167,102 +161,90 @@ class Data2Html_Render
                 continue;
             }
             
-            ++$renderCount;
-            $inputTplName = $vDx->getString('input');
+            
             $type = $vDx->getString('type');
+            $level = $vDx->getInteger('level');
+            if (!$level) {
+                ++$renderCount;
+            }
             $iReplaces = array(
-                'id' => null,
+                'id' => $this->createIdRender(),
                 'name' => $k,
+                'title' => $vDx->getString('title'),
+                'description' => $vDx->getString('description'),
                 'format' => $vDx->getString('format'),
                 'type' => $vDx->getString('type'),
-                'title' => $vDx->getString('title'),
                 'icon' => $vDx->getString('icon'),
-                'action' => $vDx->getString('action'),
-                'description' => $vDx->getString('description')
+                'action' => $vDx->getString('action')
             );
-            if ($inputTplName) {
-                $layouts = $vDx->getArray('layouts', array('blank', 'base'));
-            } else {
-                $layouts = $vDx->getArray('layouts', array('base', 'base'));
-            }
-            $isSorted = !!$vDx->getArray('sortBy');
-            if ($isSorted) {
-                $layouts[0] = 'sortable';
-            }
             
-            // head
-            $lReplaces = $iReplaces;
-            // if (is_array($layouts[0]) && $templateInputs) {
-                // // TODO: Make it generic
-                // $svDx->set($layouts[0]);
-                // $sinputTplName = $svDx->getString('input');
-                // $lReplaces['html'] = $this->templateObj->renderTemplateItem(
-                    // $sinputTplName,
-                    // $templateInputs,
-                    // array(
-                        // 'id' => null,
-                        // 'name' => null,
-                        // 'format' => $svDx->getString('format'),
-                        // 'type' => $svDx->getString('type'),
-                        // 'title' => $svDx->getString('title'),
-                        // 'icon' => $svDx->getString('icon'),
-                        // 'action' => $svDx->getString('action'),
-                        // 'description' => $svDx->getString('description')
-                    // )
-                // );
-            // } else {
-                $lReplaces['html'] = $this->templateObj->renderTemplateItem(
-                    $layouts[0],
-                    $templateHeads,
-                    $iReplaces
-                );
-            // }
+            // Heads
+            $hReplaces = $iReplaces;
+            
+            $itemTemplates = $assingHeads($this, $v);
+            $hReplaces['html'] = $this->templateObj->renderTemplateItem(
+                $itemTemplates[1],
+                $templateHeads,
+                $iReplaces
+            );
             $this->templateObj->concatContents(
                 $thead,
                 $this->templateObj->renderTemplateItem(
-                    'base',
+                    $itemTemplates[0],
                     $templateHeadsLayouts,
-                    $lReplaces
-                )
-            );
-            
-            // body
-            $ngClass = '';
-            $class = Data2Html_Value::getItem($this->typeToHtmlClass, $type, '');
-            if ($visual = $vDx->getString('visualClass')) {
-                if (strpos($visual, ':') !== false) {
-                    $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
-                } else {
-                    $class .= ' '.$visual;
-                }
-            }
-            
-            $bReplaces = $iReplaces + array(
-                'class' => $class,
-                'ngClass' => $ngClass
-            );
-            if ($inputTplName && $templateInputs) {
-                $bReplaces['html'] = $this->templateObj->renderTemplateItem(
-                    $inputTplName,
-                    $templateInputs,
-                    $iReplaces
-                );
-            } else {
-                $bReplaces['html'] = $this->templateObj->renderTemplateItem(
-                    $layouts[1],
-                    $templateCells,
-                    $iReplaces
-                );
-            }
-            $this->templateObj->concatContents(
-                $tbody,
-                $this->templateObj->renderTemplateItem(
-                    'base',
-                    $templateCellsLayouts,
-                    $bReplaces
+                    $hReplaces
                 )
             );
         }
+            
+        // Cells
+        $tbody = $this->renderSet($columns, $templateTable, 'cells', 'items');
+        // $cells = array_merge(
+            // $this->parseFormSet('startItems', $templateTable),
+            // $columns,
+            // $this->parseFormSet('endItems', $templateTable)
+        // );    
+        // $tCells = $this->templateObj->getTemplateBranch('cells', $templateTable);
+        // $assingCells = Data2Html_Value::getItem(
+            // $tCells, 
+            // "assignTemplate", 
+            // function() { return array('base', 'base', array()); }
+        // );
+        // $templateCells =
+            // $this->templateObj->getTemplateBranch('contents', $tCells);
+        // $templateCellsLayouts =
+            // $this->templateObj->getTemplateBranch('layouts', $tCells);
+        
+        // $tbody = array();
+        // $previusLevel = -1;
+        // foreach ($cells as $k => $v) {
+            // list($tLayout, $tContent, $cReplaces) = $assingCells($this, $v);
+            // $cReplaces += array(
+                // 'id' => $this->createIdRender(),
+                // 'name' => $k,
+                // 'title' => $vDx->getString('title'),
+                // 'description' => $vDx->getString('description'),
+                // 'format' => $vDx->getString('format'),
+                // 'type' => $vDx->getString('type'),
+                // 'icon' => $vDx->getString('icon'),
+                // 'action' => $vDx->getString('action')
+            // );
+            // $cReplaces['html'] = $this->templateObj->renderTemplateItem(
+                // $tLayout,
+                // $templateCells,
+                // $cReplaces
+            // );
+            // $this->templateObj->concatContents(
+                // $tbody,
+                // $this->templateObj->renderTemplateItem(
+                    // $tContent,
+                    // $templateCellsLayouts,
+                    // $cReplaces
+                // )
+            // );
+        // }
+        
+        // End
         $replaces = array_merge($replaces, array(
             'thead' => $thead,
             'tbody' => $tbody,
@@ -270,6 +252,68 @@ class Data2Html_Render
             'visual' => $this->getVisualItemsJson($columns)
         ));
         return $this->templateObj->renderTemplate($templateTable, $replaces);
+        $previusLevel = $level;
+    }
+
+    protected function renderSet($setItems, $templateBranch, $templateName, $subItemsKey) {
+        $finalItems = array_merge(
+            $this->parseFormSet('startItems', $templateBranch, $subItemsKey),
+            $setItems,
+            $this->parseFormSet('endItems', $templateBranch, $subItemsKey)
+        );    
+        $template = $this->templateObj->getTemplateBranch($templateName, $templateBranch);
+        $assingCells = Data2Html_Value::getItem(
+            $template, 
+            "assignTemplate", 
+            function() { return array('base', 'base', array()); }
+        );
+        $templContents =
+            $this->templateObj->getTemplateBranch('contents', $template);
+        $templLayouts =
+            $this->templateObj->getTemplateBranch('layouts', $template);
+        
+        $body = array();
+        $previusLevel = -1;
+        $vDx = new Data2Html_Collection();
+        foreach ($finalItems as $k => $v) {
+            $vDx->set($v);
+            if ($vDx->getBoolean('virtual')) {
+                continue;
+            }
+            $display = $vDx->getString('display', 'html');
+            if ($display === 'none') {
+                continue;
+            }
+            list(
+                $layoutTemplName,
+                $contentTemplName,
+                $replaces
+            ) = $assingCells($this, $v);
+            $replaces += array(
+                'id' => $this->createIdRender(),
+                'name' => $k,
+                'title' => $vDx->getString('title'),
+                'description' => $vDx->getString('description'),
+                'format' => $vDx->getString('format'),
+                'type' => $vDx->getString('type'),
+                'icon' => $vDx->getString('icon'),
+                'action' => $vDx->getString('action')
+            );
+            $replaces['html'] = $this->templateObj->renderTemplateItem(
+                $layoutTemplName,
+                $templContents,
+                $replaces
+            );
+            $this->templateObj->concatContents(
+                $body,
+                $this->templateObj->renderTemplateItem(
+                    $contentTemplName,
+                    $templLayouts,
+                    $replaces
+                )
+            );
+        }
+        return $body;
     }
 
     protected function parseFormSet($setName, $templateBranch){
@@ -341,9 +385,9 @@ class Data2Html_Render
                 'id' => $this->createIdRender(),
                 'name' => $k,
                 'title' => $vDx->getString('title'),
+                'description' => $vDx->getString('description'),
                 'icon' => $vDx->getString('icon'),
                 'action' => $vDx->getString('action'),
-                'description' => $vDx->getString('description'),
                 'url' => $url,
                 'validations' => implode(' ', $validations)
             );

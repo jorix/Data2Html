@@ -11,8 +11,14 @@ class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
         'teplateItems' => 'array'
     );
     
-    public function __construct($model, $setName, $defs, $baseSet = null) {
-        parent::__construct($model, $setName, $defs, $baseSet);
+    public function __construct(
+        $model,
+        $setName,
+        $defs,
+        $baseSet = null,
+        $subItemsKey = 'items'
+    ) {
+        parent::__construct($model, $setName, $defs, $baseSet, $subItemsKey);
         
         if (!$this->setItems) {
         // If no items then set items as baseIntems

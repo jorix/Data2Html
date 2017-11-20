@@ -122,6 +122,9 @@ class Data2Html_Utils
 
             return "'".str_replace($jsonReplaces[0], $jsonReplaces[1], $a)."'";
         }
+        if (is_callable($a)) {
+            return 'function() { ... }';
+        }
         $isList = true;
         for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
             if (key($a) !== $i) {

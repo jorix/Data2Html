@@ -1,0 +1,69 @@
+<?php 
+$return = array(
+    "table" => array(
+        "template" => "paged.html.php",
+        "startItems" => "crud.buttons.php",
+        "heads" => array(
+            "assignTemplate" => function($render, $item) {
+                $itemDx = new Data2Html_Collection($item);
+                $layout = $itemDx->getInteger('level') ? 'base_1' : 'base';
+                $content = 'base';
+                if ($itemDx->getItem('sortBy')) {
+                    $content = 'sortable';
+                } elseif ($itemDx->getItem('input') === 'button') {
+                    $content = 'button';
+                } elseif ($itemDx->getItem('input') === 'button') {
+                    $content = 'blank';
+                };
+                return array($layout, $content, array());
+            },
+            "layouts" => array(
+                "folderTemplates" => "heads_layouts/"
+            ),
+            "contents" => array(
+                "folderTemplates" => array("heads/", "../forms/inputs/")
+            )
+        ),
+        "cells" => array(
+            "assignTemplate" => function($render, $item) {
+                $itemDx = new Data2Html_Collection($item);
+                $layout = $itemDx->getInteger('level') ? 'base_1' : 'base';
+                $render->dump($item);
+                $content = 'base';
+                if ($itemDx->getString('input') === 'button') {
+                    $content = 'button';
+                };
+                
+                // Classes
+                $typeToHtmlClass = array(
+                    'integer' => 'text-right',
+                    'number' => 'text-right',
+                    'float' => 'text-right'
+                );
+                $type = $itemDx->getString('type', '');
+                $ngClass = '';
+                $class = Data2Html_Value::getItem($typeToHtmlClass, $type, '');
+                if ($visual = $vDx->getString('visualClass')) {
+                    if (strpos($visual, ':') !== false) {
+                        $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
+                    } else {
+                        $class .= ' '.$visual;
+                    }
+                }
+                $replaces = array(
+                    'class' => $class,
+                    'ngClass' => $ngClass
+                );
+                
+                // Return
+                return array($layout, $content, $replaces);
+            },
+            "layouts" => array(
+                "folderTemplates" => "cells_layouts/"
+            ),
+            "contents" => array(
+                "folderTemplates" => array("cells/", "../forms/inputs/")
+            )
+        )
+    )
+);

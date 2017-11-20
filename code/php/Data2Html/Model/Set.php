@@ -2,35 +2,39 @@
 //abstract 
 abstract class Data2Html_Model_Set
 {
-    protected $culprit = '';
-    protected $debug = false;
-    
-    protected $fPrefix = '';
-    protected $fNamePrefix = '';
-    protected $fNameCount = 0;
-    
-    protected $tableName = null;
-    protected $attributes = null;
-    protected $baseSet = null;
-    protected $setItems = null;
-    protected $keys = null;
-    
-    // Link
-    protected $link = null;
-    protected $linkName = '';
-    
-    // To parse
-    protected $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
-        // fields as: link_name[field_name]
-    protected $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
-        // value as: $${base_name} i $${link_name[field_name]}
     protected $attributeNames = array();
     protected $wordsAlias = array();
     protected $keywords = array();
-    protected $baseAttributeNames = array(
+
+    protected $setItems = null;
+
+    // Private
+    private $culprit = '';
+    private $debug = false;
+    
+    private $fPrefix = '';
+    private $fNamePrefix = '';
+    private $fNameCount = 0;
+    
+    private $tableName = null;
+    private $attributes = null;
+    private $baseSet = null;
+    private $subItemsKey = '';
+    private $keys = null;
+    
+    // Link
+    private $link = null;
+    private $linkName = '';
+    
+    // To parse
+    private $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
+        // fields as: link_name[field_name]
+    private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
+        // value as: $${base_name} i $${link_name[field_name]}
+    private $baseAttributeNames = array(
         'title' => 'attribute'
     );
-    protected $baseWordsAlias = array(
+    private $baseWordsAlias = array(
         'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
         'boolean' =>    array('type' => 'boolean'),
         'date' =>       array('type' => 'date'),
@@ -47,7 +51,8 @@ abstract class Data2Html_Model_Set
         'text' =>       array('type' => 'text'),
         'url' =>        array('type' => 'string', 'validations' => 'url')
     );
-    protected $baseKeywords = array(
+    private $subItemsKeys = array('items', 'heads');
+    private $baseKeywords = array(
         'base' => 'string',
         'db' => 'string|null',
         'default' => null,
@@ -59,7 +64,6 @@ abstract class Data2Html_Model_Set
         'key' => array(
             'options' => array('autoKey', 'key')
         ),
-        'items' => 'array',
         'level' => 'integer',
         'link' => 'string',
         'linkedTo' => 'array',
@@ -79,7 +83,7 @@ abstract class Data2Html_Model_Set
         'visualClass' => 'string'
     );
     
-    protected $sortByStartToOrder = array(
+    private $sortByStartToOrder = array(
         '<' => 1,
         '>' => -1,
         '+' => 1,
@@ -87,8 +91,13 @@ abstract class Data2Html_Model_Set
         '!' => -1,
     );
     
-    public function __construct($model, $setName, $defs, $baseSet = null)
-    {
+    public function __construct(
+        $model,
+        $setName,
+        $defs,
+        $baseSet = null,
+        $subItemsKey = 'items'
+    ) {
         $this->debug = Data2Html_Config::debug();
         $this->fPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
         $this->fNamePrefix = $this->fPrefix;
@@ -101,8 +110,7 @@ abstract class Data2Html_Model_Set
             $this->culprit = $this->fPrefix . 
                 " for \"{$model->getModelName()}->{$setName}\"";
         } else {
-            $this->culprit = 
-                $this->fPrefix . " for \"{$model->getModelName()}\"";
+            $this->culprit = $this->fPrefix . " for \"{$model->getModelName()}\"";
         }
         
         $this->attributeNames = array_replace(
@@ -116,6 +124,13 @@ abstract class Data2Html_Model_Set
             $this->baseKeywords, $this->keywords
         );
         $this->baseSet = $baseSet;
+        if ($subItemsKey && !in_array($subItemsKey, $this->subItemsKeys)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: Constructor 'subItemsKey' argument = \"{$subItemsKey}\" is not supported.",
+                $defs
+            );
+        }
+        $this->subItemsKey = $subItemsKey;
         
         // Read defs
         $this->attributes = array();
@@ -250,7 +265,7 @@ abstract class Data2Html_Model_Set
     }
     
     // -----------------------
-    // Internal
+    // Protected
     // -----------------------
     protected function parseItems($items)
     {
@@ -321,6 +336,9 @@ abstract class Data2Html_Model_Set
         $this->keys = $keys;
     }
 
+    // -----------------------
+    // Internal
+    // -----------------------
     private function parseSetItems($level, $prefix, $items)
     {
         foreach ($items as $k => $v) {
@@ -333,12 +351,16 @@ abstract class Data2Html_Model_Set
                     $this->setItems[$pName] = $pField; // Add the ITEM!
                 }
             }
-            
-            if (is_array($v) && array_key_exists('items', $v)) {
+            // Parse sub-items
+            if (
+                is_array($v) &&
+                $this->subItemsKey &&
+                array_key_exists($this->subItemsKey, $v)
+            ) {
                 $this->parseSetItems(
                     $level + 1,
                     Data2Html_Value::getItem($v, 'prefix', ''),
-                    $v['items']
+                    $v[$this->subItemsKey]
                 );
             }
         }
@@ -479,7 +501,6 @@ abstract class Data2Html_Model_Set
         // Create parsed field
         $pField = array();
         foreach ($field as $kk => $vv) {
-            if ($kk === 'items') { continue; }
             if (is_int($kk)) {
                 if (array_key_exists($vv, $alias)) {
                     $this->applyAlias($fieldName, $pField, $vv, $alias[$vv]);
@@ -489,6 +510,7 @@ abstract class Data2Html_Model_Set
                     );
                 }
             } else {
+                if (in_array($kk, $this->subItemsKeys)) { continue; }
                 if (array_key_exists($kk, $alias) && !array_key_exists($kk, $words)) {
                     $this->applyAlias($fieldName,$pField, $vv, $alias[$kk]);
                 } else {

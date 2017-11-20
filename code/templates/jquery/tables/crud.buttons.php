@@ -2,18 +2,18 @@
 $return = array(
     'fields' =>array(
         array(
-            'layouts' => array('blank', 'base'),
-            'input' => 'button',
-            'icon' => 'plus',
-            'title' => '$Add',
-            'description' => null,
-            'action' => 'create'
-        ),
-        array(
-            'layouts' => array('blank', 'base'),
-            'items' => array(            
+            'heads' => array(
                 array(
-                    'layouts' => array('blank', 'base'),
+                    'layout' => 'blank',
+                    'input' => 'button',
+                    'icon' => 'plus',
+                    'title' => '$Add',
+                    'description' => null,
+                    'action' => 'create'
+                )
+            ),
+            'items' => array(
+                array(
                     'input' => 'button',
                     'icon' => 'edit',
                     'title' => '$Edit',
@@ -21,7 +21,6 @@ $return = array(
                     'action' => 'edit'
                 ),
                 array(
-                    'layouts' => array('blank', 'base'),
                     'input' => 'button',
                     'icon' => 'duplicate',
                     'title' => '$Copy',
@@ -29,7 +28,6 @@ $return = array(
                     'action' => 'copy'
                 ),
                 array(
-                    'layouts' => array('blank', 'base'),
                     'input' => 'button',
                     'icon' => 'remove',
                     'title' => '$Delete',

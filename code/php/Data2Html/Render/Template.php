@@ -51,6 +51,76 @@ class Data2Html_Render_Template
         );
     }
     
+    protected function loadTemplateTree($folder, $tree)
+    {
+        if (!is_array($tree)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: Tree must be a array!",
+                $tree
+            );
+        }
+        if (array_key_exists('folder', $tree)) {
+            $folder = $this->setFolderPath($folder . $tree['folder']);
+        }
+        $response = array();
+        foreach($tree as $k => $v) {
+            switch ($k) {
+                // Declarative words
+                case 'folder':
+                    break;
+                case 'startItems':
+                case 'endItems':
+                    $response[$k] = $this->loadArrayFile($folder . $v);
+                    break;
+                case 'template':
+                    $response[$k] = $this->loadTemplateFile($folder . $v);
+                    break;
+                case 'templates':
+                    $items = array();
+                    foreach($v as $kk => $vv) {
+                        $items[$kk] = $this->loadTemplateFile($folder . $vv);
+                    }
+                    $response[$k] = $items;
+                    break;
+                // Mount the tree
+                case 'include':
+                    $response += $this->loadTemplateTreeFile($folder . $v);
+                    break;
+                case 'includes':
+                    foreach($v as $vv) {
+                         $response += $this->loadTemplateTreeFile($folder . $vv);
+                    }
+                    break;
+                case 'includeFolders':
+                    $response += $this->loadTemplateTreeFolder($folder, $v);
+                    break;
+                case 'folderTemplates':
+                    $response += $this->loadFolderTemplates($folder, $v);
+                    break;
+                default:
+                    if (is_callable($v)) {
+                        $response[$k] = $v;
+                    } elseif (is_array($v)) {
+                        $response[$k] = $this->loadTemplateTree($folder, $v);
+                    } else {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Tree of \"{$k}\"must be a array or a function!",
+                            $tree
+                        );
+                    }
+                    break;
+            }
+        }
+        return $response;
+    }
+    
+    protected function loadArrayFile($fileName)
+    {
+        list($contentKey, $pathObj) = $this->loadContent($fileName);
+        return $this->getContent($contentKey);
+    }
+
+    // TODO: Remove it!!
     protected function loadTemplateTreeFolder($folderName, $items)
     {
         $response = array();
@@ -76,83 +146,36 @@ class Data2Html_Render_Template
         return $response;
     }
     
-    protected function loadTemplateTree($folder, $tree)
+    protected function loadFolderTemplates($folderName, $items)
     {
-        if (!is_array($tree)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit}: Tree must be a array!",
-                $tree
-            );
-        }
-        if (array_key_exists('folder', $tree)) {
-            $folder = $this->setFolderPath($folder . $tree['folder']);
-        }
-        $response = array();
-        foreach($tree as $k => $v) {
-            switch ($k) {
-                // Declarative words
-                case 'folder':
-                case '_description': // Ignore all: developer descriptions
-                    break;
-                case 'prefix':
-                    $response[$k] = $v;
-                    break; 
-                case 'startItems':
-                case 'endItems':
-                    $response[$k] = $this->loadArrayFile($folder . $v);
-                    break;
-                case 'template':
-                    $response[$k] = $this->loadTemplateFile($folder . $v);
-                    $response[$k]['d2hToken_template'] = true;
-                    break;
-                case 'templates':
-                    $items = array();
-                    foreach($v as $kk => $vv) {
-                        $items[$kk] = $this->loadTemplateFile($folder . $vv);
-                        $items[$kk]['d2hToken_template'] = true;
+        $templates = array();
+        foreach ((array)$items as $v) {
+            foreach (new DirectoryIterator($folderName . $v) as $fInfo) {
+                if ($fInfo->isFile()) {
+                    $fileName = $fInfo->getFilename();
+                    $pathObj = $this->parsePath($fileName);
+                    if ($pathObj['extension'] === '.html') {
+                        $name = $pathObj['filename'];
+                        if (!array_key_exists($name, $templates)) {
+                            $templates[$name] = $this->loadTemplateFile(
+                                $folderName . $v . $fileName
+                            );
+                        }
                     }
-                    $response[$k] = $items;
-                    break;
-                // Mount the tree
-                case 'include':
-                    $response += $this->loadTemplateTreeFile($folder . $v);
-                    break;
-                case 'includeFolder':
-                case 'includeFolders':
-                    $response += $this->loadTemplateTreeFolder($folder, $v);
-                    break;
-                case 'includes':
-                    foreach($v as $vv) {
-                         $response += $this->loadTemplateTreeFile($folder . $vv);
-                    }
-                    break;
-                default:
-                    if (!is_array($v)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Tree of \"{$k}\"must be a array!",
-                            $tree
-                        );
-                    }
-                    $response[$k] = $this->loadTemplateTree($folder, $v);
-                    break;
+                }
             }
         }
-        return $response;
-    }
-    
-    protected function loadArrayFile($fileName)
-    {
-        list($contentKey, $pathObj) = $this->loadContent($fileName);
-        return $this->getContent($contentKey);
+        return array('templates' => $templates);
     }
     
     protected function loadTemplateFile($fullFileName)
     {
         $folder = $this->setFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->loadContent($fullFileName);
+        $response = array();
         switch ($pathObj['extension']) {
             case '.html':
-                $response = array('html' => $contentKey);
+                $response['html'] = $contentKey;
                 $jsFileName = $pathObj['dirname'] . $pathObj['filename'] . '.js';
                 if (!file_exists($jsFileName)) {
                     if ($pathObj['wrap'] === '') { // js not found
@@ -169,12 +192,17 @@ class Data2Html_Render_Template
                         $this->loadContent($jsFileName);
                     $response['js'] = $jsContentKey;
                 }
-                return $response;
+                break;
             case '.js':
-                return array('js' => $contentKey);
+                $response['js'] = $contentKey;
+                break;
             default:
-                throw new Exception("{$this->culprit}: Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported.");
+                throw new Exception(
+                    "{$this->culprit}: Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported."
+                );
         }
+        $response['d2hToken_template'] = true;
+        return $response;
     }
 
     protected function setFolderPath($folder)

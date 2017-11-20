@@ -14,13 +14,13 @@
             $payerNames = Data2Html_Handler::parseRequest($_REQUEST);
             $model = Data2Html_Handler::createModel($payerNames['model']);
             if (array_key_exists('form', $payerNames)) {
-                $lkObj = $model->getForm($payerNames['form']);
+                $obj = $model->getForm($payerNames['form']);
             } else {
-                $lkObj = $model->getGrid($payerNames['grid']);
+                $obj = $model->getGrid($payerNames['grid']);
             }
             
-            //$lkObj->dump();
-            $lkObj->createLink()->dump();
+            $obj->dump();
+            //$obj->createLink()->dump();
             
         } catch(Exception $e) {
             echo Data2Html_Exception::toHtml($e, true);

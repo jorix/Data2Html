@@ -64,6 +64,15 @@ class Data2Html_Collection
                 $this->values
             );
         }
+        if (!is_string($itemKey) && !is_numeric($itemKey)) {
+            throw new Data2Html_Exception(
+                "Data2Html_Collection: 'itemKey' should be either a string or an integer.",
+                array(
+                    'itemKey' => $itemKey,
+                    '->values' => $this->values
+                )
+            );
+        }
         if (!array_key_exists($itemKey, $this->values)) {
             $this->throwNotExist($itemKey, $default);
             $val = $default;
