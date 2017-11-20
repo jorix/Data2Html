@@ -129,120 +129,10 @@ class Data2Html_Render
             return $this->templateObj->emptyRender();
         }
         
-        $heads = array_merge(
-            $this->parseFormSet('startItems', $templateTable, null, 'heads'),
-            $columns,
-            $this->parseFormSet('endItems', $templateTable, null, 'heads')
-        );        
-        $tHeads = $this->templateObj->getTemplateBranch('heads', $templateTable);
-        
-        $assingHeads = Data2Html_Value::getItem(
-            $tHeads[1], 
-            "assignTemplate", 
-            function() { return array('base', 'base'); }
-        );
-        $templateHeads =
-            $this->templateObj->getTemplateBranch('contents', $tHeads);
-        $templateHeadsLayouts =
-            $this->templateObj->getTemplateBranch('layouts', $tHeads);
-            
-        
-        $thead = array();
-        $renderCount = 0;
-        $vDx = new Data2Html_Collection();
-        $previusLevel = -1;
-        foreach ($heads as $k => $v) {
-            $vDx->set($v);
-            if ($vDx->getBoolean('virtual')) {
-                continue;
-            }
-            $display = $vDx->getString('display', 'html');
-            if ($display === 'none') {
-                continue;
-            }
-            
-            
-            $type = $vDx->getString('type');
-            $level = $vDx->getInteger('level');
-            if (!$level) {
-                ++$renderCount;
-            }
-            $iReplaces = array(
-                'id' => $this->createIdRender(),
-                'name' => $k,
-                'title' => $vDx->getString('title'),
-                'description' => $vDx->getString('description'),
-                'format' => $vDx->getString('format'),
-                'type' => $vDx->getString('type'),
-                'icon' => $vDx->getString('icon'),
-                'action' => $vDx->getString('action')
-            );
-            
-            // Heads
-            $hReplaces = $iReplaces;
-            
-            $itemTemplates = $assingHeads($this, $v);
-            $hReplaces['html'] = $this->templateObj->renderTemplateItem(
-                $itemTemplates[1],
-                $templateHeads,
-                $iReplaces
-            );
-            $this->templateObj->concatContents(
-                $thead,
-                $this->templateObj->renderTemplateItem(
-                    $itemTemplates[0],
-                    $templateHeadsLayouts,
-                    $hReplaces
-                )
-            );
-        }
-            
-        // Cells
-        $tbody = $this->renderSet($columns, $templateTable, 'cells', 'items');
-        // $cells = array_merge(
-            // $this->parseFormSet('startItems', $templateTable),
-            // $columns,
-            // $this->parseFormSet('endItems', $templateTable)
-        // );    
-        // $tCells = $this->templateObj->getTemplateBranch('cells', $templateTable);
-        // $assingCells = Data2Html_Value::getItem(
-            // $tCells, 
-            // "assignTemplate", 
-            // function() { return array('base', 'base', array()); }
-        // );
-        // $templateCells =
-            // $this->templateObj->getTemplateBranch('contents', $tCells);
-        // $templateCellsLayouts =
-            // $this->templateObj->getTemplateBranch('layouts', $tCells);
-        
-        // $tbody = array();
-        // $previusLevel = -1;
-        // foreach ($cells as $k => $v) {
-            // list($tLayout, $tContent, $cReplaces) = $assingCells($this, $v);
-            // $cReplaces += array(
-                // 'id' => $this->createIdRender(),
-                // 'name' => $k,
-                // 'title' => $vDx->getString('title'),
-                // 'description' => $vDx->getString('description'),
-                // 'format' => $vDx->getString('format'),
-                // 'type' => $vDx->getString('type'),
-                // 'icon' => $vDx->getString('icon'),
-                // 'action' => $vDx->getString('action')
-            // );
-            // $cReplaces['html'] = $this->templateObj->renderTemplateItem(
-                // $tLayout,
-                // $templateCells,
-                // $cReplaces
-            // );
-            // $this->templateObj->concatContents(
-                // $tbody,
-                // $this->templateObj->renderTemplateItem(
-                    // $tContent,
-                    // $templateCellsLayouts,
-                    // $cReplaces
-                // )
-            // );
-        // }
+        list($thead, $renderCount) =
+            $this->renderSet($columns, $templateTable, 'heads', 'heads');
+        list($tbody) =
+            $this->renderSet($columns, $templateTable, 'cells', 'items');
         
         // End
         $replaces = array_merge($replaces, array(
@@ -275,6 +165,7 @@ class Data2Html_Render
         $body = array();
         $previusLevel = -1;
         $vDx = new Data2Html_Collection();
+        $renderCount = 0;
         foreach ($finalItems as $k => $v) {
             $vDx->set($v);
             if ($vDx->getBoolean('virtual')) {
@@ -289,6 +180,10 @@ class Data2Html_Render
                 $contentTemplName,
                 $replaces
             ) = $assingCells($this, $v);
+            $level = $vDx->getInteger('level');
+            if (!$level) {
+                ++$renderCount;
+            }
             $replaces += array(
                 'id' => $this->createIdRender(),
                 'name' => $k,
@@ -313,7 +208,7 @@ class Data2Html_Render
                 )
             );
         }
-        return $body;
+        return array($body, $renderCount);
     }
 
     protected function parseFormSet($setName, $templateBranch){
