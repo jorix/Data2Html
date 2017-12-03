@@ -51,7 +51,7 @@ abstract class Data2Html_Model_Set
         'text' =>       array('type' => 'text'),
         'url' =>        array('type' => 'string', 'validations' => 'url')
     );
-    private $subItemsKeys = array('items', 'heads');
+    private $subItemsKeys = array('items', 'headItems');
     private $baseKeywords = array(
         'base' => 'string',
         'db' => 'string|null',

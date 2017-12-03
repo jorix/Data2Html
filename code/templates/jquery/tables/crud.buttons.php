@@ -2,7 +2,7 @@
 $return = array(
     'fields' =>array(
         array(
-            'heads' => array(
+            'headItems' => array(
                 array(
                     'layout' => 'blank',
                     'input' => 'button',

@@ -129,10 +129,22 @@ class Data2Html_Render
             return $this->templateObj->emptyRender();
         }
         
-        list($thead, $renderCount) =
-            $this->renderSet($columns, $templateTable, 'heads', 'heads');
-        list($tbody) =
-            $this->renderSet($columns, $templateTable, 'cells', 'items');
+        list($thead, $renderCount) = $this->renderSet(
+            array_merge(
+                $this->parseFormSet('startItems', $templateTable, 'headItems'),
+                $columns,
+                $this->parseFormSet('endItems', $templateTable, 'headItems')
+            ),
+            $this->templateObj->getTemplateBranch('heads', $templateTable)
+        );
+        list($tbody) = $this->renderSet(
+            array_merge(
+                $this->parseFormSet('startItems', $templateTable, 'items'),
+                $columns,
+                $this->parseFormSet('endItems', $templateTable, 'items')
+            ),
+            $this->templateObj->getTemplateBranch('cells', $templateTable)
+        );
         
         // End
         $replaces = array_merge($replaces, array(
@@ -145,13 +157,8 @@ class Data2Html_Render
         $previusLevel = $level;
     }
 
-    protected function renderSet($setItems, $templateBranch, $templateName, $subItemsKey) {
-        $finalItems = array_merge(
-            $this->parseFormSet('startItems', $templateBranch, $subItemsKey),
-            $setItems,
-            $this->parseFormSet('endItems', $templateBranch, $subItemsKey)
-        );    
-        $template = $this->templateObj->getTemplateBranch($templateName, $templateBranch);
+    protected function renderSet($items, $template)
+    {
         $assingCells = Data2Html_Value::getItem(
             $template, 
             "assignTemplate", 
@@ -162,53 +169,98 @@ class Data2Html_Render
         $templLayouts =
             $this->templateObj->getTemplateBranch('layouts', $template);
         
-        $body = array();
-        $previusLevel = -1;
         $vDx = new Data2Html_Collection();
-        $renderCount = 0;
-        foreach ($finalItems as $k => $v) {
-            $vDx->set($v);
-            if ($vDx->getBoolean('virtual')) {
-                continue;
+        
+        $renderSetLevel = function($currentLevel) 
+        use(&$renderSetLevel, &$items, &$assingCells, &$vDx, $templContents, $templLayouts)
+        {
+            $body = array();
+
+            // Declare end previous item function
+            $endPreviousItem = function($itemBody, $levelBody, $layoutTemplName, $replaces) 
+            use(&$body, $templLayouts) {
+                if (!$itemBody) {
+                    return;
+                }
+                if ($levelBody) {
+                    $this->templateObj->concatContents($itemBody, $levelBody);
+                }
+                $replaces['html'] = $itemBody;
+                $this->templateObj->concatContents(
+                    $body,
+                    $this->templateObj->renderTemplateItem(
+                        $layoutTemplName,
+                        $templLayouts,
+                        $replaces
+                    )
+                );
+            };
+            
+            // Current level
+            $itemBody = null;
+            $levelBody = null;
+            $layoutTemplName = null;
+            $replaces = null;
+            $renderCount = 0;
+            $v = current($items); 
+            while ($v !== false) {
+                $vDx->set($v);
+                $level = $vDx->getInteger('level');
+                if ($level < $currentLevel) {
+                    break;
+                }
+                // Finalize previous item
+                if ($level === $currentLevel) {
+                    $endPreviousItem($itemBody, $levelBody, $layoutTemplName, $replaces);
+                }
+                
+                // Start current item
+                $itemBody = null;
+                $levelBody = null;
+                $layoutTemplName = null;
+                $replaces = null;
+                if ($level > $currentLevel) {
+                    list($levelBody) = $renderSetLevel($level);
+                } else {
+                    if ($vDx->getBoolean('virtual')) {
+                        $v = next($items);
+                        continue;
+                    }
+                    $display = $vDx->getString('display', 'html');
+                    if ($display === 'none') {
+                        $v = next($items);
+                        continue;
+                    }
+                    list(
+                        $layoutTemplName,
+                        $contentTemplName,
+                        $replaces
+                    ) = $assingCells($this, $v);
+                    $replaces += array(
+                        'id' => $this->createIdRender(),
+                        'name' => key($items),
+                        'title' => $vDx->getString('title'),
+                        'description' => $vDx->getString('description'),
+                        'format' => $vDx->getString('format'),
+                        'type' => $vDx->getString('type'),
+                        'icon' => $vDx->getString('icon'),
+                        'action' => $vDx->getString('action')
+                    );
+                    $itemBody = $this->templateObj->renderTemplateItem(
+                        $contentTemplName,
+                        $templContents,
+                        $replaces
+                    );
+                    ++$renderCount;
+                }
+                $v = next($items);
             }
-            $display = $vDx->getString('display', 'html');
-            if ($display === 'none') {
-                continue;
-            }
-            list(
-                $layoutTemplName,
-                $contentTemplName,
-                $replaces
-            ) = $assingCells($this, $v);
-            $level = $vDx->getInteger('level');
-            if (!$level) {
-                ++$renderCount;
-            }
-            $replaces += array(
-                'id' => $this->createIdRender(),
-                'name' => $k,
-                'title' => $vDx->getString('title'),
-                'description' => $vDx->getString('description'),
-                'format' => $vDx->getString('format'),
-                'type' => $vDx->getString('type'),
-                'icon' => $vDx->getString('icon'),
-                'action' => $vDx->getString('action')
-            );
-            $replaces['html'] = $this->templateObj->renderTemplateItem(
-                $layoutTemplName,
-                $templContents,
-                $replaces
-            );
-            $this->templateObj->concatContents(
-                $body,
-                $this->templateObj->renderTemplateItem(
-                    $contentTemplName,
-                    $templLayouts,
-                    $replaces
-                )
-            );
-        }
-        return array($body, $renderCount);
+            // Finalize previous item
+            $endPreviousItem($itemBody, $levelBody, $layoutTemplName, $replaces);
+            return array($body, $renderCount);
+        };
+        reset($items);
+        return $renderSetLevel(0);
     }
 
     protected function parseFormSet($setName, $templateBranch){
