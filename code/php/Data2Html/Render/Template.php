@@ -338,6 +338,10 @@ class Data2Html_Render_Template
     { 
         return array(array(), $this->templateTree);
     }
+    public function getEmptyBody()
+    {
+        return array('html' => '');
+    }
     public function getTemplateItems($keys, $templateBranch)
     {
         return Data2Html_Value::getItem($templateBranch[1], $keys, array());
@@ -408,7 +412,7 @@ class Data2Html_Render_Template
         return $this->renderMethods($templateLeaf, $replaces);
     }
     
-    protected function renderMethods($templateLeaf, $replaces, $all = true)
+    protected function renderMethods($templateLeaf, $replaces)
     {
         if (array_key_exists('html', $templateLeaf[1])) {
             $html = $this->getContent($templateLeaf[1]['html']);
@@ -435,7 +439,7 @@ class Data2Html_Render_Template
         }
         $result = array();
         if ($html) {
-            $result['html'] = $this->renderHtml($html, $finalReplaces, false);
+            $result['html'] = $this->renderHtml($html, $finalReplaces);
         }
         if (array_key_exists('js', $templateLeaf[1])) {
             $js = $this->renderJs(
@@ -449,39 +453,14 @@ class Data2Html_Render_Template
         }
         $result['d2hToken_content'] = true;
         return $result;
-        //==================================
-        
-        $result = array();
-        foreach ($templateLeaf[1] as $k => $v) {
-            switch ($k) {
-                case 'd2hToken_template':
-                    break;
-                case 'html':
-                    $result[$k] =
-                        $this->renderHtml($this->getContent($v), $replaces, $all);
-                    break;
-                case 'js':
-                    $result[$k] =
-                        $this->renderJs($this->getContent($v), $replaces, $all);
-                    break;
-                default:
-                    throw new Exception(
-                        "{$this->culprit}: Method {$k} on key \"" . 
-                        implode('=>', $templateLeaf[0]) .
-                        "\" is not supported."
-                    );
-            }
-        }
-        $result['d2hToken_content'] = true;
-        return $result;
     }
     
-    private function renderHtml($html, $replaces, $all = true)
+    private function renderHtml($html, $replaces)
     {
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
             '/\w[\w-]*\s*=\s*\"\$\$\{(\w+)(\|*\w*)\}\"/',
             $replaces,
-            function($matchItem, $value) {
+            function($matchItem, $value) { // $encodeFn
                 if ($value) {
                     $posEq = strpos($matchItem, '=');
                     return 
@@ -496,16 +475,14 @@ class Data2Html_Render_Template
                     return '';
                 }
             },
-            $html,
-            $all
+            $html
         );
         $html = $this->replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/', $replaces,
-            function($matchItem, $value) {
+            function($matchItem, $value) { // $encodeFn
                 return $value;
             },
-            $html,
-            $all
+            $html
         );
         $html = preg_replace("/\r\n\s*\r\n/", "\r\n", $html); // Windows CrLf
         $html = preg_replace("/\n\s*\n/", "\n", $html); // linux Lf
@@ -513,11 +490,12 @@ class Data2Html_Render_Template
         return $html;
     }
 
-    private function renderJs($js, $replaces, $all = true)
+    private function renderJs($js, $replaces)
     {
         $js = $this->replaceContent( // start string '$${template_item}...
-            '/["\']\$\$\{([\w.:]+)\}/', $replaces,
-            function($matchItem, $value) {
+            '/["\']\$\$\{([\w.:]+)\}/',
+            $replaces,
+            function($matchItem, $value) { // $encodeFn
                 if (!is_array($value)) {
                     $v = Data2Html_Value::toJson($value);
                     if (is_string($value)) {
@@ -531,12 +509,12 @@ class Data2Html_Render_Template
                         'd2h_error: this value is an array()!';
                 }
             },
-            $js,
-            $all
+            $js
         );
         $js = $this->replaceContent( // others ...
-            '/\$\$\{([\w.:]+)\}/', $replaces,
-            function($matchItem, $value) {
+            '/\$\$\{([\w.:]+)\}/',
+            $replaces,
+            function($matchItem, $value) { // $encodeFn
                 if (is_array($value) && count($value) === 0) {
                     // array as js object
                     return '{}';
@@ -544,8 +522,7 @@ class Data2Html_Render_Template
                     return Data2Html_Value::toJson($value);
                 }
             },
-            $js,
-            $all
+            $js
         );
         $js = preg_replace("/\r\n\s*\r\n/", "\r\n", $js); // Windows CrLf
         $js = preg_replace("/\n\s*\n/", "\n", $js); // linux Lf
@@ -553,25 +530,22 @@ class Data2Html_Render_Template
         return $js;
     }
     
-    private function replaceContent($pattern, $replaces, $encodeFn, $content, $all)
+    private function replaceContent($pattern, $replaces, $encodeFn, $content)
     {
         $matches = null;
         preg_match_all($pattern, $content, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             $k = $matches[1][$i];
-            if ($all || array_key_exists($k, $replaces)) {
+            if (array_key_exists($k, $replaces)) {
                 $encodedVal = $encodeFn($matches[0][$i], $replaces[$k]);
-                // TODO: Remove comments after solve parse a empty form filter!!!!!
-                // if (is_array($encodedVal)) {
-                    // throw new Exception( 
-                        // "{$this->culprit}: Replaces of \"{$matches[0][$i]}\" is array after encoded."
-                    // );
-                // }
                 $match = $matches[0][$i];
                 if (is_array($encodedVal)) {
                     throw new Data2Html_Exception(
                         "{$this->culprit} replaceContent(): Value of match \"{$match}\" is array, must be a string.",
-                        $encodedVal
+                        array(
+                            'value' => $encodedVal,
+                            'matches' => $matches
+                        )
                     );
                 }
                 $content = str_replace($match, $encodedVal, $content);

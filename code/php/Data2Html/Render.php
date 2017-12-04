@@ -160,25 +160,24 @@ class Data2Html_Render
     protected function renderSet($items, $template)
     {
         $assingCells = Data2Html_Value::getItem(
-            $template, 
+            $template[1], 
             "assignTemplate", 
             function() { return array('base', 'base', array()); }
         );
-        $templContents =
-            $this->templateObj->getTemplateBranch('contents', $template);
-        $templLayouts =
+        $tLayouts =
             $this->templateObj->getTemplateBranch('layouts', $template);
-        
-        $vDx = new Data2Html_Collection();
+        $tContents =
+            $this->templateObj->getTemplateBranch('contents', $template);
         
         $renderSetLevel = function($currentLevel) 
-        use(&$renderSetLevel, &$items, &$assingCells, &$vDx, $templContents, $templLayouts)
+        use(&$renderSetLevel, &$items, &$assingCells, $tContents, $tLayouts)
         {
-            $body = array();
+            $body = $this->templateObj->getEmptyBody();
+            $vDx = new Data2Html_Collection();
 
             // Declare end previous item function
             $endPreviousItem = function($itemBody, $levelBody, $layoutTemplName, $replaces) 
-            use(&$body, $templLayouts) {
+            use(&$body, $tLayouts) {
                 if (!$itemBody) {
                     return;
                 }
@@ -190,7 +189,7 @@ class Data2Html_Render
                     $body,
                     $this->templateObj->renderTemplateItem(
                         $layoutTemplName,
-                        $templLayouts,
+                        $tLayouts,
                         $replaces
                     )
                 );
@@ -204,55 +203,57 @@ class Data2Html_Render
             $renderCount = 0;
             $v = current($items); 
             while ($v !== false) {
-                $vDx->set($v);
-                $level = $vDx->getInteger('level');
+                $level =  Data2Html_Value::getItem($v, 'level', 0);
                 if ($level < $currentLevel) {
                     break;
                 }
-                // Finalize previous item
+                // Down level / Finalize previous item
+                if ($level > $currentLevel) {
+                    list($levelBody) = $renderSetLevel($level);
+                    $v = current($items);
+                    $level =  Data2Html_Value::getItem($v, 'level', 0);
+                }
                 if ($level === $currentLevel) {
                     $endPreviousItem($itemBody, $levelBody, $layoutTemplName, $replaces);
                 }
                 
                 // Start current item
+                $vDx->set($v);
                 $itemBody = null;
                 $levelBody = null;
                 $layoutTemplName = null;
                 $replaces = null;
-                if ($level > $currentLevel) {
-                    list($levelBody) = $renderSetLevel($level);
-                } else {
-                    if ($vDx->getBoolean('virtual')) {
-                        $v = next($items);
-                        continue;
-                    }
-                    $display = $vDx->getString('display', 'html');
-                    if ($display === 'none') {
-                        $v = next($items);
-                        continue;
-                    }
-                    list(
-                        $layoutTemplName,
-                        $contentTemplName,
-                        $replaces
-                    ) = $assingCells($this, $v);
-                    $replaces += array(
-                        'id' => $this->createIdRender(),
-                        'name' => key($items),
-                        'title' => $vDx->getString('title'),
-                        'description' => $vDx->getString('description'),
-                        'format' => $vDx->getString('format'),
-                        'type' => $vDx->getString('type'),
-                        'icon' => $vDx->getString('icon'),
-                        'action' => $vDx->getString('action')
-                    );
-                    $itemBody = $this->templateObj->renderTemplateItem(
-                        $contentTemplName,
-                        $templContents,
-                        $replaces
-                    );
-                    ++$renderCount;
+                if ($vDx->getBoolean('virtual')) {
+                    $v = next($items);
+                    continue;
                 }
+                $display = $vDx->getString('display', 'html');
+                if ($display === 'none') {
+                    $v = next($items);
+                    continue;
+                }
+                list(
+                    $layoutTemplName,
+                    $contentTemplName,
+                    $replaces
+                ) = $assingCells($this, $v);
+                $replaces += array(
+                    'id' => $this->createIdRender(),
+                    'name' => key($items),
+                    'title' => $vDx->getString('title') . '#' . $level,
+                    'description' => $vDx->getString('description'),
+                    'format' => $vDx->getString('format'),
+                    'type' => $vDx->getString('type'),
+                    'icon' => $vDx->getString('icon'),
+                    'action' => $vDx->getString('action')
+                );
+                $itemBody = $this->templateObj->renderTemplateItem(
+                    $contentTemplName,
+                    $tContents,
+                    $replaces
+                );
+                ++$renderCount;
+
                 $v = next($items);
             }
             // Finalize previous item
@@ -263,12 +264,13 @@ class Data2Html_Render
         return $renderSetLevel(0);
     }
 
-    protected function parseFormSet($setName, $templateBranch){
+    protected function parseFormSet($setName, $templateBranch,
+        $subItemsKey = 'items'){
         $items = $this->templateObj->getTemplateItems($setName, $templateBranch);
         if (count($items) === 0) {
             return array();
         } else {
-            $tempModel = new Data2Html_Model_Set_Form(null, $setName, $items);
+            $tempModel = new Data2Html_Model_Set_Form(null, $setName, $items, null, $subItemsKey);
             return $tempModel->getItems();
         }
     }

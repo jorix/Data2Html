@@ -28,7 +28,6 @@ $return = array(
             "assignTemplate" => function($render, $item) {
                 $itemDx = new Data2Html_Collection($item);
                 $layout = $itemDx->getInteger('level') ? 'base_1' : 'base';
-                $render->dump($item);
                 $content = 'base';
                 if ($itemDx->getString('input') === 'button') {
                     $content = 'button';
@@ -43,7 +42,7 @@ $return = array(
                 $type = $itemDx->getString('type', '');
                 $ngClass = '';
                 $class = Data2Html_Value::getItem($typeToHtmlClass, $type, '');
-                if ($visual = $vDx->getString('visualClass')) {
+                if ($visual = $itemDx->getString('visualClass')) {
                     if (strpos($visual, ':') !== false) {
                         $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
                     } else {
