@@ -51,14 +51,14 @@ abstract class Data2Html_Model_Set
         'text' =>       array('type' => 'text'),
         'url' =>        array('type' => 'string', 'validations' => 'url')
     );
-    private $subItemsKeys = array('items', 'headItems');
+    private $subItemsKeys = array('items', 'head-items');
     private $baseKeywords = array(
         'base' => 'string',
         'db' => 'string|null',
         'default' => null,
         'description' => 'string|null',
         'display' => array(
-            'options' => array('none', 'html', 'input', 'all')
+            'options' => array('none', 'html', 'all')
         ),
         'format' => 'string',
         'key' => array(
@@ -69,6 +69,16 @@ abstract class Data2Html_Model_Set
         'linkedTo' => 'array',
         'name' => 'string',
         'size' => '(array)integer',
+        
+        
+        'layout-template' => 'string',
+        'content-template' => 'string',
+        'head-layout-template' => 'string',
+        'head-content-template' => 'string',
+        'icon' => 'string',
+        'action' => 'string',
+        
+        
         'title' => 'string',
         'type' => array(
             'options' => array(

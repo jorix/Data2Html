@@ -131,9 +131,9 @@ class Data2Html_Render
         
         list($thead, $renderCount) = $this->renderSet(
             array_merge(
-                $this->parseFormSet('startItems', $templateTable, 'headItems'),
+                $this->parseFormSet('startItems', $templateTable, 'head-items'),
                 $columns,
-                $this->parseFormSet('endItems', $templateTable, 'headItems')
+                $this->parseFormSet('endItems', $templateTable, 'head-items')
             ),
             $this->templateObj->getTemplateBranch('heads', $templateTable)
         );
@@ -159,9 +159,9 @@ class Data2Html_Render
 
     protected function renderSet($items, $template)
     {
-        $assingCells = Data2Html_Value::getItem(
+        $assignTemplate = Data2Html_Value::getItem(
             $template[1], 
-            "assignTemplate", 
+            "assign-template", 
             function() { return array('base', 'base', array()); }
         );
         $tLayouts =
@@ -170,7 +170,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('contents', $template);
         
         $renderSetLevel = function($currentLevel) 
-        use(&$renderSetLevel, &$items, &$assingCells, $tContents, $tLayouts)
+        use(&$renderSetLevel, &$assignTemplate, &$items, $tContents, $tLayouts)
         {
             $body = $this->templateObj->getEmptyBody();
             $vDx = new Data2Html_Collection();
@@ -236,7 +236,7 @@ class Data2Html_Render
                     $layoutTemplName,
                     $contentTemplName,
                     $replaces
-                ) = $assingCells($this, $v);
+                ) = $assignTemplate($this, $v);
                 $replaces += array(
                     'id' => $this->createIdRender(),
                     'name' => key($items),

@@ -4,17 +4,15 @@ $return = array(
         "template" => "paged.html.php",
         "startItems" => "crud.buttons.php",
         "heads" => array(
-            "assignTemplate" => function($render, $item) {
+            "assign-template" => function($render, $item) {
                 $itemDx = new Data2Html_Collection($item);
-                $layout = $itemDx->getInteger('level') ? 'base_1' : 'base';
-                $content = 'base';
+                
+                $level = $itemDx->getInteger('level', 0);
+                $layout = $level ? 'base_1' : 'base';
+                $content = $itemDx->getString('head-content-template', 'base');
                 if ($itemDx->getItem('sortBy')) {
                     $content = 'sortable';
-                } elseif ($itemDx->getItem('input') === 'button') {
-                    $content = 'button';
-                } elseif ($itemDx->getItem('input') === 'button') {
-                    $content = 'blank';
-                };
+                }
                 return array($layout, $content, array());
             },
             "layouts" => array(
@@ -25,13 +23,12 @@ $return = array(
             )
         ),
         "cells" => array(
-            "assignTemplate" => function($render, $item) {
+            "assign-template" => function($render, $item) {
                 $itemDx = new Data2Html_Collection($item);
-                $layout = $itemDx->getInteger('level') ? 'base_1' : 'base';
-                $content = 'base';
-                if ($itemDx->getString('input') === 'button') {
-                    $content = 'button';
-                };
+                
+                $level = $itemDx->getInteger('level', 0);
+                $layout = $level ? 'base_1' : 'base';
+                $content = $itemDx->getString('content-template', 'base');
                 
                 // Classes
                 $typeToHtmlClass = array(
