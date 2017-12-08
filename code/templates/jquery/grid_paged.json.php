@@ -15,6 +15,6 @@
         ]
     },
     "form": {
-        "include": "forms/formEdit/edit.json.php"
+        "include": "forms/formEdit/edit.php"
     }
 }

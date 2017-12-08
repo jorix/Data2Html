@@ -15,10 +15,9 @@ class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
         $model,
         $setName,
         $defs,
-        $baseSet = null,
-        $subItemsKey = 'items'
+        $baseSet = null
     ) {
-        parent::__construct($model, $setName, $defs, $baseSet, $subItemsKey);
+        parent::__construct($model, $setName, $defs, $baseSet);
         
         if (!$this->setItems) {
         // If no items then set items as baseIntems

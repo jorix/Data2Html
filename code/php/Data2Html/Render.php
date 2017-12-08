@@ -6,7 +6,7 @@ class Data2Html_Render
     private $templateObj;
     private $idRender;
     private $typeToInputTemplates = array(
-        '[default]' =>    array('base', 'text'),
+        '[default]' =>    array('base', 'text-input'),
         'boolean' =>    array('checkbox', 'checkbox'),
         'date' =>       array('base', 'datetimepicker')
     );
@@ -97,9 +97,11 @@ class Data2Html_Render
     
     public function renderForm($model, $formName)
     {
-        $this->culprit = "Render for form: \"{$model->getModelName()}:{$formName}\"";
+        $this->culprit =
+            "Render for form: \"{$model->getModelName()}:{$formName}\"";
         $lkForm = $model->getForm($formName);
         $lkForm->createLink();
+        $items = $lkForm->getLinkedItems();
         
         $tplForm = $this->templateObj->getTemplateBranch(
             $lkForm->getAttribute('layout', 'form'),
@@ -107,19 +109,32 @@ class Data2Html_Render
         );
         $formId = $this->idRender . '_form_' . $formName;
         
-        $result = $this->renderFormSet(
-            $formId,
-            $this->templateObj->getTemplateBranch('form', $tplForm),
-            $lkForm->getLinkedItems(),
+        list($body) = $this->renderSet(
+            array_merge(
+                $this->parseIncludeItems('startItems', $tplForm),
+                $items,
+                $this->parseIncludeItems('endItems', $tplForm)
+            ),
+            $tplForm,
             array(
+                'formId' => $formId
+            )
+        );
+        $form = $this->templateObj->renderTemplate(
+            $templateBranch,
+            array(
+                'id' => $formId,
                 'title' => $lkForm->getAttribute('title'),
                 'url' => $this->getControllerUrl() .
-                    "model={$model->getModelName()}&form={$formName}&"
+                     "model={$model->getModelName()}&form={$formName}&",
+                'body' => $body,
+                'visual' => $this->getVisualItemsJson($items)
             )
-        );        
-        $result['id'] = $formId;
-        return $result;
+        );
+        $form['id'] = $formId;
+        return $form;
     }
+    
     protected function renderTable($templateTable, $columns, $replaces)
     {
         if (!$columns) {
@@ -128,20 +143,19 @@ class Data2Html_Render
         if (count($columns) === 0) {
             return $this->templateObj->emptyRender();
         }
-        
         list($thead, $renderCount) = $this->renderSet(
             array_merge(
-                $this->parseFormSet('startItems', $templateTable, 'head-items'),
+                $this->parseIncludeItems('startItems', $templateTable, 'head-item'),
                 $columns,
-                $this->parseFormSet('endItems', $templateTable, 'head-items')
+                $this->parseIncludeItems('endItems', $templateTable, 'head-item')
             ),
             $this->templateObj->getTemplateBranch('heads', $templateTable)
         );
         list($tbody) = $this->renderSet(
             array_merge(
-                $this->parseFormSet('startItems', $templateTable, 'items'),
+                $this->parseIncludeItems('startItems', $templateTable),
                 $columns,
-                $this->parseFormSet('endItems', $templateTable, 'items')
+                $this->parseIncludeItems('endItems', $templateTable)
             ),
             $this->templateObj->getTemplateBranch('cells', $templateTable)
         );
@@ -157,7 +171,7 @@ class Data2Html_Render
         $previusLevel = $level;
     }
 
-    protected function renderSet($items, $template)
+    protected function renderSet($items, $template, $iReplaces = array())
     {
         $assignTemplate = Data2Html_Value::getItem(
             $template[1], 
@@ -170,7 +184,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('contents', $template);
         
         $renderSetLevel = function($currentLevel) 
-        use(&$renderSetLevel, &$assignTemplate, &$items, $tContents, $tLayouts)
+        use(&$renderSetLevel, &$assignTemplate, &$items, $tContents, $tLayouts, $iReplaces)
         {
             $body = $this->templateObj->getEmptyBody();
             $vDx = new Data2Html_Collection();
@@ -214,7 +228,12 @@ class Data2Html_Render
                     $level =  Data2Html_Value::getItem($v, 'level', 0);
                 }
                 if ($level === $currentLevel) {
-                    $endPreviousItem($itemBody, $levelBody, $layoutTemplName, $replaces);
+                    $endPreviousItem(
+                        $itemBody,
+                        $levelBody,
+                        $layoutTemplName,
+                        $replaces
+                    );
                 }
                 
                 // Start current item
@@ -237,7 +256,7 @@ class Data2Html_Render
                     $contentTemplName,
                     $replaces
                 ) = $assignTemplate($this, $v);
-                $replaces += array(
+                $replaces += $iReplaces + array(
                     'id' => $this->createIdRender(),
                     'name' => key($items),
                     'title' => $vDx->getString('title') . '#' . $level,
@@ -245,7 +264,10 @@ class Data2Html_Render
                     'format' => $vDx->getString('format'),
                     'type' => $vDx->getString('type'),
                     'icon' => $vDx->getString('icon'),
-                    'action' => $vDx->getString('action')
+                    'action' => $vDx->getString('action'),
+                    'validations' => implode(' ', 
+                        $vDx->getArray('validations', array())
+                    )
                 );
                 $itemBody = $this->templateObj->renderTemplateItem(
                     $contentTemplName,
@@ -264,13 +286,13 @@ class Data2Html_Render
         return $renderSetLevel(0);
     }
 
-    protected function parseFormSet($setName, $templateBranch,
-        $subItemsKey = 'items'){
+    protected function parseIncludeItems($setName, $templateBranch, $alternativeItem = null)
+    {
         $items = $this->templateObj->getTemplateItems($setName, $templateBranch);
         if (count($items) === 0) {
             return array();
         } else {
-            $tempModel = new Data2Html_Model_Set_Form(null, $setName, $items, null, $subItemsKey);
+            $tempModel = new Data2Html_Model_Set_Includes(null, $setName, $items, $alternativeItem);
             return $tempModel->getItems();
         }
     }
@@ -285,8 +307,8 @@ class Data2Html_Render
             $fieldsDs = array();
         }
         
-        $startItems = $this->parseFormSet('startItems', $templateBranch);
-        $endItems = $this->parseFormSet('endItems', $templateBranch);
+        $startItems = $this->parseIncludeItems('startItems', $templateBranch);
+        $endItems = $this->parseIncludeItems('endItems', $templateBranch);
         $fieldsDs = array_merge($startItems, $fieldsDs, $endItems);
         
         if (count($fieldsDs) === 0) {
@@ -319,7 +341,7 @@ class Data2Html_Render
                 $inputTemplates = array($defaultInputTemplates[0], $inputTplName);
             } else {
                 if ($link) {
-                    $inputTemplates = array($defaultInputTemplates[0], 'select');
+                    $inputTemplates = array($defaultInputTemplates[0], 'select-input');
                     $url = $baseUrl . 'model=' . $link . '&';
                 } else {
                     $inputTemplates = Data2Html_Value::getItem(

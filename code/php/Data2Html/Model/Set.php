@@ -19,7 +19,6 @@ abstract class Data2Html_Model_Set
     private $tableName = null;
     private $attributes = null;
     private $baseSet = null;
-    private $subItemsKey = '';
     private $keys = null;
     
     // Link
@@ -51,7 +50,7 @@ abstract class Data2Html_Model_Set
         'text' =>       array('type' => 'text'),
         'url' =>        array('type' => 'string', 'validations' => 'url')
     );
-    private $subItemsKeys = array('items', 'head-items');
+    private $subItemsKey = 'items';
     private $baseKeywords = array(
         'base' => 'string',
         'db' => 'string|null',
@@ -67,18 +66,16 @@ abstract class Data2Html_Model_Set
         'level' => 'integer',
         'link' => 'string',
         'linkedTo' => 'array',
+        'items' => 'array',
         'name' => 'string',
         'size' => '(array)integer',
         
-        
+        // from form
         'layout-template' => 'string',
         'content-template' => 'string',
-        'head-layout-template' => 'string',
-        'head-content-template' => 'string',
         'icon' => 'string',
         'action' => 'string',
-        
-        
+         
         'title' => 'string',
         'type' => array(
             'options' => array(
@@ -105,8 +102,7 @@ abstract class Data2Html_Model_Set
         $model,
         $setName,
         $defs,
-        $baseSet = null,
-        $subItemsKey = 'items'
+        $baseSet = null
     ) {
         $this->debug = Data2Html_Config::debug();
         $this->fPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
@@ -134,13 +130,6 @@ abstract class Data2Html_Model_Set
             $this->baseKeywords, $this->keywords
         );
         $this->baseSet = $baseSet;
-        if ($subItemsKey && !in_array($subItemsKey, $this->subItemsKeys)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit}: Constructor 'subItemsKey' argument = \"{$subItemsKey}\" is not supported.",
-                $defs
-            );
-        }
-        $this->subItemsKey = $subItemsKey;
         
         // Read defs
         $this->attributes = array();
@@ -362,11 +351,7 @@ abstract class Data2Html_Model_Set
                 }
             }
             // Parse sub-items
-            if (
-                is_array($v) &&
-                $this->subItemsKey &&
-                array_key_exists($this->subItemsKey, $v)
-            ) {
+            if (is_array($v) && array_key_exists($this->subItemsKey, $v)) {
                 $this->parseSetItems(
                     $level + 1,
                     Data2Html_Value::getItem($v, 'prefix', ''),
@@ -512,19 +497,24 @@ abstract class Data2Html_Model_Set
         $pField = array();
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
-                if (array_key_exists($vv, $alias)) {
-                    $this->applyAlias($fieldName, $pField, $vv, $alias[$vv]);
+                if (is_array($vv)) {
+                    throw new Data2Html_Exception(
+                        "{$this->culprit}: Field \"{$fieldName}\" is an array.",
+                        $field
+                    );
+                } elseif (array_key_exists($vv, $alias)) {
+                    $this->applyAlias($field, $fieldName, $pField, $vv, $alias[$vv]);
                 } else {
                     throw new Exception(
                         "{$this->culprit}: Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
                     );
                 }
             } else {
-                if (in_array($kk, $this->subItemsKeys)) { continue; }
+                if ($kk === $this->subItemsKey) { continue; }
                 if (array_key_exists($kk, $alias) && !array_key_exists($kk, $words)) {
-                    $this->applyAlias($fieldName,$pField, $vv, $alias[$kk]);
+                    $this->applyAlias($field, $fieldName,$pField, $vv, $alias[$kk]);
                 } else {
-                    $this->applyWord($fieldName, $pField, $kk, $vv);
+                    $this->applyWord($field, $fieldName, $pField, $kk, $vv);
                 }
             }
         }
@@ -586,7 +576,7 @@ abstract class Data2Html_Model_Set
         return array($pKey, $pField);
     }
     
-    private function applyAlias($fieldName, &$pField, $aliasValue, $toWord)
+    private function applyAlias($iField, $fieldName, &$pField, $aliasValue, $toWord)
     {
         foreach ($toWord as $k => $v) {
             if ($v === '[]') {
@@ -595,23 +585,21 @@ abstract class Data2Html_Model_Set
             if (array_key_exists($k, $pField) && is_array($pField[$k])) {
                 foreach ((array)$v as $vv) {
                     if (!in_array($vv, $pField[$k])) {
-                        $this->applyWord(
-                            $fieldName, $pField, $k, $vv
-                        );
+                        $this->applyWord($iField, $fieldName, $pField, $k, $vv);
                     }
                 }
             } else {
-                $this->applyWord($fieldName, $pField, $k, $v);
+                $this->applyWord($iField, $fieldName, $pField, $k, $v);
             }
         }
     }
     
-    private function applyWord($fieldName, &$pField, $wordName, $word)
+    private function applyWord($iField, $fieldName, &$pField, $wordName, $word)
     {
         if (!array_key_exists($wordName, $this->keywords)) {
             throw new Data2Html_Exception(
                 "{$this->culprit}: Word \"{$wordName}\" on field \"{$fieldName}\" is not supported.",
-                $pField
+                $iField
             );
         }
         $keyword = $this->keywords[$wordName];

@@ -9,9 +9,9 @@ $return = array(
                 
                 $level = $itemDx->getInteger('level', 0);
                 $layout = $level ? 'base_1' : 'base';
-                $content = $itemDx->getString('head-content-template', 'base');
+                $content = $itemDx->getString('content-template', 'title');
                 if ($itemDx->getItem('sortBy')) {
-                    $content = 'sortable';
+                    $content = 'title-sortable';
                 }
                 return array($layout, $content, array());
             },

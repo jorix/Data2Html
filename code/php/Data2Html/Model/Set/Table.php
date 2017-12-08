@@ -8,15 +8,17 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base
         'columns' => 'items',
         'filter' => false
     );
+    // protected $keywords = array(
+        // 'head-item' => 'array'        
+    // );
     
     public function __construct(
         $model,
         $setName,
         $defs,
-        $baseSet = null,
-        $subItemsKey = 'items'
+        $baseSet = null
     ) {
-        parent::__construct($model, $setName, $defs, $baseSet, $subItemsKey);
+        parent::__construct($model, $setName, $defs, $baseSet);
         
         if (!$this->setItems) {
         // If no items then set items as baseIntems

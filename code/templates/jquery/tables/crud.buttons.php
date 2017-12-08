@@ -2,15 +2,12 @@
 $return = array(
     'fields' =>array(
         array(
-            'head-content-template' => 'empty',
-            'head-items' => array(
-                array(
-                    'head-content-template' => 'button',
-                    'icon' => 'plus',
-                    'title' => '$Add',
-                    'description' => null,
-                    'action' => 'create'
-                )
+            'head-item' => array(
+                'content-template' => 'button',
+                'icon' => 'plus',
+                'title' => '$Add',
+                'description' => null,
+                'action' => 'create'
             ),
             'content-template' => 'empty',
             'items' => array(

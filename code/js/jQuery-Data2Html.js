@@ -299,9 +299,9 @@ jQuery.ajaxSetup({ cache: false });
             if ($elem.length !== 1) {
                 $.error(
                     "Data2Html: Selector '" + selector + 
-                    "' of component '" + componentName +
+                  //  "' of component '" + componentName +
                     "' has selected " + $elem.length +
-                    "  elements. Must select only one element!"
+                    " elements. Must select only one element!"
                 );
                 return;
             }
