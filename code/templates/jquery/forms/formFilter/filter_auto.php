@@ -1,9 +1,8 @@
 <?php 
 $return = array(
-    'page' => array(
-        'folder' => './',
-        'template' => 'page.html.php',
-        'startItems' => 'page-inputs.php',
+    "filter" => array(
+        "folder" => "./",
+        "template" => "filter_auto.html.php",
         "assign-template" => function($render, $item) {
             $itemDx = new Data2Html_Collection($item);
             
@@ -13,10 +12,15 @@ $return = array(
                 $level ? 'base_1' : 'base'
             );
             $content = 'text-input';
+            $content = $itemDx->getString('content-template', $content);
             
-            $type = $itemDx->getString('type', '');
+            $type = $itemDx->getString('type');
+            $link = $itemDx->getString('link');
             $url = '';
-            if ($type) {
+            if ($link) {
+                $content = 'select-input';
+                $url = $render->getControllerUrl() . 'model=' . $link . '&';
+            } elseif ($type) {
                 $typeToInputTemplates = array(
                     'boolean' =>    'checkbox',
                     'date' =>       'datetimepicker'
@@ -35,13 +39,14 @@ $return = array(
                     $layout
                 );
             }
-            $content = $itemDx->getString('content-template', $content);
-
+            $replaces = array(
+                'url' => $url
+            );
             // Return
-            return array($layout, $content, array());
+            return array($layout, $content, $replaces);
         },
         "layouts" => array(
-            "folderTemplates" => "../i_layouts_block/"
+            "folderTemplates" => "../i_layouts_inline/"
         ),
         "contents" => array(
             "folderTemplates" => "../inputs/"

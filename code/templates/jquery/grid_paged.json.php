@@ -3,7 +3,7 @@
     "grid": {
         "include": "tables/paged.php",
         "includes": [
-            "forms/formFilter/filter_auto.json.php",
+            "forms/formFilter/filter_auto.php",
             "forms/formPage/page.php"
         ]
     },

@@ -31,15 +31,15 @@ class Data2Html_Render
         }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
+
+    public function getControllerUrl()
+    {
+        return Data2Html_Config::get('controllerUrl') . '?';
+    }
     
     private function createIdRender() {
         self::$idRenderCount++;
         return 'd2h_' . self::$idRenderCount;
-    }
-
-    protected function getControllerUrl()
-    {
-        return Data2Html_Config::get('controllerUrl') . '?';
     }
 
     public function renderGrid($model, $gridName)
@@ -101,38 +101,20 @@ class Data2Html_Render
             "Render for form: \"{$model->getModelName()}:{$formName}\"";
         $lkForm = $model->getForm($formName);
         $lkForm->createLink();
-        $items = $lkForm->getLinkedItems();
         
-        $tplForm = $this->templateObj->getTemplateBranch(
-            $lkForm->getAttribute('layout', 'form'),
-            $this->templateObj->getTemplateRoot()
-        );
-        $formId = $this->idRender . '_form_' . $formName;
-        
-        list($body) = $this->renderSet(
-            array_merge(
-                $this->parseIncludeItems('startItems', $tplForm),
-                $items,
-                $this->parseIncludeItems('endItems', $tplForm)
+        return $this->renderFormSet(
+            $this->idRender . '_form_' . $formName,
+            $this->templateObj->getTemplateBranch(
+                $lkForm->getAttribute('layout', 'form'),
+                $this->templateObj->getTemplateRoot()
             ),
-            $tplForm,
+            $lkForm->getLinkedItems(),
             array(
-                'formId' => $formId
-            )
-        );
-        $form = $this->templateObj->renderTemplate(
-            $templateBranch,
-            array(
-                'id' => $formId,
                 'title' => $lkForm->getAttribute('title'),
                 'url' => $this->getControllerUrl() .
-                     "model={$model->getModelName()}&form={$formName}&",
-                'body' => $body,
-                'visual' => $this->getVisualItemsJson($items)
+                     "model={$model->getModelName()}&form={$formName}&"
             )
         );
-        $form['id'] = $formId;
-        return $form;
     }
     
     protected function renderTable($templateTable, $columns, $replaces)
@@ -225,6 +207,9 @@ class Data2Html_Render
                 if ($level > $currentLevel) {
                     list($levelBody) = $renderSetLevel($level);
                     $v = current($items);
+                    if ($v === false) {
+                        break;
+                    }
                     $level =  Data2Html_Value::getItem($v, 'level', 0);
                 }
                 if ($level === $currentLevel) {
@@ -259,7 +244,7 @@ class Data2Html_Render
                 $replaces += $iReplaces + array(
                     'id' => $this->createIdRender(),
                     'name' => key($items),
-                    'title' => $vDx->getString('title') . '#' . $level,
+                    'title' => $vDx->getString('title'),
                     'description' => $vDx->getString('description'),
                     'format' => $vDx->getString('format'),
                     'type' => $vDx->getString('type'),
@@ -300,90 +285,32 @@ class Data2Html_Render
     protected function renderFormSet(
         $formId,
         $templateBranch,
-        $fieldsDs,
+        $items,
         $replaces
     ){
-        if (!$fieldsDs) {
-            $fieldsDs = array();
+        if (!$items) {
+            $items = array();
         }
+        list($body) = $this->renderSet(
+            array_merge(
+                $this->parseIncludeItems('startItems', $templateBranch),
+                $items,
+                $this->parseIncludeItems('endItems', $templateBranch)
+            ),
+            $templateBranch
+        );
         
-        $startItems = $this->parseIncludeItems('startItems', $templateBranch);
-        $endItems = $this->parseIncludeItems('endItems', $templateBranch);
-        $fieldsDs = array_merge($startItems, $fieldsDs, $endItems);
-        
-        if (count($fieldsDs) === 0) {
-            return $this->templateObj->emptyRender();
+        if (count($items) > 0) {
+            $replaces['visual'] = $this->getVisualItemsJson($items);
         }
-
-        $baseUrl = $this->getControllerUrl();
-        $templateInputs =
-            $this->templateObj->getTemplateBranch('inputs', $templateBranch);
-        $templateLayouts =
-            $this->templateObj->getTemplateBranch('inputs_layouts', $templateBranch);
-            
-        $defaultInputTemplates = $this->typeToInputTemplates['[default]'];
-        
-        $body = array();
-        $renderCount = 0;
-        
-        foreach ($fieldsDs as $k => $v) {            
-            $vDx = new Data2Html_Collection($v);
-            if ($vDx->getBoolean('virtual')) {
-                continue;
-            }
-            $url = $vDx->getString('url', '');
-            $validations = $vDx->getArray('validations', array());
-            $link = $vDx->getString('link');
-            $type = $vDx->getString('type');
-
-            $inputTplName = $vDx->getString('input');
-            if ($inputTplName) {
-                $inputTemplates = array($defaultInputTemplates[0], $inputTplName);
-            } else {
-                if ($link) {
-                    $inputTemplates = array($defaultInputTemplates[0], 'select-input');
-                    $url = $baseUrl . 'model=' . $link . '&';
-                } else {
-                    $inputTemplates = Data2Html_Value::getItem(
-                        $this->typeToInputTemplates,
-                        $type,
-                        $defaultInputTemplates
-                    );
-                }
-            }
-            $fReplaces = array(
-                'formId' => $formId,
-                'id' => $this->createIdRender(),
-                'name' => $k,
-                'title' => $vDx->getString('title'),
-                'description' => $vDx->getString('description'),
-                'icon' => $vDx->getString('icon'),
-                'action' => $vDx->getString('action'),
-                'url' => $url,
-                'validations' => implode(' ', $validations)
-            );
-            $fReplaces['html'] = $this->templateObj->renderTemplateItem(
-                $inputTemplates[1], $templateInputs, $fReplaces
-            );
-            $this->templateObj->concatContents(
-                $body,
-                $this->templateObj->renderTemplateItem(
-                    $vDx->getString('layout', $inputTemplates[0]),
-                    $templateLayouts, 
-                    $fReplaces
-                )
-            );
-            ++$renderCount;
-        }
-        $replaces = array_merge($replaces, array(
-            'id' => $formId,
-            'body' => $body,
-            'visual' => $this->getVisualItemsJson($fieldsDs)
-        ));
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
-            $replaces
+            array_merge($replaces, array(
+                'id' => $formId,
+                'body' => $body
+            ))
         );
+        $form['id'] = $formId;
         return $form;
     }
     
