@@ -30,6 +30,9 @@
     .d2h_sortBy_no .d2h_sort_asc,
     .d2h_sortBy_no .d2h_sort_desc {display: none;}
     
+    .clickable {cursor:pointer;}
+    
+    /* waiting */
     .d2h_waiting {
         position: fixed; left: 50%; top: 50%;
         display: none;

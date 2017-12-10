@@ -6,9 +6,15 @@
         repeat:'table tbody tr',
         visual: $${visual},
         actions: {
-            'edit': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem}); },
+            'edit': function(elem) {
+                    var keys = this.getKeys(elem, 'info'); 
+                    d2h_switchTo.go(this, 'edit').load({keys:keys});
+            },
             'copy': function() {},
-            'delete': function(elem) {d2h_switchTo.go(this, 'edit').load({elemKeys:elem});},
+            'delete': function(elem) {
+                    var keys = this.getKeys(elem, 'info'); 
+                    d2h_switchTo.go(this, 'edit').load({keys:keys});
+            },
             'create': function() {d2h_switchTo.go(this, 'edit').clear();}
         },
         filter:['#$${id}_filter', {
@@ -29,14 +35,14 @@
     <div class="col-md-12">
         <h3>$${title}</h3>
         <input id="$${id}_sort" type="text" value="$${sortBy}">
-        <table class="table table-striped table-bordered">
+        <table class="table table-striped table-hover">
             <thead><tr>$${head}</tr></thead>
             <tfoot><tr>
                 <td colspan="$${colCount}">
                     $${page}
                 </td>
             </tr></tfoot>
-            <tbody><tr data-d2h-keys="${[keys]}">$${body}</tr></tbody>
+            <tbody><tr class="clickable" data-d2h-keys="${[keys]}">$${body}</tr></tbody>
         </table>
     </div>
 </div>

@@ -127,8 +127,10 @@ jQuery.ajaxSetup({ cache: false });
         },
 
         // Data manage
-        getElemKeys: function(elem) {
-            return $(elem).closest('[data-d2h-keys]').attr('data-d2h-keys');
+        getKeys: function(elem, visualClass) {
+            var $parent = $(elem).closest('[data-d2h-keys]');
+            $('.' + visualClass, this.objElem).removeClass(visualClass);
+            return $parent.addClass(visualClass).attr('data-d2h-keys');
         },
         
         setRows: function(jsonData, add) {
@@ -494,21 +496,18 @@ jQuery.ajaxSetup({ cache: false });
         load: function(options) {
             if (!options) {
                 $.error(
-                    "Data2Html: Can not load form without options, it must exist 'keys' or 'elemKeys' parameter."
+                    "Data2Html: Can not load form without options, it must exist 'keys' parameter."
                 );
             }
             var _settings = $.extend({}, this.settings, options);
             var _this = this,
                 _formEle = this.objElem,
                 keys;
-            if (options.elemKeys) { 
-                // Keys are on patent element into a attribute 'data-d2h-keys'
-                keys = this.getElemKeys(options.elemKeys);
-            } else if (options.keys) {
+            if (options.keys) {
                 keys = options.keys;
             } else {
                 $.error(
-                    "Data2Html: Can not load form without 'keys' or 'elemKeys' parameter."
+                    "Data2Html: Can not load form without 'keys' parameter."
                 );
             }
             $.ajax({
