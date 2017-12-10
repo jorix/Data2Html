@@ -2,8 +2,7 @@
 class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
-        'layout' => 'attribute',
-        'fields' => 'items'
+        'layout' => 'attribute'
     );
     
     protected $keywords = array(

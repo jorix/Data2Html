@@ -1,6 +1,6 @@
 <?php
 $return = array(
-    'fields' =>array(
+    'items' =>array(
         array(
             'layout-template' => 'bare',
             'content-template' => 'empty',

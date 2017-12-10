@@ -5,7 +5,7 @@ class aixada_providers extends Data2Html_Model {
     {
         return array(
             'table' => 'aixada_provider',
-            'base' => array(
+            'items' => array(
                 'id' => array('integer', 'autoKey'),
                 'name' => array('title' => '$$Provider', 'string' => 255, 'required'),
                 'contact' => array('title' => '$$Provider_contact', 'string' => 255),
@@ -58,7 +58,7 @@ class aixada_providers extends Data2Html_Model {
                     'sort' => 'name',
                     'filter' => array(
                         'layout' => 'inline',
-                        'fields' => array(
+                        'items' => array(
                             'name' => 'LK',
                             'active' => 'EQ'
                         )

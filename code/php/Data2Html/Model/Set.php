@@ -31,7 +31,8 @@ abstract class Data2Html_Model_Set
     private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
         // value as: $${base_name} i $${link_name[field_name]}
     private $baseAttributeNames = array(
-        'title' => 'attribute'
+        'title' => 'attribute',
+        'items' => 'items',
     );
     private $baseWordsAlias = array(
         'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),

@@ -7,7 +7,7 @@ class aixada_accounts extends Data2Html_Model {
         return array(
             'table' => 'aixada_account',
             'title' => 'Diners',
-            'base' => array(
+            'items' => array(
                 'id' => array('autoKey', 'required', 'hidden'),
                 'account_id' => array(
                     'sortBy' => array('account_id', '!id', 'account_uf_id[name]'),
@@ -33,7 +33,7 @@ class aixada_accounts extends Data2Html_Model {
             'grids' => array(
                 'main' => array(
                     'sort' => 'account_id',
-                    'columns' => array(
+                    'items' => array(
                         'id',
                         'ts',
                         'operator_id[name]',
@@ -46,7 +46,7 @@ class aixada_accounts extends Data2Html_Model {
                         'balance'),
                     'filter' => array(
                         'layout' => 'inline',
-                        'fields' => array(
+                        'items' => array(
                             array(
                                 'base' => 'account_uf_id',
                                 'check'=>'EQ', 'default'=>1005, 'required'

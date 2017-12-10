@@ -6,7 +6,7 @@ class aixada_products extends Data2Html_Model {
         #Set database table
         return array(
             'table' => 'aixada_product',
-            'base' => array(
+            'items' => array(
                 'id'            => array('integer', 'autoKey', 'required'),
                 'provider_id'           => array('link' => 'aixada_providers'),
                 'provider_name'         => array('base'=>'provider_id[name]'),
@@ -29,7 +29,7 @@ class aixada_products extends Data2Html_Model {
             ),
             'grids' => array(
                 'main' => array(
-                    'columns' => array(
+                    'items' => array(
                         'id',
                         'provider_id',
                         'provider_name',
@@ -48,7 +48,7 @@ class aixada_products extends Data2Html_Model {
                     ),
                     'filter' => array(
                         'layout' => 'inline',
-                        'fields' => array(
+                        'items' => array(
                             'name' => array('check' => 'LK', 'no-required'),
                             '%barcode',
                             'active' => 'EQ',

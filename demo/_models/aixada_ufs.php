@@ -7,7 +7,7 @@ class aixada_ufs extends Data2Html_Model {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
-            'base' => array(
+            'items' => array(
                 'id'        => array('autoKey', 'hidden'),
                 'name'      => array(
                     'title' => 'Nom UF',
@@ -32,25 +32,25 @@ class aixada_ufs extends Data2Html_Model {
             'grids' => array(
                 'list' => array(
                     'sort' => 'name',
-                    'columns' => array('uf_name'),
+                    'items' => array('uf_name'),
                     'filter' => array(
-                        'fields' => array('=active')
+                        'items' => array('=active')
                     )
                 ),
                 'account' => array(
                     'sort' => 'name',
-                    'columns' => array(
+                    'items' => array(
                         'value' => array('key', 'db' => '1000 + id'),
                         'uf_name'
                     ),
                     'filter' => array(
-                        'fields' => array('=active')
+                        'items' => array('=active')
                     )
                 ),
                 'main' => array(
                     'sort' => 'name', 
                     'filter' => array(
-                        'fields' => array(
+                        'items' => array(
                             '%name', '=active', '=mentor_uf'
                         )
                     )

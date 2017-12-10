@@ -15,7 +15,7 @@ create table aixada_payment_method (
         return array(
             'table' => 'aixada_payment_method',
             'title' => 'Tipus Moviments',
-            'base' => array(
+            'items' => array(
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'description'      => array(
                     'title' => 'Moviment',

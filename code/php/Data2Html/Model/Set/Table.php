@@ -5,7 +5,6 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base
         'sort' => 'attribute',
         'layout' => 'attribute',
         'layouts' => 'attribute',
-        'columns' => 'items',
         'filter' => false
     );
     // protected $keywords = array(

@@ -31,7 +31,7 @@ aixada_member (
         return array(
             'table' => 'aixada_member',
             'title' => 'Membres',
-            'base' => array(
+            'items' => array(
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(
                     'title' => 'Usuari',
@@ -41,10 +41,10 @@ aixada_member (
             ),
             'grids' => array(
                 'main' => array(
-                    'columns' => array('id', 'name', 'active'),
+                    'items' => array('id', 'name', 'active'),
                     'filter' => array(
                         'layout' => 'inline',
-                        'fields' => array('active' => 'EQ')
+                        'items' => array('active' => 'EQ')
                     )
                 )
             )

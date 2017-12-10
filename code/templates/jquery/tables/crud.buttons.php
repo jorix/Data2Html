@@ -1,6 +1,6 @@
 <?php
 $return = array(
-    'fields' =>array(
+    'items' =>array(
         array(
             'head-item' => array(
                 'content-template' => 'button',

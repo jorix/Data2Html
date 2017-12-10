@@ -7,7 +7,7 @@ class aixada_ufs_self extends Data2Html_Model {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
-            'base' => array(
+            'items' => array(
                 'id'        => array('autoKey', 'required'),
                 'name'      => array(
                         'title' => 'Nom UF',
@@ -23,14 +23,14 @@ class aixada_ufs_self extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'columns' => array('id', 'name'),
+                    'items' => array('id', 'name'),
                     'filter' => array(
-                        'fields' => array('name' => 'EQ')
+                        'items' => array('name' => 'EQ')
                     )
                 ),
                 'main' => array(
                     'filter' => array(
-                        'fields' => array('name' => 'LK')
+                        'items' => array('name' => 'LK')
                     )
                 )
             )

@@ -7,7 +7,7 @@ class aixada_ufs extends Data2Html_Model {
         return array(
             'table' => 'aixada_uf',
             'title' => 'Unitats familiars',
-            'base' => array(
+            'items' => array(
                 'id'        => array('autoKey', 'required', 'hidden'),
                 'name'      => array(
                         'title' => 'Nom UF',
@@ -26,34 +26,34 @@ class aixada_ufs extends Data2Html_Model {
             ),
             'grids' => array(
                 'list' => array(
-                    'columns' => array('value' =>'id', 'text' => '=$${name}#$${id}', 'active'),
+                    'items' => array('value' =>'id', 'text' => '=$${name}#$${id}', 'active'),
                     'filter' => array(
-                        'fields' => array('active' => 'EQ')
+                        'items' => array('active' => 'EQ')
                     )
                 ),
                 'only_name' => array(
-                    'columns' => array('id', 'name'),
+                    'items' => array('id', 'name'),
                     'filter' => array(
-                        'fields' => array('active' => 'EQ')
+                        'items' => array('active' => 'EQ')
                     )
                 ),
                 'account' => array(
                     'sort' => 'name',                    
-                    'columns' => array(
+                    'items' => array(
                         'value' => array('key', 'db' => '1000 + id'),
                         'text' => '=$${name}#$${value}',
                         'active',
                         'mentor_uf'
                     ),
                     'filter' => array(
-                        'fields' => array('active' => 'EQ')
+                        'items' => array('active' => 'EQ')
                     )
                 ),
                 'main' => array(
                    // 'layout' => 'grid_man',
                     'sort' => 'name', 
                     'filter' => array(
-                        'fields' => array(
+                        'items' => array(
                             //'active' => 'EQ',
                             //'mentor_uf[name]' => 'LK',
                             'name' => 'LK'
