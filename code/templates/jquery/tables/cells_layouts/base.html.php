@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-<td class="$${class}">$${html}</td>
+<td class="$${class}">$${body}</td>

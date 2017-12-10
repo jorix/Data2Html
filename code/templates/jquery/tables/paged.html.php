@@ -30,13 +30,13 @@
         <h3>$${title}</h3>
         <input id="$${id}_sort" type="text" value="$${sortBy}">
         <table class="table table-striped table-bordered">
-            <thead><tr>$${thead}</tr></thead>
+            <thead><tr>$${head}</tr></thead>
             <tfoot><tr>
                 <td colspan="$${colCount}">
                     $${page}
                 </td>
             </tr></tfoot>
-            <tbody><tr data-d2h-keys="${[keys]}">$${tbody}</tr></tbody>
+            <tbody><tr data-d2h-keys="${[keys]}">$${body}</tr></tbody>
         </table>
     </div>
 </div>

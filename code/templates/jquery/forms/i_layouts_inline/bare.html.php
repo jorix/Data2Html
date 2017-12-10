@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-$${html}
+$${body}

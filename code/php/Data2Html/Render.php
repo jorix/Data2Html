@@ -144,8 +144,8 @@ class Data2Html_Render
         
         // End
         $replaces = array_merge($replaces, array(
-            'thead' => $thead,
-            'tbody' => $tbody,
+            'head' => $thead,
+            'body' => $tbody,
             'colCount' => $renderCount,
             'visual' => $this->getVisualItemsJson($columns)
         ));
@@ -180,7 +180,7 @@ class Data2Html_Render
                 if ($levelBody) {
                     $this->templateObj->concatContents($itemBody, $levelBody);
                 }
-                $replaces['html'] = $itemBody;
+                $replaces['body'] = $itemBody;
                 $this->templateObj->concatContents(
                     $body,
                     $this->templateObj->renderTemplateItem(
