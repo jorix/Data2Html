@@ -41,13 +41,16 @@ class Data2Html_Render_Template
 
     protected function loadTemplateTreeFile($fileName)
     {
-        $treeArray = $this->loadArrayFile($fileName);
-        if (!is_array($treeArray)) {
-            throw new Exception("{$this->culprit}: loadTemplateTreeFile(\"{$fileName}\") Tree must be a array!");
+        $tree = $this->loadArrayFile($fileName);
+        if (!is_array($tree)) {
+            throw new Data2Html_Exception(
+                "{$this->culprit}: loadTemplateTreeFile(\"{$fileName}\") Tree must be a array!",
+                $tree
+            );
         }
         return $this->loadTemplateTree(
             $this->setFolderPath(dirname($fileName)),
-            $treeArray
+            $tree
         );
     }
     
