@@ -763,7 +763,7 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         }
         var _method = '',
-            _options = null;
+            _options = {};
         switch (arguments.length) {
         case 0:
             break;
@@ -780,7 +780,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             break;
         case 2:
-            if (typeof arguments[0] === "string") {
+            if (typeof arguments[0] === "string" && $.isPlainObject(arguments[1])) {
                 _method = arguments[0];
                 _options = arguments[1];
             } else {

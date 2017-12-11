@@ -1,4 +1,4 @@
-$('[data-d2h]').data2html({
+$('#' + '$${id}').data2html({
     url:    '$${url}',
     type:   'form',
     actions: {
@@ -9,4 +9,3 @@ $('[data-d2h]').data2html({
     },
     visual: $${visual}
 });
-
