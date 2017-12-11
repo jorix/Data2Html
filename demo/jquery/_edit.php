@@ -71,19 +71,22 @@
     // Grid    
         $result = Data2Html_Handler::renderGrid($render, $model, 'main');
         $idGrid = $result['id'];
-        echo "{$result['html']} \n<script>{$result['js']}</script>";
+        $jsCode = $result['js'] . "\n// - - - - -\n";
+        echo "{$result['html']}";
         
-    echo '<hr>';
     // Form edit
         $result = Data2Html_Handler::renderForm($render, $model, 'main');
         $idEdit = $result['id'];
-        echo "{$result['html']} \n<script>{$result['js']}</script>";
+        $jsCode .= $result['js'] . "\n// - - - - -\n";
+        echo "{$result['html']}";
         
     ?>
     <script>
+        <?=$jsCode?>
+        $('[data-d2h]').data2html();
         (function() {
             d2h_switchTo.create('#<?=$idGrid?>', 'grid')
-                .add('#<?=$idEdit?>', 'edit')
+                .add('#<?=$idEdit?>', 'form-edit')
                 .go('grid');
         })();
     </script>

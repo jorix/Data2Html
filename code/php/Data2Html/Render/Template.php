@@ -238,19 +238,18 @@ class Data2Html_Render_Template
             }
             if ($this->debug && $pathObj['extension'] !== '.php') {
                 $cleanFileName = $this->cleanFileName($fileName);
-                $rCount = self::$renderCount++;
                 switch ($pathObj['extension']) {
                     case '.html':
                         $content = 
-                            "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$cleanFileName}\" #{$rCount}# [[ -->\n" .
+                            "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$cleanFileName}\" #\$\${_renderCount}# [[ -->\n" .
                             $content .
-                            "\n<!-- ]] #{$rCount}# -->\n";
+                            "\n<!-- ]] #\$\${_renderCount}# -->\n";
                         break;
                     case '.js':
                         $content = 
-                            "\n// S\"{$cleanFileName}\" #{$rCount}# [[\n" .
+                            "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$cleanFileName}\" #\$\${_renderCount}# [[\n" .
                             $content .
-                            "\n// ]] #{$rCount}#\n";
+                            "\n// ]] #\$\${_renderCount}#\n";
                         break;
                 }
             }
@@ -422,6 +421,7 @@ class Data2Html_Render_Template
         } else {
             $html = '';
         }
+        $replaces['_renderCount'] = self::$renderCount++;
         $js = '';
         $finalReplaces = array();
         foreach($replaces as $k => $v) {

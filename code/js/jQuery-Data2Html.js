@@ -44,10 +44,10 @@ jQuery.ajaxSetup({ cache: false });
     // ----------------
 
     // Base class
-    function dataBase(objElem, container, options) {
+    function dataHtml(objElem, container, options) {
         this._init(objElem, container, options);
     }
-    dataBase.prototype = {
+    dataHtml.prototype = {
         defaults: {
             url: '',
             ajaxType: 'GET',
@@ -67,7 +67,7 @@ jQuery.ajaxSetup({ cache: false });
         
         _init: function(objElem, container, options) {
             this.defaults =
-                $.extend({}, dataBase.prototype.defaults, this.defaults);
+                $.extend({}, dataHtml.prototype.defaults, this.defaults);
             this.objElem = objElem;
             this._initId = _initCounter++;
             this._container = container ? container : this;
@@ -173,7 +173,7 @@ jQuery.ajaxSetup({ cache: false });
     // ------
     // Grid
     // ------
-    $.extend(dataGrid.prototype, dataBase.prototype, {
+    $.extend(dataGrid.prototype, dataHtml.prototype, {
         defaults: {
             type: 'grid',
             auto: 'load',
@@ -196,7 +196,7 @@ jQuery.ajaxSetup({ cache: false });
         _selectorRepeatParent: '',
 
         _init: function(objElem, container, options) {
-            dataBase.prototype._init.apply(this, [objElem, container, options]);
+            dataHtml.prototype._init.apply(this, [objElem, container, options]);
             var settings = this.settings,
                 gridEle = this.objElem;
 
@@ -467,7 +467,7 @@ jQuery.ajaxSetup({ cache: false });
             autoCall.call(this, this.settings);
         }
     }
-    $.extend(dataForm.prototype, dataBase.prototype, {
+    $.extend(dataForm.prototype, dataHtml.prototype, {
         defaults: {
             type: 'form',            
             beforeSave: function(data) { return true; },
@@ -476,7 +476,7 @@ jQuery.ajaxSetup({ cache: false });
             afterDelete: function(data) {}
         },
         _init: function(objElem, container, options) {
-            dataBase.prototype._init.apply(this, [objElem, container, options]);
+            dataHtml.prototype._init.apply(this, [objElem, container, options]);
             
             // prevent submit
             var formEle = this.objElem,
@@ -718,7 +718,7 @@ jQuery.ajaxSetup({ cache: false });
         return selectorArr.reverse().join(">");
     }
     
-    function _getElementOptions(objElem, defaultOptions, options) {
+    function _getElementOptions(objElem, options) {
         var optionsEle = _getElementJsData(objElem, 'd2h');
         if (!optionsEle && !options) {
             $.error(
@@ -766,7 +766,7 @@ jQuery.ajaxSetup({ cache: false });
             _options = null;
         switch (arguments.length) {
         case 0:
-                break;
+            break;
         case 1:
             if ($.isPlainObject(arguments[0])) {
                 _options = arguments[0];
