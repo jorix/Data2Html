@@ -147,7 +147,7 @@ class Data2Html_Render
             'head' => $thead,
             'body' => $tbody,
             'colCount' => $renderCount,
-            'visual' => $this->getVisualItemsJson($columns)
+            'visual' => $this->getVisualItems($columns)
         ));
         return $this->templateObj->renderTemplate($templateTable, $replaces);
         $previusLevel = $level;
@@ -303,7 +303,7 @@ class Data2Html_Render
         );
         
         if (count($items) > 0) {
-            $replaces['visual'] = $this->getVisualItemsJson($items);
+            $replaces['visual'] = $this->getVisualItems($items);
         }
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
@@ -316,7 +316,7 @@ class Data2Html_Render
         return $form;
     }
     
-    protected function getVisualItemsJson($lkItems) {
+    protected function getVisualItems($lkItems) {
         $visualItems = array();
         foreach ($lkItems as $k => $v) {
             if (!Data2Html_Value::getItem($v, 'virtual')) {
@@ -333,6 +333,6 @@ class Data2Html_Render
                 }
             }
         }
-        return str_replace('"', "'", Data2Html_Value::toJson($visualItems));
+        return $visualItems;
     }
 }

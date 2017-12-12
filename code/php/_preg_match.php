@@ -14,10 +14,11 @@
 $v = 'aa[2bib] C2c[2] c3X[c3ci] 33 33ee 4ss[4bib] c[5] c[ wdw3uw ] C .[es] sum(c[eee])';
 //test('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', $v);
 
-test('/\$\{([\w\d]+|[\w\d]+\s*\|[\s\w\d\.,;:\|()+-]+)\}/', 'a ${bb} ${3} ${cc |4qc 4:q09.+(-)5,q5} ${dddd|2 (|) a}');
+//test('/\$\{([\w\d]+|[\w\d]+\s*\|[\s\w\d\.,;:\|()+-]+)\}/', 'a ${bb} ${3} ${cc |4qc 4:q09.+(-)5,q5} ${dddd|2 (|) a}');
 
-
-print_r(getLinkedTo('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', $v));
+test('/["\']([^"\'\$]*)\$\$\{([\w.:-]+)\}/' , 'a ${bb} "# df hsfh df$${3ee} ${cc |4qc 4');
+test('/["\']\$\$\{([\w.:-]+)\}/' , 'a ${bb} "$${3ee} ${cc |4qc 4');
+//print_r(getLinkedTo('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', $v));
 
   //test('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', ' nom divers');
 //     '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i' // $matchLinked = 

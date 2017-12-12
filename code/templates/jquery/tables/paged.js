@@ -5,7 +5,8 @@ $('#' + $${id}).data2html({
     actions: {
         'edit': function(elem) {
                 var keys = this.getKeys(elem, 'info'); 
-                d2h_switchTo.go(this, 'form-edit').load({keys:keys});
+                var a = d2h_switchTo.go(this, 'form-edit')
+                a.load({keys:keys});
         },
         'copy': function() {},
         'delete': function(elem) {
@@ -25,5 +26,5 @@ $('#' + $${id}).data2html({
             'nextPage': function() {this.load({add:true});}
         }
     }],
-    sort: '#' +'$${id}_sort'
+    sort: '#' + '$${id}_sort'
 });

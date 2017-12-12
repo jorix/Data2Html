@@ -466,8 +466,10 @@ class Data2Html_Render_Template
             function($matchItem, $value) { // $encodeFn
                 if ($value) {
                     $posEq = strpos($matchItem, '=');
-                    return 
-                        substr($matchItem, 0, $posEq) . '="' . 
+                    if (is_array($value)) {
+                        $value = str_replace('"', "'", Data2Html_Value::toJson($value));
+                    }
+                    return substr($matchItem, 0, $posEq) . '="' . 
                         htmlspecialchars(
                             $value, 
                             ENT_COMPAT | ENT_SUBSTITUTE,
@@ -496,6 +498,7 @@ class Data2Html_Render_Template
     private function renderJs($js, $replaces)
     {
         $js = $this->replaceContent( // start string '$${template_item}...
+            // '/["\']([^"\'\$]*)\$\$\{([\w.:-]+)\}/',
             '/["\']\$\$\{([\w.:-]+)\}/',
             $replaces,
             function($matchItem, $value) { // $encodeFn
