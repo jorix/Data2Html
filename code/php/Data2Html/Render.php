@@ -249,6 +249,8 @@ class Data2Html_Render
                     'format' => $vDx->getString('format'),
                     'type' => $vDx->getString('type'),
                     'icon' => $vDx->getString('icon'),
+                    'visualClassLayout' => $vDx->getString('visualClassLayout'),
+                    'visualClassBody' => $vDx->getString('visualClassBody'),
                     'action' => $vDx->getString('action'),
                     'validations' => implode(' ', 
                         $vDx->getArray('validations', array())

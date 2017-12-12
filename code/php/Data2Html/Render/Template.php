@@ -461,7 +461,7 @@ class Data2Html_Render_Template
     private function renderHtml($html, $replaces)
     {
         $html = $this->replaceContent( // <xx attribute="$${template_item}" ...
-            '/\w[\w-]*\s*=\s*\"\$\$\{(\w+)(\|*\w*)\}\"/',
+            '/\w[\w-]*\s*=\s*\"\$\$\{([\w]+)(\|*\w*-*)\}\"/',
             $replaces,
             function($matchItem, $value) { // $encodeFn
                 if ($value) {
@@ -496,7 +496,7 @@ class Data2Html_Render_Template
     private function renderJs($js, $replaces)
     {
         $js = $this->replaceContent( // start string '$${template_item}...
-            '/["\']\$\$\{([\w.:]+)\}/',
+            '/["\']\$\$\{([\w.:-]+)\}/',
             $replaces,
             function($matchItem, $value) { // $encodeFn
                 if (!is_array($value)) {

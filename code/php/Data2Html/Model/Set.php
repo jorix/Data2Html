@@ -75,6 +75,8 @@ abstract class Data2Html_Model_Set
         'layout-template' => 'string',
         'content-template' => 'string',
         'icon' => 'string',
+        'visualClassLayout' => 'string',
+        'visualClassBody' => 'string',
         'action' => 'string',
          
         'title' => 'string',
