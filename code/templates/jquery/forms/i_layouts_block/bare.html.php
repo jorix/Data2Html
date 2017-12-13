@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-$${body}
+<span class="$${visualClassLayout}">$${body}</span>

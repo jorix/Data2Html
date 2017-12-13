@@ -15,7 +15,7 @@ $return = array(
                 array(
                     'content-template' => 'button',
                     'icon' => 'edit',
-                    'visualClassBody' => 'btn-info',
+                    'visualClassBody' => 'btn-default',
                     'title' => '$Edit',
                     'description' => null,
                     'action' => 'edit'

@@ -8,9 +8,10 @@ $return = array(
                 array(
                     'layout-template' => 'bare',
                     'content-template' => 'button',
-                    'icon' => 'circle-arrow-left',
+                    'icon' => 'arrow-left',
                     'visualClassBody' => 'btn-warning',
                     'title' => '$Cancel',
+                    'description' => null,
                     'action' => 'back'
                 ),
                 array(
@@ -35,6 +36,7 @@ $return = array(
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-danger',
+                    'visualClassLayout' => 'd2h_delete',
                     'icon' => 'remove',
                     'title' => '$Delete',
                     'action' => 'delete'
@@ -43,8 +45,19 @@ $return = array(
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
+                    'visualClassLayout' => 'd2h_update',
                     'icon' => 'ok',
                     'title' => '$Save',
+                    'action' => 'save'
+                )
+                ,
+                array(
+                    'layout-template' => 'bare',
+                    'content-template' => 'button',
+                    'visualClassBody' => 'btn-success',
+                    'visualClassLayout' => 'd2h_insert',
+                    'icon' => 'ok',
+                    'title' => '$Create',
                     'action' => 'save'
                 )
             )

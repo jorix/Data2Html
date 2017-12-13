@@ -159,6 +159,7 @@ jQuery.ajaxSetup({ cache: false });
             } else {
                 this._rows = rows;
             }
+            return this;
         }
     };
     
@@ -373,6 +374,7 @@ jQuery.ajaxSetup({ cache: false });
                     $("*", _gridEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
+            return this;
         },
 
         // Manage grid HTML
@@ -382,6 +384,7 @@ jQuery.ajaxSetup({ cache: false });
                 $parentContainer = $(this.objElem);
             }
             $(this._selectorRepeat, $parentContainer).remove();
+            return this;
         },
     
         showGridData: function (cols) {
@@ -454,6 +457,7 @@ jQuery.ajaxSetup({ cache: false });
                 }
                 _settings.afterShowGridRow.call(this, i, lastItem);
             }
+            return this;
         }
     });
         
@@ -551,6 +555,7 @@ jQuery.ajaxSetup({ cache: false });
                     $(_formEle).removeClass(_globalDefaults.classFormChanged);
                 }
             });
+            return this;
         },
         save: function(options) {
             var visualData = this._visualData,
@@ -610,6 +615,7 @@ jQuery.ajaxSetup({ cache: false });
                     }
                 });
             }
+            return this;
         },
         'delete': function(options) {
             var visualData = this._visualData,
@@ -664,6 +670,7 @@ jQuery.ajaxSetup({ cache: false });
                     }
                 });
             }
+            return this;
         },
         clear: function(options) {
             if (options && options.switchTo) {
@@ -680,6 +687,7 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
             }
             $(this.objElem).data('d2h-keys', '');
+            return this;
         },
         showFormData: function(row) {
             var tagName,
@@ -690,6 +698,7 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
             }
             $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
+            return this;
         }
     });
     
