@@ -29,29 +29,6 @@ class Data2Html_Handler
     // Server
     // ========================
     /**
-     * Render
-     */    
-    public static function render($request, $template)
-    {
-        try {
-            $payerNames = self::parseRequest($request);
-            $model = self::createModel($payerNames['model']);            
-        } catch(Exception $e) {
-            // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            exit();
-        }
-        $render = self::createRender($template);
-        if (array_key_exists('form', $payerNames)) {
-            $result = self::renderForm($render, $model, $payerNames['form']);
-        } elseif (array_key_exists('grid', $payerNames)) {
-            $result = self::renderGrid($render, $model, $payerNames['grid']);
-        } else {
-            throw new Exception("no request object.");
-        }
-        echo "{$result['html']}\n<script>{$result['js']}</script>";
-    }
-    /**
      * Controller
      */    
     public static function manage($request)
@@ -79,33 +56,33 @@ class Data2Html_Handler
     }
  
     /**
-     * Wrap renders
-     */ 
-    public static function createRender($template)
+     * Render
+     */    
+    public static function render($request, $templateName)
     {
         try {
-            return new Data2Html_Render($template);
+            $payerNames = self::parseRequest($request);
+            $model = self::createModel($payerNames['model']);            
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
             exit();
         }
-    }
-    public static function renderGrid($render, $model, $gridName)
-    {
-        try {
-            return $render->renderGrid($model, $gridName);            
-        } catch(Exception $e) {
-            // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            exit();
+        $render = self::createRender();
+        if (array_key_exists('form', $payerNames)) {
+            $result = $render->renderForm($model, $templateName, $payerNames['form']);
+        } elseif (array_key_exists('grid', $payerNames)) {
+            $result = $render->renderGrid($model, $templateName, $payerNames['grid']);
+        } else {
+            throw new Exception("no request object.");
         }
+        echo "{$result['html']}\n<script>{$result['js']}</script>";
     }
-    
-    public static function renderForm($render, $model, $formName)
+
+    public static function createRender()
     {
         try {
-            return $render->renderForm($model, $formName);            
+            return new Data2Html_Render();
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());

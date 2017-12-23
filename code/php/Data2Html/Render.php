@@ -14,15 +14,16 @@ class Data2Html_Render
         'display', 'format', 'size', 'title', 'type', 'validations', 'default'
     );
     private static $idRenderCount = 0;
-    public function __construct($templateName)
+    
+    public function __construct()
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Render";
         
         $this->idRender = $this->createIdRender();
-        $this->templateObj = new Data2Html_Render_Template($templateName);
+        $this->templateObj = new Data2Html_Render_Template();
     }
-    
+
     public function dump($subject = null)
     {
         if (!$subject) {
@@ -37,12 +38,36 @@ class Data2Html_Render
         return Data2Html_Config::get('controllerUrl') . '?';
     }
     
+    public function renderGrid($model, $templateName, $gridName)
+    {
+        try {
+            $this->templateObj->setTemplate($templateName);
+            return $this->renderGridObj($model, $gridName);            
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            exit();
+        }
+    }
+    
+    public function renderForm($model, $templateName, $formName)
+    {
+        try {
+            $this->templateObj->setTemplate($templateName);
+            return $this->renderFormObj($model, $formName);            
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            exit();
+        }
+    }
+    
     private function createIdRender() {
         self::$idRenderCount++;
         return 'd2h_' . self::$idRenderCount;
     }
 
-    public function renderGrid($model, $gridName)
+    private function renderGridObj($model, $gridName)
     {        
         
         $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
@@ -95,7 +120,7 @@ class Data2Html_Render
         return $result;
     }
     
-    public function renderForm($model, $formName)
+    private function renderFormObj($model, $formName)
     {
         $this->culprit =
             "Render for form: \"{$model->getModelName()}:{$formName}\"";
@@ -117,7 +142,7 @@ class Data2Html_Render
         );
     }
     
-    protected function renderTable($templateTable, $columns, $replaces)
+    private function renderTable($templateTable, $columns, $replaces)
     {
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");

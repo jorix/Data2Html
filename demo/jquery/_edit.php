@@ -66,16 +66,16 @@
         Data2Html_Autoload::start('../_config');
     
         $model = Data2Html_Handler::createModel($_REQUEST['model']);
-        $render = Data2Html_Handler::createRender('../../code/templates/jquery/grid_paged.json.php');
+        $render = Data2Html_Handler::createRender();
     
     // Grid    
-        $result = Data2Html_Handler::renderGrid($render, $model, 'main');
+        $result = $render->renderGrid($model, 'edit-grid-paged', 'main');
         $idGrid = $result['id'];
         $jsCode = $result['js'] . "\n// - - - - -\n";
         echo "{$result['html']}";
         
     // Form edit
-        $result = Data2Html_Handler::renderForm($render, $model, 'main');
+        $result = $render->renderForm($model, 'edit-form', 'main');
         $idEdit = $result['id'];
         $jsCode .= $result['js'] . "\n// - - - - -\n";
         echo "{$result['html']}";

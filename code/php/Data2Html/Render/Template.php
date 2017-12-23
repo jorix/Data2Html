@@ -9,15 +9,11 @@ class Data2Html_Render_Template
     protected $templateContents;
     protected static $renderCount = 0;
     
-    public function __construct($templateName)
+    public function __construct()
     {
         $this->debug = Data2Html_Config::debug();
-        $this->templateName = $templateName;
-        $this->culprit = "Template \"{$this->templateName}\"";
-        $pathObj = $this->parsePath($templateName);
-        
+        $this->culprit = "Template object";
         $this->templateContents = array();
-        $this->templateTree = $this->loadTemplateTreeFile($templateName);
     }
     
     public function dump($subject = null)
@@ -26,6 +22,25 @@ class Data2Html_Render_Template
             $subject = $this->templateTree;
         }
         Data2Html_Utils::dump($this->culprit, $subject);
+    }
+    
+    public function setTemplate($templateName)
+    {
+        if ($this->templateName === $templateName) {
+            return;
+        }
+        $this->culprit = "Template object";
+        
+        $templateFile = 
+            Data2Html_Config::get('templateFolder') . $templateName . '.php';
+        if (!file_exists($templateFile)) {
+            throw new Exception(
+                "{$this->culprit}: Template \"{$templateName}\" does not exist on `templateFolder` of `d2h_config.ini`."
+            );
+        }
+        $this->templateTree = $this->loadTemplateTreeFile($templateFile);
+        $this->templateName = $templateName;
+        $this->culprit = "Template \"{$this->templateName}\"";
     }
     
     public function concatContents(&$final, $item) {
