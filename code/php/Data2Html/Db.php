@@ -77,7 +77,7 @@ abstract class Data2Html_Db
     abstract public function toDate($value);
 
     /**
-     * @param jqGridLoader $loader
+     * @param
      */
     public function __construct($parameters)
     {

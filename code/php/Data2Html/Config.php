@@ -2,79 +2,72 @@
 
 class Data2Html_Config
 {
-    public static $folderName = '.';
-    protected static $fileNames = array(
-        'd2h_config.ini',
-        'd2h_config_db.ini'
-    );
-    protected static $defaultSection = 'config';
-    
-    protected static $loaded = false;
     protected static $debug = false;
     protected static $config = array();
+    protected static $configPath = null;
+    protected static $configFolder = null;
     
-    protected static function load()
+    public static function load($basePath, $fileName)
     {
-        if (static::$loaded) {
+        if (self::$configFolder) {
             return;
         }
-        foreach(static::$fileNames as $file) {
-            static::$loaded = static::loadFile(
-                static::$folderName . '/' . $file
-            );
-        }
+        self::$configPath = Data2Html_Utils::toCleanFilePath(dirname($fileName), '/' ) . '/' ;
+        self::$configFolder = Data2Html_Utils::toCleanFolderPath(
+            $basePath . '/' . dirname($fileName)
+        );
+        self::loadFile($fileName);
         self::$debug = self::get('debug');
     }
     
-    protected static function loadFile($file)
+    public static function dump($subject = null)
     {
-        $config = null;
-        if (file_exists($file)) {
-            $config = parse_ini_file($file, true);
-        } elseif (file_exists($file . '.php')) {
-            $file .= '.php';
-            $config = parse_ini_file($file, true);
-        } else {
-            throw new Exception(
-                "->Config file \"{$file}\" does not exist");
+        if(!$subject) {
+            $subject = array(
+                'configPath' => self::$configPath,
+                'configFolder' => self::$configFolder,
+                'controllerUrl' => self::getPath('controllerUrl'),
+                'templateFolder' => self::getForlder('templateFolder'),
+                'config' => self::$config
+            );
         }
-        if ($config) {
-            static::$config = array_replace_recursive(static::$config, $config);
-        }
-        return true;
+        Data2Html_Utils::dump("Data2Html_Config", $subject);
+    }
+    
+    public static function debug() {
+        return self::$debug;
     }
     
     public static function getSection($key)
     {
-        static::load();
         if (array_key_exists($key, static::$config)) {
             return static::$config[$key];
         } else {
             return array();
         }
     }
-    
-    public static function dump()
+       
+    public static function getPath($key, $default = null, $sectionKey = 'config')
     {
-        static::load();
-        if (self::$debug) {
-            echo "<div style=\"margin-left:.5em\">
-                <h3>Config of: \"" . static::$fileName . "\":</h3>
-                <pre>" .
-                Data2Html_Value::toJson(static::$config, true) .
-                '</pre></div>';
+        $val = self::get($key, $default, $sectionKey);
+        if ($val) {
+            return Data2Html_Utils::toCleanFilePath(self::$configPath . $val, '/');
         } else {
-            echo '<h3 style="margin-left:.5em; color:red; test-align:center">
-                Debugging mode must be enabled to can use dump() method!</h3>';
+            return $val;
+        }
+    }
+    public static function getForlder($key, $default = null, $sectionKey = 'config')
+    {
+        $val = self::get($key, $default, $sectionKey);
+        if ($val) {
+            return Data2Html_Utils::toCleanFolderPath(self::$configFolder . $val);
+        } else {
+            return $val;
         }
     }
     
-    public static function get($key, $default = null, $sectionKey = null)
+    public static function get($key, $default = null, $sectionKey = 'config')
     {
-        static::load();
-        if (!$sectionKey) {
-            $sectionKey = static::$defaultSection;
-        }
         if (array_key_exists($sectionKey, static::$config)) {
             $section = static::$config[$sectionKey];
             if (array_key_exists($key, $section)) {
@@ -87,8 +80,32 @@ class Data2Html_Config
         }
         return $val;
     }
-    public static function debug() {
-        self::load();
-        return self::$debug;
+    
+    private static function loadFile($file)
+    {
+        $config = null;
+        if (file_exists($file)) {
+            $config = parse_ini_file($file, true);
+        } elseif (file_exists($file . '.php')) {
+            $file .= '.php';
+            $config = parse_ini_file($file, true);
+        } else {
+            throw new Exception(
+                "Data2Html_Config: File \"{$file}\" does not exist");
+        }
+        if ($config) {
+            static::$config = array_replace_recursive(static::$config, $config);
+        }
+        
+        // Includes
+        foreach ($config as $v) {
+            foreach ($v as $kk => $vv) {
+                if($kk === 'include' || $kk === 'includes') {
+                    foreach ((array)$vv as $vvv) {
+                        self::loadFile(self::$configFolder . $vvv);
+                    }
+                }
+            }
+        }
     }
 }

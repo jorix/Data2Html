@@ -11,6 +11,37 @@ class Data2Html_Utils
         $str = preg_replace("/[ \"\_|+-,\.\[\]\(\)]+/", $delimiter, $str);
         return $str;
     }
+
+    public static function toCleanFilePath($fileName, $ds = null) {
+        $fileName = str_replace(
+            array('\\', '/./', '//'),
+            array('/', '/', '/'),
+            $fileName
+        );
+        $path = explode('/', $fileName);
+        $cleanFile = '';
+        for ($i = 0; $i + 1 < count($path); $i++) {
+            if ($path[$i + 1] === '..') {
+                array_splice($path, $i, 2);
+                if($i > 1) {
+                    $i -= 2;
+                }
+            } else if ($path[$i + 1] === '.') {
+                array_splice($path, $i + 1, 1);
+            }
+        }
+        return implode(($ds ? $ds : DIRECTORY_SEPARATOR), $path);
+    }
+
+    public static function toCleanFolderPath($folderName, $ds = null)
+    {
+        $folder = self::toCleanFilePath($folderName, $ds);
+        if (strpos('/\\', substr($folder, -1, 1)) === false) {
+            return $folder .= ($ds ? $ds : DIRECTORY_SEPARATOR);
+        } else {
+            return $folder;
+        }
+    }
     
     public static function readFileJson($fileName)
     {

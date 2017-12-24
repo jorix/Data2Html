@@ -32,7 +32,7 @@ class Data2Html_Render_Template
         $this->culprit = "Template object";
         
         $templateFile = 
-            Data2Html_Config::get('templateFolder') . $templateName . '.php';
+            Data2Html_Config::getForlder('templateFolder') . $templateName . '.php';
         if (!file_exists($templateFile)) {
             throw new Exception(
                 "{$this->culprit}: Template \"{$templateName}\" does not exist on `templateFolder` of `d2h_config.ini`."
@@ -64,7 +64,7 @@ class Data2Html_Render_Template
             );
         }
         return $this->loadTemplateTree(
-            $this->setFolderPath(dirname($fileName)),
+            Data2Html_Utils::toCleanFolderPath(dirname($fileName)),
             $tree
         );
     }
@@ -78,7 +78,7 @@ class Data2Html_Render_Template
             );
         }
         if (array_key_exists('folder', $tree)) {
-            $folder = $this->setFolderPath($folder . $tree['folder']);
+            $folder = Data2Html_Utils::toCleanFolderPath($folder . $tree['folder']);
         }
         $response = array();
         foreach($tree as $k => $v) {
@@ -101,11 +101,8 @@ class Data2Html_Render_Template
                     $response[$k] = $items;
                     break;
                 // Mount the tree
-                case 'include':
-                    $response += $this->loadTemplateTreeFile($folder . $v);
-                    break;
                 case 'includes':
-                    foreach($v as $vv) {
+                    foreach((array)$v as $vv) {
                          $response += $this->loadTemplateTreeFile($folder . $vv);
                     }
                     break;
@@ -157,7 +154,7 @@ class Data2Html_Render_Template
             $folderItems = array();
             $folderItems[$k] = array('templates' => $names);
             $response += $this->loadTemplateTree(
-                $this->setFolderPath($folderName . $v),
+                Data2Html_Utils::toCleanFolderPath($folderName . $v),
                 $folderItems
             );
         }
@@ -188,7 +185,7 @@ class Data2Html_Render_Template
     
     protected function loadTemplateFile($fullFileName)
     {
-        $folder = $this->setFolderPath(dirname($fullFileName));
+        $folder = Data2Html_Utils::toCleanFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->loadContent($fullFileName);
         $response = array();
         switch ($pathObj['extension']) {
@@ -206,8 +203,7 @@ class Data2Html_Render_Template
                     }
                 }
                 if ($jsFileName !== '') {
-                    list($jsContentKey, $pathObj) =
-                        $this->loadContent($jsFileName);
+                    list($jsContentKey, $pathObj) = $this->loadContent($jsFileName);
                     $response['js'] = $jsContentKey;
                 }
                 break;
@@ -223,17 +219,8 @@ class Data2Html_Render_Template
         return $response;
     }
 
-    protected function setFolderPath($folder)
-    {
-        if (strpos('/\\', substr($folder, -1, 1)) === false) {
-            return $folder .= DIRECTORY_SEPARATOR;
-        } else {
-            return $folder;
-        }
-    }
-
     protected function loadContent($fileName) {
-        $cleanFileName = $this->cleanFileName($fileName);
+        $cleanFileName = Data2Html_Utils::toCleanFilePath($fileName);
         if (!array_key_exists($cleanFileName, $this->templateContents)) {
             if (!file_exists($fileName)) {
                 throw new Exception(
@@ -252,7 +239,6 @@ class Data2Html_Render_Template
                 }
             }
             if ($this->debug && $pathObj['extension'] !== '.php') {
-                $cleanFileName = $this->cleanFileName($fileName);
                 switch ($pathObj['extension']) {
                     case '.html':
                         $content = 
@@ -300,24 +286,6 @@ class Data2Html_Render_Template
         } else {
             throw new Exception("{$this->culprit}: Error parsing the phpReturn file: \"{$fullFileName}\"");
         }
-    }
-    
-    protected function cleanFileName($fileName) {
-        $fileName = str_replace(
-            array('\\', '/./'),
-            array('/', '/'),
-            $fileName
-        );
-        $path = explode('/', $fileName);
-        $cleanFile = '';
-        for ($i = 0; $i + 1 < count($path); $i++) {
-            if ($path[$i + 1] === '..') {
-                array_splice($path, $i, 2);
-            } else if ($path[$i + 1] === '.') {
-                array_splice($path, $i + 1, 1);
-            }
-        }
-        return implode('/', $path);
     }
     
     protected function getContent($key) {

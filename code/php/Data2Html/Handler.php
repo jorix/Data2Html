@@ -102,7 +102,7 @@ class Data2Html_Handler
         if (array_key_exists($modelName, self::$modelObjects)) {
             return self::$modelObjects[$modelName];
         } elseif (count(self::$modelObjects) === 0) {
-            self::$modelFolder = Data2Html_Config::get('modelFolder');
+            self::$modelFolder = Data2Html_Config::getForlder('modelFolder');
         }
         
         $ds = DIRECTORY_SEPARATOR;

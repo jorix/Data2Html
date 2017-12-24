@@ -35,7 +35,7 @@ class Data2Html_Render
 
     public function getControllerUrl()
     {
-        return Data2Html_Config::get('controllerUrl') . '?';
+        return Data2Html_Config::getPath('controllerUrl') . '?';
     }
     
     public function renderGrid($model, $templateName, $gridName)
