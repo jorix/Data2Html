@@ -32,33 +32,58 @@ aixada_member (
             'table' => 'aixada_member',
             'title' => 'Membres',
             'items' => array(
-                'id'        => array('autoKey', 'required'),
-                'name'      => array(
+                'id' => array('autoKey', 'hidden'),
+                'custom_member_ref' => array(
                     'title' => 'Usuari',
-                    'string' => 255, 'required'
+                    'string' => 100,
+                    'required'
                 ),
-                'active'    => array('integer', 'required', 'default' => 1)
+                'uf_id' => array('title' => 'UF', 'link' => 'aixada_ufs:list', 'required'),
+                'uf_name' =>  array(
+                    'title' => 'UF',
+                    'base'=>'uf_id[uf_name]'
+                ),
+                'name' => array(
+                    'title' => 'Usuari',
+                    'string' => 255,
+                    'required'
+                ),
+                'address' => array('string' => 255),
+                'nif' => array('string' => 255),
+                'zip' => array('string' => 10),
+                'city' => array('string' => 255),
+                'phone1' => array('string' => 50, 'required'),
+                'phone2' => array('string' => 50),
+                'phones' => array('value' => '$${phone1} / $${phone2}', 'sortBy' => 'phone1'),
+                'web' => array('string' => 255),
+                'active' => array('boolean', 'required', 'default' => 1),
+                'ts' => array(
+                    'title' => 'Created',
+                    'date',
+                    'format' => 'dd-MM-yyyy',
+                    'default' => '[now]'
+                ),
             ),
             'grids' => array(
+                'list' => array('sort' => 'name', 'items' => array('name')),
                 'main' => array(
-                    'items' => array('id', 'name', 'active'),
+                    'sort' => 'name',
+                    'items' => array('name', 'active' => array('sortBy' => null), 'uf_name', 'phones'),
                     'filter' => array(
-                        'layout' => 'inline',
-                        'items' => array('active' => 'EQ')
+                        'items' => array(
+                            '%name', '=active', '=uf_id'
+                        )
                     )
+                )
+            ),
+            'forms' => array(
+                'main' => array(
+                    'items' => array(
+                        'name' => array('items' => array('ts', 'active')),
+                        'uf_id', 'phone1', 'phone2'
+                    ),
                 )
             )
         );
-/*
-
- create table aixada_uf (
-  id   	     		int				not null,
-  name				varchar(255)    not null,
-  active     		tinyint 		default 1,   	
-  created			timestamp 		default current_timestamp,
-  mentor_uf         int             default null,
-  primary key (id)
-)
-*/
     }
 }

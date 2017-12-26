@@ -40,28 +40,27 @@ d2h_sortBy.prototype = {
         });
     },
     show: function(sortBy) {
-        if (!sortBy) {
-            $.error("d2h_sortBy.show(): Argument 'sortBy' is required!");
-        }
         $('.d2h_sortBy_asc, .d2h_sortBy_desc', this.dataElem)
             .removeClass('d2h_sortBy_asc d2h_sortBy_desc')
             .addClass('d2h_sortBy_no');
-        var sortByName = sortBy,
-            order = 'd2h_sortBy_asc';
-        switch (sortBy.substr(0, 1)) {
-            case '!': case '-': case '>':
-                sortByName = sortBy.substr(1);
-                order = 'd2h_sortBy_desc';
-                break;
-            case '+': case '<':
-                sortByName = sortBy.substr(1);
-                break;
-            case '$': // ERROR on server template
-                return this;
+        if (sortBy) {
+            var sortByName = sortBy,
+                order = 'd2h_sortBy_asc';
+            switch (sortBy.substr(0, 1)) {
+                case '!': case '-': case '>':
+                    sortByName = sortBy.substr(1);
+                    order = 'd2h_sortBy_desc';
+                    break;
+                case '+': case '<':
+                    sortByName = sortBy.substr(1);
+                    break;
+                case '$': // ERROR on server template
+                    return this;
+            }
+            $('[data-d2h-sort=' + sortByName + ']', this.dataElem)
+                .removeClass('d2h_sortBy_no')
+                .addClass(order);
         }
-        $('[data-d2h-sort=' + sortByName + ']', this.dataElem)
-            .removeClass('d2h_sortBy_no')
-            .addClass(order);
         $(this.sortElem).val(sortBy);
         return this;
     },
