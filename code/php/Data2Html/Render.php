@@ -315,21 +315,14 @@ class Data2Html_Render
         $items,
         $replaces
     ){
-        if (!$items) {
-            $items = array();
-        }
-        list($body) = $this->renderSet(
-            array_merge(
-                $this->parseIncludeItems('startItems', $templateBranch),
-                $items,
-                $this->parseIncludeItems('endItems', $templateBranch)
-            ),
-            $templateBranch
+        $items = array_merge(
+            $this->parseIncludeItems('startItems', $templateBranch),
+            $items ? $items : array(),
+            $this->parseIncludeItems('endItems', $templateBranch)
         );
+        list($body) = $this->renderSet($items, $templateBranch);
         
-        if (count($items) > 0) {
-            $replaces['visual'] = $this->getVisualItems($items);
-        }
+        $replaces['visual'] = $this->getVisualItems($items);
         $form = $this->templateObj->renderTemplate(
             $templateBranch,
             array_merge($replaces, array(
