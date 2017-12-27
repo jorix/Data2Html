@@ -19,9 +19,8 @@
             } else {
                 $obj = $model->getGrid($payerNames['grid']);
             }
-            
-            $obj->dump();
-            //$obj->createLink()->dump();
+            // $obj->dump();
+            $obj->createLink()->dump();
             
         } catch(Exception $e) {
             echo Data2Html_Exception::toHtml($e, true);

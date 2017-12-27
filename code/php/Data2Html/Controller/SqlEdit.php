@@ -79,18 +79,19 @@ class Data2Html_Controller_SqlEdit
                 )
             );
         }
-        $items = $this->set->getItems();
+        $this->set->createLink();
+        $items = $this->set->getLinkedItems();
         $ix = 0;
         $c = array();
         foreach ($keysDf as $k => $v) {
-            $db = $items[$k]['db'];
+            $dbNameField = $items[$k]['db'];
             $req = $keysReq[$ix];
             if ($req === '' || $req === null) {
-                array_push($c, "{$db} is null");
+                array_push($c, "{$dbNameField} is null");
             } else {
                 $type = $items[$k]['type'];
                 $r = $this->db->toSql($req, $type);
-                array_push($c, "{$db} = {$r}");
+                array_push($c, "{$dbNameField} = {$r}");
             }
             $ix++;
         }
