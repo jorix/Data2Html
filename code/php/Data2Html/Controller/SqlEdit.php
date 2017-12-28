@@ -84,14 +84,14 @@ class Data2Html_Controller_SqlEdit
         $ix = 0;
         $c = array();
         foreach ($keysDf as $k => $v) {
-            $dbNameField = $items[$k]['db'];
+            $dbFieldName = $items[$k]['db'];
             $req = $keysReq[$ix];
             if ($req === '' || $req === null) {
-                array_push($c, "{$dbNameField} is null");
+                array_push($c, "{$dbFieldName} is null");
             } else {
                 $type = $items[$k]['type'];
                 $r = $this->db->toSql($req, $type);
-                array_push($c, "{$dbNameField} = {$r}");
+                array_push($c, "{$dbFieldName} = {$r}");
             }
             $ix++;
         }

@@ -43,10 +43,74 @@ class Data2Html_Utils
         }
     }
     
-    public static function readFileJson($fileName)
+    public static function readFileJson($fileName, $culprit = 'Data2Html_Utils')
     {
-        return json_decode(file_get_contents($fileName), true);
+        if (!file_exists($fileName)) {
+            throw new Exception("{$culprit}: The \"{$fileName}\" file does not exist.");
+        }
+        $content = self::readWrappedFile($fileName, $culprit);
+        if ($content === null) {
+            throw new Exception("{$culprit}: Error parsing json file: \"{$fileName}\"");
+        }
+        return json_decode($content, true);
     }
+    
+    public static function readFilePhp($fileName, $culprit = 'Data2Html_Utils')
+    {
+        if (!file_exists($fileName)) {
+            throw new Exception("{$culprit}: The \"{$fileName}\" file does not exist.");
+        }
+        require $fileName;
+        if (!isset($return)) {
+            throw new Exception("{$culprit}: Error parsing phpReturn file: \"{$fileName}\"");
+        }
+        return $return;
+    }
+    
+    public static function readWrappedFile($fileName, $culprit = 'Data2Html_Utils')
+    {
+        if (!file_exists($fileName)) {
+            throw new Exception("{$culprit}: The \"{$fileName}\" file does not exist.");
+        }        
+        $content = file_get_contents($fileName);
+        $pathObj = self::parseWrappedPath($fileName);
+        if ($pathObj['wrap'] === '.php') {
+            $phpEnd = strpos($content, "?>\n");
+            if ($phpEnd === false) {
+                $phpEnd = strpos($content, "?>\r");
+            }
+            if ($phpEnd !== false) {
+                $content = substr($content, $phpEnd + 3);
+            }
+        }
+        return $content;
+    }
+    
+    public static function parseWrappedPath($fileName, $culprit = 'Data2Html_Utils')
+    {
+        $pathObj = pathinfo($fileName);
+        if (isset($pathObj['extension'])) {
+            $pathObj['extension'] = '.' . strtolower($pathObj['extension']);
+        } else {
+            $pathObj['extension'] = '';
+        }
+        if ($pathObj['dirname']) {
+            $pathObj['dirname'] .= DIRECTORY_SEPARATOR;
+        }
+        $pathObj['wrap'] = '';
+        
+        if ($pathObj['extension'] === '.php') {
+            $pathObj2 = self::parseWrappedPath(
+                $pathObj['dirname'] . $pathObj['filename']
+            );
+            if ($pathObj2['extension'] && strpos('.html.js.json', $pathObj2['extension']) !== false) {
+                $pathObj2['wrap'] = $pathObj['extension'];
+                $pathObj = $pathObj2;
+            }
+        }
+        return $pathObj;
+    }
+    
     /**
      * @param mixed $a
      *

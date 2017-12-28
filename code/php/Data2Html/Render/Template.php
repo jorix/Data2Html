@@ -106,9 +106,6 @@ class Data2Html_Render_Template
                          $response += $this->loadTemplateTreeFile($folder . $vv);
                     }
                     break;
-                case 'includeFolders':
-                    $response += $this->loadTemplateTreeFolder($folder, $v);
-                    break;
                 case 'folderTemplates':
                     $response += $this->loadFolderTemplates($folder, $v);
                     break;
@@ -135,32 +132,6 @@ class Data2Html_Render_Template
         return $this->getContent($contentKey);
     }
 
-    // TODO: Remove it!!
-    protected function loadTemplateTreeFolder($folderName, $items)
-    {
-        $response = array();
-        foreach ($items as $k => $v) {
-            $names = array();
-            foreach (new DirectoryIterator($folderName . $v) as $fInfo) {
-                
-                if ($fInfo->isFile()) {
-                    $fileName = $fInfo->getFilename();
-                    $pathObj = $this->parsePath($fileName);
-                    if ($pathObj['extension'] === '.html') {
-                        $names[$pathObj['filename']] = $fileName;
-                    }
-                }
-            }
-            $folderItems = array();
-            $folderItems[$k] = array('templates' => $names);
-            $response += $this->loadTemplateTree(
-                Data2Html_Utils::toCleanFolderPath($folderName . $v),
-                $folderItems
-            );
-        }
-        return $response;
-    }
-    
     protected function loadFolderTemplates($folderName, $items)
     {
         $templates = array();
@@ -168,7 +139,7 @@ class Data2Html_Render_Template
             foreach (new DirectoryIterator($folderName . $v) as $fInfo) {
                 if ($fInfo->isFile()) {
                     $fileName = $fInfo->getFilename();
-                    $pathObj = $this->parsePath($fileName);
+                    $pathObj = Data2Html_Utils::parseWrappedPath($fileName);
                     if ($pathObj['extension'] === '.html') {
                         $name = $pathObj['filename'];
                         if (!array_key_exists($name, $templates)) {
@@ -203,8 +174,7 @@ class Data2Html_Render_Template
                     }
                 }
                 if ($jsFileName !== '') {
-                    list($jsContentKey, $pathObj) = $this->loadContent($jsFileName);
-                    $response['js'] = $jsContentKey;
+                    list($response['js']) = $this->loadContent($jsFileName);
                 }
                 break;
             case '.js':
@@ -220,100 +190,47 @@ class Data2Html_Render_Template
     }
 
     protected function loadContent($fileName) {
-        $cleanFileName = Data2Html_Utils::toCleanFilePath($fileName);
-        if (!array_key_exists($cleanFileName, $this->templateContents)) {
-            if (!file_exists($fileName)) {
-                throw new Exception(
-                    "{$this->culprit}: The \"{$fileName}\" file does not exist."
-                );
-            }        
-            $content = file_get_contents($fileName);
-            $pathObj = $this->parsePath($fileName);
-            if ($pathObj['wrap'] === '.php') {
-                $phpEnd = strpos($content, "?>\n");
-                if ($phpEnd === false) {
-                    $phpEnd = strpos($content, "?>\r");
-                }
-                if ($phpEnd !== false) {
-                    $content = substr($content, $phpEnd + 3);
-                }
-            }
-            if ($this->debug && $pathObj['extension'] !== '.php') {
-                switch ($pathObj['extension']) {
-                    case '.html':
-                        $content = 
-                            "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$cleanFileName}\" #\$\${_renderCount}# [[ -->\n" .
-                            $content .
-                            "\n<!-- ]] #\$\${_renderCount}# -->\n";
-                        break;
-                    case '.js':
-                        $content = 
-                            "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$cleanFileName}\" #\$\${_renderCount}# [[\n" .
-                            $content .
-                            "\n// ]] #\$\${_renderCount}#\n";
-                        break;
-                }
-            }
+        $fileName = Data2Html_Utils::toCleanFilePath($fileName);
+        if (!array_key_exists($fileName, $this->templateContents)) {
+            $pathObj = Data2Html_Utils::parseWrappedPath($fileName);
             switch ($pathObj['extension']) {
             case '.html':
-            case '.js':
-                break;
-            case '.json':
-                $content = json_decode($content, true);
-                if ($content === null) {
-                    throw new Exception("{$this->culprit}: Error parsing the json file: \"{$fileName}\"");
+                $content = Data2Html_Utils::readWrappedFile($fileName, $this->culprit);
+                if ($this->debug) {
+                    $content = 
+                        "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileName}\" #\$\${_renderCount}# [[ -->\n" .
+                        $content .
+                        "\n<!-- ]] #\$\${_renderCount}# -->\n";
                 }
                 break;
+            case '.js':
+                $content = Data2Html_Utils::readWrappedFile($fileName, $this->culprit);
+                if ($this->debug) {
+                    $content = 
+                        "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileName}\" #\$\${_renderCount}# [[\n" .
+                        $content .
+                        "\n// ]] #\$\${_renderCount}#\n";
+                }
+                break;
+            case '.json':
+                $content = Data2Html_Utils::readFileJson($fileName, $this->culprit);
+                break;
             case '.php':
-                $content = $this->getPhpReturn($fileName);
+                $content = Data2Html_Utils::readFilePhp($fileName, $this->culprit);
                 break;
             default:
                 throw new Exception("{$this->culprit}: Extension \"{$pathObj['extension']}\" on definitions name \"{$fileName}\" is not supported.");
             }
-            $this->templateContents[$cleanFileName] = array($content, $pathObj);
+            $this->templateContents[$fileName] = array($content, $pathObj);
         }
         return array(
-            $cleanFileName,
-            $this->templateContents[$cleanFileName][1] // the path info
+            $fileName,
+            $this->templateContents[$fileName][1] // the path info
         );
-    }
-
-        
-    protected function getPhpReturn($fullFileName) {
-        require $fullFileName;
-        if (isset($return)) {
-            return $return;
-        } else {
-            throw new Exception("{$this->culprit}: Error parsing the phpReturn file: \"{$fullFileName}\"");
-        }
     }
     
     protected function getContent($key) {
         return $this->templateContents[$key][0];
-    }
-    
-    protected function parsePath($fileName) {
-        $pathObj = pathinfo($fileName);
-        if (isset($pathObj['extension'])) {
-            $pathObj['extension'] = '.' . strtolower($pathObj['extension']);
-        } else {
-            $pathObj['extension'] = '';
-        }
-        if ($pathObj['dirname']) {
-            $pathObj['dirname'] .= DIRECTORY_SEPARATOR;
-        }
-        $pathObj['wrap'] = '';
-        
-        if ($pathObj['extension'] === '.php') {
-            $pathObj2 = $this->parsePath(
-                $pathObj['dirname'] . $pathObj['filename']
-            );
-            if ($pathObj2['extension'] && strpos('.html.js.json', $pathObj2['extension']) !== false) {
-                $pathObj2['wrap'] = $pathObj['extension'];
-                $pathObj = $pathObj2;
-            }
-        }
-        return $pathObj;
     }
     
     // ==========================================
