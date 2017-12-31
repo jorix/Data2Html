@@ -2,12 +2,11 @@
 class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
-        'layout' => 'attribute'
-    );
-    
-    protected $keywords = array(
-        'sortBy' => null,
-        'teplateItems' => 'array'
+        'layout' => 'attribute',
+        'beforeInsert' => 'attribute',
+        'afterInsert' => 'attribute',
+        'beforeUpdate' => 'attribute',
+        'afterUpdate' => 'attribute'
     );
     
     public function __construct(

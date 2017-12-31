@@ -1,5 +1,4 @@
 <?php
-class aixada_users extends Data2Html_Model {
 /*
   id   	     			int				not null auto_increment,
   login			 		varchar(50)	 	not null,
@@ -19,60 +18,55 @@ class aixada_users extends Data2Html_Model {
   foreign key (provider_id) references aixada_provider(id)  
 )
 */
-    protected function definitions()
-    {
-        #Set database table
-        return array(
-            'table' => 'aixada_user',
-            'title' => 'Users',
+$return = array(
+    'table' => 'aixada_user',
+    'title' => 'Users',
+    'items' => array(
+        'id' => array('autoKey', 'hidden'),
+        'login' => array(
+            'string' => 50,
+            'required'
+        ),
+        'password' => array(
+            'string' => 255,
+            'required'
+        ),
+        'email' => array(
+            'email' => 100,
+            'required'
+        ),
+        'member_id' => array('link' => 'aixada_members:list'),
+        'member_name' => array('base' => 'member_id[name]'),
+        'created_on' => array(
+            'title' => 'Created',
+            'date',
+            'format' => 'dd-MM-yyyy',
+            'default' => '[now]'
+        ),
+    ),
+    'grids' => array(
+        //'list' => array('sort' => 'member_name', 'items' => array('member_name')),
+        'main' => array(
+            'sort' => 'login',
             'items' => array(
-                'id' => array('autoKey', 'hidden'),
-                'login' => array(
-                    'string' => 50,
-                    'required'
-                ),
-                'password' => array(
-                    'string' => 255,
-                    'required'
-                ),
-                'email' => array(
-                    'email' => 100,
-                    'required'
-                ),
-                'member_id' => array('link' => 'aixada_members:list'),
-                'member_name' => array('base' => 'member_id[name]'),
-                'created_on' => array(
-                    'title' => 'Created',
-                    'date',
-                    'format' => 'dd-MM-yyyy',
-                    'default' => '[now]'
-                ),
+                'login',
+                // 'member_name'
             ),
-            'grids' => array(
-                //'list' => array('sort' => 'member_name', 'items' => array('member_name')),
-                'main' => array(
-                    'sort' => 'login',
-                    'items' => array(
-                        'login',
-                        // 'member_name'
-                    ),
-                    'filter' => array(
-                        'items' => array(
-                            '%login'
-                        )
-                    )
-                )
-            ),
-            'forms' => array(
-                'main' => array(
-                    'items' => array(
-                        'login',
-                        'password',
-                        'email',
-                        'member_id'
-                    ),
+            'filter' => array(
+                'items' => array(
+                    '%login'
                 )
             )
-        );
-    }
-}
+        )
+    ),
+    'forms' => array(
+        'main' => array(
+            'items' => array(
+                'login',
+                'password',
+                'email',
+                'member_id'
+            ),
+        )
+    )
+);

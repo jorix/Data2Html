@@ -100,14 +100,14 @@ class Data2Html_Render_Template
                     }
                     $response[$k] = $items;
                     break;
-                // Mount the tree
+                case 'templatesFolder':
+                    $response += $this->loadFolderTemplates($folder, $v);
+                    break;
+                // Add to the tree
                 case 'includes':
                     foreach((array)$v as $vv) {
                          $response += $this->loadTemplateTreeFile($folder . $vv);
                     }
-                    break;
-                case 'folderTemplates':
-                    $response += $this->loadFolderTemplates($folder, $v);
                     break;
                 default:
                     if (is_callable($v)) {
@@ -185,7 +185,6 @@ class Data2Html_Render_Template
                     "{$this->culprit}: Extension \"{$pathObj['extension']}\" on template name \"{$fullFileName}\" is not supported."
                 );
         }
-        $response['d2hToken_template'] = true;
         return $response;
     }
 

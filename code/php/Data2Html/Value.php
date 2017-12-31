@@ -5,7 +5,7 @@ class Data2Html_Value
     public static function toJson($obj, $pretty = false)
     {
         $options = 0;
-        if ($pretty && version_compare(PHP_VERSION, '5.4.0', '>=')) {
+        if ($pretty) {
             $options |= JSON_PRETTY_PRINT;
         }
         $result = json_encode($obj, $options);

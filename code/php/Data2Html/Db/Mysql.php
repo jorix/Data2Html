@@ -32,7 +32,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db
     {
         try {
             return $this->link->query($sql);
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             throw new Data2Html_Exception(
                 $e->getMessage(),
                 array(
@@ -69,8 +69,18 @@ class Data2Html_Db_Pdo extends Data2Html_Db
     // Execute    
     public function execute($sql)
     {
-        $result = $this->query($sql);
-        return $result->rowCount();
+        try {
+            $result = $this->query($sql);
+            return $result->rowCount();
+        } catch (Exception $e) {
+            throw new Data2Html_Exception(
+                $e->getMessage(),
+                array(
+                    'sql' => explode("\n", $sql)
+                ),
+                $e->getCode()
+            );
+        };
     }
     
     public function startTransaction()

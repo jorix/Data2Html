@@ -6,7 +6,7 @@
  *      * ..Ds: Definitions as a array.
  */
  
-abstract class Data2Html_Model
+class Data2Html_Model
 {
     protected $debug = false;
     protected $modelName = '';
@@ -25,23 +25,23 @@ abstract class Data2Html_Model
      *
      * @param jqGridLoader $loader
      */
-    public function __construct()
+    public function __construct($modelName)
     {
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
 
         $this->debug = Data2Html_Config::debug();
-        $this->modelName = get_class($this);
+        $this->modelName = $modelName;
         $this->culprit = "Model \"{$this->modelName}\"";
         
-        $this->definitions = $this->definitions();
+        $this->definitions = Data2Html_Utils::readFilePhp(
+            Data2Html_Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
+        );
         $this->baseSet = new Data2Html_Model_Set_Base(
             $this, null, $this->definitions
         );
     }
-    
-    abstract protected function definitions();
  
     public function getModelName()
     {

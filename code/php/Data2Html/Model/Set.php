@@ -190,9 +190,13 @@ abstract class Data2Html_Model_Set
     
     public function getAttribute($attrName, $default = null)
     {
-        if (!array_key_exists($attrName, $this->attributeNames)) {
+        if (!isset($this->attributeNames[$attrName])) {
             throw new Exception(
                 "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is not supported."
+            );
+        } elseif ($this->attributeNames[$attrName] === false) {
+            throw new Exception(
+                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
             );
         }
         return Data2Html_Value::getItem($this->attributes, $attrName, $default);
@@ -264,6 +268,65 @@ abstract class Data2Html_Model_Set
             );
         }
         return $this->link->getKeys();
+    }
+    
+    // -----------------------
+    // Database management
+    // -----------------------
+    public function dbInsert($db, $values, &$newId)
+    {
+        if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
+            return false;
+        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $result = $db->execute($sqlObj->getInsert($values));
+        $newId = $db->lastInsertId();
+        
+        $this->callbackEvent('afterInsert', $db, $values, $newId);
+        return $result;
+    }
+    
+    public function dbUpdate($db, $values, $keys)
+    {
+        if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
+            return false;
+        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $sqlObj->checkSingleRow($keys);
+        $result = $db->execute($sqlObj->getUpdate($values));
+        
+        $this->callbackEvent('afterUpdate', $db, $values, $keys);
+        return $result;
+    }
+    
+    protected function callbackEvent($eventName, $db, &$values) // arguments may be 3 or 4, depends of the event
+    {
+        $callEvent = function ($set, $args, $response) use($eventName, $db, &$values) {
+            $fn = $set->getAttribute($eventName);
+            if ($fn) {
+                switch (count($args)) {
+                    case 3:
+                        $response = $fn($set, $db, $values);
+                        break;
+                    case 4:
+                        $response = $fn($set, $db, $values, $args[3]);
+                        break;
+                    default:
+                        throw new Exception(
+                            "{$this->culprit}: \"{$eventName}\" defined with incorrect number of arguments=" . count($args)
+                        );  
+                }
+            }
+            return $response;
+        };
+        $response = true;
+        if ($this->baseSet) {
+            $response = $callEvent($this->baseSet, func_get_args(), $response);
+        }
+        if ($response !== false) {
+            $response = $callEvent($this, func_get_args(), $response);
+        }
+        return $response;
     }
     
     // -----------------------

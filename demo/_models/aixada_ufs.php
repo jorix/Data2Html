@@ -1,73 +1,63 @@
 <?php
-class aixada_ufs extends Data2Html_Model {
-
-    protected function definitions()
-    {
-        #Set database table
-        return array(
-            'table' => 'aixada_uf',
-            'title' => 'Unitats familiars',
+$return = array(
+    'table' => 'aixada_uf',
+    'title' => 'Unitats familiars',
+    'items' => array(
+        'id'        => array('autoKey'),
+        'name'      => array(
+            'title' => 'Nom UF',
+            'string'=> 255,
+            'required'
+        ),
+        'uf_name'   => array(
+            'title' => 'Nom UF',
+            'value' => '$${name}#$${id}',
+            'sortBy' => 'name'
+        ),
+        'active'    => array('boolean', 'required', 'default' => true),
+        'created'   => array('date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'),
+        'mentor_uf' => array('link' => 'aixada_ufs:list'),
+        'mentor_name' =>  array(
+            'title' => 'UF mentora',
+            'base' => 'mentor_uf[uf_name]'
+        ),
+    ),
+    'beforeInsert' => function ($set, $db, &$values) {
+        $values['id'] = $db->getValue('select max(id) + 3 from aixada_uf', 'integer');
+        return true;
+    },
+    'grids' => array(
+        'list' => array(
+            'sort' => 'name',
+            'items' => array('uf_name'),
+            'filter' => array('items' => array('=active'))
+        ),
+        'account' => array(
+            'sort' => 'name',
             'items' => array(
-                'id'        => array('autoKey'),
-                'name'      => array(
-                    'title' => 'Nom UF',
-                    'string'=> 255,
-                    'required'
-                ),
-                'uf_name'   => array(
-                    'title' => 'Nom UF',
-                    'value' => '$${name}#$${id}',
-                    'sortBy' => 'name'
-                ),
-                'active'    => array('boolean', 'required', 'default' => true),
-                'created'   => array('date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'),
-                'mentor_uf' => array('link' => 'aixada_ufs:list'),
-                'mentor_name' =>  array(
-                    'title' => 'UF mentora',
-                    'base' => 'mentor_uf[uf_name]'
-                ),
+                'value' => array('key', 'db' => '1000 + id'),
+                'uf_name'
             ),
-            'grids' => array(
-                'list' => array(
-                    'sort' => 'name',
-                    'items' => array('uf_name'),
-                    'filter' => array('items' => array('=active'))
-                ),
-                'account' => array(
-                    'sort' => 'name',
-                    'items' => array(
-                        'value' => array('key', 'db' => '1000 + id'),
-                        'uf_name'
-                    ),
-                    'filter' => array(
-                        'items' => array('=active')
-                    )
-                ),
-                'main' => array(
-                    'sort' => 'name',
-                    'items' => array('active', 'uf_name', 'created','mentor_name'),
-                    'filter' => array(
-                        'items' => array(
-                            '%name', '=active', '=mentor_uf'
-                        )
-                    )
-                )
-            ),
-            'forms' => array(
-                'main' => array(
-                    'items' => array(
-                        'name' => array('items' => array('id', 'created', 'active')),
-                        'mentor_uf'
-                    )
+            'filter' => array(
+                'items' => array('=active')
+            )
+        ),
+        'main' => array(
+            'sort' => 'name',
+            'items' => array('active', 'uf_name', 'created','mentor_name'),
+            'filter' => array(
+                'items' => array(
+                    '%name', '=active', '=mentor_uf'
                 )
             )
-        );
-    }
-    
-    public function beforeInsert($db, &$values)
-    {
-        $values['id'] =
-            $db->getValue('select max(id) + 1 from  aixada_uf', 'integer');
-        return true;
-    }
-}
+        )
+    ),
+    'forms' => array(
+        'main' => array(
+            'items' => array(
+                'name' => array('items' => array('id', 'created', 'active')),
+                'mentor_uf'
+            )
+        )
+    )
+);

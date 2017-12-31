@@ -6,11 +6,11 @@ class Data2Html_Exception extends Exception
 
     public function __construct($message, $data = array(), $code = 0)
     {
+        $this->data = $data;
         if (!is_int($code)) {
-            $data['error_code'] = $code;
+            $this->data['error_code'] = $code;
             $code = 0;
         }
-        $this->data = $data;
         return parent::__construct($message, $code);
     }
 
@@ -26,7 +26,7 @@ class Data2Html_Exception extends Exception
             // Error
             $response['error'] = $exception->getMessage();
             if ($exception->getCode()) {
-                $response['error'] .= ' [ code: '.$exception->getCode().' ]';
+                $response['error-code'] = $exception->getCode();
             }
             // Exception to debug
             $exeptionData = array();
@@ -34,8 +34,15 @@ class Data2Html_Exception extends Exception
                 ' [ line: '.$exception->getLine().' ]';
             $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
             if ($exception instanceof Data2Html_Exception) {
-                $exeptionData['data'] = $exception->getData();
+                $debugData = $exception->getData();
+                // Error code non numeric from debug-data
+                if (isset($debugData['error_code'])) {
+                    $response['error-code'] = $debugData['error_code'];
+                    unset($debugData['error-code']);
+                }
+                $exeptionData['debug-data'] = $debugData;
             }
+            // set exception
             $response['exception'] = $exeptionData;
         } else {
             $response['error'] =

@@ -1,5 +1,5 @@
 <?php
-class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base 
+class Data2Html_Model_Set_Table extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
         'sort' => 'attribute',
@@ -7,10 +7,10 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set_Base
         'layouts' => 'attribute',
         'filter' => false
     );
-    // protected $keywords = array(
-        // 'head-item' => 'array'        
-    // );
-    
+    protected $keywords = array(
+        'sortBy' => null
+    );
+
     public function __construct(
         $model,
         $setName,

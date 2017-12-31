@@ -1,5 +1,4 @@
 <?php
-class aixada_members extends Data2Html_Model {
 /*
 aixada_member (
   id 	       		int				not null auto_increment,
@@ -25,65 +24,60 @@ aixada_member (
   foreign key (uf_id)  references aixada_uf(id)
 )
 */
-    protected function definitions()
-    {
-        #Set database table
-        return array(
-            'table' => 'aixada_member',
-            'title' => 'Membres',
-            'items' => array(
-                'id' => array('autoKey', 'hidden'),
-                'custom_member_ref' => array(
-                    'title' => 'Usuari',
-                    'string' => 100,
-                    'required'
-                ),
-                'uf_id' => array('title' => 'UF', 'link' => 'aixada_ufs:list', 'required'),
-                'uf_name' =>  array(
-                    'title' => 'UF',
-                    'base'=>'uf_id[uf_name]'
-                ),
-                'name' => array(
-                    'title' => 'Usuari',
-                    'string' => 255,
-                    'required'
-                ),
-                'address' => array('string' => 255),
-                'nif' => array('string' => 255),
-                'zip' => array('string' => 10),
-                'city' => array('string' => 255),
-                'phone1' => array('string' => 50, 'required'),
-                'phone2' => array('string' => 50),
-                'phones' => array('value' => '$${phone1} / $${phone2}', 'sortBy' => 'phone1'),
-                'web' => array('string' => 255),
-                'active' => array('boolean', 'required', 'default' => 1),
-                'ts' => array(
-                    'title' => 'Created',
-                    'date',
-                    'format' => 'dd-MM-yyyy',
-                    'default' => '[now]'
-                ),
-            ),
-            'grids' => array(
-                'list' => array('sort' => 'name', 'items' => array('name')),
-                'main' => array(
-                    'sort' => 'name',
-                    'items' => array('name', 'active' => array('sortBy' => null), 'uf_name', 'phones'),
-                    'filter' => array(
-                        'items' => array(
-                            '%name', '=active', '=uf_id'
-                        )
-                    )
-                )
-            ),
-            'forms' => array(
-                'main' => array(
-                    'items' => array(
-                        'name' => array('items' => array('ts', 'active')),
-                        'uf_id', 'phone1', 'phone2'
-                    ),
+$return = array(
+    'table' => 'aixada_member',
+    'title' => 'Membres',
+    'items' => array(
+        'id' => array('autoKey', 'hidden'),
+        'custom_member_ref' => array(
+            'title' => 'Usuari',
+            'string' => 100,
+            'required'
+        ),
+        'uf_id' => array('title' => 'UF', 'link' => 'aixada_ufs:list', 'required'),
+        'uf_name' =>  array(
+            'title' => 'UF',
+            'base'=>'uf_id[uf_name]'
+        ),
+        'name' => array(
+            'title' => 'Usuari',
+            'string' => 255,
+            'required'
+        ),
+        'address' => array('string' => 255),
+        'nif' => array('string' => 255),
+        'zip' => array('string' => 10),
+        'city' => array('string' => 255),
+        'phone1' => array('string' => 50, 'required'),
+        'phone2' => array('string' => 50),
+        'phones' => array('value' => '$${phone1} / $${phone2}', 'sortBy' => 'phone1'),
+        'web' => array('string' => 255),
+        'active' => array('boolean', 'required', 'default' => 1),
+        'ts' => array(
+            'title' => 'Created',
+            'date',
+            'format' => 'dd-MM-yyyy',
+            'default' => '[now]'
+        ),
+    ),
+    'grids' => array(
+        'list' => array('sort' => 'name', 'items' => array('name')),
+        'main' => array(
+            'sort' => 'name',
+            'items' => array('name', 'active' => array('sortBy' => null), 'uf_name', 'phones'),
+            'filter' => array(
+                'items' => array(
+                    '%name', '=active', '=uf_id'
                 )
             )
-        );
-    }
-}
+        )
+    ),
+    'forms' => array(
+        'main' => array(
+            'items' => array(
+                'name' => array('items' => array('ts', 'active')),
+                'uf_id', 'phone1', 'phone2'
+            ),
+        )
+    )
+);

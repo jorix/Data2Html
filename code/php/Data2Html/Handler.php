@@ -99,25 +99,12 @@ class Data2Html_Handler
         if (!$modelName) {
             throw new Exception("Don't use `createModel()` without modelName.");
         }
-        if (array_key_exists($modelName, self::$modelObjects)) {
-            return self::$modelObjects[$modelName];
-        } elseif (count(self::$modelObjects) === 0) {
-            self::$modelFolder = Data2Html_Config::getForlder('modelFolder');
+        if (!array_key_exists($modelName, self::$modelObjects)) {
+            self::$modelObjects[$modelName] = new Data2Html_Model($modelName);
         }
-        
-        $ds = DIRECTORY_SEPARATOR;
-        $modelFile = self::$modelFolder . $ds . $modelName . '.php';
-        if (file_exists($modelFile)) {
-            require $modelFile;
-            $model = new $modelName();
-            self::$modelObjects[$modelName] = $model;
-            return $model;
-        } else {
-            throw new Exception(
-                "Can't load model \"{$modelName}\": File \"{$modelFile}\" does not exist.");
-        }
+        return self::$modelObjects[$modelName];
     }
-            
+
     public static function parseRequest($request) 
     {
         if (!array_key_exists('model', $request)) {

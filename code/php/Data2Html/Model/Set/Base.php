@@ -2,13 +2,16 @@
 class Data2Html_Model_Set_Base extends Data2Html_Model_Set 
 {
     protected $attributeNames = array(
-        'table' => 'attribute',
         'grids' => false,
-        'forms' => false
+        'forms' => false,
+        'table' => 'attribute',
+        'beforeInsert' => 'attribute',
+        'afterInsert' => 'attribute',
+        'beforeUpdate' => 'attribute',
+        'afterUpdate' => 'attribute'
     );
     protected $keywords = array(
-        'sortBy' => null,
-        'teplateItems' => 'array'
+        'sortBy' => null
     );
 
     protected function beforeAddItem(&$key, &$field)

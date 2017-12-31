@@ -4,6 +4,6 @@ $return = array(
     "startItems" => "edit-buttons.php",
     "endItems" =>   "edit-buttons.php",
     "includes" =>   "../assign-template.php",
-    "layouts" =>    array("folderTemplates" => "../i_layouts_block/"),
-    "contents" =>   array("folderTemplates" => "../inputs/")
+    "layouts" =>    array("templatesFolder" => "../i_layouts_block/"),
+    "contents" =>   array("templatesFolder" => "../inputs/")
 );

@@ -6,10 +6,10 @@ $return = array(
         'startItems' => 'page-inputs.php',
         "includes" => "../assign-template.php",
         "layouts" => array(
-            "folderTemplates" => "../i_layouts_block/"
+            "templatesFolder" => "../i_layouts_block/"
         ),
         "contents" => array(
-            "folderTemplates" => "../inputs/"
+            "templatesFolder" => "../inputs/"
         )
     )
 );

@@ -299,7 +299,10 @@ jQuery.ajaxSetup({ cache: false });
             } else {
                 $elem = $(selector, this.objElem);
             }
-            if ($elem.length !== 1) {
+            if ($elem.length === 0) {
+                this.components[compomentName] = null;
+                return;
+            } else if ($elem.length !== 1) {
                 $.error(
                     "Data2Html: Selector '" + selector + 
                   //  "' of component '" + componentName +

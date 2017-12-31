@@ -14,10 +14,10 @@ $return = array(
             return array($layout, $content, array());
         },
         "layouts" => array(
-            "folderTemplates" => "heads_layouts/"
+            "templatesFolder" => "heads_layouts/"
         ),
         "contents" => array(
-            "folderTemplates" => array("heads/", "../forms/inputs/")
+            "templatesFolder" => array("heads/", "../forms/inputs/")
         )
     ),
     "cells" => array(
@@ -53,10 +53,10 @@ $return = array(
             return array($layout, $content, $replaces);
         },
         "layouts" => array(
-            "folderTemplates" => "cells_layouts/"
+            "templatesFolder" => "cells_layouts/"
         ),
         "contents" => array(
-            "folderTemplates" => array("cells/", "../forms/inputs/")
+            "templatesFolder" => array("cells/", "../forms/inputs/")
         )
     )
 );

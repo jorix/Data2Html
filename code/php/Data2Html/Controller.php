@@ -262,50 +262,45 @@ class Data2Html_Controller
 
     protected function opInsert($set, $values)
     {
-        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
-        
-        if ($this->model->beforeInsert($this->db, $values) === false) {
-            exit;
-        }
-        $sql = $sqlObj->getInsert($values);
+        $newId = null;
         
         // Transaction
         $this->db->startTransaction();
         try {
-            $result = $this->db->execute($sql);
+            $result = $set->dbInsert($this->db, $values, $newId);
         } catch (Exception $e) {
             $this->db->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage() . $sql);
+            header('HTTP/1.0 401 Database error');
+            die(Data2Html_Value::toJson(
+                Data2Html_Exception::toArray($e, $this->debug)
+            ));
         }
-        //$new_id = $this->db->lastInsertId();  
-        $this->model->afterInsert($this->db, $values, $new_id);
+        if ($result === false) {
+            $this->db->rollback();
+            return false;
+        }
         $this->db->commit();
 
-        return $new_id;
+        return $newId;
     }
     
     protected function opUpdate($set, $values, $keys)
     {
-        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
-        $sqlObj->checkSingleRow($keys);
-
-        if ($this->model->beforeUpdate($this->db, $values, $keys) === false) {
-            exit;
-        }
-        $sql = $sqlObj->getUpdate($values);
-        
         // Transaction
-        $result = null;
         $this->db->startTransaction();
         try {
-            $result = $this->db->execute($sql);
+            $result = $set->dbUpdate($this->db, $values, $keys);
         } catch (Exception $e) {
             $this->db->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage() . $sql);
+            header('HTTP/1.0 401 Database error');
+            die(Data2Html_Value::toJson(
+                Data2Html_Exception::toArray($e, $this->debug)
+            ));
         }
-        $this->model->afterUpdate($this->db, $values, $keys);
+        if ($result === false) {
+            $this->db->rollback();
+            return false;
+        }
         $this->db->commit();
 
         return $result;
