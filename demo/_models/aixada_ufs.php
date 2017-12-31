@@ -3,7 +3,7 @@ $return = array(
     'table' => 'aixada_uf',
     'title' => 'Unitats familiars',
     'items' => array(
-        'id'        => array('autoKey'),
+        'id'        => array('key', 'integer'),
         'name'      => array(
             'title' => 'Nom UF',
             'string'=> 255,
@@ -23,7 +23,7 @@ $return = array(
         ),
     ),
     'beforeInsert' => function ($set, $db, &$values) {
-        $values['id'] = $db->getValue('select max(id) + 3 from aixada_uf', 'integer');
+        $values['id'] = $db->getValue('select max(id) + 1 from aixada_uf', 'integer');
         return true;
     },
     'grids' => array(
@@ -44,7 +44,7 @@ $return = array(
         ),
         'main' => array(
             'sort' => 'name',
-            'items' => array('active', 'uf_name', 'created','mentor_name'),
+            'items' => array('id', 'active', 'uf_name', 'created','mentor_name'),
             'filter' => array(
                 'items' => array(
                     '%name', '=active', '=mentor_uf'
