@@ -1,6 +1,5 @@
 <?php
 $return = array(
-    "template" => "paged.html.php",
     "heads" => array(
         "assign-template" => function($render, $item) {
             $itemDx = new Data2Html_Collection($item);
