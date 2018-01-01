@@ -17,6 +17,7 @@ $return = array(
         'active'    => array('boolean', 'required', 'default' => true),
         'created'   => array('date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'),
         'mentor_uf' => array('link' => 'aixada_ufs:list'),
+       // 'members' => array('leafs' => 'aixada_members:main'),
         'mentor_name' =>  array(
             'title' => 'UF mentora',
             'base' => 'mentor_uf[uf_name]'
@@ -44,7 +45,7 @@ $return = array(
         ),
         'main' => array(
             'sort' => 'name',
-            'items' => array('id', 'active', 'uf_name', 'created','mentor_name'),
+            'items' => array('active', 'uf_name', 'created','mentor_name'),
             'filter' => array(
                 'items' => array(
                     '%name', '=active', '=mentor_uf'

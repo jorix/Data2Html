@@ -66,6 +66,7 @@ abstract class Data2Html_Model_Set
         ),
         'level' => 'integer',
         'link' => 'string',
+        'leafs' => 'string',
         'linkedTo' => 'array',
         'items' => 'array',
         'name' => 'string',

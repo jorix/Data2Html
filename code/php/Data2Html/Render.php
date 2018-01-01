@@ -4,7 +4,7 @@ class Data2Html_Render
 {
     public $debug = false;
     private $templateObj;
-    private $idRender;
+    private $idRender = null;
     private $typeToInputTemplates = array(
         '[default]' =>    array('base', 'text-input'),
         'boolean' =>    array('checkbox', 'checkbox'),
@@ -20,7 +20,6 @@ class Data2Html_Render
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Render";
         
-        $this->idRender = $this->createIdRender();
         $this->templateObj = new Data2Html_Render_Template();
     }
 
@@ -41,6 +40,7 @@ class Data2Html_Render
     public function renderGrid($model, $templateName, $gridName)
     {
         try {
+            $this->idRender = $this->createIdRender();
             $this->templateObj->setTemplate($templateName);
             return $this->renderGridObj($model, $gridName);            
         } catch(Exception $e) {
@@ -53,6 +53,7 @@ class Data2Html_Render
     public function renderForm($model, $templateName, $formName)
     {
         try {
+            $this->idRender = $this->createIdRender();
             $this->templateObj->setTemplate($templateName);
             return $this->renderFormObj($model, $formName);            
         } catch(Exception $e) {

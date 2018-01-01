@@ -46,12 +46,7 @@ class Data2Html_Handler
             } else {
                 header('HTTP/1.1 500 Error');
             }
-            try {
-                self::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
-            } catch(Exception $ee) {
-                header('Content-type: application/responseJson; charset=utf-8;');                
-                echo serialize(Data2Html_Exception::toArray($e, $debug));
-            }
+            self::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
         }
     }
  
@@ -100,7 +95,13 @@ class Data2Html_Handler
             throw new Exception("Don't use `createModel()` without modelName.");
         }
         if (!array_key_exists($modelName, self::$modelObjects)) {
-            self::$modelObjects[$modelName] = new Data2Html_Model($modelName);
+            try {
+                self::$modelObjects[$modelName] = new Data2Html_Model($modelName);
+            } catch(Exception $e) {
+                // Is assumed is called from a view, so message on html        
+                echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+                exit();
+            }
         }
         return self::$modelObjects[$modelName];
     }
@@ -134,11 +135,9 @@ class Data2Html_Handler
     {
         try {
             parse_str('model=' . $linkText, $reqArr);
+            return self::parseRequest($reqArr);
         } catch(Exception $e) {
-            throw new Exception(
-                "Link \"{$linkText}\" can't be parsed.");
-            return null;
+            throw new Exception("Link \"{$linkText}\" can't be parsed.");
         }
-        return self::parseRequest($reqArr);
     }
 }
