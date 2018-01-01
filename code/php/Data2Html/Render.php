@@ -84,9 +84,7 @@ class Data2Html_Render
             $gridId . '_page',
             $this->templateObj->getTemplateBranch('page', $tplGrid),
             null,
-            array(
-                'title' => $lkGrid->getAttribute('title'),
-            )
+            array()
         );
         
         $lkFilter = $lkGrid->getFilter();
@@ -98,7 +96,7 @@ class Data2Html_Render
                 $this->templateObj->getTemplateBranch('filter', $tplGrid),
                 $lkFilter->getLinkedItems(),
                 array(
-                    'title' => $lkGrid->getAttribute('title'),
+                    'title' => $lkFilter->getAttributeUp('title'),
                 )
             );
         }
@@ -108,7 +106,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $klColumns->getLinkedItems(),
             array(
-                $lkGrid->getAttribute('title'),
+                'title' => $lkGrid->getAttributeUp('title'),
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}&",
@@ -136,7 +134,7 @@ class Data2Html_Render
             ),
             $lkForm->getLinkedItems(),
             array(
-                'title' => $lkForm->getAttribute('title'),
+                'title' => $lkForm->getAttributeUp('title'),
                 'url' => $this->getControllerUrl() .
                      "model={$model->getModelName()}&form={$formName}&"
             )

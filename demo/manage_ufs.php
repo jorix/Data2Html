@@ -1,4 +1,37 @@
 <!DOCTYPE html>
+<?php
+    require_once("../code/php/Data2Html/Autoload.php");
+    Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+
+    $render = Data2Html_Handler::createRender();
+    $htmlCode = '';
+    $jsCode = '';
+    
+    $mUfs = Data2Html_Handler::createModel('aixada_ufs');
+// Ufs Grid    
+    $result = $render->renderGrid($mUfs, 'edit-grid-paged', 'main');
+    $idUfGrid = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+// Edit uf
+    $result = $render->renderForm($mUfs, 'edit-form', 'main');
+    $idUfEdit = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+    
+    $mMembers = Data2Html_Handler::createModel('aixada_members');
+// Ufs Grid    
+    $result = $render->renderGrid($mMembers, 'edit-grid-paged', 'main');
+    $idMemberGrid = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+// Edit uf
+    $result = $render->renderForm($mMembers, 'edit-form', 'main');
+    $idMemberEdit = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+    
+?>
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
@@ -61,39 +94,7 @@
 </head>
 <body>
     <div class="container">
-    <?php
-        require_once("../code/php/Data2Html/Autoload.php");
-        Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
-    
-        $render = Data2Html_Handler::createRender();
-        $jsCode = '';
-        
-        $mUfs = Data2Html_Handler::createModel('aixada_ufs');
-    // Ufs Grid    
-        $result = $render->renderGrid($mUfs, 'edit-grid-paged', 'main');
-        $idUfGrid = $result['id'];
-        $jsCode .= $result['js'] . "\n// - - - - -\n";
-        echo "{$result['html']}";
-    // Edit uf
-        $result = $render->renderForm($mUfs, 'edit-form', 'main');
-        $idUfEdit = $result['id'];
-        $jsCode .= $result['js'] . "\n// - - - - -\n";
-        echo "{$result['html']}";
-        
-        
-        $mMembers = Data2Html_Handler::createModel('aixada_members');
-    // Ufs Grid    
-        $result = $render->renderGrid($mMembers, 'edit-grid-paged', 'main');
-        $idMemberGrid = $result['id'];
-        $jsCode .= $result['js'] . "\n// - - - - -\n";
-        echo $result['html'];
-    // Edit uf
-        $result = $render->renderForm($mMembers, 'edit-form', 'main');
-        $idMemberEdit = $result['id'];
-        $jsCode .= $result['js'] . "\n// - - - - -\n";
-        echo $result['html'];
-        
-    ?>
+    <?=$htmlCode?>
     <script>
         <?=$jsCode?>
         $('[data-d2h]').data2html();

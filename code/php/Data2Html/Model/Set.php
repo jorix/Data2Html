@@ -189,6 +189,15 @@ abstract class Data2Html_Model_Set
         return $this->baseSet;
     }
     
+    public function getAttributeUp($attrName, $default = null)
+    {
+        $attr = $this->getAttribute($attrName, $default);
+        if (!$attr && $this->baseSet) {
+            $attr = $this->baseSet->getAttribute($attrName, $default);
+        }
+        return $attr;
+    }
+    
     public function getAttribute($attrName, $default = null)
     {
         if (!isset($this->attributeNames[$attrName])) {

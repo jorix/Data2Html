@@ -63,6 +63,11 @@ class Data2Html_Model_Grid
         return $this->gridName;
     }
 
+    public function getAttributeUp($attrName, $default = null)
+    {
+        return $this->columns->getAttributeUp($attrName, $default);
+    }
+    
     public function getAttribute($attrName, $default = null)
     {
         return $this->columns->getAttribute($attrName, $default);
