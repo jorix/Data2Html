@@ -20,12 +20,12 @@
     $jsCode .= $result['js'];
     
     $mMembers = Data2Html_Handler::createModel('aixada_members');
-// Ufs Grid    
+// Members Grid    
     $result = $render->renderGrid($mMembers, 'edit-grid-paged', 'main');
     $idMemberGrid = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
-// Edit uf
+// Edit Member
     $result = $render->renderForm($mMembers, 'edit-form', 'main');
     $idMemberEdit = $result['id'];
     $htmlCode .= $result['html'];

@@ -104,6 +104,7 @@ class Data2Html_Render_Template
                     $response += $this->loadFolderTemplates($folder, $v);
                     break;
                 // Add to the tree
+                case 'include':
                 case 'includes':
                     foreach((array)$v as $vv) {
                          $response += $this->loadTemplateTreeFile($folder . $vv);

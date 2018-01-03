@@ -80,6 +80,7 @@ class Data2Html_Render
             $this->templateObj->getTemplateRoot()
         );
         $gridId = $this->idRender . '_grid_' . $gridName;
+        
         $pageForm = $this->renderFormSet(
             $gridId . '_page',
             $this->templateObj->getTemplateBranch('page', $tplGrid),
