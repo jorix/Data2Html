@@ -21,7 +21,7 @@
     
     $mMembers = Data2Html_Handler::createModel('aixada_members');
 // Members Grid    
-    $result = $render->renderGrid($mMembers, 'edit-grid-paged', 'main');
+    $result = $render->renderGrid($mMembers, 'edit-grid-nopaged', 'main');
     $idMemberGrid = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];

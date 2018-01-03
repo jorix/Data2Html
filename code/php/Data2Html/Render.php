@@ -81,12 +81,17 @@ class Data2Html_Render
         );
         $gridId = $this->idRender . '_grid_' . $gridName;
         
-        $pageForm = $this->renderFormSet(
-            $gridId . '_page',
-            $this->templateObj->getTemplateBranch('page', $tplGrid),
-            null,
-            array()
-        );
+        $tmplPage = $this->templateObj->getTemplateBranch('page', $tplGrid, false);
+        if ($tmplPage) {
+            $pageForm = $this->renderFormSet(
+                $gridId . '_page',
+                $tmplPage,
+                null,
+                array()
+            );
+        } else {
+            $pageForm = null;
+        }
         
         $lkFilter = $lkGrid->getFilter();
         if (!$lkFilter) {
