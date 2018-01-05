@@ -160,6 +160,55 @@ jQuery.ajaxSetup({ cache: false });
                 this._rows = rows;
             }
             return this;
+        },
+        
+        ajax: function(loadOptions, _options) {
+            var _this = this,
+                _settings = $.extend({}, this.settings, loadOptions);
+            $.ajax({
+                type: _settings.ajaxType,
+                url: _settings.url,
+                data: _options.data,
+                dataType: "json", 
+                beforeSend: function(){
+                    var response = _settings.beforeRead.call(_this);
+                    if (response !== false) {
+                        _wait.show();
+                    }
+                    return response;
+                },
+                error: function(httpRequest, textStatus, errorThrown){
+                    if(_options.error) {
+                        _options.error.apply(_this, [httpRequest, textStatus, errorThrown]);
+                    }
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                httpRequest.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            httpRequest.responseText
+                        );
+                    }
+                },
+                success: function(jsonData){
+                    if(_options.success) {
+                        _options.success.call(_this, jsonData)
+                    }
+                    _settings.afterRead.call(_this);
+                },
+                complete: function(msg){
+                    _wait.hide();
+                    if(_options.complete) {
+                        _options.complete.call(_this)
+                    }
+                }
+            });
+            return this;
         }
     };
     
@@ -335,46 +384,19 @@ jQuery.ajaxSetup({ cache: false });
             if (_settings.sort) {
                 data['d2h_sort'] = $(_settings.sort, this.objElem).val();
             }
-            var _this = this,
-                _gridEle = this.objElem;
+            var _add = true;
             if (!_settings.add) {
-                _this._rows = null;
+                _add = false;
+                this._rows = null;
             }
-            $.ajax({
-                type: _settings.ajaxType,
-                url: _settings.url,
+            this.ajax(options, {
                 data: data,
-                dataType: "json", 
-                beforeSend: function(){
-                    var response = _settings.beforeRead.call(_this);
-                    if (response !== false) {
-                        _wait.show();
-                    }
-                    return response;
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown){
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                XMLHttpRequest.responseText + "</strong></div>",												
-                        });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            XMLHttpRequest.responseText
-                        );
-                    }
-                },
                 success: function(jsonData){
-                    _this.setRows(jsonData, _settings.add);
-                    _this.showGridData(jsonData.cols);
-                    _settings.afterRead.call(_this);
+                    this.setRows(jsonData, _add);
+                    this.showGridData(jsonData.cols);
                 },
                 complete: function(msg){
-                    _wait.hide();
-                    $("*", _gridEle).removeClass(_globalDefaults.classFormChanged);
+                    $("*", this.objElem).removeClass(_globalDefaults.classFormChanged);
                 }
             });
             return this;
@@ -501,61 +523,23 @@ jQuery.ajaxSetup({ cache: false });
             this.clear();
         },
         load: function(options) {
-            if (!options) {
+            if (!options || !options.keys) {
                 $.error(
-                    "Data2Html: Can not load form without options, it must exist 'keys' parameter."
+                    "Data2Html: Can not load form without 'keys' option."
                 );
             }
-            var _settings = $.extend({}, this.settings, options);
-            var _this = this,
-                _formEle = this.objElem,
-                keys;
-            if (options.keys) {
-                keys = options.keys;
-            } else {
-                $.error(
-                    "Data2Html: Can not load form without 'keys' parameter."
-                );
-            }
-            $.ajax({
-                type: _settings.ajaxType,
-                url: _settings.url,		
-                data: {d2h_keys: keys},
-                dataType: "json", 
-                beforeSend: function(){
-                    var response = _settings.beforeRead.call(_this, 0);
-                    if (response !== false) {
-                        _wait.show();
-                    }
-                    return response;
-                },
-                error: function(XMLHttpRequest, textStatus, errorThrown){
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                XMLHttpRequest.responseText + "</strong></div>",												
-                        });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            XMLHttpRequest.responseText
-                        );
-                    }
-                },
+            this.ajax(options, {
+                data: {d2h_keys: options.keys},
                 success: function(jsonData){
-                    _this.setRows(jsonData);
-                    if (_this._rows.length > 0) {
-                        _this.showFormData(_this._rows[0]);
+                    this.setRows(jsonData);
+                    if (this._rows.length > 0) {
+                        this.showFormData(this._rows[0]);
                     } else {
-                        _this.clear();
+                        this.clear();
                     }
-                    _settings.afterRead.call(_this);
                 },
                 complete: function(msg){
-                    _wait.hide();
-                    $(_formEle).removeClass(_globalDefaults.classFormChanged);
+                    $(this.objElem).removeClass(_globalDefaults.classFormChanged);
                 }
             });
             return this;

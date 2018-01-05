@@ -70,6 +70,15 @@ $return = array(
                     '%name', '=active', '=uf_id'
                 )
             )
+        ),
+        'uf_members' => array(
+            'sort' => 'name',
+            'items' => array('name', 'active' => array('sortBy' => null), 'phones', 'uf_id'),
+            'filter' => array(
+                'items' => [
+                    'uf_id' => ['base' => '=uf_id',  'default' => 14]
+                ]
+            )
         )
     ),
     'forms' => array(

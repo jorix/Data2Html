@@ -40,6 +40,15 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
                     );
                 }
             }
+        } elseif (is_array($field) && array_key_exists('base', $field)) {
+            $base = $field['base'];
+            foreach ($this->startToChk as $k => $v) {
+                if ($startsWith($base, $k)) {
+                    $field['base'] = substr($base, strlen($k));
+                    $field['check'] = $v;
+                    break;
+                }
+            }
         }
         
         if (is_int($key) && 

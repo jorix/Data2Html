@@ -363,7 +363,7 @@ abstract class Data2Html_Model_Set
                 } else {
                     if (!array_key_exists($base, $baseItems)) {
                         throw new Exception(
-                            "{$this->culprit}: Defining field \"{$k}\", the base \"{$base}\" was not found."
+                            "{$this->culprit}: Defining field \"{$k}\", `base` \"{$base}\" was not found."
                         );
                     }
                     if ($v['db'] === null) {
