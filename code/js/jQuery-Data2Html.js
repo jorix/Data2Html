@@ -166,10 +166,11 @@ jQuery.ajaxSetup({ cache: false });
             var _this = this,
                 _settings = $.extend({}, this.settings, loadOptions);
             $.ajax({
+                async: true,
+                dataType: "json",
                 type: _settings.ajaxType,
                 url: _settings.url,
                 data: _options.data,
-                dataType: "json", 
                 beforeSend: function(){
                     var response = _settings.beforeRead.call(_this);
                     if (response !== false) {
@@ -177,21 +178,21 @@ jQuery.ajaxSetup({ cache: false });
                     }
                     return response;
                 },
-                error: function(httpRequest, textStatus, errorThrown){
+                error: function(jqXHR, textStatus, errorThrown){
                     if(_options.error) {
-                        _options.error.apply(_this, [httpRequest, textStatus, errorThrown]);
+                        _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
                     }
                     if (typeof bootbox != 'undefined'){
                         bootbox.alert({
                             title : "Error",
                             message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                httpRequest.responseText + "</strong></div>",												
+                                jqXHR.responseText + "</strong></div>",												
                         });
                     } else {
                         alert(
                             'An error "' + errorThrown + '", status "' + 
                             textStatus + '" occurred during loading data: ' + 
-                            httpRequest.responseText
+                            jqXHR.responseText
                         );
                     }
                 },
