@@ -58,6 +58,7 @@ jQuery.ajaxSetup({ cache: false });
         },
         
         settings: null,
+        promise: null,
         objElem: null, // The DOM element
         _container: null,        
         _initId: 0,
@@ -96,6 +97,27 @@ jQuery.ajaxSetup({ cache: false });
         },
         getElem: function() {
             return this.objElem;
+        },
+        getPromise: function() {
+            if (this.promise) {
+                return this.promise;
+            } else {
+                return; // return undefined
+            }
+        },
+        whenPromise: function(promises, doneFn) {
+            if (promises) {
+                if (!$.isArray(promises)) { // cast to array
+                    promises = [promises];
+                }
+                var _this = this;
+                this.promise = $.when.apply($, promises).done(function() {
+                    doneFn.call(_this);
+                    this.promise = null;
+                });
+            } else {
+                doneFn.call(this);
+            }
         },
         
         // Listen actions
@@ -165,7 +187,7 @@ jQuery.ajaxSetup({ cache: false });
         ajax: function(loadOptions, _options) {
             var _this = this,
                 _settings = $.extend({}, this.settings, loadOptions);
-            $.ajax({
+            this.promise = $.ajax({
                 async: true,
                 dataType: "json",
                 type: _settings.ajaxType,
@@ -207,23 +229,20 @@ jQuery.ajaxSetup({ cache: false });
                     if(_options.complete) {
                         _options.complete.call(_this)
                     }
+                    _this.promise = null;
                 }
             });
             return this;
         }
     };
     
-    function dataGrid(objElem, container, options) {
-        this._init(objElem, container, options);
-        var autoCall = this.settings.auto;
-        if (autoCall) {
-            this[autoCall].call(this, this.settings);
-        }
-    }
-
     // ------
     // Grid
     // ------
+    function dataGrid(objElem, container, options) {
+        this._init(objElem, container, options);
+    }
+
     $.extend(dataGrid.prototype, dataHtml.prototype, {
         defaults: {
             type: 'grid',
@@ -307,9 +326,7 @@ jQuery.ajaxSetup({ cache: false });
             this._repeatStart = $parentContainer.children().index($itemRepeat);
             
             // additional calls
-            if (settings.filter) {
-                this._initComponent('filter', settings.filter);
-            }
+            // page
             if (settings.page) {
                 this._initComponent('page', settings.page);
             }
@@ -318,9 +335,26 @@ jQuery.ajaxSetup({ cache: false });
                 d2h_sortBy.create(this, settings.sort)
                     .show($(settings.sort).val());
             }
+            // filter
+            var promises = null;
+            if (settings.filter) {
+                this._initComponent('filter', settings.filter);
+                if (this.components.filter) {
+                    promises = this.components.filter.getPromise();
+                }
+            }
             
-            // clear
-            this.clear();
+            // aditional calls
+            this.whenPromise(promises, function() {
+                // clear
+                this.clear();
+                
+                // Auto call
+                var autoCall = this.settings.auto;
+                if (autoCall) {
+                    this[autoCall].call(this, this.settings);
+                }
+            });
         },
         
         _initComponent: function(compomentName, selector) {
@@ -521,7 +555,14 @@ jQuery.ajaxSetup({ cache: false });
             });
                    
             // clear
-            this.clear();
+            var promises = null,
+                subElements = $('[data-d2h]', this.objElem);
+            if (subElements.length > 0) {
+                promises = subElements.data2html('getPromise');
+            }
+            this.whenPromise(promises, function() {
+                this.clear();
+            });
         },
         load: function(options) {
             if (!options || !options.keys) {
@@ -757,7 +798,7 @@ jQuery.ajaxSetup({ cache: false });
             $.error(
                 "Data2Html: Can not find a DOM object with the selector!"
             );
-            return this;
+            return;
         }
         var _method = '',
             _options = {};
@@ -773,7 +814,7 @@ jQuery.ajaxSetup({ cache: false });
                 $.error(
                     "Data2Html: Can not find a plainObject or string as single argument!"
                 );
-                return this;
+                return;
             }
             break;
         case 2:
@@ -784,38 +825,45 @@ jQuery.ajaxSetup({ cache: false });
                 $.error(
                     "Data2Html: Can not find a: string, plainObject as arguments!"
                 );
-                return this;
+                return;
             }
             break;
         default:
             $.error(
                 "Data2Html: Excess number of arguments!"
             );
-            return this;
+            return;
         }
         
-        var _response;
+        var _responses = [];
         this.each(function() {
+            var response = null;
             if (!$.data(this, "Data2Html_data") ) {
                 var opData = _getElementOptions(this, _options);
                 switch (opData.type) {
                     case 'form':
-                        new dataForm(this, null, opData);
+                        response = new dataForm(this, null, opData);
                         break;
                     default:
-                        new dataGrid(this, null, opData);
+                        response = new dataGrid(this, null, opData);
                         break;
                 }
             }
             if (_method) {
                 var thisObj = $.data(this, "Data2Html_data");
-                _response = thisObj[_method].call(thisObj, _options);
+                response = thisObj[_method].call(thisObj, _options);
+            }
+            if (response !== undefined) {
+                _responses.push(response); // To chain Data2Html or retrieve value
             }
         });
-        if (this.length === 1 && _response !== undefined) {
-            return _response; // is a function to retrieve a value.
-        } else {
-            return this; // chain jQuery functions
+        switch (_responses.length) {
+            case 0: 
+                return;
+            case 1:
+                return _responses[0];
+            default:
+                return _responses; 
         }
     };
 })(jQuery);

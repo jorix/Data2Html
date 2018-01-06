@@ -97,7 +97,6 @@
     <?=$htmlCode?>
     <script>
         <?=$jsCode?>
-        $('[data-d2h]').data2html();
         (function() {
             d2h_switchTo.create('#<?=$idUfGrid?>', 'grid')
                 .add('#<?=$idUfEdit?>', 'form-edit')
