@@ -116,7 +116,7 @@ class Data2Html_Render
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}&",
-                'sortBy' => $lkGrid->getAttribute('sort'),
+                'sort' => $lkGrid->getAttributeUp('sort'),
                 'filter' => $filterForm,
                 'page' => $pageForm
             )

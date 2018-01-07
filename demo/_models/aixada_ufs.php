@@ -2,6 +2,7 @@
 $return = array(
     'table' => 'aixada_uf',
     'title' => 'Unitats familiars',
+    'sort' => 'uf_name',
     'items' => array(
         'id'        => array('key', 'integer'),
         'name'      => array(
@@ -29,12 +30,10 @@ $return = array(
     },
     'grids' => array(
         'list' => array(
-            'sort' => 'name',
             'items' => array('uf_name'),
             'filter' => array('items' => array('=active'))
         ),
         'account' => array(
-            'sort' => 'name',
             'items' => array(
                 'value' => array('key', 'db' => '1000 + id'),
                 'uf_name'
@@ -44,8 +43,7 @@ $return = array(
             )
         ),
         'main' => array(
-            'sort' => 'name',
-            'items' => array('active', 'uf_name', 'created','mentor_name'),
+            'items' => array('active', 'uf_name', 'created', 'mentor_name'),
             'filter' => array(
                 'items' => array(
                     '%name', '=active', '=mentor_uf'

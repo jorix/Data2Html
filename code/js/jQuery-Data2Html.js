@@ -328,10 +328,9 @@ jQuery.ajaxSetup({ cache: false });
             if (settings.page) {
                 this._initComponent('page', settings.page);
             }
-            // sortBy
+            // sort
             if (settings.sort) {
-                d2h_sortBy.create(this, settings.sort)
-                    .show($(settings.sort).val());
+                d2h_sort.create(this, settings.sort).show($(settings.sort).val());
             }
             // filter
             var promises = null;

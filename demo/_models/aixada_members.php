@@ -27,6 +27,7 @@ aixada_member (
 $return = array(
     'table' => 'aixada_member',
     'title' => 'Membres',
+    'sort' => 'name',
     'items' => array(
         'id' => array('autoKey', 'hidden'),
         'custom_member_ref' => array(
@@ -63,7 +64,6 @@ $return = array(
     'grids' => array(
         'list' => array('sort' => 'name', 'items' => array('name')),
         'main' => array(
-            'sort' => 'name',
             'items' => array('name', 'active' => array('sortBy' => null), 'uf_name', 'phones'),
             'filter' => array(
                 'items' => array(
@@ -72,7 +72,6 @@ $return = array(
             )
         ),
         'uf_members' => array(
-            'sort' => 'name',
             'items' => array('name', 'active' => array('sortBy' => null), 'phones', 'uf_id'),
             'filter' => array(
                 'items' => [

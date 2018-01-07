@@ -5,6 +5,7 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
         'grids' => false,
         'forms' => false,
         'table' => 'attribute',
+        'sort' => 'attribute',
         'beforeInsert' => 'attribute',
         'afterInsert' => 'attribute',
         'beforeUpdate' => 'attribute',

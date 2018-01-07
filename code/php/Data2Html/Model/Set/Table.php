@@ -27,6 +27,6 @@ class Data2Html_Model_Set_Table extends Data2Html_Model_Set
     }
     
     public function getSort() {
-        return $this->getAttribute('sort');
+        return $this->getAttributeUp('sort');
     }
 }
