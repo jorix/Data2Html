@@ -65,7 +65,7 @@ abstract class Data2Html_Model_Set
             'options' => array('autoKey', 'key')
         ),
         'level' => 'integer',
-        'link' => 'string',
+        'link' => 'string|null',
         'leafs' => 'string',
         'linkedTo' => 'array',
         'items' => 'array',

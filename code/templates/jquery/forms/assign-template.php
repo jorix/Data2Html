@@ -14,7 +14,9 @@ $return = array(
         $type = $itemDx->getString('type');
         $link = $itemDx->getString('link');
         $url = '';
-        if ($link) {
+        if ($content === 'hidden-input') {
+            $layout = 'bare';
+        } elseif ($link) {
             $content = 'select-input';
             $url = $render->getControllerUrl() . "model={$link}&";
         } elseif ($type) {
