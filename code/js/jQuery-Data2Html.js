@@ -53,8 +53,8 @@ jQuery.ajaxSetup({ cache: false });
             ajaxType: 'GET',
             auto: null,
             
-            beforeRead: function() { return true; },
-            afterRead: function(row_count) {} //called, once loop through data has finished
+            beforeLoad: function() { return true; },
+            afterLoad: function(row_count) {} //called, once loop through data has finished
         },
         
         settings: null,
@@ -92,12 +92,23 @@ jQuery.ajaxSetup({ cache: false });
             $.data(this.objElem, "Data2Html_data", this);
         },
         
+        set: function(options) {
+            $.extend(this.settings, options);
+            return this;
+        },
+        
         get: function() {
             return this;
         },
+        
         getElem: function() {
             return this.objElem;
         },
+        
+        $: function(selector) {
+            return $(selector, this.objElem);
+        },
+        
         getPromise: function() {
             if (this.promise && this.promise.state() === 'pending') {
                 return this.promise;
@@ -105,6 +116,7 @@ jQuery.ajaxSetup({ cache: false });
             this.promise = null;
             return; // return undefined
         },
+        
         whenPromise: function(promises, doneFn) {
             if (promises) {
                 if (!$.isArray(promises)) { // cast to array
@@ -185,51 +197,55 @@ jQuery.ajaxSetup({ cache: false });
         
         ajax: function(loadOptions, _options) {
             var _this = this,
-                _settings = $.extend({}, this.settings, loadOptions);
-            this.promise = $.when(this.getPromise(), $.ajax({
-                async: true,
-                dataType: "json",
-                type: _settings.ajaxType,
-                url: _settings.url,
-                data: _options.data,
-                beforeSend: function(){
-                    var response = _settings.beforeRead.call(_this);
-                    if (response !== false) {
-                        _wait.show();
+                _settings = $.extend({}, this.settings, loadOptions),
+                _ajaxOptions = {
+                    dataType: "json",
+                    type: _settings.ajaxType,
+                    url: _settings.url,
+                    data: _options.data
+                };
+            this.promise = $.when(this.getPromise(), $.ajax(
+                $.extend({
+                    beforeSend: function(){
+                        var response = _settings.beforeLoad.call(_this, _ajaxOptions);
+                        if (response !== false) {
+                            _wait.show();
+                        }
+                        return response;
+                    },
+                    error: function(jqXHR, textStatus, errorThrown){
+                        if(_options.error) {
+                            _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
+                        }
+                        if (typeof bootbox != 'undefined'){
+                            bootbox.alert({
+                                title : "Error",
+                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                    jqXHR.responseText + "</strong></div>",												
+                            });
+                        } else {
+                            alert(
+                                'An error "' + errorThrown + '", status "' + 
+                                textStatus + '" occurred during loading data: ' + 
+                                jqXHR.responseText
+                            );
+                        }
+                    },
+                    success: function(jsonData){
+                        if(_options.success) {
+                            _options.success.call(_this, jsonData)
+                        }
+                        _settings.afterLoad.call(_this, _this._rows);
+                    },
+                    complete: function(msg){
+                        _wait.hide();
+                        if(_options.complete) {
+                            _options.complete.call(_this)
+                        }
                     }
-                    return response;
                 },
-                error: function(jqXHR, textStatus, errorThrown){
-                    if(_options.error) {
-                        _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
-                    }
-                    if (typeof bootbox != 'undefined'){
-                        bootbox.alert({
-                            title : "Error",
-                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                jqXHR.responseText + "</strong></div>",												
-                        });
-                    } else {
-                        alert(
-                            'An error "' + errorThrown + '", status "' + 
-                            textStatus + '" occurred during loading data: ' + 
-                            jqXHR.responseText
-                        );
-                    }
-                },
-                success: function(jsonData){
-                    if(_options.success) {
-                        _options.success.call(_this, jsonData)
-                    }
-                    _settings.afterRead.call(_this);
-                },
-                complete: function(msg){
-                    _wait.hide();
-                    if(_options.complete) {
-                        _options.complete.call(_this)
-                    }
-                }
-            }));
+                _ajaxOptions)
+            ));
             return this;
         }
     };
@@ -394,6 +410,10 @@ jQuery.ajaxSetup({ cache: false });
             }
             this.components[compomentName] =
                 new dataForm($elem[0], this, compomentOptions);
+        },
+        
+        getComponent: function(compomentName) {
+            return this.components[compomentName];
         },
         
         load: function(options) {

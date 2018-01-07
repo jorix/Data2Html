@@ -36,24 +36,28 @@ d2h_switchTo.prototype = {
         return this;
     },
     
+    get: function(name) {
+        var $selected = $(this._selectors[name]);
+        if (!$selected) {
+            $.error(
+                "d2h_switchTo.get(): Name '" + name + 
+                "' not exist on selectors. Must add it!"
+            );
+        }
+        return $selected.data2html('get');
+    },
+    
     go: function(name) {
         var iName,
-            $selected,
             sels = this._selectors;
         for (iName in sels) {
             if (iName === name) {
-                $selected = $(sels[iName]).show();
+                $(sels[iName]).show();
             } else {
                 $(sels[iName]).hide();
             }
         }
-        if (!$selected) {
-            $.error(
-                "d2h_switchTo.go(): Name '" + name + 
-                "' not exist on selectors. Must add it!"
-            );
-        }
         this._currentName = name;
-        return $selected.data2html('get');
+        return this.get(name);
     }
 };

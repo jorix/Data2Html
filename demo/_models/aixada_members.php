@@ -72,7 +72,7 @@ $return = [
             ]
         ],
         'uf_members' => [
-            'items' => ['name', 'active' => ['sortBy' => null], 'phones', 'uf_id'],
+            'items' => ['name', 'active' => ['sortBy' => null], 'phones'],
             'filter' => [
                 'items' => [
                     ['base' => '=uf_id', 'content-template' => 'hidden-input', 'default' => 7]

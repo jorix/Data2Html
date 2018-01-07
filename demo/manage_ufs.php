@@ -98,13 +98,25 @@
     <script>
         <?=$jsCode?>
         (function() {
-            d2h_switchTo.create('#<?=$idUfGrid?>', 'grid')
-                .add('#<?=$idUfEdit?>', 'form-edit')
-                .go('grid');
+            var memberSwitch = d2h_switchTo.create('#<?=$idMemberGrid?>', 'grid')
+                .add('#<?=$idMemberEdit?>', 'form-edit');
+            var _memberGrid = memberSwitch.go('grid');
+            memberSwitch.get('form-edit').set({
+                afterLoad: function(rows) {
+                    console.log(rows);
+                }
+            });
                 
-            d2h_switchTo.create('#<?=$idMemberGrid?>', 'grid')
-                .add('#<?=$idMemberEdit?>', 'form-edit')
-                .go('grid');
+            var ufSwitch = d2h_switchTo.create('#<?=$idUfGrid?>', 'grid')
+                .add('#<?=$idUfEdit?>', 'form-edit');
+            ufSwitch.go('grid');
+            ufSwitch.get('form-edit').set({
+                beforeLoad: function(options) {
+                    _memberGrid.$('[name=uf_id_eq]').val(options.data.d2h_keys);
+                    _memberGrid.load();
+                    //console.log(options.data.d2h_keys);
+                }
+            });
         })();
     </script>
     </div>
