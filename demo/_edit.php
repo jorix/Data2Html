@@ -1,4 +1,24 @@
 <!DOCTYPE html>
+    <?php
+        require_once("../code/php/Data2Html/Autoload.php");
+        Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+    
+        $model = Data2Html_Handler::createModel($_REQUEST['model']);
+        $render = Data2Html_Handler::createRender();
+    
+    // Grid    
+        $result = $render->renderGrid($model, 'edit-grid-paged', 'main');
+        $idGrid = $result['id'];
+        $jsCode = $result['js'];
+        $htmlCode = $result['html'];
+        
+    // Form edit
+        $result = $render->renderForm($model, 'edit-form', 'main');
+        $idEdit = $result['id'];
+        $jsCode .= $result['js'];
+        $htmlCode .= $result['html'];
+        
+    ?>
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
@@ -61,36 +81,16 @@
 </head>
 <body>
     <div class="container">
-    <?php
-        require_once("../code/php/Data2Html/Autoload.php");
-        Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
-    
-        $model = Data2Html_Handler::createModel($_REQUEST['model']);
-        $render = Data2Html_Handler::createRender();
-    
-    // Grid    
-        $result = $render->renderGrid($model, 'edit-grid-paged', 'main');
-        $idGrid = $result['id'];
-        $jsCode = $result['js'] . "\n// - - - - -\n";
-        echo "{$result['html']}";
-        
-    // Form edit
-        $result = $render->renderForm($model, 'edit-form', 'main');
-        $idEdit = $result['id'];
-        $jsCode .= $result['js'] . "\n// - - - - -\n";
-        echo "{$result['html']}";
-        
-    ?>
+        <?=$htmlCode?>
+    </div>
+    <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
-        $('[data-d2h]').data2html();
         (function() {
             d2h_switchTo.create('#<?=$idGrid?>', 'grid')
                 .add('#<?=$idEdit?>', 'form-edit')
                 .go('grid');
         })();
     </script>
-    </div>
-    <div class="d2h_waiting"></div>
 </body>
 </html>

@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<?php
+    require_once("../code/php/Data2Html/Autoload.php");
+    Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+
+// Grid
+    $result = Data2Html_Handler::render($_REQUEST, 'grid-paged');
+    $idGrid = $result['id'];
+    $jsCode = $result['js'];
+    $htmlCode = $result['html'];
+?>
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
@@ -61,16 +71,12 @@
 </head>
 <body>
     <div class="container">
-    <?php
-        require_once("../code/php/Data2Html/Autoload.php");
-        Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
-    
-        Data2Html_Handler::render($_REQUEST, 'grid-paged');
-    ?>
-    <script>
-        $('[data-d2h]').data2html();
-    </script>
+        <?=$htmlCode?>
     </div>
     <div class="d2h_waiting"></div>
+    <script>
+        <?=$jsCode?>
+        $('#<?=$idGrid?>').data2html();
+    </script>
 </body>
 </html>

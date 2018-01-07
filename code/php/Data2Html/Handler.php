@@ -71,7 +71,7 @@ class Data2Html_Handler
         } else {
             throw new Exception("no request object.");
         }
-        echo "{$result['html']}\n<script>{$result['js']}</script>";
+        return $result;
     }
 
     public static function createRender()
