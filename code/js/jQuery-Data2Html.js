@@ -99,11 +99,11 @@ jQuery.ajaxSetup({ cache: false });
             return this.objElem;
         },
         getPromise: function() {
-            if (this.promise) {
+            if (this.promise && this.promise.state() === 'pending') {
                 return this.promise;
-            } else {
-                return; // return undefined
-            }
+            } 
+            this.promise = null;
+            return; // return undefined
         },
         whenPromise: function(promises, doneFn) {
             if (promises) {
@@ -113,7 +113,6 @@ jQuery.ajaxSetup({ cache: false });
                 var _this = this;
                 this.promise = $.when.apply($, promises).done(function() {
                     doneFn.call(_this);
-                    this.promise = null;
                 });
             } else {
                 doneFn.call(this);
@@ -187,7 +186,7 @@ jQuery.ajaxSetup({ cache: false });
         ajax: function(loadOptions, _options) {
             var _this = this,
                 _settings = $.extend({}, this.settings, loadOptions);
-            this.promise = $.ajax({
+            this.promise = $.when(this.getPromise(), $.ajax({
                 async: true,
                 dataType: "json",
                 type: _settings.ajaxType,
@@ -229,9 +228,8 @@ jQuery.ajaxSetup({ cache: false });
                     if(_options.complete) {
                         _options.complete.call(_this)
                     }
-                    _this.promise = null;
                 }
-            });
+            }));
             return this;
         }
     };
