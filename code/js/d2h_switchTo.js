@@ -10,12 +10,26 @@ function d2h_switchTo(selector, name) {
 d2h_switchTo.create = function(selector, name) {
     return new this(selector, name);
 };
+
 d2h_switchTo.go = function(d2h_data, name) {
     var switchToObj = $.data(d2h_data.getElem(), "Data2Html_switchTo");
     if (!name) {
-        name = switchToObj._currentName;
+        var selector = '#' + d2h_data.getElem().id,
+            sels = switchToObj._selectors,
+            iName;
+        for (iName in sels) {
+            if (sels[iName] === selector) {
+                name = iName;
+                break;
+            }
+        }
     }
     return switchToObj.go(name);
+};
+
+d2h_switchTo.get = function(d2h_data, name) {
+    var switchToObj = $.data(d2h_data.getElem(), "Data2Html_switchTo");
+    return switchToObj.get(name);
 };
 
 // Class

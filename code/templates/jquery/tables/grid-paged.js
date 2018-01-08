@@ -4,35 +4,16 @@ $('#' + $${id}).data2html({
     visual: $${visual},
     actions: {
         'edit': function(elem) {
-            var keys = this.getKeys(elem, 'info'); 
-            var form = d2h_switchTo.go(this, 'form-edit')
-                .load({keys:keys})
-                .getElem();
-            $('.d2h_insert', form).hide();
-            $('.d2h_update,.d2h_delete', form).show();
+            d2h_switchTo.get(this, 'form-edit').showAction('edit', elem);
         },
         'delete': function(elem) {
-            var keys = this.getKeys(elem, 'info'); 
-            var form = d2h_switchTo.go(this, 'form-edit')
-                .load({keys:keys})
-                .getElem();
-            $('.d2h_update,.d2h_insert', form).hide();
-            $('.d2h_delete', form).show();
+           d2h_switchTo.get(this, 'form-edit').showAction('delete', elem);
         },
         'copy': function(elem) {
-            var keys = this.getKeys(elem, 'info'); 
-            var form = d2h_switchTo.go(this, 'form-edit')
-                .load({keys:keys})
-                .getElem();
-            $('.d2h_update,.d2h_delete', form).hide();
-            $('.d2h_insert', form).show();
+            d2h_switchTo.get(this, 'form-edit').showAction('copy', elem);
         },
         'create': function() {
-            var form = d2h_switchTo.go(this, 'form-edit')
-                .clear()
-                .getElem();
-            $('.d2h_update,.d2h_delete', form).hide();
-            $('.d2h_insert', form).show();
+            d2h_switchTo.get(this, 'form-edit').showAction('create');
         }
     },
     filter:['#' +'$${id}_filter', {

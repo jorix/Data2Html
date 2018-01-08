@@ -103,7 +103,7 @@
             var _memberGrid = memberSwitch.go('grid');
             memberSwitch.get('form-edit').set({
                 afterLoad: function(rows) {
-                    console.log(rows);
+                    console.log(_memberGrid.$('[name=uf_id_eq]').val());
                 }
             });
                 

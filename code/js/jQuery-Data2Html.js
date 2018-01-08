@@ -745,6 +745,34 @@ jQuery.ajaxSetup({ cache: false });
             }
             $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
             return this;
+        },
+        
+        showAction: function(action, elem) {
+            var objElem = this.objElem;
+            switch (action) {
+                case 'edit':
+                    this.load({keys:this.getKeys(elem, 'info')});
+                    $('.d2h_delete,.d2h_insert', objElem).hide();
+                    $('.d2h_update', objElem).show();
+                    break;
+                case 'delete':
+                    this.load({keys:this.getKeys(elem, 'info')});
+                    $('.d2h_update,.d2h_insert', objElem).hide();
+                    $('.d2h_delete', objElem).show();
+                    break;
+                case 'copy':
+                    this.load({keys:this.getKeys(elem, 'info')});
+                    //this.clear(false);
+                    $('.d2h_update,.d2h_delete', objElem).hide();
+                    $('.d2h_insert', objElem).show();
+                    break;
+                case 'create':
+                    this.clear();
+                    $('.d2h_update,.d2h_delete', objElem).hide();
+                    $('.d2h_insert', objElem).show();
+                    break;
+            }
+            d2h_switchTo.go(this);
         }
     });
     
