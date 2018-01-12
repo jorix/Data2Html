@@ -25,7 +25,7 @@ $return = [
         ],
     ],
     'beforeInsert' => function ($set, $db, &$values) {
-        $values['id'] = $db->getValue('select max(id] + 1 from aixada_uf', 'integer');
+        $values['id'] = $db->getValue('select max(id) + 1 from aixada_uf', 'integer');
         return true;
     },
     'grids' => [

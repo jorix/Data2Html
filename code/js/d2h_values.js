@@ -20,6 +20,9 @@ d2h_values = {
     toHtml: function(val, dataType) {
         switch (dataType) {
             case 'date':
+                if (val === null || val === '[now]') {
+                    return '';
+                }
                 return moment(val).format('L LT');
             default:
                 return val;
