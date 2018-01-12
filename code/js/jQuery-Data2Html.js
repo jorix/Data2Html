@@ -51,10 +51,7 @@ jQuery.ajaxSetup({ cache: false });
         defaults: {
             url: '',
             ajaxType: 'GET',
-            auto: null,
-            
-            beforeLoad: function() { return true; },
-            afterLoad: function(row_count) {} //called, once loop through data has finished
+            auto: null
         },
         
         settings: null,
@@ -195,19 +192,26 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         
-        ajax: function(loadOptions, _options) {
+        ajax: function(_loadOptions, _options) {
             var _this = this,
-                _settings = $.extend({}, this.settings, loadOptions),
+                _settings = this.settings
+                _endSettings = $.extend({}, _settings, _loadOptions),
                 _ajaxOptions = {
                     dataType: "json",
-                    type: _settings.ajaxType,
-                    url: _settings.url,
+                    type: _endSettings.ajaxType,
+                    url: _endSettings.url,
                     data: _options.data
                 };
             this.promise = $.when(this.getPromise(), $.ajax(
                 $.extend({
                     beforeSend: function(){
-                        var response = _settings.beforeLoad.call(_this, _ajaxOptions);
+                        var response = true;
+                        if (_settings.beforeLoad) {
+                            response = _settings.beforeLoad.call(_this, _ajaxOptions);
+                        }
+                        if (response !== false && _loadOptions && _loadOptions.beforeLoad) {
+                            response = _loadOptions.beforeLoad.call(_this, _ajaxOptions);
+                        }
                         if (response !== false) {
                             _wait.show();
                         }
@@ -235,7 +239,12 @@ jQuery.ajaxSetup({ cache: false });
                         if(_options.success) {
                             _options.success.call(_this, jsonData)
                         }
-                        _settings.afterLoad.call(_this, _this._rows);
+                        if (_settings.afterLoad) {
+                            _settings.afterLoad.call(_this, _this._rows);
+                        }
+                        if (_loadOptions && _loadOptions.afterLoad) {
+                            _loadOptions.afterLoad.call(_this, _this._rows);
+                        }
                     },
                     complete: function(msg){
                         _wait.hide();
@@ -760,7 +769,13 @@ jQuery.ajaxSetup({ cache: false });
             var objElem = this.objElem;
             switch (action) {
                 case 'edit':
-                    this.load({keys:this.getKeys(elem, 'info')});
+                    var keys = this.getKeys(elem, 'info');
+                    var keysElements = this.keysElements;
+                    if (keysElements) {
+                        keysElements[0].$(keysElements[1]).val(keys);
+                        keysElements[0].load();
+                    }
+                    this.load({keys:keys});
                     $('.d2h_delete,.d2h_insert', objElem).hide();
                     $('.d2h_update', objElem).show();
                     break;
@@ -770,16 +785,26 @@ jQuery.ajaxSetup({ cache: false });
                     $('.d2h_delete', objElem).show();
                     break;
                 case 'copy':
+                    var keysElements = this.keysElements;
+                    if (keysElements) {
+                        keysElements[0].$(keysElements[1]).val(0);
+                        keysElements[0].load();
+                    }
                     this.load({
                         keys: this.getKeys(elem, 'info'),
                         afterLoad: function() {
-                            this.clear({onlyWithDefault:true});
+                            this.clear({onlyWithDefault: true});
                         }
                     });
                     $('.d2h_update,.d2h_delete', objElem).hide();
                     $('.d2h_insert', objElem).show();
                     break;
                 case 'create':
+                    var keysElements = this.keysElements;
+                    if (keysElements) {
+                        keysElements[0].$(keysElements[1]).val(0);
+                        keysElements[0].load();
+                    }
                     this.clear();
                     $('.d2h_update,.d2h_delete', objElem).hide();
                     $('.d2h_insert', objElem).show();
