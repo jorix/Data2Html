@@ -27,6 +27,10 @@ d2h_switchTo.go = function(d2h_data, name) {
     return switchToObj.go(name);
 };
 
+d2h_switchTo.goAction = function(d2h_data, name, action, elemKeys) {
+    d2h_switchTo.get(d2h_data, name).showAction(action, elemKeys);
+};
+
 d2h_switchTo.get = function(d2h_data, name) {
     var switchToObj = $.data(d2h_data.getElem(), "Data2Html_switchTo");
     return switchToObj.get(name);

@@ -583,9 +583,7 @@ jQuery.ajaxSetup({ cache: false });
         },
         load: function(options) {
             if (!options || !options.keys) {
-                $.error(
-                    "Data2Html: Can not load form without 'keys' option."
-                );
+                $.error("Data2Html: Can't load form data without 'keys' option.");
             }
             this.ajax(options, {
                 data: {d2h_keys: options.keys},
@@ -719,18 +717,29 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         clear: function(options) {
-            if (options && options.switchTo) {
-                this.switchTo(this.type);
+            var allElements = true;
+            if (options) {
+                allElements = !options.onlyWithDefault;
             }
             var tagName,
                 visualData = this._visualData;
             for (tagName in visualData) {
                 var val = "",
+                    hasDefault = false,
                     visualEle = visualData[tagName];
-                if (visualEle.default) {
-                    val = visualEle.default;
+                if (visualEle['default'] !== undefined) {
+                    hasDefault = true;
+                    val = visualEle['default'];
                 };
-                d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
+                if (allElements || hasDefault) {
+                    try {
+                        d2h_values.put(
+                            $('[name=' + tagName + ']', this.objElem), 
+                            val,
+                            visualEle.type
+                        );
+                    } catch(e) {}
+                }
             }
             $(this.objElem).data('d2h-keys', '');
             return this;
@@ -761,8 +770,12 @@ jQuery.ajaxSetup({ cache: false });
                     $('.d2h_delete', objElem).show();
                     break;
                 case 'copy':
-                    this.load({keys:this.getKeys(elem, 'info')});
-                    //this.clear(false);
+                    this.load({
+                        keys: this.getKeys(elem, 'info'),
+                        afterLoad: function() {
+                            this.clear({onlyWithDefault:true});
+                        }
+                    });
                     $('.d2h_update,.d2h_delete', objElem).hide();
                     $('.d2h_insert', objElem).show();
                     break;

@@ -347,9 +347,8 @@ class Data2Html_Render
                     $item = array();
                     $visualItems[$k] = &$item;
                     foreach ($this->visualWords as $w) {
-                        $vv = Data2Html_Value::getItem($v, $w);
-                        if ($vv) {
-                            $item[$w] = $vv;
+                        if (array_key_exists($w, $v)) {
+                            $item[$w] = $v[$w];
                         }
                     }
                     unset($item);
