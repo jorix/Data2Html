@@ -45,10 +45,10 @@ $return = [
             'string' => 255,
             'required'
         ],
-        'address' => ['string' => 255],
+        'address' => ['string' => 255, 'required'],
         'nif' => ['string' => 255],
         'zip' => ['string' => 10],
-        'city' => ['string' => 255],
+        'city' => ['string' => 255, 'required'],
         'phone1' => ['string' => 50, 'required'],
         'phone2' => ['string' => 50],
         'phones' => ['value' => '$${phone1} / $${phone2}', 'sortBy' => 'phone1'],
@@ -64,7 +64,7 @@ $return = [
     'grids' => [
         'list' => ['sort' => 'name', 'items' => ['name']],
         'main' => [
-            'items' => ['name', 'active' => ['sortBy' => null], 'uf_name', 'phones'],
+            'items' => ['id', 'name', 'active' => ['sortBy' => null], 'uf_name', 'phones'],
             'filter' => [
                 'items' => [
                     '%name', '=active', '=uf_id'
@@ -84,7 +84,11 @@ $return = [
         'main' => [
             'items' => [
                 'name' => ['items' => ['ts', 'active']],
-                'uf_id', 'phone1', 'phone2'
+                'uf_id',
+                'nif',
+                'address',
+                'zip', 'city', 
+                'phone1', 'phone2'
             ],
         ]
     ]

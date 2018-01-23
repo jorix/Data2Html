@@ -113,7 +113,7 @@
                 // }
             // });
             //
-            // TODO: fer-ho, però maco!!!!!!
+            // TODO: fer-ho, perÃ² maco!!!!!!
             ufSwitch.get('form-edit')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
         })();
     </script>
