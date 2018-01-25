@@ -343,7 +343,8 @@ jQuery.ajaxSetup({ cache: false });
             
             // aditional calls
             this.whenPromise(promises, function() {
-                // clear
+                // Issue of default value of a select:
+                //  * clear after filter promises are done
                 this.clear();
                 
                 // Auto call
@@ -592,6 +593,8 @@ jQuery.ajaxSetup({ cache: false });
                 promises = subElements.data2html('getPromise');
             }
             this.whenPromise(promises, function() {
+                // Issue of default value of a select:
+                //  - clear after sub element promises are done.
                 this.clear();
             });
         },
