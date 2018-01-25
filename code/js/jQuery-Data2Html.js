@@ -155,13 +155,6 @@ jQuery.ajaxSetup({ cache: false });
                 _fnAction.call(handlerEle);
             }
         },
-
-        // Data manage
-        getKeys: function(elem, visualClass) {
-            var $parent = $(elem).closest('[data-d2h-keys]');
-            $('.' + visualClass, this.objElem).removeClass(visualClass);
-            return $parent.addClass(visualClass).attr('data-d2h-keys');
-        },
         
         setRows: function(jsonData, add) {
             if (jsonData.rowsAsArray) {
@@ -192,69 +185,51 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         
-        ajax: function(_loadOptions, _options) {
+        ajax: function(_options) {
             var _this = this,
-                _settings = this.settings
-                _endSettings = $.extend({}, _settings, _loadOptions),
-                _ajaxOptions = {
-                    dataType: "json",
-                    type: _endSettings.ajaxType,
-                    url: _endSettings.url,
-                    data: _options.data
-                };
-            this.promise = $.when(this.getPromise(), $.ajax(
-                $.extend({
-                    beforeSend: function(){
-                        var response = true;
-                        if (_settings.beforeLoad) {
-                            response = _settings.beforeLoad.call(_this, _ajaxOptions);
-                        }
-                        if (response !== false && _loadOptions && _loadOptions.beforeLoad) {
-                            response = _loadOptions.beforeLoad.call(_this, _ajaxOptions);
-                        }
-                        if (response !== false) {
-                            _wait.show();
-                        }
-                        return response;
-                    },
-                    error: function(jqXHR, textStatus, errorThrown){
-                        if(_options.error) {
-                            _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
-                        }
-                        if (typeof bootbox != 'undefined'){
-                            bootbox.alert({
-                                title : "Error",
-                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                    jqXHR.responseText + "</strong></div>",												
-                            });
-                        } else {
-                            alert(
-                                'An error "' + errorThrown + '", status "' + 
-                                textStatus + '" occurred during loading data: ' + 
-                                jqXHR.responseText
-                            );
-                        }
-                    },
-                    success: function(jsonData){
-                        if(_options.success) {
-                            _options.success.call(_this, jsonData)
-                        }
-                        if (_settings.afterLoad) {
-                            _settings.afterLoad.call(_this, _this._rows);
-                        }
-                        if (_loadOptions && _loadOptions.afterLoad) {
-                            _loadOptions.afterLoad.call(_this, _this._rows);
-                        }
-                    },
-                    complete: function(msg){
-                        _wait.hide();
-                        if(_options.complete) {
-                            _options.complete.call(_this)
-                        }
+                _settings = this.settings;
+            this.promise = $.when(this.getPromise(), $.ajax({
+                dataType: "json",
+                type: _options.ajaxType,
+                url: _settings.url,
+                data: _options.data,
+                beforeSend: function(jqXHR, settings) {
+                    var response = true;
+                    if(_options.beforeSend) {
+                        response = _options.beforeSend.apply(_this, [jqXHR, settings]);
+                        if (response === false) { return false; }
+                    }
+                    _wait.show();
+                    return response;
+                },
+                error: function(jqXHR, textStatus, errorThrown){
+                    if(_options.error) {
+                        _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
+                    }
+                    if (typeof bootbox != 'undefined'){
+                        bootbox.alert({
+                            title : "Error",
+                            message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
+                                jqXHR.responseText + "</strong></div>",												
+                        });
+                    } else {
+                        alert(
+                            'An error "' + errorThrown + '", status "' + 
+                            textStatus + '" occurred during loading data: ' + 
+                            jqXHR.responseText
+                        );
                     }
                 },
-                _ajaxOptions)
-            ));
+                success: function(jsonData){
+                    _options.success.call(_this, jsonData)
+                },
+                complete: function(msg){
+                    _wait.hide();
+                    if(_options.complete) {
+                        _options.complete.call(_this)
+                    }
+                }
+            }));
             return this;
         }
     };
@@ -425,8 +400,9 @@ jQuery.ajaxSetup({ cache: false });
             return this.components[compomentName];
         },
         
-        load: function(options) {
-            var _settings = $.extend({}, this.settings, options);
+        load: function(_options) {
+            var _settings = this.settings,
+                finalOptions = $.extend({}, _settings, _options);
             var data = {},
                 pageStart = 1;
             if (this.components.filter) {
@@ -434,27 +410,47 @@ jQuery.ajaxSetup({ cache: false });
                     d2h_values.serialize($(this.components.filter.getElem()));
                 data['d2h_filter'] = values.replace(/&/g, '[,]');
             }
+            if (_settings.sort) {
+                data['d2h_sort'] = $(_settings.sort, this.objElem).val();
+            }
+            
+            var _add = false;
+            if (_options && _options.add) {
+                _add = true;
+            } else {
+                this._rows = null;
+            }
             if (this.components.page) {
-                if (_settings.add) {
+                if (_add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
                 data['d2h_page'] = 'pageStart=' + pageStart + '[,]' +
                     d2h_values.serialize($(this.components.page.getElem()))
                         .replace(/&/g, '[,]');
             }
-            if (_settings.sort) {
-                data['d2h_sort'] = $(_settings.sort, this.objElem).val();
-            }
-            var _add = true;
-            if (!_settings.add) {
-                _add = false;
-                this._rows = null;
-            }
-            this.ajax(options, {
+            this.ajax({
+                ajaxType: 'GET',
                 data: data,
+                beforeSend: function(jqXHR, settings) {
+                    var response = true;
+                    if (_settings.beforeLoad) {
+                        response = _settings.beforeLoad.call(this, settings);
+                        if (response === false) { return false; }
+                    }
+                    if (_options && _options.beforeLoad) {
+                        response = _options.beforeLoad.call(this, settings);
+                    }
+                    return response;
+                },
                 success: function(jsonData){
                     this.setRows(jsonData, _add);
                     this.showGridData(jsonData.cols);
+                    if (_settings.afterLoad) {
+                        _settings.afterLoad.call(this, this._rows);
+                    }
+                    if (_options && _options.afterLoad) {
+                        _options.afterLoad.call(this, this._rows);
+                    }
                 },
                 complete: function(msg){
                     $("*", this.objElem).removeClass(_globalDefaults.classFormChanged);
@@ -544,9 +540,17 @@ jQuery.ajaxSetup({ cache: false });
                 _settings.afterShowGridRow.call(this, i, lastItem);
             }
             return this;
-        }
-    });
+        },
         
+        // Data manage
+        getRowKeys: function(elem, visualClass) {
+            var $parent = $(elem).closest('[data-d2h-keys]');
+            $('.' + visualClass, this.objElem).removeClass(visualClass);
+            return $parent.addClass(visualClass).attr('data-d2h-keys');
+        },
+    });
+
+    
     // ------
     // Form
     // ------
@@ -562,8 +566,10 @@ jQuery.ajaxSetup({ cache: false });
             type: 'form',            
             beforeSave: function(data) { return true; },
             afterSave: function(data) {},
+            errorSave: function(data) {},
             beforeDelete: function(data) { return true; },
-            afterDelete: function(data) {}
+            afterDelete: function(data) {},
+            errorDelete: function(data) {}
         },
         _init: function(objElem, container, options) {
             dataHtml.prototype._init.apply(this, [objElem, container, options]);
@@ -590,18 +596,37 @@ jQuery.ajaxSetup({ cache: false });
                 this.clear();
             });
         },
-        load: function(options) {
-            if (!options || !options.keys) {
+        load: function(_options) {
+            if (!_options || !_options.keys) {
                 $.error("Data2Html: Can't load form data without 'keys' option.");
             }
-            this.ajax(options, {
-                data: {d2h_keys: options.keys},
+            var _settings = this.settings;
+            this.ajax({
+                ajaxType: 'GET',
+                data: {d2h_keys: _options.keys},
+                beforeSend: function(jqXHR, settings) {
+                    var response = true;
+                    if (_settings.beforeLoad) {
+                        response = _settings.beforeLoad.call(this, settings);
+                        if (response === false) { return false; }
+                    }
+                    if (_options && _options.beforeLoad) {
+                        response = _options.beforeLoad.call(this, settings);
+                    }
+                    return response;
+                },
                 success: function(jsonData){
                     this.setRows(jsonData);
                     if (this._rows.length > 0) {
                         this.showFormData(this._rows[0]);
                     } else {
                         this.clear();
+                    }
+                    if (_settings.afterLoad) {
+                        _settings.afterLoad.call(this, this._rows);
+                    }
+                    if (_options && _options.afterLoad) {
+                        _options.afterLoad.call(this, this._rows);
                     }
                 },
                 complete: function(msg){
@@ -658,6 +683,7 @@ jQuery.ajaxSetup({ cache: false });
                                 XMLHttpRequest.responseText
                             );
                         }
+                        _settings.errorSave.call(_this);
                     },
                     success: function(jsonData){
                         _settings.afterSave.call(_this);
@@ -713,6 +739,7 @@ jQuery.ajaxSetup({ cache: false });
                                 XMLHttpRequest.responseText
                             );
                         }
+                        _settings.errorDelete.call(_this);
                     },
                     success: function(jsonData){
                         _settings.afterDelete.call(_this);
@@ -765,11 +792,10 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         
-        showAction: function(action, elem) {
+        goFormAction: function(action, keys) {
             var objElem = this.objElem;
             switch (action) {
                 case 'edit':
-                    var keys = this.getKeys(elem, 'info');
                     var keysElements = this.keysElements;
                     if (keysElements) {
                         keysElements[0].$(keysElements[1]).val(keys);
@@ -780,7 +806,7 @@ jQuery.ajaxSetup({ cache: false });
                     $('.d2h_update', objElem).show();
                     break;
                 case 'delete':
-                    this.load({keys:this.getKeys(elem, 'info')});
+                    this.load({keys:keys});
                     $('.d2h_update,.d2h_insert', objElem).hide();
                     $('.d2h_delete', objElem).show();
                     break;
@@ -791,7 +817,7 @@ jQuery.ajaxSetup({ cache: false });
                         keysElements[0].load();
                     }
                     this.load({
-                        keys: this.getKeys(elem, 'info'),
+                        keys: keys,
                         afterLoad: function() {
                             this.clear({onlyWithDefault: true});
                         }

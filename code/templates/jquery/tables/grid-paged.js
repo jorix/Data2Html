@@ -4,16 +4,16 @@ $('#' + $${id}).data2html({
     visual: $${visual},
     actions: {
         'edit': function(elem) {
-            d2h_switchTo.goAction(this, 'form-edit', 'edit', elem);
+            d2h_switchTo.goFormAction(this, 'form-edit', 'edit', elem);
         },
         'delete': function(elem) {
-           d2h_switchTo.goAction(this, 'form-edit', 'delete', elem);
+           d2h_switchTo.goFormAction(this, 'form-edit', 'delete', elem);
         },
         'copy': function(elem) {
-            d2h_switchTo.goAction(this, 'form-edit', 'copy', elem);
+            d2h_switchTo.goFormAction(this, 'form-edit', 'copy', elem);
         },
         'create': function() {
-            d2h_switchTo.goAction(this, 'form-edit', 'create');
+            d2h_switchTo.goFormAction(this, 'form-edit', 'create');
         }
     },
     filter:['#' +'$${id}_filter', {

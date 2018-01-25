@@ -5,13 +5,17 @@ $('#' + '$${id}').data2html({
         'readPage': function() { return false; },
         'save': function() {
             this.save({
-                afterSave:function(){
+                afterSave: function(){
                     d2h_switchTo.go(this, 'grid');
                 }
             });
         },
         'delete': function() {
-            this.delete();
+            this.delete({
+                afterDelete: function(){
+                    d2h_switchTo.go(this, 'grid');
+                }
+            });
         },
         'back': function() {d2h_switchTo.go(this, 'grid');}
     },

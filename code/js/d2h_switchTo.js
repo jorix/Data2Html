@@ -27,8 +27,12 @@ d2h_switchTo.go = function(d2h_data, name) {
     return switchToObj.go(name);
 };
 
-d2h_switchTo.goAction = function(d2h_data, name, action, elemKeys) {
-    d2h_switchTo.get(d2h_data, name).showAction(action, elemKeys);
+d2h_switchTo.goFormAction = function(d2h_data, name, action, elemKeys) {
+    var keys = null;
+    if (elemKeys) {
+        var keys = d2h_data.getRowKeys(elemKeys, 'info');
+    }
+    d2h_switchTo.get(d2h_data, name).goFormAction(action, keys);
 };
 
 d2h_switchTo.get = function(d2h_data, name) {
