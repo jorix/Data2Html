@@ -402,8 +402,8 @@ jQuery.ajaxSetup({ cache: false });
         
         load: function(_options) {
             var _settings = this.settings,
-                finalOptions = $.extend({}, _settings, _options);
-            var data = {},
+                _add = false,
+                data = {},
                 pageStart = 1;
             if (this.components.filter) {
                 var values =
@@ -414,7 +414,6 @@ jQuery.ajaxSetup({ cache: false });
                 data['d2h_sort'] = $(_settings.sort, this.objElem).val();
             }
             
-            var _add = false;
             if (_options && _options.add) {
                 _add = true;
             } else {
