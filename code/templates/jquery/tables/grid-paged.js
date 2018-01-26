@@ -18,13 +18,13 @@ $('#' + $${id}).data2html({
     },
     filter:['#' +'$${id}_filter', {
         actions: {
-            'readPage': function() {this.load();}
+            'readPage': function() {this.loadGrid();}
         }
     }],
     page: ['#' + '$${id}_page', {
         actions: {
-            'readPage': function() {this.load();},
-            'nextPage': function() {this.load({add:true});}
+            'readPage': function() {this.loadGrid();},
+            'nextPage': function() {this.loadGrid({add:true});}
         }
     }],
     sort: '#' + '$${id}_sort'

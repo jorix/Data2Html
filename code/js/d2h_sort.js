@@ -31,10 +31,10 @@ d2h_sort.prototype = {
         $('[data-d2h-sort]', this.dataElem).each(function() {
             var _sortName = $(this).attr('data-d2h-sort');
             $('.d2h_sortIco_no, .d2h_sortIco_desc', this).on('click', function() {
-                _this.show(_sortName).load();
+                _this.show(_sortName).loadGrid();
             });
             $('.d2h_sortIco_asc', this).on('click', function() {
-                _this.show('!' + _sortName).load();
+                _this.show('!' + _sortName).loadGrid();
             });
         });
     },
@@ -63,8 +63,8 @@ d2h_sort.prototype = {
         $(this.sortElem).val(sort);
         return this;
     },
-    load: function() {
-        this.dataObj.load();
+    loadGrid: function() {
+        this.dataObj.loadGrid();
         return this;
     }
 };

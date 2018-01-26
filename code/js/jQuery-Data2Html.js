@@ -185,25 +185,38 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         
-        ajax: function(_options) {
+        server: function(_options) {
             var _this = this,
                 _settings = this.settings;
             this.promise = $.when(this.getPromise(), $.ajax({
                 dataType: "json",
                 type: _options.ajaxType,
                 url: _settings.url,
-                data: _options.data,
+                data: _options.ajaxType === 'GET' ? _options.data : JSON.stringify(_options.data),
                 beforeSend: function(jqXHR, settings) {
-                    var response = true;
-                    if(_options.beforeSend) {
-                        response = _options.beforeSend.apply(_this, [jqXHR, settings]);
-                        if (response === false) { return false; }
+                    var response = true
+                        beforeArray = _options.before;
+                    for (i = 0, l = beforeArray.length; i < l; i++) {
+                        var before = beforeArray[i];
+                        if (before) {
+                            response = before.apply(_this, [jqXHR, settings]);
+                            if (response === false) { return false; }
+                        }
                     }
                     _wait.show();
                     return response;
                 },
                 error: function(jqXHR, textStatus, errorThrown){
-                    if(_options.error) {
+                    var response = true
+                        errorArray = _options.error;
+                    for (i = 0, l = errorArray.length; i < l; i++) {
+                        var error_ = errorArray[i];
+                        if (error_) {
+                            response = error_.apply(_this, [jqXHR, settings]);
+                            if (response === false) { return }
+                        }
+                    }
+                    if (_options.error) {
                         _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
                     }
                     if (typeof bootbox != 'undefined'){
@@ -220,12 +233,20 @@ jQuery.ajaxSetup({ cache: false });
                         );
                     }
                 },
-                success: function(jsonData){
-                    _options.success.call(_this, jsonData)
+                success: function(jsonData) {
+                    var response = true
+                        afterArray = _options.after;
+                    for (i = 0, l = afterArray.length; i < l; i++) {
+                        var after = afterArray[i];
+                        if (after) {
+                            response = after.apply(_this, [jsonData]);
+                            if (response === false) { return }
+                        }
+                    }
                 },
                 complete: function(msg){
                     _wait.hide();
-                    if(_options.complete) {
+                    if (_options.complete) {
                         _options.complete.call(_this)
                     }
                 }
@@ -244,7 +265,7 @@ jQuery.ajaxSetup({ cache: false });
     $.extend(dataGrid.prototype, dataHtml.prototype, {
         defaults: {
             type: 'grid',
-            auto: 'load',
+            auto: 'loadGrid',
             repeat: '.d2h_repeat',
             pageSize: 0, //default results per page
             
@@ -401,8 +422,8 @@ jQuery.ajaxSetup({ cache: false });
             return this.components[compomentName];
         },
         
-        load: function(_options) {
-            var _settings = this.settings,
+        loadGrid: function(options) {
+            var sortSelector = this.settings.sort,
                 _add = false,
                 data = {},
                 pageStart = 1;
@@ -411,11 +432,11 @@ jQuery.ajaxSetup({ cache: false });
                     d2h_values.serialize($(this.components.filter.getElem()));
                 data['d2h_filter'] = values.replace(/&/g, '[,]');
             }
-            if (_settings.sort) {
-                data['d2h_sort'] = $(_settings.sort, this.objElem).val();
+            if (sortSelector) {
+                data['d2h_sort'] = $(sortSelector, this.objElem).val();
             }
             
-            if (_options && _options.add) {
+            if (options && options.add) {
                 _add = true;
             } else {
                 this._rows = null;
@@ -428,31 +449,26 @@ jQuery.ajaxSetup({ cache: false });
                     d2h_values.serialize($(this.components.page.getElem()))
                         .replace(/&/g, '[,]');
             }
-            this.ajax({
+            this.server({
                 ajaxType: 'GET',
                 data: data,
-                beforeSend: function(jqXHR, settings) {
-                    var response = true;
-                    if (_settings.beforeLoad) {
-                        response = _settings.beforeLoad.call(this, settings);
-                        if (response === false) { return false; }
-                    }
-                    if (_options && _options.beforeLoad) {
-                        response = _options.beforeLoad.call(this, settings);
-                    }
-                    return response;
-                },
-                success: function(jsonData){
-                    this.setRows(jsonData, _add);
-                    this.showGridData(jsonData.cols);
-                    if (_settings.afterLoad) {
-                        _settings.afterLoad.call(this, this._rows);
-                    }
-                    if (_options && _options.afterLoad) {
-                        _options.afterLoad.call(this, this._rows);
-                    }
-                },
-                complete: function(msg){
+                before: [
+                    this.settings.beforeLoadGrid,
+                    options && options.beforeLoadGrid
+                ],
+                error: [
+                    this.settings.errorLoadGrid,
+                    options && options.errorLoadGrid
+                ],
+                after: [
+                    function(jsonData) {
+                        this.setRows(jsonData, _add);
+                        this.showGridData(jsonData.cols);
+                    },
+                    this.settings.afterLoadGrid,
+                    options && options.afterLoadGrid
+                ],
+                complete: function(msg) {
                     $("*", this.objElem).removeClass(_globalDefaults.classFormChanged);
                 }
             });
@@ -598,39 +614,34 @@ jQuery.ajaxSetup({ cache: false });
                 this.clear();
             });
         },
-        load: function(_options) {
-            if (!_options || !_options.keys) {
+        loadForm: function(options) {
+            if (!options || !options.keys) {
                 $.error("Data2Html: Can't load form data without 'keys' option.");
             }
             var _settings = this.settings;
-            this.ajax({
+            this.server({
                 ajaxType: 'GET',
-                data: {d2h_keys: _options.keys},
-                beforeSend: function(jqXHR, settings) {
-                    var response = true;
-                    if (_settings.beforeLoad) {
-                        response = _settings.beforeLoad.call(this, settings);
-                        if (response === false) { return false; }
-                    }
-                    if (_options && _options.beforeLoad) {
-                        response = _options.beforeLoad.call(this, settings);
-                    }
-                    return response;
-                },
-                success: function(jsonData){
-                    this.setRows(jsonData);
-                    if (this._rows.length > 0) {
-                        this.showFormData(this._rows[0]);
-                    } else {
-                        this.clear();
-                    }
-                    if (_settings.afterLoad) {
-                        _settings.afterLoad.call(this, this._rows);
-                    }
-                    if (_options && _options.afterLoad) {
-                        _options.afterLoad.call(this, this._rows);
-                    }
-                },
+                data: {d2h_keys: options.keys},
+                before: [
+                    this.settings.beforeLoadForm,
+                    options && options.beforeLoadForm
+                ],
+                error: [
+                    this.settings.errorLoadForm,
+                    options && options.errorLoadForm
+                ],
+                after: [
+                    function(jsonData) {
+                        this.setRows(jsonData);
+                        if (this._rows.length > 0) {
+                            this.showFormData(this._rows[0]);
+                        } else {
+                            this.clear();
+                        }
+                    },
+                    this.settings.afterLoadForm,
+                    options && options.afterLoadForm
+                ],
                 complete: function(msg){
                     $(this.objElem).removeClass(_globalDefaults.classFormChanged);
                 }
@@ -656,46 +667,28 @@ jQuery.ajaxSetup({ cache: false });
             }
             
             this._rows = null;
-            var _settings = $.extend({}, this.settings, options),
-                _this = this,
-                _formEle = this.objElem;
-            if (_settings.beforeSave.call(this, data) !== false) {
-                $.ajax({
-                    type: 'POST',
-                    url: _settings.url,		
-                    data: JSON.stringify({
-                        d2h_oper: d2h_oper,
-                        d2h_data: data
-                    }),
-                    dataType: 'json',
-                    beforeSend: function(){
-                        _wait.show();
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown){
-                        if (typeof bootbox != 'undefined'){
-                            bootbox.alert({
-                                title : "Error",
-                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                    XMLHttpRequest.responseText + "</strong></div>",												
-                            });
-                        } else {
-                            alert(
-                                'An error "' + errorThrown + '", status "' + 
-                                textStatus + '" occurred during loading data: ' + 
-                                XMLHttpRequest.responseText
-                            );
-                        }
-                        _settings.errorSave.call(_this);
-                    },
-                    success: function(jsonData){
-                        _settings.afterSave.call(_this);
-                    },
-                    complete: function(msg){
-                        _wait.hide();
-                        $(_formEle).removeClass(_globalDefaults.classFormChanged);
-                    }
-                });
-            }
+            this.server({
+                ajaxType: 'POST',	
+                data: {
+                    d2h_oper: d2h_oper,
+                    d2h_data: data
+                },
+                before: [
+                    this.settings.beforeSave,
+                    options && options.beforeSave
+                ],
+                error: [
+                    this.settings.errorSave,
+                    options && options.errorSave
+                ],
+                after: [
+                    this.settings.afterSave,
+                    options && options.afterSave
+                ],
+                complete: function(msg) {
+                    $(this.objElem).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
             return this;
         },
         'delete': function(options) {
@@ -801,14 +794,14 @@ jQuery.ajaxSetup({ cache: false });
                     var keysElements = this.keysElements;
                     if (keysElements) {
                         keysElements[0].$(keysElements[1]).val(keys);
-                        keysElements[0].load();
+                        keysElements[0].loadGrid();
                     }
-                    this.load({keys:keys});
+                    this.loadForm({keys:keys});
                     $('.d2h_delete,.d2h_insert', objElem).hide();
                     $('.d2h_update', objElem).show();
                     break;
                 case 'delete':
-                    this.load({keys:keys});
+                    this.loadForm({keys:keys});
                     $('.d2h_update,.d2h_insert', objElem).hide();
                     $('.d2h_delete', objElem).show();
                     break;
@@ -816,11 +809,11 @@ jQuery.ajaxSetup({ cache: false });
                     var keysElements = this.keysElements;
                     if (keysElements) {
                         keysElements[0].$(keysElements[1]).val(0);
-                        keysElements[0].load();
+                        keysElements[0].loadGrid();
                     }
-                    this.load({
+                    this.loadForm({
                         keys: keys,
-                        afterLoad: function() {
+                        afterLoadForm: function() {
                             this.clear({onlyWithDefault: true});
                         }
                     });
@@ -831,7 +824,7 @@ jQuery.ajaxSetup({ cache: false });
                     var keysElements = this.keysElements;
                     if (keysElements) {
                         keysElements[0].$(keysElements[1]).val(0);
-                        keysElements[0].load();
+                        keysElements[0].loadGrid();
                     }
                     this.clear();
                     $('.d2h_update,.d2h_delete', objElem).hide();
