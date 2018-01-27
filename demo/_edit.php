@@ -34,7 +34,7 @@
     <script src="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
     <script src="../code/js/jQuery-Data2Html.js" ></script>
-    <script src="../code/js/d2h_switchTo.js" ></script>
+    <script src="../code/js/d2h_display.js" ></script>
     <script src="../code/js/d2h_sort.js" ></script>
     <script src="../code/js/d2h_values.js" ></script>
     
@@ -87,7 +87,7 @@
     <script>
         <?=$jsCode?>
         (function() {
-            d2h_switchTo.create('#<?=$idGrid?>', 'grid')
+            d2h_display.create('#<?=$idGrid?>', 'grid')
                 .add('#<?=$idEdit?>', 'form-edit')
                 .go('grid');
         })();

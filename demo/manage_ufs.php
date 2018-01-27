@@ -47,7 +47,7 @@
     <script src="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
     <script src="../code/js/jQuery-Data2Html.js" ></script>
-    <script src="../code/js/d2h_switchTo.js" ></script>
+    <script src="../code/js/d2h_display.js" ></script>
     <script src="../code/js/d2h_sort.js" ></script>
     <script src="../code/js/d2h_values.js" ></script>
     
@@ -98,11 +98,11 @@
     <script>
         <?=$jsCode?>
         (function() {
-            var memberSwitch = d2h_switchTo.create('#<?=$idMemberGrid?>', 'grid')
+            var memberSwitch = d2h_display.create('#<?=$idMemberGrid?>', 'grid')
                 .add('#<?=$idMemberEdit?>', 'form-edit');
             var _memberGrid = memberSwitch.go('grid');
                 
-            var ufSwitch = d2h_switchTo.create('#<?=$idUfGrid?>', 'grid')
+            var ufSwitch = d2h_display.create('#<?=$idUfGrid?>', 'grid')
                 .add('#<?=$idUfEdit?>', 'form-edit');
             ufSwitch.go('grid');
             // ufSwitch.get('form-edit').set({

@@ -785,53 +785,6 @@ jQuery.ajaxSetup({ cache: false });
             }
             $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
             return this;
-        },
-        
-        goFormAction: function(action, keys) {
-            var objElem = this.objElem;
-            switch (action) {
-                case 'edit':
-                    var keysElements = this.keysElements;
-                    if (keysElements) {
-                        keysElements[0].$(keysElements[1]).val(keys);
-                        keysElements[0].loadGrid();
-                    }
-                    this.loadForm({keys:keys});
-                    $('.d2h_delete,.d2h_insert', objElem).hide();
-                    $('.d2h_update', objElem).show();
-                    break;
-                case 'delete':
-                    this.loadForm({keys:keys});
-                    $('.d2h_update,.d2h_insert', objElem).hide();
-                    $('.d2h_delete', objElem).show();
-                    break;
-                case 'copy':
-                    var keysElements = this.keysElements;
-                    if (keysElements) {
-                        keysElements[0].$(keysElements[1]).val(0);
-                        keysElements[0].loadGrid();
-                    }
-                    this.loadForm({
-                        keys: keys,
-                        afterLoadForm: function() {
-                            this.clear({onlyWithDefault: true});
-                        }
-                    });
-                    $('.d2h_update,.d2h_delete', objElem).hide();
-                    $('.d2h_insert', objElem).show();
-                    break;
-                case 'create':
-                    var keysElements = this.keysElements;
-                    if (keysElements) {
-                        keysElements[0].$(keysElements[1]).val(0);
-                        keysElements[0].loadGrid();
-                    }
-                    this.clear();
-                    $('.d2h_update,.d2h_delete', objElem).hide();
-                    $('.d2h_insert', objElem).show();
-                    break;
-            }
-            d2h_switchTo.go(this);
         }
     });
     

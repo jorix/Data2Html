@@ -3,16 +3,16 @@ function d2h_sort() {
 }
 
 // Static
-d2h_sort.create = function(d2h_data, sortSelector) {
-    return new this(d2h_data, sortSelector);
+d2h_sort.create = function(dataObj, sortSelector) {
+    return new this(dataObj, sortSelector);
 };
-d2h_sort.show = function(d2h_data, sort) {
-    return $.data(d2h_data.getElem(), "Data2Html_sort").show(sort);
+d2h_sort.show = function(dataObj, sort) {
+    return $.data(dataObj.getElem(), "Data2Html_sort").show(sort);
 };
 
 // Class
 d2h_sort.prototype = {
-    _init: function(d2h_data, sortSelector) {
+    _init: function(dataObj, sortSelector) {
         var $sort = $(sortSelector);
         if ($sort.length !== 1) {
             $.error(
@@ -21,25 +21,28 @@ d2h_sort.prototype = {
                 "  elements. Must select only one element!"
             );
         }
-        
-        this.dataObj = d2h_data;
-        this.dataElem = d2h_data.getElem();
+        this.dataObj = dataObj;
         this.sortElem = $sort[0];
-        $.data(this.dataElem, "Data2Html_sort", this);
+        
+        var dataElem = this.dataObj.getElem();
+        $.data(dataElem, "Data2Html_sort", this);
         
         var _this = this;
-        $('[data-d2h-sort]', this.dataElem).each(function() {
+        $('[data-d2h-sort]', dataElem).each(function() {
             var _sortName = $(this).attr('data-d2h-sort');
             $('.d2h_sortIco_no, .d2h_sortIco_desc', this).on('click', function() {
-                _this.show(_sortName).loadGrid();
+                _this.show(_sortName);
+                _this.dataObj.loadGrid();
             });
             $('.d2h_sortIco_asc', this).on('click', function() {
-                _this.show('!' + _sortName).loadGrid();
+                _this.show('!' + _sortName);
+                _this.dataObj.loadGrid();
             });
         });
     },
     show: function(sort) {
-        $('.d2h_sort_asc, .d2h_sort_desc', this.dataElem)
+        var dataElem = this.dataObj.getElem();
+        $('.d2h_sort_asc, .d2h_sort_desc', dataElem)
             .removeClass('d2h_sort_asc d2h_sort_desc')
             .addClass('d2h_sort_no');
         if (sort) {
@@ -56,15 +59,11 @@ d2h_sort.prototype = {
                 case '$': // ERROR on server template
                     return this;
             }
-            $('[data-d2h-sort=' + sortName + ']', this.dataElem)
+            $('[data-d2h-sort=' + sortName + ']', dataElem)
                 .removeClass('d2h_sort_no')
                 .addClass(order);
         }
         $(this.sortElem).val(sort);
-        return this;
-    },
-    loadGrid: function() {
-        this.dataObj.loadGrid();
         return this;
     }
 };

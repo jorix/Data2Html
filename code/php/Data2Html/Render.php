@@ -121,7 +121,7 @@ class Data2Html_Render
                 'page' => $pageForm
             )
         );
-        $result['id'] = $gridId; // Required to use d2h_switchTo.js
+        $result['id'] = $gridId; // Required to use d2h_display.js
         return $result;
     }
     
@@ -335,7 +335,7 @@ class Data2Html_Render
                 'body' => $body
             ))
         );
-        $form['id'] = $formId; // Required to use d2h_switchTo.js
+        $form['id'] = $formId; // Required to use d2h_display.js
         return $form;
     }
     
