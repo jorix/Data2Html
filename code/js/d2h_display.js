@@ -112,7 +112,7 @@ d2h_display.prototype = {
                 "' not exist on selectors. Must add it!"
             );
         }
-        return $selected.data2html('get');
+        return $selected.d2h_server('get');
     },
     
     go: function(name) {

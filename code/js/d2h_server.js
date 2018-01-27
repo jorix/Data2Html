@@ -299,7 +299,7 @@ jQuery.ajaxSetup({ cache: false });
             // Check repeat selector
             var $itemRepeat = $(settings.repeat, gridEle);
             if ($itemRepeat.length == 0) {
-                $.error("Data2Html can not initialize DOM object '" +
+                $.error("d2h_server can not initialize DOM object '" +
                     _getElementPath(gridEle) +
                     "': Does not contain a '" +
                     settings.repeat +
@@ -308,7 +308,7 @@ jQuery.ajaxSetup({ cache: false });
                 return;
             }
             if ($itemRepeat.length > 1) {
-                $.error("Data2Html can not initialize DOM object '" +
+                $.error("d2h_server can not initialize DOM object '" +
                     _getElementPath(gridEle) +
                     "': Contains more than one '" +
                     settings.repeat +
@@ -321,7 +321,7 @@ jQuery.ajaxSetup({ cache: false });
             $itemRepeat.addClass(iClassRepeat);
             var $parentContainer = $itemRepeat.parent();
             if ($(this._selectorRepeatParent, gridEle).length > 0) {
-                $.error("Data2Html can not initialize DOM object '" +
+                $.error("d2h_server can not initialize DOM object '" +
                     _getElementPath(gridEle) +
                     "': Contains selector '" +
                     this._selectorRepeatParent +
@@ -331,7 +331,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             $parentContainer.addClass(iClassRepeatParent);
             if ($(this._selectorRepeat, $parentContainer).length > 1) {
-                $.error("Data2Html can not initialize DOM object '" +
+                $.error("d2h_server can not initialize DOM object '" +
                     _getElementPath($parentContainer[0]) +
                     "': Contains more than one '" +
                     this._selectorRepeat +
@@ -383,7 +383,7 @@ jQuery.ajaxSetup({ cache: false });
             if ($.isArray(selector)) {
                 if (selector.length < 1 || selector.length > 2) {
                     $.error(
-                        "Data2Html can not initialize compoment '" + 
+                        "d2h_server can not initialize compoment '" + 
                         compomentName +
                         "'. When selector is array must have 1 or 2 items!"
                     );
@@ -407,7 +407,7 @@ jQuery.ajaxSetup({ cache: false });
                 return;
             } else if ($elem.length !== 1) {
                 $.error(
-                    "Data2Html: Selector '" + selector + 
+                    "d2h_server: Selector '" + selector + 
                   //  "' of component '" + componentName +
                     "' has selected " + $elem.length +
                     " elements. Must select only one element!"
@@ -606,7 +606,7 @@ jQuery.ajaxSetup({ cache: false });
             var promises = null,
                 subElements = $('[data-d2h]', this.objElem);
             if (subElements.length > 0) {
-                promises = subElements.data2html('getPromise');
+                promises = subElements.d2h_server('getPromise');
             }
             this.whenPromise(promises, function() {
                 // Issue of default value of a select:
@@ -616,7 +616,7 @@ jQuery.ajaxSetup({ cache: false });
         },
         loadForm: function(options) {
             if (!options || !options.keys) {
-                $.error("Data2Html: Can't load form data without 'keys' option.");
+                $.error("d2h_server: Can't load form data without 'keys' option.");
             }
             var _settings = this.settings;
             this.server({
@@ -817,7 +817,7 @@ jQuery.ajaxSetup({ cache: false });
         var optionsEle = _getElementJsData(objElem, 'd2h');
         if (!optionsEle && !options) {
             $.error(
-                "Can not initialize a data2html handler: " +
+                "Can not initialize a d2h_server handler: " +
                 "Options or HTML attribute 'data-d2h' are required on '" + 
                     _getElementPath(objElem) + "'"
             );
@@ -837,7 +837,7 @@ jQuery.ajaxSetup({ cache: false });
                 optionsEle = eval('[(' + dataD2h + ')]')[0];
             } catch(e) {
                 $.error(
-                    "Can not initialize a data2html handler: " +
+                    "Can not initialize a d2h_server handler: " +
                     "HTML attribute 'data-' " + dataName + "' have a not valid js syntax on '" + 
                         _getElementPath(objElem) + "'" 
                 );
@@ -850,10 +850,10 @@ jQuery.ajaxSetup({ cache: false });
     /**
      * Plugin declaration
      */
-    $.fn.data2html = function() {
+    $.fn.d2h_server = function() {
         if (this.length == 0) {
             $.error(
-                "Data2Html: Can not find a DOM object with the selector!"
+                "d2h_server: Can not find a DOM object with the selector!"
             );
             return;
         }
@@ -869,7 +869,7 @@ jQuery.ajaxSetup({ cache: false });
                 _method = arguments[0];
             } else {
                 $.error(
-                    "Data2Html: Can not find a plainObject or string as single argument!"
+                    "d2h_server: Can not find a plainObject or string as single argument!"
                 );
                 return;
             }
@@ -880,14 +880,14 @@ jQuery.ajaxSetup({ cache: false });
                 _options = arguments[1];
             } else {
                 $.error(
-                    "Data2Html: Can not find a: string, plainObject as arguments!"
+                    "d2h_server: Can not find a: string, plainObject as arguments!"
                 );
                 return;
             }
             break;
         default:
             $.error(
-                "Data2Html: Excess number of arguments!"
+                "d2h_server: Excess number of arguments!"
             );
             return;
         }
@@ -911,7 +911,7 @@ jQuery.ajaxSetup({ cache: false });
                 response = thisObj[_method].call(thisObj, _options);
             }
             if (response !== undefined) {
-                _responses.push(response); // To chain Data2Html or retrieve value
+                _responses.push(response); // To chain d2h_server or retrieve value
             }
         });
         switch (_responses.length) {

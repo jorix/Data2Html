@@ -1,4 +1,4 @@
-$('#' + '$${id}').data2html({
+$('#' + '$${id}').d2h_server({
     url:    '$${url}',
     type:   'form',
     actions: {

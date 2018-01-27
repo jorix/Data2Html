@@ -23,7 +23,7 @@
     <link  href="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <script src="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
-    <script src="../code/js/jQuery-Data2Html.js" ></script>
+    <script src="../code/js/d2h_server.js" ></script>
     <script src="../code/js/d2h_display.js" ></script>
     <script src="../code/js/d2h_sort.js" ></script>
     <script src="../code/js/d2h_values.js" ></script>
@@ -76,7 +76,7 @@
     <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
-        $('#<?=$idGrid?>').data2html();
+        $('#<?=$idGrid?>').d2h_server();
     </script>
 </body>
 </html>

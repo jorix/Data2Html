@@ -1,4 +1,4 @@
-$('#' + $${id}).data2html({
+$('#' + $${id}).d2h_server({
     url:'$${url}',
     repeat:'table tbody tr',
     visual: $${visual},
