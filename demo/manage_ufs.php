@@ -98,12 +98,16 @@
     <script>
         <?=$jsCode?>
         (function() {
-            var memberSwitch = d2h_display.create('#<?=$idMemberGrid?>', 'grid')
-                .add('#<?=$idMemberEdit?>', 'form-edit');
+            var memberSwitch = new d2h_display({
+                grid: '#<?=$idMemberGrid?>',
+                detail: '#<?=$idMemberEdit?>'
+            });
             var _memberGrid = memberSwitch.go('grid');
                 
-            var ufSwitch = d2h_display.create('#<?=$idUfGrid?>', 'grid')
-                .add('#<?=$idUfEdit?>', 'form-edit');
+            var ufSwitch = new d2h_display({
+                grid: '#<?=$idUfGrid?>',
+                detail: '#<?=$idUfEdit?>'
+            });
             ufSwitch.go('grid');
             // ufSwitch.get('form-edit').set({
                 // beforeLoad: function(options) {
@@ -114,7 +118,7 @@
             // });
             //
             // TODO: fer-ho, però maco!!!!!!
-            ufSwitch.get('form-edit')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
+            ufSwitch.get('detail')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
         })();
     </script>
     </div>

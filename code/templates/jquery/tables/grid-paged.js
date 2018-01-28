@@ -1,6 +1,7 @@
 $('#' + $${id}).d2h_server({
-    url:'$${url}',
-    repeat:'table tbody tr',
+    url: '$${url}',
+    repeat: 'table tbody tr',
+    selectedClass: 'info',
     visual: $${visual},
     actions: {
         'edit': function(elem) {

@@ -1,15 +1,10 @@
-function d2h_display(selector, name) {
+function d2h_display(selectors) {
     this._selectors = {};
     this._currentName = null;
-    if (selector) {
-        this.add(selector, name);
+    for (iName in selectors) {
+        this.add(selectors[iName], iName);
     }
 }
-
-// Static
-d2h_display.create = function(selector, name) {
-    return new this(selector, name);
-};
 
 d2h_display.go = function(d2h_data, name) {
     var switchToObj = $.data(d2h_data.getElem(), "Data2Html_display");
@@ -27,14 +22,9 @@ d2h_display.go = function(d2h_data, name) {
     return switchToObj.go(name);
 };
 
-d2h_display.goFormAction = function(d2h_data, action, elemKeys) {
-    var name = 'form-edit',
-        keys = null;
-    if (elemKeys) {
-        var keys = d2h_data.getRowKeys(elemKeys, 'info');
-    }
-    
-    var formObj = d2h_display.get(d2h_data, name),
+d2h_display.goFormAction = function(gridObj, action, elemKeys) {
+    var keys = gridObj.getSelectedKeys(elemKeys),
+        formObj = d2h_display.get(gridObj, 'detail'),
         formElem = formObj.getElem();
     switch (action) {
         case 'edit':
@@ -106,10 +96,10 @@ d2h_display.prototype = {
     
     get: function(name) {
         var $selected = $(this._selectors[name]);
-        if (!$selected) {
+        if ($selected.length !== 1) {
             $.error(
-                "d2h_display.get(): Name '" + name + 
-                "' not exist on selectors. Must add it!"
+                "d2h_display.get(): Name " + name + '="' + this._selectors[name] +
+                '" not exist on selectors. Must add it!'
             );
         }
         return $selected.d2h_server('get');

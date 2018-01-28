@@ -55,6 +55,7 @@ jQuery.ajaxSetup({ cache: false });
         },
         
         settings: null,
+        status: null,
         promise: null,
         objElem: null, // The DOM element
         _container: null,        
@@ -67,6 +68,7 @@ jQuery.ajaxSetup({ cache: false });
             this.defaults =
                 $.extend({}, dataHtml.prototype.defaults, this.defaults);
             this.objElem = objElem;
+            this.status = {};
             this._initId = _initCounter++;
             this._container = container ? container : this;
             
@@ -484,12 +486,25 @@ jQuery.ajaxSetup({ cache: false });
             $(this._selectorRepeat, $parentContainer).remove();
             return this;
         },
-    
+        
+        getSelectedKeys: function(elem) {
+            var $parent = $(elem).closest('[data-d2h-keys]'),
+                selectedClass = this.settings.selectedClass;
+            if (selectedClass) {
+                $('.' + selectedClass, this.objElem).removeClass(selectedClass);
+                $parent.addClass(selectedClass);
+            }
+            var selectedKeys = $parent.attr('data-d2h-keys');
+            this.status.selectedKeys = selectedKeys;
+            return selectedKeys;
+        },
+        
         showGridData: function (cols) {
             this.clear();
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
-                lastItem = null;
+                lastItem = null,
+                selectedKeys = this.status.selectedKeys;
             if ($parentContainer.length === 0) {
                 $parentContainer = $(this.objElem);
             }
@@ -520,10 +535,12 @@ jQuery.ajaxSetup({ cache: false });
             // loop rows           
             var _settings = this.settings,
                 rows = this._rows,
-                visualData = this._visualData;
+                visualData = this._visualData,
+                selectedKeys = this.status.selectedKeys;
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,
-                    row = rows[i];
+                    row = rows[i],
+                    rowKeys = null;
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
                     var replItem = replaces[ii],
                         iName = replItem.name,
@@ -531,7 +548,8 @@ jQuery.ajaxSetup({ cache: false });
                         dataType =  visualEle ? visualEle.type : null,
                         val;
                     if (iName === '[keys]') {
-                        html = html.replace(replItem.repl, row['[keys]'].join(','));
+                        rowKeys = row['[keys]'].join(',');
+                        html = html.replace(replItem.repl, rowKeys);
                     } else {
                         if ($.isNumeric(iName)) {
                             val = row[cols[iName]];
@@ -553,17 +571,13 @@ jQuery.ajaxSetup({ cache: false });
                 if (_settings.actions) {
                     this.listen(lastItem, _settings.actions);
                 }
+                if (selectedKeys === rowKeys && this.settings.selectedClass) {
+                    lastItem.addClass(this.settings.selectedClass);
+                }
                 _settings.afterShowGridRow.call(this, i, lastItem);
             }
             return this;
-        },
-        
-        // Data manage
-        getRowKeys: function(elem, visualClass) {
-            var $parent = $(elem).closest('[data-d2h-keys]');
-            $('.' + visualClass, this.objElem).removeClass(visualClass);
-            return $parent.addClass(visualClass).attr('data-d2h-keys');
-        },
+        }
     });
 
     
