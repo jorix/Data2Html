@@ -221,7 +221,7 @@ jQuery.ajaxSetup({ cache: false });
                     if (_options.error) {
                         _options.error.apply(_this, [jqXHR, textStatus, errorThrown]);
                     }
-                    if (typeof bootbox != 'undefined'){
+                    if (bootbox !== undefined){
                         bootbox.alert({
                             title : "Error",
                             message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
@@ -367,8 +367,8 @@ jQuery.ajaxSetup({ cache: false });
             // aditional calls
             this.whenPromise(promises, function() {
                 // Issue of default value of a select:
-                //  * clear after filter promises are done
-                this.clear();
+                //  * clearGrid after filter promises are done
+                this.clearGrid();
                 
                 // Auto call
                 var autoCall = this.settings.auto;
@@ -465,7 +465,7 @@ jQuery.ajaxSetup({ cache: false });
                 after: [
                     function(jsonData) {
                         this.setRows(jsonData, _add);
-                        this.showGridData(jsonData.cols);
+                        this.showGrid();
                     },
                     this.settings.afterLoadGrid,
                     options && options.afterLoadGrid
@@ -478,7 +478,7 @@ jQuery.ajaxSetup({ cache: false });
         },
 
         // Manage grid HTML
-        clear: function () {
+        clearGrid: function() {
             var $parentContainer = $(this._selectorRepeatParent, this.objElem);
             if ($parentContainer.length === 0) {
                 $parentContainer = $(this.objElem);
@@ -499,8 +499,8 @@ jQuery.ajaxSetup({ cache: false });
             return selectedKeys;
         },
         
-        showGridData: function (cols) {
-            this.clear();
+        showGrid: function () {
+            this.clearGrid();
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
                 lastItem = null,
@@ -536,11 +536,18 @@ jQuery.ajaxSetup({ cache: false });
             var _settings = this.settings,
                 rows = this._rows,
                 visualData = this._visualData,
-                selectedKeys = this.status.selectedKeys;
+                selectedKeys = this.status.selectedKeys,
+                cols = [];
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,
                     row = rows[i],
+                    xName,
                     rowKeys = null;
+                if (i === 0) {
+                    for (xName in row) {
+                        cols.push(xName);
+                    }
+                }
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
                     var replItem = replaces[ii],
                         iName = replItem.name,
@@ -616,7 +623,7 @@ jQuery.ajaxSetup({ cache: false });
                 $formEle.addClass(_globalDefaults.classFormChanged);
             });
                    
-            // clear
+            // clearForm
             var promises = null,
                 subElements = $('[data-d2h]', this.objElem);
             if (subElements.length > 0) {
@@ -624,8 +631,8 @@ jQuery.ajaxSetup({ cache: false });
             }
             this.whenPromise(promises, function() {
                 // Issue of default value of a select:
-                //  - clear after sub element promises are done.
-                this.clear();
+                //  - clearForm after sub element promises are done.
+                this.clearForm();
             });
         },
         loadForm: function(options) {
@@ -650,7 +657,7 @@ jQuery.ajaxSetup({ cache: false });
                         if (this._rows.length > 0) {
                             this.showFormData(this._rows[0]);
                         } else {
-                            this.clear();
+                            this.clearForm();
                         }
                     },
                     this.settings.afterLoadForm,
@@ -761,7 +768,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             return this;
         },
-        clear: function(options) {
+        clearForm: function(options) {
             var allElements = true;
             if (options) {
                 allElements = !options.onlyWithDefault;
@@ -809,8 +816,11 @@ jQuery.ajaxSetup({ cache: false });
      
     // scope none
     function _getElementPath(elem) {
-        if (elem === undefined) {
+        if (!elem) {
             return "undefined";
+        }
+        if (!elem.tagName) {
+            return "no-DOM-element";
         }
         var selectorArr = [
             elem.tagName.toLowerCase() +

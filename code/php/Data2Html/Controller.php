@@ -246,8 +246,7 @@ class Data2Html_Controller
         }
         $response += array(
             'pageStart' => $pageStart,
-            'pageSize' => $pageSize,
-            'cols' => array_keys($resTypes)
+            'pageSize' => $pageSize
         );
         if (true) {
             $response['rows'] = $rows;

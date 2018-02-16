@@ -86,11 +86,12 @@
     <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
-        (function() {
-            d2h_display.create('#<?=$idGrid?>', 'grid')
-                .add('#<?=$idEdit?>', 'form-edit')
-                .go('grid');
-        })();
+            new d2h_display({
+                items: {
+                    grid: {selector: '#<?=$idGrid?>'},
+                    detail: {selector: '#<?=$idEdit?>'}
+                }
+            });
     </script>
 </body>
 </html>

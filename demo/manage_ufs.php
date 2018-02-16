@@ -94,21 +94,28 @@
 </head>
 <body>
     <div class="container">
-    <?=$htmlCode?>
+        <?=$htmlCode?>
+    </div>
+    <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
         (function() {
+            var ufSwitch = new d2h_display({
+                items: {
+                    grid: '#<?=$idUfGrid?>',
+                    detail: '#<?=$idUfEdit?>'
+                }
+            });
+            ufSwitch.go('grid');
             var memberSwitch = new d2h_display({
-                grid: '#<?=$idMemberGrid?>',
-                detail: '#<?=$idMemberEdit?>'
+                items: {
+                    grid: {selector: '#<?=$idMemberGrid?>', keys: ['uf_id_eq']},
+                    detail: {selector: '#<?=$idMemberEdit?>', keys: ['uf_id']}
+                },
+                parent: '#<?=$idUfGrid?>'
             });
             var _memberGrid = memberSwitch.go('grid');
                 
-            var ufSwitch = new d2h_display({
-                grid: '#<?=$idUfGrid?>',
-                detail: '#<?=$idUfEdit?>'
-            });
-            ufSwitch.go('grid');
             // ufSwitch.get('form-edit').set({
                 // beforeLoad: function(options) {
                     // _memberGrid.$('[name=uf_id_eq]').val(options.data.d2h_keys);
@@ -118,10 +125,8 @@
             // });
             //
             // TODO: fer-ho, però maco!!!!!!
-            ufSwitch.get('detail')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
+            //ufSwitch.get('detail')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
         })();
     </script>
-    </div>
-    <div class="d2h_waiting"></div>
 </body>
 </html>
