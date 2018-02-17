@@ -6,18 +6,18 @@ $('#' + '$${id}').d2h_server({
         'save': function() {
             this.save({
                 afterSave: function(){
-                    d2h_display.go(this, 'grid');
+                    d2h_display.show(this, 'grid');
                 }
             });
         },
         'delete': function() {
             this.delete({
                 afterDelete: function(){
-                    d2h_display.go(this, 'grid');
+                    d2h_display.show(this, 'grid');
                 }
             });
         },
-        'back': function() {d2h_display.go(this, 'grid');}
+        'back': function() {d2h_display.show(this, 'grid');}
     },
     visual: $${visual}
 });

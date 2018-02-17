@@ -48,6 +48,7 @@ jQuery.ajaxSetup({ cache: false });
         this._init(objElem, container, options);
     }
     dataHtml.prototype = {
+        events: [],
         defaults: {
             url: '',
             ajaxType: 'GET',
@@ -89,6 +90,14 @@ jQuery.ajaxSetup({ cache: false });
             
             // Add pluguin
             $.data(this.objElem, "Data2Html_data", this);
+ 
+            // Register events
+            for( var i = 0, l = this.events.length; i < l; i++) {
+                var evName = this.events[i];
+                if (settings[evName]) {
+                    this.on(evName, settings[evName]);
+                }
+            }
         },
         
         set: function(options) {
@@ -106,6 +115,23 @@ jQuery.ajaxSetup({ cache: false });
         
         $: function(selector) {
             return $(selector, this.objElem);
+        },
+        
+        on: function(eventName, handlerFn) {
+            var _this = this;
+            $(this.objElem).on(
+                'd2h_' + eventName,
+                function() {
+                    var args = [];
+                    Array.prototype.push.apply(args, arguments);
+                    return handlerFn.apply(_this, args.shift());
+                }
+            );
+            return this;
+        },
+        
+        trigger: function(eventName, args) {
+            return $(this.objElem).triggerHandler('d2h_' + eventName, args);
         },
         
         getPromise: function() {
@@ -201,7 +227,11 @@ jQuery.ajaxSetup({ cache: false });
                     for (i = 0, l = beforeArray.length; i < l; i++) {
                         var before = beforeArray[i];
                         if (before) {
-                            response = before.apply(_this, [jqXHR, settings]);
+                            if (typeof before === "string") {
+                                response = _this.trigger(before, [jqXHR, settings]);
+                            } else {
+                                response = before.apply(_this, [jqXHR, settings]);
+                            }
                             if (response === false) { return false; }
                         }
                     }
@@ -214,8 +244,12 @@ jQuery.ajaxSetup({ cache: false });
                     for (i = 0, l = errorArray.length; i < l; i++) {
                         var error_ = errorArray[i];
                         if (error_) {
-                            response = error_.apply(_this, [jqXHR, settings]);
-                            if (response === false) { return }
+                            if (typeof error_ === "string") {
+                                response = _this.trigger(error_, [jqXHR, settings]);
+                            } else {
+                                response = error_.apply(_this, [jqXHR, settings]);
+                            }
+                            if (response === false) { return false; }
                         }
                     }
                     if (_options.error) {
@@ -241,8 +275,12 @@ jQuery.ajaxSetup({ cache: false });
                     for (i = 0, l = afterArray.length; i < l; i++) {
                         var after = afterArray[i];
                         if (after) {
-                            response = after.apply(_this, [jsonData]);
-                            if (response === false) { return }
+                            if (typeof after === "string") {
+                                response = _this.trigger(after, [jsonData]);
+                            } else {
+                                response = after.apply(_this, [jsonData]);
+                            }
+                            if (response === false) { return false; }
                         }
                     }
                 },
@@ -265,6 +303,7 @@ jQuery.ajaxSetup({ cache: false });
     }
 
     $.extend(dataGrid.prototype, dataHtml.prototype, {
+        events: ["beforeLoadGrid", "errorLoadGrid", "afterLoadGrid"],
         defaults: {
             type: 'grid',
             auto: 'loadGrid',
@@ -285,6 +324,7 @@ jQuery.ajaxSetup({ cache: false });
         _repeatStart: 0,
         _selectorRepeat: '',
         _selectorRepeatParent: '',
+        _branchKeys: null,
 
         _init: function(objElem, container, options) {
             dataHtml.prototype._init.apply(this, [objElem, container, options]);
@@ -346,7 +386,7 @@ jQuery.ajaxSetup({ cache: false });
             this._repeatHtml = $itemRepeat.get(0).outerHTML;
             this._repeatStart = $parentContainer.children().index($itemRepeat);
             
-            // additional calls
+            // initialize components
             // page
             if (settings.page) {
                 this._initComponent('page', settings.page);
@@ -455,11 +495,11 @@ jQuery.ajaxSetup({ cache: false });
                 ajaxType: 'GET',
                 data: data,
                 before: [
-                    this.settings.beforeLoadGrid,
+                    "beforeLoadGrid",
                     options && options.beforeLoadGrid
                 ],
                 error: [
-                    this.settings.errorLoadGrid,
+                    "errorLoadGrid",
                     options && options.errorLoadGrid
                 ],
                 after: [
@@ -467,7 +507,7 @@ jQuery.ajaxSetup({ cache: false });
                         this.setRows(jsonData, _add);
                         this.showGrid();
                     },
-                    this.settings.afterLoadGrid,
+                    "afterLoadGrid",
                     options && options.afterLoadGrid
                 ],
                 complete: function(msg) {
@@ -497,6 +537,13 @@ jQuery.ajaxSetup({ cache: false });
             var selectedKeys = $parent.attr('data-d2h-keys');
             this.status.selectedKeys = selectedKeys;
             return selectedKeys;
+        },
+        
+        branchKeys: function(branchKeys) {
+            if (arguments.length > 0) {
+                this._branchKeys = branchKeys;
+            }
+            return this._branchKeys;
         },
         
         showGrid: function () {
@@ -599,14 +646,13 @@ jQuery.ajaxSetup({ cache: false });
         }
     }
     $.extend(dataForm.prototype, dataHtml.prototype, {
+        enents: [
+            'beforeSave', 'afterSave', 'errorSave',
+            'beforeDelete', 'afterDelete', 'errorDelete',
+            'beforeLoadForm', 'afterLoadForm','errorLoadForm'
+        ],
         defaults: {
-            type: 'form',            
-            beforeSave: function(data) { return true; },
-            afterSave: function(data) {},
-            errorSave: function(data) {},
-            beforeDelete: function(data) { return true; },
-            afterDelete: function(data) {},
-            errorDelete: function(data) {}
+            type: 'form'
         },
         _init: function(objElem, container, options) {
             dataHtml.prototype._init.apply(this, [objElem, container, options]);
@@ -644,11 +690,11 @@ jQuery.ajaxSetup({ cache: false });
                 ajaxType: 'GET',
                 data: {d2h_keys: options.keys},
                 before: [
-                    this.settings.beforeLoadForm,
+                    "beforeLoadForm",
                     options && options.beforeLoadForm
                 ],
                 error: [
-                    this.settings.errorLoadForm,
+                    "errorLoadForm",
                     options && options.errorLoadForm
                 ],
                 after: [
@@ -660,7 +706,7 @@ jQuery.ajaxSetup({ cache: false });
                             this.clearForm();
                         }
                     },
-                    this.settings.afterLoadForm,
+                    "afterLoadForm",
                     options && options.afterLoadForm
                 ],
                 complete: function(msg){
@@ -695,15 +741,15 @@ jQuery.ajaxSetup({ cache: false });
                     d2h_data: data
                 },
                 before: [
-                    this.settings.beforeSave,
+                    "beforeSave",
                     options && options.beforeSave
                 ],
                 error: [
-                    this.settings.errorSave,
+                    "errorSave",
                     options && options.errorSave
                 ],
                 after: [
-                    this.settings.afterSave,
+                    "afterSave",
                     options && options.afterSave
                 ],
                 complete: function(msg) {
@@ -714,9 +760,8 @@ jQuery.ajaxSetup({ cache: false });
         },
         'delete': function(options) {
             var visualData = this._visualData,
-                d2h_oper,
                 data = {};
-            for (iName in _this._visualData) {
+            for (iName in this._visualData) {
                 var visualEle = visualData[iName];
                 data[iName] = d2h_values.get(
                     $('[name=' + iName + ']', this.objElem),
@@ -724,48 +769,28 @@ jQuery.ajaxSetup({ cache: false });
                 );
             }
             data['[keys]'] = $(this.objElem).data('d2h-keys');
-            
-            this._rows = null;
-            var _settings = $.extend({}, this.settings, options);
-                _this = this,
-                _formEle = this.objElem;
-            if (_settings.beforeDelete.call(_this, data) !== false) {
-                $.ajax({
-                    type: 'POST',
-                    url: _settings.url,		
-                    data: JSON.stringify({
-                        d2h_oper: 'delete',
-                        d2h_data: data
-                    }),
-                    dataType: 'json',
-                    beforeSend: function(){
-                        _wait.show();
-                    },
-                    error: function(XMLHttpRequest, textStatus, errorThrown){
-                        if (typeof bootbox != 'undefined'){
-                            bootbox.alert({
-                                title : "Error",
-                                message : "<div class='alert alert-warning'>Ops! Something went wrong while loading data: <strong>" + 
-                                    XMLHttpRequest.responseText + "</strong></div>",												
-                            });
-                        } else {
-                            alert(
-                                'An error "' + errorThrown + '", status "' + 
-                                textStatus + '" occurred during loading data: ' + 
-                                XMLHttpRequest.responseText
-                            );
-                        }
-                        _settings.errorDelete.call(_this);
-                    },
-                    success: function(jsonData){
-                        _settings.afterDelete.call(_this);
-                    },
-                    complete: function(msg){
-                        _wait.hide();
-                        $(_formEle).removeClass(_globalDefaults.classFormChanged);
-                    }
-                });
-            }
+            this.server({
+                ajaxType: 'POST',	
+                data: {
+                    d2h_oper: 'delete',
+                    d2h_data: data
+                },
+                before: [
+                    "beforeDelete",
+                    options && options.beforeDelete
+                ],
+                error: [
+                    "errorDelete",
+                    options && options.errorDelete
+                ],
+                after: [
+                    "afterDelete",
+                    options && options.afterDelete
+                ],
+                complete: function(msg) {
+                    $(this.objElem).removeClass(_globalDefaults.classFormChanged);
+                }
+            });
             return this;
         },
         clearForm: function(options) {

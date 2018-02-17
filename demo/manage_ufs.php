@@ -100,32 +100,19 @@
     <script>
         <?=$jsCode?>
         (function() {
-            var ufSwitch = new d2h_display({
+            new d2h_display({
                 items: {
                     grid: '#<?=$idUfGrid?>',
                     detail: '#<?=$idUfEdit?>'
                 }
             });
-            ufSwitch.go('grid');
-            var memberSwitch = new d2h_display({
+            new d2h_display({
                 items: {
-                    grid: {selector: '#<?=$idMemberGrid?>', keys: ['uf_id_eq']},
-                    detail: {selector: '#<?=$idMemberEdit?>', keys: ['uf_id']}
+                    grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
+                    detail: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
                 },
-                parent: '#<?=$idUfGrid?>'
+                branch: '#<?=$idUfGrid?>'
             });
-            var _memberGrid = memberSwitch.go('grid');
-                
-            // ufSwitch.get('form-edit').set({
-                // beforeLoad: function(options) {
-                    // _memberGrid.$('[name=uf_id_eq]').val(options.data.d2h_keys);
-                    // _memberGrid.load();
-                    // console.log(options.data.d2h_keys);
-                // }
-            // });
-            //
-            // TODO: fer-ho, però maco!!!!!!
-            //ufSwitch.get('detail')['keysElements'] = [_memberGrid, '[name=uf_id_eq]'];
         })();
     </script>
 </body>

@@ -10,90 +10,152 @@ var d2h_display = function(options) {
     }
 };
 
-d2h_display.go = function(d2h_data, name) {
-    var switchToObj = $.data(d2h_data.getElem(), "Data2Html_display");
+d2h_display.show = function(serverObj, name) {
+    var displayObj = $.data(serverObj.getElem(), "Data2Html_display");
     if (!name) {
-        name = switchToObj.getDataName(d2h_data);
+        name = displayObj.getServerName(serverObj);
     }
-    return switchToObj.go(name);
+    return displayObj.show(name);
 };
 
 d2h_display.goFormAction = function(gridObj, action, elemKeys) {
-    var keys = gridObj.getSelectedKeys(elemKeys),
+    var _keys = gridObj.getSelectedKeys(elemKeys),
         formObj = d2h_display.get(gridObj, 'detail'),
         formElem = formObj.getElem();
     switch (action) {
         case 'edit':
-            var keysElements = formObj.keysElements;
-            if (keysElements) {
-                keysElements[0].$(keysElements[1]).val(keys);
-                keysElements[0].loadGrid();
-            }
-            formObj.loadForm({keys:keys});
+            formObj.loadForm({
+                keys: _keys,
+                afterLoadForm: function() {
+                    formObj.trigger('applyLeafKeys', [null]);
+                }
+            });
             $('.d2h_delete,.d2h_insert', formElem).hide();
             $('.d2h_update', formElem).show();
             break;
         case 'delete':
-            formObj.loadForm({keys:keys});
+            formObj.loadForm({
+                keys: _keys,
+                afterLoadForm: function() {
+                    formObj.trigger('applyLeafKeys', [null]);
+                }
+            });
             $('.d2h_update,.d2h_insert', formElem).hide();
             $('.d2h_delete', formElem).show();
             break;
         case 'copy':
-            var keysElements = formObj.keysElements;
-            if (keysElements) {
-                keysElements[0].$(keysElements[1]).val(0);
-                keysElements[0].loadGrid();
-            }
             formObj.loadForm({
-                keys: keys,
+                keys: _keys,
                 afterLoadForm: function() {
-                    formObj.clear({onlyWithDefault: true});
+                    formObj
+                        .clearForm({onlyWithDefault: true})
+                        .trigger('applyLeafKeys', [null]);
                 }
             });
             $('.d2h_update,.d2h_delete', formElem).hide();
             $('.d2h_insert', formElem).show();
             break;
         case 'create':
-            var keysElements = formObj.keysElements;
-            if (keysElements) {
-                keysElements[0].loadGrid();
-            }
-            formObj.clear();
+            formObj.clearForm().trigger('applyLeafKeys', [null]);
             $('.d2h_update,.d2h_delete', formElem).hide();
             $('.d2h_insert', formElem).show();
             break;
     }
-    d2h_display.go(formObj);
+    d2h_display.show(formObj);
 };
 
-d2h_display.get = function(d2h_data, name) {
-    var switchToObj = $.data(d2h_data.getElem(), "Data2Html_display");
-    return switchToObj.get(name);
+d2h_display.get = function(serverObj, name) {
+    if (typeof serverObj === 'string' ) {
+        elem = d2h_display.singleElement(serverObj);
+    } else {
+        elem = serverObj.getElem();
+    }
+    var displayObj = $.data(elem, "Data2Html_display");
+    if (!displayObj) {
+        $.error(
+            "d2h_display.get(): name '" + name + 
+            "' not found!"
+        );
+    }
+    return displayObj.get(name);
 };
+
+d2h_display.singleElement = function(selector) {
+    var $elem = $(selector);
+    if ($elem.length !== 1) {
+        $.error(
+            "d2h_display.singleElement(): Selector '" + selector + 
+            "' has selected " + $elem.length +
+            " elements. Must select only one DOM element!"
+        );
+    }
+    return $elem[0];
+}
 
 // Class
 d2h_display.prototype = {
     _selectors: null,
+    _options: null,
+    _currentName: '',
     
-    add: function(name, selector) {
-        var $elem;
-        if ($.isPlainObject(selector)) {
-            if (!selector.selector) {
+    add: function(name, options) {
+        var selector;
+        if (typeof options === 'string' ) {
+            selector = options;
+        } else if ($.isPlainObject(options)) {
+            selector = options.selector;
+            if (!options.selector) {
                 $.error(
-                    "d2h_display.add(): If selector is a plain object a 'selector' key is required!"
+                    "d2h_display.add(): If options is a plain object 'selector' key is required!"
                 );
             }
-            selector = selector.selector;
-        }
-        $elem = $(selector);
-        if ($elem.length !== 1) {
+            if (options.leafKeys) {
+                var branch = this._options.branch;
+                if (!branch) {
+                    $.error(
+                        "d2h_display.add(): If 'leafKeys' is used needs a 'branch' global options."
+                    );
+                }
+                var _this = this,
+                    _leafKeys = options.leafKeys,
+                    _applyKeys = function(server, branchKeys) {
+                        for (var i = 0, l = _leafKeys.length; i < l; i++) {
+                            server.$('[name=' + _leafKeys[i] + ']', ).val(
+                                (branchKeys ? branchKeys[i] : '')
+                            );
+                        }
+                    };
+                switch (name) {
+                    case 'grid':
+                        var pServer = d2h_display.get(branch, 'detail');                               
+                        pServer.on(
+                            'applyLeafKeys',  
+                            function(branchKeys) {
+                                var grid = _this.get('grid');
+                                _applyKeys(grid, branchKeys);
+                                // save branch keys on grid
+                                grid.branchKeys(branchKeys);
+                            }
+                        );
+                        break;
+                    case 'detail':
+                        var _detail = $(selector).d2h_server('get');
+                        _detail.on(
+                            'applyBranchKeys', 
+                            function() {
+                                // retrieve branch keys from grid
+                                _applyKeys(_detail, _this.get('grid').branchKeys());
+                            }
+                        );
+                        break;
+                }
+            }
+        } else {
             $.error(
-                "d2h_display.add(): Selector '" + selector + 
-                "' has selected " + $elem.length +
-                "  elements. Must select only one DOM element!"
+                "d2h_display.add(): If selector must be a plain object or a string!"
             );
         }
-        $.data($elem[0], "Data2Html_display", this);
+        $.data(d2h_display.singleElement(selector), "Data2Html_display", this);
         this._selectors[name] = selector;
         return this;
     },
@@ -105,18 +167,12 @@ d2h_display.prototype = {
                 '" not exist on items. Add it firts!'
             );
         }
-        var $selected = $(this._selectors[name]);
-        if ($selected.length !== 1) {
-            $.error(
-                'd2h_display.get(): Selector "' + this._selectors[name] + '" of "' + name +
-                '" must select only one DOM element!'
-            );
-        }
+        var $selected = $(d2h_display.singleElement(this._selectors[name]));
         return $selected.d2h_server('get');
     },
     
-    getDataName: function(d2h_data) {
-        var dataSelector = '#' + d2h_data.getElem().id,
+    getServerName: function(serverObj) {
+        var dataSelector = '#' + serverObj.getElem().id,
             sels = this._selectors,
             response = null;
             iName;
@@ -127,9 +183,13 @@ d2h_display.prototype = {
         }
     },
     
-    go: function(name) {
+    show: function(name) {
         var iName,
-            sels = this._selectors;
+            sels = this._selectors,
+            serverObj = this.get(name);
+        if (name === 'detail') {
+            serverObj.trigger('applyBranchKeys');
+        }
         for (iName in sels) {
             if (iName === name) {
                 $(sels[iName]).show();
@@ -138,6 +198,6 @@ d2h_display.prototype = {
             }
         }
         this._currentName = name;
-        return this.get(name);
+        return serverObj;
     }
 };
