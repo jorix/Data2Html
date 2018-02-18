@@ -1,3 +1,5 @@
+// Class
+// -----
 var d2h_display = function(options) {
     this._options = options;
     this._selectors = {};
@@ -10,89 +12,6 @@ var d2h_display = function(options) {
     }
 };
 
-d2h_display.show = function(serverObj, name) {
-    var displayObj = $.data(serverObj.getElem(), "Data2Html_display");
-    if (!name) {
-        name = displayObj.getServerName(serverObj);
-    }
-    return displayObj.show(name);
-};
-
-d2h_display.goFormAction = function(gridObj, action, elemKeys) {
-    var _keys = gridObj.getSelectedKeys(elemKeys),
-        formObj = d2h_display.get(gridObj, 'detail'),
-        formElem = formObj.getElem();
-    switch (action) {
-        case 'edit':
-            formObj.loadForm({
-                keys: _keys,
-                afterLoadForm: function() {
-                    formObj.trigger('applyLeafKeys', [_keys]);
-                }
-            });
-            $('.d2h_delete,.d2h_insert', formElem).hide();
-            $('.d2h_update', formElem).show();
-            break;
-        case 'delete':
-            formObj.loadForm({
-                keys: _keys,
-                afterLoadForm: function() {
-                    formObj.trigger('applyLeafKeys', [_keys]);
-                }
-            });
-            $('.d2h_update,.d2h_insert', formElem).hide();
-            $('.d2h_delete', formElem).show();
-            break;
-        case 'copy':
-            formObj.loadForm({
-                keys: _keys,
-                afterLoadForm: function() {
-                    formObj
-                        .clearForm({onlyWithDefault: true})
-                        .trigger('applyLeafKeys', [null]);
-                }
-            });
-            $('.d2h_update,.d2h_delete', formElem).hide();
-            $('.d2h_insert', formElem).show();
-            break;
-        case 'create':
-            formObj.clearForm().trigger('applyLeafKeys', [null]);
-            $('.d2h_update,.d2h_delete', formElem).hide();
-            $('.d2h_insert', formElem).show();
-            break;
-    }
-    d2h_display.show(formObj);
-};
-
-d2h_display.get = function(serverObj, name) {
-    if (typeof serverObj === 'string' ) {
-        elem = d2h_display.singleElement(serverObj);
-    } else {
-        elem = serverObj.getElem();
-    }
-    var displayObj = $.data(elem, "Data2Html_display");
-    if (!displayObj) {
-        $.error(
-            "d2h_display.get(): name '" + name + 
-            "' not found!"
-        );
-    }
-    return displayObj.get(name);
-};
-
-d2h_display.singleElement = function(selector) {
-    var $elem = $(selector);
-    if ($elem.length !== 1) {
-        $.error(
-            "d2h_display.singleElement(): Selector '" + selector + 
-            "' has selected " + $elem.length +
-            " elements. Must select only one DOM element!"
-        );
-    }
-    return $elem[0];
-}
-
-// Class
 d2h_display.prototype = {
     _selectors: null,
     _options: null,
@@ -127,11 +46,11 @@ d2h_display.prototype = {
                     };
                 switch (name) {
                     case 'grid':
-                        var pServer = d2h_display.get(branch, 'detail');                               
+                        var pServer = d2h_display.getServer(branch, 'detail');                               
                         pServer.on(
                             'applyLeafKeys',  
                             function(branchKeys) {
-                                var grid = _this.get('grid');
+                                var grid = _this.getServer('grid');
                                 _applyKeys(grid, branchKeys);
                                 // save branch keys on grid
                                 grid.branchKeys(branchKeys);
@@ -139,7 +58,8 @@ d2h_display.prototype = {
                                     grid.loadGrid();
                                 } else {
                                     grid.clearGrid();
-                                }    
+                                }
+                                _this.show('grid');
                             }
                         );
                         break;
@@ -149,7 +69,7 @@ d2h_display.prototype = {
                             'applyBranchKeys', 
                             function() {
                                 // retrieve branch keys from grid
-                                _applyKeys(_detail, _this.get('grid').branchKeys());
+                                _applyKeys(_detail, _this.getServer('grid').branchKeys());
                             }
                         );
                         break;
@@ -165,10 +85,10 @@ d2h_display.prototype = {
         return this;
     },
     
-    get: function(name) {
+    getServer: function(name) {
         if (!name in this._selectors) {
             $.error(
-                "d2h_display.get(): Name " + name + 
+                "d2h_display.getServer(): Name " + name + 
                 '" not exist on items. Add it firts!'
             );
         }
@@ -191,7 +111,7 @@ d2h_display.prototype = {
     show: function(name) {
         var iName,
             sels = this._selectors,
-            serverObj = this.get(name);
+            serverObj = this.getServer(name);
         if (name === 'detail') {
             serverObj.trigger('applyBranchKeys');
         }
@@ -204,5 +124,118 @@ d2h_display.prototype = {
         }
         this._currentName = name;
         return serverObj;
+    },
+    
+    hide: function() {
+        var iName,
+            sels = this._selectors;
+        for (iName in sels) {
+            $(sels[iName]).hide();
+        }
     }
 };
+
+// Static methods
+// --------------
+d2h_display.show = function(serverObj, name) {
+    var displayObj = d2h_display.get(serverObj);
+    if (!name) {
+        name = displayObj.getServerName(serverObj);
+    }
+    return displayObj.show(name);
+};
+
+d2h_display.hide = function(serverObj) {
+    d2h_display.get(serverObj).hide();
+};
+
+d2h_display.loadGrid = function(gridServer) {
+    var grid = d2h_display.getServer(gridServer, 'grid');
+    grid.loadGrid();
+    d2h_display.show(grid);
+};
+
+d2h_display.goFormAction = function(gridServer, action, elemKeys) {
+    var _keys = gridServer.getSelectedKeys(elemKeys),
+        formServer = d2h_display.getServer(gridServer, 'detail'),
+        formElem = formServer.getElem();
+    switch (action) {
+        case 'edit':
+            formServer.loadForm({
+                keys: _keys,
+                afterLoadForm: function() {
+                    formServer.trigger('applyLeafKeys', [_keys]);
+                    $('.d2h_delete,.d2h_insert', formElem).hide();
+                    $('.d2h_update', formElem).show();
+                    d2h_display.show(formServer);
+                }
+            });
+            break;
+        case 'delete':
+            formServer.loadForm({
+                keys: _keys,
+                afterLoadForm: function() {
+                    formServer.trigger('applyLeafKeys', [_keys]);
+                    $('.d2h_update,.d2h_insert', formElem).hide();
+                    $('.d2h_delete', formElem).show();
+                    d2h_display.show(formServer);
+                }
+            });
+            break;
+        case 'copy':
+            formServer.loadForm({
+                keys: _keys,
+                afterLoadForm: function() {
+                    formServer
+                        .clearForm({onlyWithDefault: true})
+                        .trigger('applyLeafKeys', [null]);
+                    $('.d2h_update,.d2h_delete', formElem).hide();
+                    $('.d2h_insert', formElem).show();
+                    d2h_display.show(formServer);
+                }
+            });
+            break;
+        case 'create':
+            formServer.clearForm().trigger('applyLeafKeys', [null]);
+            $('.d2h_update,.d2h_delete', formElem).hide();
+            $('.d2h_insert', formElem).show();
+            d2h_display.show(formServer);
+            break;
+    }
+};
+
+d2h_display.get = function(serverObj) {
+    var elem, elemSelector;
+    if (typeof serverObj === 'string' ) {
+        elemSelector = serverObj;
+        elem = d2h_display.singleElement(serverObj);
+    } else {
+        elem = serverObj.getElem();
+        elemSelector = 'd2h_server(#' + elem.id + ')';
+    }
+    var displayObj = $.data(elem, "Data2Html_display");
+    if (!displayObj) {
+        $.error(
+            "d2h_display.get(): '" + elemSelector + 
+            "' not found!"
+        );
+    }
+    return displayObj;
+};
+
+
+d2h_display.getServer = function(serverObj, name) {
+    return d2h_display.get(serverObj).getServer(name);
+};
+
+d2h_display.singleElement = function(selector) {
+    var $elem = $(selector);
+    if ($elem.length !== 1) {
+        $.error(
+            "d2h_display.singleElement(): Selector '" + selector + 
+            "' has selected " + $elem.length +
+            " elements. Must select only one DOM element!"
+        );
+    }
+    return $elem[0];
+}

@@ -3,6 +3,7 @@ $('#' + $${id}).d2h_server({
     repeat: 'table tbody tr',
     selectedClass: 'info',
     visual: $${visual},
+    auto: 'clearGrid',
     actions: {
         'edit': function(elem) {
             d2h_display.goFormAction(this, 'edit', elem);

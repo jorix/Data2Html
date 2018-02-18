@@ -113,6 +113,8 @@
                 },
                 branch: '#<?=$idUfGrid?>'
             });
+            d2h_display.loadGrid('#<?=$idUfGrid?>');
+            d2h_display.hide('#<?=$idMemberGrid?>');
         })();
     </script>
 </body>
