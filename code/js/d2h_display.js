@@ -27,7 +27,7 @@ d2h_display.goFormAction = function(gridObj, action, elemKeys) {
             formObj.loadForm({
                 keys: _keys,
                 afterLoadForm: function() {
-                    formObj.trigger('applyLeafKeys', [null]);
+                    formObj.trigger('applyLeafKeys', [_keys]);
                 }
             });
             $('.d2h_delete,.d2h_insert', formElem).hide();
@@ -37,7 +37,7 @@ d2h_display.goFormAction = function(gridObj, action, elemKeys) {
             formObj.loadForm({
                 keys: _keys,
                 afterLoadForm: function() {
-                    formObj.trigger('applyLeafKeys', [null]);
+                    formObj.trigger('applyLeafKeys', [_keys]);
                 }
             });
             $('.d2h_update,.d2h_insert', formElem).hide();
@@ -120,7 +120,7 @@ d2h_display.prototype = {
                     _leafKeys = options.leafKeys,
                     _applyKeys = function(server, branchKeys) {
                         for (var i = 0, l = _leafKeys.length; i < l; i++) {
-                            server.$('[name=' + _leafKeys[i] + ']', ).val(
+                            server.$('[name=' + _leafKeys[i] + ']', server.getElem()).val(
                                 (branchKeys ? branchKeys[i] : '')
                             );
                         }
@@ -135,6 +135,11 @@ d2h_display.prototype = {
                                 _applyKeys(grid, branchKeys);
                                 // save branch keys on grid
                                 grid.branchKeys(branchKeys);
+                                if (branchKeys) {
+                                    grid.loadGrid();
+                                } else {
+                                    grid.clearGrid();
+                                }    
                             }
                         );
                         break;

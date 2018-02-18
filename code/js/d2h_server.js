@@ -124,7 +124,8 @@ jQuery.ajaxSetup({ cache: false });
                 function() {
                     var args = [];
                     Array.prototype.push.apply(args, arguments);
-                    return handlerFn.apply(_this, args.shift());
+                    args.shift();
+                    return handlerFn.apply(_this, args);
                 }
             );
             return this;
@@ -528,6 +529,9 @@ jQuery.ajaxSetup({ cache: false });
         },
         
         getSelectedKeys: function(elem) {
+            if (elem === undefined) {
+                return null;
+            }
             var $parent = $(elem).closest('[data-d2h-keys]'),
                 selectedClass = this.settings.selectedClass;
             if (selectedClass) {
@@ -536,7 +540,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             var selectedKeys = $parent.attr('data-d2h-keys');
             this.status.selectedKeys = selectedKeys;
-            return selectedKeys;
+            return selectedKeys.split(',');
         },
         
         branchKeys: function(branchKeys) {
