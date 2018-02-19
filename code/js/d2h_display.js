@@ -199,7 +199,7 @@ d2h_display.goFormAction = function(gridServer, action, elemKeys) {
                 afterLoadForm: function() {
                     formServer
                         .clearForm({onlyWithDefault: true})
-                        .trigger('applyLeafKeys', [null]);
+                        .trigger('hideLeafs');
                     $('.d2h_update,.d2h_delete', formElem).hide();
                     $('.d2h_insert', formElem).show();
                     d2h_display.show(formServer);
@@ -207,7 +207,7 @@ d2h_display.goFormAction = function(gridServer, action, elemKeys) {
             });
             break;
         case 'create':
-            formServer.clearForm().trigger('applyLeafKeys', [null]);
+            formServer.clearForm().trigger('hideLeafs');
             $('.d2h_update,.d2h_delete', formElem).hide();
             $('.d2h_insert', formElem).show();
             d2h_display.show(formServer);
