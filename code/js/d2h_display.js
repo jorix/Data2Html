@@ -10,6 +10,12 @@ var d2h_display = function(options) {
             this.add(iName, elems[iName]);
         }
     }
+    var branch = this._options.branch;
+    if (branch) {
+        var _this = this
+        var pServer = d2h_display.getServer(branch, 'grid');                               
+        pServer.on('hideLeafs',  function() { _this.hide(); });
+    }
 };
 
 d2h_display.prototype = {
@@ -112,8 +118,13 @@ d2h_display.prototype = {
         var iName,
             sels = this._selectors,
             serverObj = this.getServer(name);
-        if (name === 'detail') {
-            serverObj.trigger('applyBranchKeys');
+        switch (name) {
+            case 'detail':
+                serverObj.trigger('applyBranchKeys');
+                break;
+            case 'grid':
+                serverObj.trigger('hideLeafs');
+                break;
         }
         for (iName in sels) {
             if (iName === name) {
