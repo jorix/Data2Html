@@ -538,9 +538,14 @@ jQuery.ajaxSetup({ cache: false });
                 $('.' + selectedClass, this.objElem).removeClass(selectedClass);
                 $parent.addClass(selectedClass);
             }
-            var selectedKeys = $parent.attr('data-d2h-keys');
-            this.status.selectedKeys = selectedKeys;
-            return selectedKeys.split(',');
+            return this.selectedKeys($parent.attr('data-d2h-keys')).split(','); // Store keys
+        },
+        
+        selectedKeys: function(newKeys) {
+            if (arguments.length > 0) {
+                this.status.selectedKeys = newKeys;
+            }
+            return this.status.selectedKeys;
         },
         
         branchKeys: function(branchKeys) {
@@ -554,8 +559,7 @@ jQuery.ajaxSetup({ cache: false });
             this.clearGrid();
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
-                lastItem = null,
-                selectedKeys = this.status.selectedKeys;
+                lastItem = null;
             if ($parentContainer.length === 0) {
                 $parentContainer = $(this.objElem);
             }
@@ -587,7 +591,7 @@ jQuery.ajaxSetup({ cache: false });
             var _settings = this.settings,
                 rows = this._rows,
                 visualData = this._visualData,
-                selectedKeys = this.status.selectedKeys,
+                selectedKeys = this.selectedKeys(),
                 cols = [];
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,

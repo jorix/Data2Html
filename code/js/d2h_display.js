@@ -166,9 +166,8 @@ d2h_display.loadGrid = function(gridServer) {
     d2h_display.show(grid);
 };
 
-d2h_display.goFormAction = function(gridServer, action, elemKeys) {
-    var _keys = gridServer.getSelectedKeys(elemKeys),
-        formServer = d2h_display.getServer(gridServer, 'detail'),
+d2h_display.goFormAction = function(gridServer, action, _keys) {
+    var formServer = d2h_display.getServer(gridServer, 'detail'),
         formElem = formServer.getElem();
     switch (action) {
         case 'edit':

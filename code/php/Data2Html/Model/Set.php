@@ -283,7 +283,7 @@ abstract class Data2Html_Model_Set
     // -----------------------
     // Database management
     // -----------------------
-    public function dbInsert($db, $values, &$newId)
+    public function dbInsert($db, &$values, &$newId)
     {
         if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
             return false;
@@ -296,7 +296,7 @@ abstract class Data2Html_Model_Set
         return $result;
     }
     
-    public function dbUpdate($db, $values, $keys)
+    public function dbUpdate($db, &$values, $keys)
     {
         if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
             return false;

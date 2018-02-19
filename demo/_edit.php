@@ -92,6 +92,7 @@
                     detail: {selector: '#<?=$idEdit?>'}
                 }
             });
+            d2h_display.loadGrid('#<?=$idGrid?>');
     </script>
 </body>
 </html>

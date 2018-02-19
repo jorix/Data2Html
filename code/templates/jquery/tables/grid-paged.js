@@ -6,13 +6,13 @@ $('#' + $${id}).d2h_server({
     auto: 'clearGrid',
     actions: {
         'edit': function(elem) {
-            d2h_display.goFormAction(this, 'edit', elem);
+            d2h_display.goFormAction(this, 'edit', this.getSelectedKeys(elem));
         },
         'delete': function(elem) {
-           d2h_display.goFormAction(this, 'delete', elem);
+           d2h_display.goFormAction(this, 'delete', this.getSelectedKeys(elem));
         },
         'copy': function(elem) {
-            d2h_display.goFormAction(this, 'copy', elem);
+            d2h_display.goFormAction(this, 'copy', this.getSelectedKeys(elem));
         },
         'create': function() {
             d2h_display.goFormAction(this, 'create');

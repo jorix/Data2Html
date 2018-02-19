@@ -61,28 +61,20 @@ class Data2Html_Controller
         $model = $this->model;
         $r = new Data2Html_Collection($postData);
         $oper = $r->getString('d2h_oper', '');
-        $payerNames = Data2Html_Handler::parseRequest($request);
+        $playerNames = Data2Html_Handler::parseRequest($request);
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
-                if (isset($payerNames['form'])) {
-                    $lkForm = $model->getForm($payerNames['form']);
+                if (isset($playerNames['form'])) {
+                    $lkForm = $model->getForm($playerNames['form']);
                     $lkForm->createLink();
-                    
-                    // Make sql
-                    $sqlObj = 
-                        new Data2Html_Controller_SqlSelect($this->db, $lkForm);
-                    $sqlObj->addFilterByKeys($r->getItem('d2h_keys'));
-                    $sql = $sqlObj->getSelect();
-                    
-                    // Response
-                    return $this->opRead($sql, $lkForm, 1, 1);
-                } elseif (isset($payerNames['grid'])) {
-                    $lkGrid = $model->getGrid($payerNames['grid']);
+                    return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
+                } elseif (isset($playerNames['grid'])) {
+                    $lkGrid = $model->getGrid($playerNames['grid']);
                     $lkGrid->createLink();
                     
-                    // Make sql
+                    // Prepare sql
                     $sqlObj = new Data2Html_Controller_SqlSelect(
                         $this->db,
                         $lkGrid->getColumnsSet()
@@ -92,33 +84,50 @@ class Data2Html_Controller
                         $r->getArray('d2h_filter')
                     );
                     $sqlObj->addSort($r->getString('d2h_sort'));
-                    $sql = $sqlObj->getSelect();
                     
                     // Response
                     $page = $r->getCollection('d2h_page', array());
                     return $this->opRead(
-                        $sql,
+                        $sqlObj->getSelect(),
                         $lkGrid->getColumnsSet(),
                         $page->getInteger('pageStart', 1),
                         $page->getInteger('pageSize', 0)
                     );
                 }
             case 'insert':
-                $this->opInsert($model->getForm($payerNames['form']), $postData['d2h_data']);
+                $lkForm = $model->getForm($playerNames['form']);
+                $values = $postData['d2h_data'];
+                $newId = $this->opInsert($lkForm, $values);
+                
+                // Get new keys
+                $lkForm->createLink();
+                $lkItems = $lkForm->getLinkedItems();
+                $keyNames = $lkForm->getLinkedKeys();
+                $keys = [];
+                foreach($keyNames as $k => $v) {
+                    if (Data2Html_Value::getItem($lkItems, [$k, 'key']) === 'autoKey') {
+                        $keys[] = $newId;
+                    } else {
+                        $keys[] = $values[$k];
+                    }
+                }
+                
+                // Response record
+                $response['keys'] = $keys;
                 break;
 
             case 'update':
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opUpdate($model->getForm($payerNames['form']), $data, $keys);
+                $this->opUpdate($model->getForm($playerNames['form']), $data, $keys);
                 break;
 
             case 'delete':
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opDelete($model->getForm($payerNames['form']), $data, $keys);
+                $this->opDelete($model->getForm($playerNames['form']), $data, $keys);
                 break;
 
             default:
@@ -128,6 +137,20 @@ class Data2Html_Controller
         $response['success'] = 1;
         return $response;
     }
+    
+    /**
+     * Execute a query and return the array result.
+     */
+    protected function opReadForm($lkForm, $keys)
+    {
+        // Prepare sql
+        $sqlObj = new Data2Html_Controller_SqlSelect($this->db, $lkForm);
+        $sqlObj->addFilterByKeys($keys);
+        
+        // Response
+        return $this->opRead($sqlObj->getSelect(), $lkForm, 1, 1);
+    }
+    
     
     /**
      * Execute a query and return the array result.
@@ -259,7 +282,7 @@ class Data2Html_Controller
         return $response;
     }
 
-    protected function opInsert($set, $values)
+    protected function opInsert($set, &$values)
     {
         $newId = null;
         
@@ -283,7 +306,7 @@ class Data2Html_Controller
         return $newId;
     }
     
-    protected function opUpdate($set, $values, $keys)
+    protected function opUpdate($set, &$values, $keys)
     {
         // Transaction
         $this->db->startTransaction();
@@ -305,7 +328,7 @@ class Data2Html_Controller
         return $result;
     }
     
-    protected function opDelete($set, $values, $keys)
+    protected function opDelete($set, &$values, $keys)
     {
         $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
         $sqlObj->checkSingleRow($keys);

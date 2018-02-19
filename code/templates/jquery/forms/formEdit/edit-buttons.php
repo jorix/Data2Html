@@ -58,7 +58,7 @@ $return = array(
                     'visualClassLayout' => 'd2h_insert',
                     'icon' => 'ok',
                     'title' => '$Create',
-                    'action' => 'save'
+                    'action' => 'create'
                 )
             )
         )

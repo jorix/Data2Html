@@ -10,6 +10,16 @@ $('#' + '$${id}').d2h_server({
                 }
             });
         },
+        'create': function() {
+            this.save({
+                afterSave: function(jsonData){
+                    var keys = jsonData.keys;
+                        gridServer = d2h_display.getServer(this, 'grid');
+                    gridServer.selectedKeys(keys[0]);
+                    d2h_display.goFormAction(gridServer, 'edit', keys);
+                }
+            });
+        },
         'delete': function() {
             this.delete({
                 afterDelete: function(){

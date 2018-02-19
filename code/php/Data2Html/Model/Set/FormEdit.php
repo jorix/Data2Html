@@ -8,6 +8,10 @@ class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
         'beforeUpdate' => 'attribute',
         'afterUpdate' => 'attribute'
     );
+
+    protected $keywords = array(
+        'sortBy' => null
+    );
     
     public function __construct(
         $model,
