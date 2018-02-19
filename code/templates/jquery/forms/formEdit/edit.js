@@ -6,6 +6,8 @@ $('#' + '$${id}').d2h_server({
         'save': function() {
             this.save({
                 afterSave: function(){
+                    var gridServer = d2h_display.getServer(this, 'grid');
+                    gridServer.loadGrid();
                     d2h_display.show(this, 'grid');
                 }
             });
@@ -15,7 +17,7 @@ $('#' + '$${id}').d2h_server({
                 afterSave: function(jsonData){
                     var keys = jsonData.keys;
                         gridServer = d2h_display.getServer(this, 'grid');
-                    gridServer.selectedKeys(keys[0]);
+                    gridServer.selectedKeys(keys);
                     d2h_display.goFormAction(gridServer, 'edit', keys);
                 }
             });
@@ -23,6 +25,8 @@ $('#' + '$${id}').d2h_server({
         'delete': function() {
             this.delete({
                 afterDelete: function(){
+                    var gridServer = d2h_display.getServer(this, 'grid');
+                    gridServer.loadGrid();
                     d2h_display.show(this, 'grid');
                 }
             });
