@@ -538,7 +538,7 @@ jQuery.ajaxSetup({ cache: false });
                 $('.' + selectedClass, this.objElem).removeClass(selectedClass);
                 $parent.addClass(selectedClass);
             }
-            return this.selectedKeys($parent.attr('data-d2h-keys')).split(','); // Store keys
+            return this.selectedKeys(JSON.parse($parent.attr('data-d2h-keys'))); // Store keys
         },
         
         selectedKeys: function(newKeys) {
@@ -591,7 +591,7 @@ jQuery.ajaxSetup({ cache: false });
             var _settings = this.settings,
                 rows = this._rows,
                 visualData = this._visualData,
-                selectedKeys = this.selectedKeys(),
+                selectedKeys = JSON.stringify(this.selectedKeys()),
                 cols = [];
             for (var i = 0, l = rows.length; i < l; i++){
                 var html = this._repeatHtml,
@@ -610,7 +610,7 @@ jQuery.ajaxSetup({ cache: false });
                         dataType =  visualEle ? visualEle.type : null,
                         val;
                     if (iName === '[keys]') {
-                        rowKeys = row['[keys]'].join(',');
+                        rowKeys = JSON.stringify(row['[keys]']);
                         html = html.replace(replItem.repl, rowKeys);
                     } else {
                         if ($.isNumeric(iName)) {
@@ -734,8 +734,9 @@ jQuery.ajaxSetup({ cache: false });
                     visualEle ? visualEle.type : null
                 );
             }
-            data['[keys]'] = $(this.objElem).data('d2h-keys');
-            if (data['[keys]']) {
+            var d2hKeys = $(this.objElem).data('d2h-keys');
+            if (d2hKeys) {
+                data['[keys]'] = JSON.parse(d2hKeys);
                 d2h_oper = 'update';
             } else {
                 d2h_oper = 'insert';
@@ -776,7 +777,7 @@ jQuery.ajaxSetup({ cache: false });
                     visualEle ? visualEle.type : null
                 );
             }
-            data['[keys]'] = $(this.objElem).data('d2h-keys');
+            data['[keys]'] = JSON.parse($(this.objElem).data('d2h-keys'));
             this.server({
                 ajaxType: 'POST',	
                 data: {
@@ -837,7 +838,7 @@ jQuery.ajaxSetup({ cache: false });
                     visualEle = visualData[tagName];
                 d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
             }
-            $(this.objElem).data('d2h-keys', row['[keys]'].join(','));
+            $(this.objElem).data('d2h-keys', JSON.stringify(row['[keys]']));
             return this;
         }
     });

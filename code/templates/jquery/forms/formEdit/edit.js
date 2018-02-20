@@ -14,7 +14,7 @@ $('#' + '$${id}').d2h_server({
         },
         'create': function() {
             this.save({
-                afterSave: function(jsonData){
+                afterSave: function(jsonData) {
                     var keys = jsonData.keys;
                         gridServer = d2h_display.getServer(this, 'grid');
                     gridServer.selectedKeys(keys);
