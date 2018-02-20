@@ -106,7 +106,7 @@ class Data2Html_Controller
                 $keys = [];
                 foreach($keyNames as $k => $v) {
                     if (Data2Html_Value::getItem($lkItems, [$k, 'key']) === 'autoKey') {
-                        $keys[] = $newId;
+                        $keys[] = $newId + 0;
                     } else {
                         $keys[] = $values[$k];
                     }
