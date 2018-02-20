@@ -8,7 +8,7 @@ $return = array(
                 'visualClassBody' => 'btn-success',
                 'title' => '$Add',
                 'description' => '$Add',
-                'action' => 'create'
+                'action' => 'show-create'
             ),
             'content-template' => 'empty',
             'items' => array(
@@ -18,7 +18,7 @@ $return = array(
                     'visualClassBody' => 'btn-default',
                     'title' => '$Edit',
                     'description' => null,
-                    'action' => 'edit'
+                    'action' => 'show-edit'
                 ),
                 array(
                     'content-template' => 'button',
@@ -26,7 +26,7 @@ $return = array(
                     'visualClassBody' => 'btn-default',
                     'title' => '$Copy',
                     'description' => null,
-                    'action' => 'copy'
+                    'action' => 'show-copy'
                 ),
                 array(
                     'content-template' => 'button',
@@ -34,7 +34,7 @@ $return = array(
                     'visualClassBody' => 'btn-danger',
                     'title' => '$Delete',
                     'description' => null,
-                    'action' => 'delete'
+                    'action' => 'show-delete'
                 )
             )
         )

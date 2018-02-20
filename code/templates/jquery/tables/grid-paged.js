@@ -5,17 +5,17 @@ $('#' + $${id}).d2h_server({
     visual: $${visual},
     auto: 'clearGrid',
     actions: {
-        'edit': function(elem) {
-            d2h_display.goFormAction(this, 'edit', this.getSelectedKeys(elem));
+        'show-edit': function(elem) {
+            d2h_display.goFormAction(this, 'show-edit', this.getSelectedKeys(elem));
         },
-        'delete': function(elem) {
-           d2h_display.goFormAction(this, 'delete', this.getSelectedKeys(elem));
+        'show-delete': function(elem) {
+           d2h_display.goFormAction(this, 'show-delete', this.getSelectedKeys(elem));
         },
-        'copy': function(elem) {
-            d2h_display.goFormAction(this, 'copy', this.getSelectedKeys(elem));
+        'show-copy': function(elem) {
+            d2h_display.goFormAction(this, 'show-copy', this.getSelectedKeys(elem));
         },
-        'create': function() {
-            d2h_display.goFormAction(this, 'create');
+        'show-create': function() {
+            d2h_display.goFormAction(this, 'show-create');
         }
     },
     filter:['#' +'$${id}_filter', {

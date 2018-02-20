@@ -166,48 +166,94 @@ d2h_display.loadGrid = function(gridServer) {
     d2h_display.show(grid);
 };
 
-d2h_display.goFormAction = function(gridServer, action, _keys) {
-    var formServer = d2h_display.getServer(gridServer, 'detail'),
+d2h_display.goGridAction = function(formServer, action) {
+    var gridServer = d2h_display.getServer(formServer, 'grid');
+    switch (action) {
+        case 'read-previous':
+        //TODO
+            break;
+        case 'read-next':
+        //TODO
+            break;
+        case 'save': 
+            formServer.save({
+                afterSave: function(){
+                    gridServer.loadGrid();
+                    d2h_display.show(formServer, 'grid');
+                }
+            });
+            break;
+        case 'create':
+            formServer.save({
+                afterSave: function(jsonData) {
+                    var gridServer = d2h_display.getServer(formServer, 'grid'),
+                        keys = jsonData.keys;
+                    gridServer.selectedKeys(keys);
+                    if (formServer.isEventUsed('applyLeafKeys')) {
+                        d2h_display.goFormAction(formServer, 'edit', keys);
+                    } else {
+                        gridServer.loadGrid();
+                        d2h_display.show(formServer, 'grid');
+                    }
+                }
+            });
+            break;
+        case 'delete':
+            formServer.delete({
+                afterDelete: function(){
+                    gridServer.loadGrid();
+                    d2h_display.show(formServer, 'grid');
+                }
+            });
+            break;
+        case 'show-grid': 
+            d2h_display.show(formServer, 'grid');
+            break;
+    }
+};
+
+d2h_display.goFormAction = function(server, action, _keys) {
+    var formServer = d2h_display.getServer(server, 'detail'),
         formElem = formServer.getElem();
     switch (action) {
-        case 'edit':
+        case 'show-edit':
             formServer.loadForm({
                 keys: _keys,
                 afterLoadForm: function() {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_delete,.d2h_insert', formElem).hide();
-                    $('.d2h_update', formElem).show();
+                    $('.d2h_update,.d2h_move', formElem).show();
                     d2h_display.show(formServer);
                 }
             });
             break;
-        case 'delete':
+        case 'show-delete':
             formServer.loadForm({
                 keys: _keys,
                 afterLoadForm: function() {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_update,.d2h_insert', formElem).hide();
-                    $('.d2h_delete', formElem).show();
+                    $('.d2h_delete,.d2h_move', formElem).show();
                     d2h_display.show(formServer);
                 }
             });
             break;
-        case 'copy':
+        case 'show-copy':
             formServer.loadForm({
                 keys: _keys,
                 afterLoadForm: function() {
                     formServer
                         .clearForm({onlyWithDefault: true})
                         .trigger('hideLeafs');
-                    $('.d2h_update,.d2h_delete', formElem).hide();
+                    $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                     $('.d2h_insert', formElem).show();
                     d2h_display.show(formServer);
                 }
             });
             break;
-        case 'create':
+        case 'show-create':
             formServer.clearForm().trigger('hideLeafs');
-            $('.d2h_update,.d2h_delete', formElem).hide();
+            $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
             $('.d2h_insert', formElem).show();
             d2h_display.show(formServer);
             break;

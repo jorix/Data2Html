@@ -12,25 +12,27 @@ $return = array(
                     'visualClassBody' => 'btn-warning',
                     'title' => '$Cancel',
                     'description' => null,
-                    'action' => 'back'
+                    'action' => 'show-grid'
                 ),
                 array(
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-backward',
                     'visualClassBody' => 'btn-link',
+                    'visualClassLayout' => 'd2h_move',
                     'title' => '$Previus_PHP',
                     'description' => null,
-                    'action' => 'readPage'
+                    'action' => 'read-previous'
                 ),
                 array(
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-forward',
                     'visualClassBody' => 'btn-link',
+                    'visualClassLayout' => 'd2h_move',
                     'title' => '$Next',
                     'description' => null,
-                    'action' => 'readPage'
+                    'action' => 'read-next'
                 ),
                 array(
                     'layout-template' => 'bare',
