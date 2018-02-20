@@ -5,13 +5,13 @@ $return = array(
             'layout-template' => 'bare',
             'content-template' => 'button',
             'icon' => 'refresh',
-            'title' => '_{{refresh-page}}',
+            'title' => '__{refresh-page}',
             'description' => null,
             'action' => 'read-page'
         ),
         'pageSize' => array(
             'layout-template' => 'bare',
-            'title' => '_{{page-size}}',
+            'title' => '__{page-size} altre __{next-page}',
             'content-template' => 'text-input',
             'default' => 10,
             'type' => 'integer'
@@ -20,7 +20,7 @@ $return = array(
             'layout-template' => 'bare',
             'content-template' => 'button',
             'icon' => 'forward',
-            'title' => '_{{next-page}}',
+            'title' => '__{next-page}',
             'action' => 'next-page'
         )
     )

@@ -6,32 +6,25 @@
 </head>
 <div class="container">
 <?php
-// $obj = array(22+4) ;
-// echo '<pre>';
-// echo json_encode($obj, JSON_PRETTY_PRINT);
-// echo '</pre>';
- //test('/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/', '\'$${s22[s]} $${3[2]} $${s3s}\'');
-$v = 'aa[2bib] C2c[2] c3X[c3ci] 33 33ee 4ss[4bib] c[5] c[ wdw3uw ] C .[es] sum(c[eee])';
-//test('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', $v);
+$matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
+        // fields as: link_name[field_name]
+$matchTemplate_old = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
 
-//test('/\$\{([\w\d]+|[\w\d]+\s*\|[\s\w\d\.,;:\|()+-]+)\}/', 'a ${bb} ${3} ${cc |4qc 4:q09.+(-)5,q5} ${dddd|2 (|) a}');
+$matchTemplate_n = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
+$matchTemplate_v = '$${Base_namE} or $${link_name[field_name]} $${tow-word}';
 
-test('/["\']([^"\'\$]*)\$\$\{([\w.:-]+)\}/' , 'a ${bb} "# df hsfh df$${3ee} ${cc |4qc 4');
-test('/["\']\$\$\{([\w.:-]+)\}/' , 'a ${bb} "$${3ee} ${cc |4qc 4');
-//print_r(getLinkedTo('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', $v));
+$langTemplate = '/__\{([a-z][\w\-\/]*)\}/i';
+$langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
 
-  //test('/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i', ' nom divers');
-//     '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i' // $matchLinked = 
+test($matchTemplate_old, $matchTemplate_v);
+test($matchTemplate_n, $matchTemplate_v);
+test($langTemplate, $langTemplate_v);
 
-// test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa');
-// test('/^[a-z]\w*\[([a-z]\w*|\d+)\]$/', 'aaa[2]');
-//test('/\w[\w-]*\s*=\s*\"\$\$\{(\w+)(\|*\w*)\}\"/', 'a d_W-1dd="$${aa}" -a ="$${mi|cu}" ');
-
-   
+ 
 function test($patern, $value) {
     $matches = null;
-    $res = preg_match_all($patern, $value, $matches); // \[(\w+|\d+)\]/', $value, $matches);
-    echo "'{$value}' = '{$res}':<pre>";
+    preg_match_all($patern, $value, $matches); // \[(\w+|\d+)\]/', $value, $matches);
+    echo "'{$value}' :<pre>";
     print_r($matches);
     echo '</pre><hr>';
 }

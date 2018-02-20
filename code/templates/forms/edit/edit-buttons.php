@@ -10,7 +10,7 @@ $return = array(
                     'content-template' => 'button',
                     'icon' => 'arrow-left',
                     'visualClassBody' => 'btn-warning',
-                    'title' => '_{{show-grid}}',
+                    'title' => '__{show-grid}',
                     'description' => null,
                     'action' => 'show-grid'
                 ),
@@ -20,7 +20,6 @@ $return = array(
                     'icon' => 'step-backward',
                     'visualClassBody' => 'btn-link',
                     'visualClassLayout' => 'd2h_move',
-                    'title' => '$Previus_PHP',
                     'description' => null,
                     'action' => 'read-previous'
                 ),
@@ -30,7 +29,6 @@ $return = array(
                     'icon' => 'step-forward',
                     'visualClassBody' => 'btn-link',
                     'visualClassLayout' => 'd2h_move',
-                    'title' => '$Next',
                     'description' => null,
                     'action' => 'read-next'
                 ),

@@ -28,8 +28,8 @@ abstract class Data2Html_Model_Set
     // To parse
     private $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
         // fields as: link_name[field_name]
-    private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\])\}/';
-        // value as: $${base_name} i $${link_name[field_name]}
+    private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
+        // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     private $baseAttributeNames = array(
         'title' => 'attribute',
         'items' => 'items',
