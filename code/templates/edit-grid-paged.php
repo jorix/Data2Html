@@ -2,10 +2,13 @@
 $return = array(
     "grid" => array(
         "table" => array(
-            "template" => "tables/grid-nopaged.html.php",
+            "template" => "tables/grid-paged.html.php",
             "startItems" => "tables/edit-buttons.php",
             "include" => "tables/grid-elements.php"
         ),
-        "includes" => "forms/formFilter/filter-auto.php"
+        "includes" => array(
+            "forms/filter/filter-auto.php",
+            "forms/page/page.php"
+        )
     )
 );

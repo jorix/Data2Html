@@ -5,12 +5,13 @@ $return = array(
             'layout-template' => 'bare',
             'content-template' => 'button',
             'icon' => 'refresh',
-            'title' => '$Refres>hàdata',
+            'title' => '_{{refresh-page}}',
             'description' => null,
-            'action' => 'readPage'
+            'action' => 'read-page'
         ),
         'pageSize' => array(
             'layout-template' => 'bare',
+            'title' => '_{{page-size}}',
             'content-template' => 'text-input',
             'default' => 10,
             'type' => 'integer'
@@ -19,8 +20,8 @@ $return = array(
             'layout-template' => 'bare',
             'content-template' => 'button',
             'icon' => 'forward',
-            'title' => '$Ne.>Ne.>xtàpage',
-            'action' => 'nextPage'
+            'title' => '_{{next-page}}',
+            'action' => 'next-page'
         )
     )
 );

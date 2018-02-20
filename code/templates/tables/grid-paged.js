@@ -25,8 +25,8 @@ $('#' + $${id}).d2h_server({
     }],
     page: ['#' + '$${id}_page', {
         actions: {
-            'readPage': function() {this.loadGrid();},
-            'nextPage': function() {this.loadGrid({add:true});}
+            'read-page': function() {this.loadGrid();},
+            'next-page': function() {this.loadGrid({add:true});}
         }
     }],
     sort: '#' + '$${id}_sort'

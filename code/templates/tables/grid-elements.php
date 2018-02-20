@@ -1,7 +1,7 @@
 <?php
-$return = array(
-    "heads" => array(
-        "assign-template" => function($render, $item) {
+$return = [
+    'heads' => [
+        'assign-template' => function($render, $item) {
             $itemDx = new Data2Html_Collection($item);
             
             $level = $itemDx->getInteger('level', 0);
@@ -10,17 +10,13 @@ $return = array(
             if ($itemDx->getItem('sortBy')) {
                 $content = 'title-sortable';
             }
-            return array($layout, $content, array());
+            return [$layout, $content, []];
         },
-        "layouts" => array(
-            "templatesFolder" => "heads_layouts/"
-        ),
-        "contents" => array(
-            "templatesFolder" => array("heads/", "../forms/inputs/")
-        )
-    ),
-    "cells" => array(
-        "assign-template" => function($render, $item) {
+        'layouts' => ['templatesFolder' => 'heads_layouts/'],
+        'contents' => ['templatesFolder' => ['heads/', '../forms/_inputs/inputs/']]
+    ], 
+    'cells' => [
+        'assign-template' => function($render, $item) {
             $itemDx = new Data2Html_Collection($item);
             
             $level = $itemDx->getInteger('level', 0);
@@ -28,34 +24,30 @@ $return = array(
             $content = $itemDx->getString('content-template', 'base');
             
             // Classes
-            $typeToHtmlClass = array(
+            $typeToHtmlClass = [
                 'integer' => 'text-right',
                 'number' => 'text-right',
                 'float' => 'text-right'
-            );
+            ];
             $type = $itemDx->getString('type', '');
             $ngClass = '';
             $class = Data2Html_Value::getItem($typeToHtmlClass, $type, '');
             if ($visual = $itemDx->getString('visualClass')) {
                 if (strpos($visual, ':') !== false) {
-                    $ngClass = '{'.str_replace(':', ":item.{$k}", $visual).'}';
+                    $ngClass = '{'.str_replace(':', ':item.{$k}', $visual).'}';
                 } else {
                     $class .= ' '.$visual;
                 }
             }
-            $replaces = array(
+            $replaces = [
                 'class' => $class,
                 'ngClass' => $ngClass
-            );
+            ];
             
             // Return
-            return array($layout, $content, $replaces);
+            return [$layout, $content, $replaces];
         },
-        "layouts" => array(
-            "templatesFolder" => "cells_layouts/"
-        ),
-        "contents" => array(
-            "templatesFolder" => array("cells/", "../forms/inputs/")
-        )
-    )
-);
+        'layouts' =>  ['templatesFolder' => 'cells_layouts/'], 
+        'contents' => ['templatesFolder' => ['cells/', '../forms/_inputs/inputs/']]
+    ]
+];

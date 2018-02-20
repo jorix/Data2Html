@@ -10,7 +10,7 @@ $return = array(
                     'content-template' => 'button',
                     'icon' => 'arrow-left',
                     'visualClassBody' => 'btn-warning',
-                    'title' => '$Cancel',
+                    'title' => '_{{show-grid}}',
                     'description' => null,
                     'action' => 'show-grid'
                 ),
