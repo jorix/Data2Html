@@ -15,10 +15,15 @@ $('#' + '$${id}').d2h_server({
         'create': function() {
             this.save({
                 afterSave: function(jsonData) {
-                    var keys = jsonData.keys;
-                        gridServer = d2h_display.getServer(this, 'grid');
+                    var gridServer = d2h_display.getServer(this, 'grid'),
+                        keys = jsonData.keys;
                     gridServer.selectedKeys(keys);
-                    d2h_display.goFormAction(gridServer, 'edit', keys);
+                    if (this.isEventUsed('applyLeafKeys')) {
+                        d2h_display.goFormAction(this, 'edit', keys);
+                    } else {
+                        gridServer.loadGrid();
+                        d2h_display.show(this, 'grid');
+                    }
                 }
             });
         },

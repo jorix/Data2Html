@@ -59,6 +59,7 @@ jQuery.ajaxSetup({ cache: false });
         status: null,
         promise: null,
         objElem: null, // The DOM element
+        _events: null,
         _container: null,        
         _initId: 0,
         
@@ -92,6 +93,7 @@ jQuery.ajaxSetup({ cache: false });
             $.data(this.objElem, "Data2Html_data", this);
  
             // Register events
+            this._events = {};
             for( var i = 0, l = this.events.length; i < l; i++) {
                 var evName = this.events[i];
                 if (settings[evName]) {
@@ -119,6 +121,10 @@ jQuery.ajaxSetup({ cache: false });
         
         on: function(eventName, handlerFn) {
             var _this = this;
+            if (!this._events[eventName]) {
+                this._events[eventName] = 0;
+            }
+            this._events[eventName]++;
             $(this.objElem).on(
                 'd2h_' + eventName,
                 function() {
@@ -129,6 +135,10 @@ jQuery.ajaxSetup({ cache: false });
                 }
             );
             return this;
+        },
+        
+        isEventUsed: function(eventName) {
+            return !!this._events[eventName];
         },
         
         trigger: function(eventName, args) {
