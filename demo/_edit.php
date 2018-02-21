@@ -1,6 +1,6 @@
 <!DOCTYPE html>
     <?php
-        require_once("../code/php/Data2Html/Autoload.php");
+        require_once("../code/php/Autoload.php");
         Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
     
         $model = Data2Html_Handler::createModel($_REQUEST['model']);

@@ -7,7 +7,7 @@
 <body>
     <div class="container">
     <?php
-        require_once("../../code/php/Data2Html/Autoload.php");
+        require_once("../../code/php/Autoload.php");
         Data2Html_Autoload::start(__DIR__, '../_config/d2h_config.ini');
         // Data2Html_Config::dump();
     
