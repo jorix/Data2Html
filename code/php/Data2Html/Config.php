@@ -56,11 +56,20 @@ class Data2Html_Config
             return $val;
         }
     }
+    
     public static function getForlder($key, $default = null, $sectionKey = 'config')
     {
         $val = self::get($key, $default, $sectionKey);
         if ($val) {
-            return Data2Html_Utils::toCleanFolderPath(self::$configFolder . $val);
+            if (is_array($val)) {
+                $response = [];
+                foreach ($val as $v) {
+                    $response[] = Data2Html_Utils::toCleanFolderPath(self::$configFolder . $v);
+                }
+                return $response;
+            } else {
+                return Data2Html_Utils::toCleanFolderPath(self::$configFolder . $val);
+            }
         } else {
             return $val;
         }

@@ -61,10 +61,12 @@ class Data2Html_Lang
         }
     }
     
-    public function load($name, $folder)
+    public function load($name, $folders)
     {
         foreach(array_reverse($this->languages) as $v) {
-            $this->loadOne($v, $name, $folder);
+            foreach((array)$folders as $vv) {
+                $this->loadOne($v, $name, $vv);
+            }
         }
     }
     
@@ -88,10 +90,10 @@ class Data2Html_Lang
         $literals = [];
         $files = [];
         foreach($regexKeys as $k) {
-            $file = Data2Html_Utils::toCleanFilePath($k, '/');
-            if (strpos($file, $cleanForlder) === 0) {
-                $file = substr($file, strlen($cleanForlder));
-            }
+            $file = Data2Html_Utils::str_removeStart(
+                Data2Html_Utils::toCleanFilePath($k, '/'),
+                $cleanForlder
+            );
             $base = substr($name . '/' . strstr($file, '_lang/', true), 0, -1);
             $fullFile = $cleanForlder . $file;
             

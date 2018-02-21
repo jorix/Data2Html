@@ -5,7 +5,8 @@
     ; Paths are refereed to folder configuration of this file
     controllerUrl =     ../_controller/_controller.php
     modelFolder =       ../_models
-    templateFolder =    ../../code/templates
+    templateFolder[] =  ../../code/templates
+    templateFolder[] =  ../custom/templates
     languages[ca] = ca,es,en
     languages[es] = es,en
 [db]

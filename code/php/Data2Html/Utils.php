@@ -42,6 +42,15 @@ class Data2Html_Utils
             return $folder;
         }
     }
+
+    public static function str_removeStart($string, $start)
+    {
+        if (strpos($string, $start) === 0) {
+            return substr($string, strlen($start));
+        } else {
+            return $string;
+        }
+    }
     
     public static function readFileJson($fileName, $culprit = 'Data2Html_Utils')
     {
@@ -190,8 +199,8 @@ class Data2Html_Utils
     {
         $indent = '    ';
         static $replaces = array(
-            array('\\',   "\n",  "\t",  "\r",  "\b",  "\f",  "'"),
-            array('\\\\', '\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
+            array("\n",  "\t",  "\r",  "\b",  "\f",  "'"),
+            array('\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
         );
         if (is_null($a)) {
             return 'null';

@@ -2,12 +2,13 @@
 
 class Data2Html_Render_Template
 {
-    protected $debug;
-    protected $templateName;
-    protected $culprit;
-    protected $templateTree;
-    protected $templateContents;
-    protected static $renderCount = 0;
+    private $debug;
+    private $culprit;
+    private $templateName;
+    private $baseFolder;
+    private $templateTree;
+    private $templateContents;
+    private static $renderCount = 0;
     
     public function __construct()
     {
@@ -30,9 +31,10 @@ class Data2Html_Render_Template
             return;
         }
         $this->culprit = "Template object";
+        $folders = (array)Data2Html_Config::getForlder('templateFolder');
+        $this->baseFolder = $folders[0];
         
-        $templateFile = 
-            Data2Html_Config::getForlder('templateFolder') . $templateName . '.php';
+        $templateFile = $this->baseFolder . $templateName . '.php';
         if (!file_exists($templateFile)) {
             throw new Exception(
                 "{$this->culprit}: Template \"{$templateName}\" does not exist on `templateFolder` of `d2h_config.ini`."
@@ -54,7 +56,7 @@ class Data2Html_Render_Template
         $final['d2hToken_content'] = true;
     }
 
-    protected function loadTemplateTreeFile($fileName)
+    private function loadTemplateTreeFile($fileName)
     {
         $tree = $this->loadArrayFile($fileName);
         if (!is_array($tree)) {
@@ -69,7 +71,7 @@ class Data2Html_Render_Template
         );
     }
     
-    protected function loadTemplateTree($folder, $tree)
+    private function loadTemplateTree($folder, $tree)
     {
         if (!is_array($tree)) {
             throw new Data2Html_Exception(
@@ -127,13 +129,13 @@ class Data2Html_Render_Template
         return $response;
     }
     
-    protected function loadArrayFile($fileName)
+    private function loadArrayFile($fileName)
     {
         list($contentKey, $pathObj) = $this->loadContent($fileName);
         return $this->getContent($contentKey);
     }
 
-    protected function loadFolderTemplates($folderName, $items)
+    private function loadFolderTemplates($folderName, $items)
     {
         $templates = array();
         foreach ((array)$items as $v) {
@@ -155,7 +157,7 @@ class Data2Html_Render_Template
         return array('templates' => $templates);
     }
     
-    protected function loadTemplateFile($fullFileName)
+    private function loadTemplateFile($fullFileName)
     {
         $folder = Data2Html_Utils::toCleanFolderPath(dirname($fullFileName));
         list($contentKey, $pathObj) = $this->loadContent($fullFileName);
@@ -189,16 +191,17 @@ class Data2Html_Render_Template
         return $response;
     }
 
-    protected function loadContent($fileName) {
+    private function loadContent($fileName) {
         $fileName = Data2Html_Utils::toCleanFilePath($fileName);
         if (!array_key_exists($fileName, $this->templateContents)) {
             $pathObj = Data2Html_Utils::parseWrappedPath($fileName);
+            $fileClean = Data2Html_Utils::str_removeStart($fileName, $this->baseFolder);
             switch ($pathObj['extension']) {
             case '.html':
                 $content = Data2Html_Utils::readWrappedFile($fileName, $this->culprit);
                 if ($this->debug) {
                     $content = 
-                        "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileName}\" #\$\${_renderCount}# [[ -->\n" .
+                        "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileClean}\" #\$\${_renderCount}# [[ -->\n" .
                         $content .
                         "\n<!-- ]] #\$\${_renderCount}# -->\n";
                 }
@@ -207,7 +210,7 @@ class Data2Html_Render_Template
                 $content = Data2Html_Utils::readWrappedFile($fileName, $this->culprit);
                 if ($this->debug) {
                     $content = 
-                        "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileName}\" #\$\${_renderCount}# [[\n" .
+                        "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$fileClean}\" #\$\${_renderCount}# [[\n" .
                         $content .
                         "\n// ]] #\$\${_renderCount}#\n";
                 }
@@ -229,7 +232,7 @@ class Data2Html_Render_Template
         );
     }
     
-    protected function getContent($key) {
+    private function getContent($key) {
         return $this->templateContents[$key][0];
     }
     
@@ -314,7 +317,7 @@ class Data2Html_Render_Template
         return $this->renderMethods($templateLeaf, $replaces);
     }
     
-    protected function renderMethods($templateLeaf, $replaces)
+    private function renderMethods($templateLeaf, $replaces)
     {
         if (array_key_exists('html', $templateLeaf[1])) {
             $html = $this->getContent($templateLeaf[1]['html']);

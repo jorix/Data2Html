@@ -12,7 +12,7 @@
 <body>
     <?php 
         $lang = new Data2Html_Lang('ca');
-        $lang->load('templates', Data2Html_Config::getPath('templateFolder'));
+        $lang->load('templates', Data2Html_Config::getForlder('templateFolder'));
         $lang->dump();
         echo $lang->_('lastor') . '<hr>';
         echo $lang->_('templates/forms/page/nitros') . '<hr>';
