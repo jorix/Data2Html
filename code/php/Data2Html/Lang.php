@@ -8,10 +8,16 @@ class Data2Html_Lang
     private $fromFiles = null;
     private $literals = null;
     
-    public function __construct()
+    public function __construct($language)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Lang";
+        
+        $cfgLangs = Data2Html_Config::get('languages');
+        if (!array_key_exists($language, $cfgLangs)) {
+            
+        }
+        $this->languages = explode(',', $cfgLangs[$language]);
         
         $this->literals = [];
         $this->fromFiles = [];
@@ -21,6 +27,7 @@ class Data2Html_Lang
     {
         if (!$subject) {
             $subject = [
+                'languages-priority' => $this->languages,
                 'literals' => $this->literals,
                 'fromFiles' => $this->fromFiles,
             ];
@@ -54,9 +61,9 @@ class Data2Html_Lang
         }
     }
     
-    public function load($langs, $name, $folder)
+    public function load($name, $folder)
     {
-        foreach(array_reverse((array)$langs) as $v) {
+        foreach(array_reverse($this->languages) as $v) {
             $this->loadOne($v, $name, $folder);
         }
     }

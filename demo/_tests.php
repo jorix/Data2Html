@@ -11,8 +11,8 @@
 </head>
 <body>
     <?php 
-        $lang = new Data2Html_Lang();
-        $lang->load(['ca', 'es'], 'templates', Data2Html_Config::getPath('templateFolder'));
+        $lang = new Data2Html_Lang('ca');
+        $lang->load('templates', Data2Html_Config::getPath('templateFolder'));
         $lang->dump();
         echo $lang->_('lastor') . '<hr>';
         echo $lang->_('templates/forms/page/nitros') . '<hr>';
