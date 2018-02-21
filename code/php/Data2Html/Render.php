@@ -5,6 +5,9 @@ class Data2Html_Render
     public $debug = false;
     private $templateObj;
     private $idRender = null;
+    
+    private $matchTranslate = '/__\{([a-z][\w\-\/]*)\}/i';
+        // Text are as: __{tow-word} or __{house/word}';
     private $typeToInputTemplates = array(
         '[default]' =>    array('base', 'text-input'),
         'boolean' =>    array('checkbox', 'checkbox'),

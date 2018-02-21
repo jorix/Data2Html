@@ -189,9 +189,9 @@ class Data2Html_Utils
     public static function toPhp($a, $level = 0)
     {
         $indent = '    ';
-        static $jsonReplaces = array(
-            array('\\',   '/',   "\n",  "\t",  "\r",  "\b",  "\f",  "'"),
-            array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
+        static $replaces = array(
+            array('\\',   "\n",  "\t",  "\r",  "\b",  "\f",  "'"),
+            array('\\\\', '\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
         );
         if (is_null($a)) {
             return 'null';
@@ -215,7 +215,7 @@ class Data2Html_Utils
                 return substr($a, 7, -2);
             }
 
-            return "'".str_replace($jsonReplaces[0], $jsonReplaces[1], $a)."'";
+            return "'".str_replace($replaces[0], $replaces[1], $a)."'";
         }
         if (is_callable($a)) {
             return 'function() { ... }';
@@ -235,8 +235,8 @@ class Data2Html_Utils
                     self::toPhp($v, $level + 1);
             }
             return 
-                'array( ' . implode(', ', $result) .
-                "\n" . str_repeat($indent, $level) . ')';
+                '[ ' . implode(', ', $result) .
+                "\n" . str_repeat($indent, $level) . ']';
         } else {
             foreach ($a as $k => $v) {
                 $result[] =
@@ -245,10 +245,10 @@ class Data2Html_Utils
             }
             if ($level > 0) {
                 return 
-                    'array( ' . implode(', ', $result) .
-                    "\n" . str_repeat($indent, $level) . ')';
+                    '[ ' . implode(', ', $result) .
+                    "\n" . str_repeat($indent, $level) . ']';
             } else {
-                return 'array( '.implode(', ', $result)."\n);\n";
+                return '[ '.implode(', ', $result)."\n];\n";
             }
         }
     }
