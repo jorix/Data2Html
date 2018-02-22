@@ -14,6 +14,7 @@
 	<meta charset="UTF-8">
 	<title>title</title>
    
+    <script><?php echo Data2Html_Lang::jsCode('ca'); ?></script>
     <script src="../external/jquery-2.1.0/jquery.js" ></script>
     <link  href="../external/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="../external/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>

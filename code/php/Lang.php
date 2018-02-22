@@ -13,13 +13,15 @@ class Data2Html_Lang
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Lang";
         
+        $language = strtolower($language);
         $cfgLangs = Data2Html_Config::get('languages');
-        if (!array_key_exists($language, $cfgLangs)) {
-            
+        if (array_key_exists($language, $cfgLangs)) {
+            $this->languages = explode(',', $cfgLangs[$language]);
+        } else {
+            $this->languages = [$language];
         }
-        $this->languages = explode(',', $cfgLangs[$language]);
         
-        $this->literals = [];
+        $this->literals = ['lang' => $language];
         $this->fromFiles = [];
     }
 
@@ -70,6 +72,35 @@ class Data2Html_Lang
         }
     }
     
+    public function getLiterals()
+    {
+        return $this->literals;
+    }
+    
+    public static function jsCode($lang)
+    {
+        $lang = new Data2Html_Lang($lang);
+        $lang->load('', Data2Html_Autoload::getCodeFolder() . '/../js');
+        return "
+            var __ = (function () {
+                var literals = " . Data2Html_Value::toJson(
+                    $lang->getLiterals(),
+                    Data2Html_Config::debug()
+                ) . ";
+                return function(key) {
+                    if (Array.isArray(key)) {
+                        key = key.join('/');
+                    }
+                    if (literals[key]) {
+                        return literals[key];
+                    } else {
+                        return '??{' + key + '}';
+                    }
+                };
+            })();
+        ";
+    }
+    
     private function loadOne($lang, $name, $folder)
     {
         
@@ -94,7 +125,10 @@ class Data2Html_Lang
                 Data2Html_Utils::toCleanFilePath($k, '/'),
                 $cleanForlder
             );
-            $base = substr($name . '/' . strstr($file, '_lang/', true), 0, -1);
+            $base = substr(strstr($file, '_lang/', true), 0, -1);
+            if ($name) {
+                $base = $name . '/' . $base;
+            }
             $fullFile = $cleanForlder . $file;
             
             $flatContent = [];
@@ -102,10 +136,13 @@ class Data2Html_Lang
             $flatten = function($iterator, $flatKey) 
             use(&$flatten, &$flatContent, &$flatFiles, $fullFile) {
                 while ($iterator->valid()) {
-                    $newFlatKey = $flatKey . '/' . $iterator->key();
+                    $newFlatKey = $iterator->key();
+                    if ($flatKey) {
+                        $newFlatKey = $flatKey . '/' . $newFlatKey;
+                    }
                     if ($iterator->hasChildren() ) {
                         $flatten($iterator->getChildren(), $newFlatKey);
-                    } else {
+                    } elseif ($newFlatKey !== 'lang') {
                         $flatContent[$newFlatKey] = $iterator -> current();
                         $flatFiles[$newFlatKey] = $fullFile;                          
                     }
@@ -121,4 +158,6 @@ class Data2Html_Lang
         $this->literals = array_replace($this->literals, $literals);
         $this->fromFiles = array_replace($this->fromFiles, $files);
     }
+    
+    
 }

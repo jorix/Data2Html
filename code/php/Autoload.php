@@ -1,7 +1,7 @@
 <?php
 class Data2Html_Autoload
 {
-    protected static $root_path;
+    protected static $codeFolder;
     
     /**
      * Register autoload
@@ -11,9 +11,14 @@ class Data2Html_Autoload
         if (version_compare(PHP_VERSION, '5.4.0', '<')) {
             die('<b>At least PHP 5.4 or PHP7 is required to run Data2Html</b>');
         }
-        self::$root_path = dirname(__FILE__) . DIRECTORY_SEPARATOR;
+        self::$codeFolder = dirname(__FILE__) . DIRECTORY_SEPARATOR;
         spl_autoload_register('self::autoload');
         Data2Html_Config::load($baseFolder, $configFile);
+    }
+    
+    public static function getCodeFolder()
+    {
+        return self::$codeFolder;
     }
     /**
      * Auto load.
@@ -26,13 +31,13 @@ class Data2Html_Autoload
         }
         $file = str_replace('Data2Html_', '', $class);
         $file = str_replace('_', '/', $file).'.php';
-        $phisicalFile = self::$root_path . $file;
+        $phisicalFile = self::$codeFolder . $file;
         #Do not interfere with other autoloads
         if (file_exists($phisicalFile)) {
             require $phisicalFile;
         } else {
             throw new Exception(
-                "->autoload({$class}): File \"{$file}\" does not exist in \"" . self::$root_path . "\"");
+                "->autoload({$class}): File \"{$file}\" does not exist in \"" . self::$codeFolder . "\"");
         }
     }
 }

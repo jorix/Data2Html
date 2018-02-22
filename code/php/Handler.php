@@ -12,19 +12,6 @@ class Data2Html_Handler
     protected static $modelObjects = array();
     protected static $modelFolder = null;
 
-    protected static function responseJson($obj, $debug)
-    {
-        if ($debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n" . Data2Html_Value::toJson($obj, $debug). "\n</pre>\n";
-        } else {
-            header('Content-type: application/responseJson; charset=utf-8;');
-            // The prefix `)]}',\n` is used due a security considerations, see: 
-            //    * https://docs.angularjs.org/api/ng/service/$http
-            echo // ")]}',\n" . 
-                Data2Html_Value::toJson($obj, $debug);
-        }
-    }
-    
     // ========================
     // Server
     // ========================
@@ -38,7 +25,7 @@ class Data2Html_Handler
             $payerNames = self::parseRequest($request);
             $model = self::createModel($payerNames['model']);
             $controller = new Data2Html_Controller($model);
-            self::responseJson($controller->manage($request), $debug);
+            Data2Html_Utils::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
             // Message to user
             if ($e instanceof Data2Html_Exception_User) {
@@ -46,7 +33,7 @@ class Data2Html_Handler
             } else {
                 header('HTTP/1.1 500 Error');
             }
-            self::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
+            Data2Html_Utils::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
         }
     }
  

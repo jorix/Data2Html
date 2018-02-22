@@ -120,6 +120,19 @@ class Data2Html_Utils
         return $pathObj;
     }
     
+    public static function responseJson($obj, $debug)
+    {
+        if ($debug && isset($_REQUEST['debug'])) {
+            echo "<pre>\n" . Data2Html_Value::toJson($obj, $debug). "\n</pre>\n";
+        } else {
+            header('Content-type: application/responseJson; charset=utf-8;');
+            // The prefix `)]}',\n` is used due a security considerations, see: 
+            //    * https://docs.angularjs.org/api/ng/service/$http
+            echo // ")]}',\n" . 
+                Data2Html_Value::toJson($obj, $debug);
+        }
+    }
+    
     /**
      * @param mixed $a
      *
