@@ -92,8 +92,14 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    .d2h_message {position: absolute; left: 3px; bottom: 3px;}
-    th {position: relative;}
+    
+    /**
+     * d2h_message
+     */
+    .d2h_message { position: absolute; left: 3px; bottom: 30px; opacity: 0.9; }
+    .d2h_message .alert { margin-bottom: 0; }
+    th .d2h_message { font-weight: normal; }
+    th { position: relative;}
     </style>
 </head>
 <body>

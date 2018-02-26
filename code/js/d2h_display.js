@@ -114,7 +114,7 @@ d2h_display.prototype = {
         }
     },
     
-    show: function(name) {
+    show: function(name, message) {
         var iName,
             sels = this._selectors,
             serverObj = this.getServer(name);
@@ -168,7 +168,10 @@ d2h_display.goGridAction = function(formServer, action) {
             formServer.save({
                 afterSave: function(){
                     gridServer.loadGrid();
-                    display.show('grid');
+                    d2h_messages.done(
+                        display.show('grid'),
+                        __('display/saved')
+                    );
                 }
             });
             break;
@@ -179,10 +182,20 @@ d2h_display.goGridAction = function(formServer, action) {
                         keys = jsonData.keys;
                     gridServer.selectedKeys(keys);
                     if (formServer.isEventUsed('applyLeafKeys')) {
-                        d2h_display.goFormAction(formServer, 'edit', keys);
+                        d2h_display.goFormAction(formServer, 'show-edit', keys, {
+                            after: function() {
+                                d2h_messages.done(
+                                    formServer,
+                                    __('display/created-leafs')
+                                );
+                            }
+                        });
                     } else {
                         gridServer.loadGrid();
-                        display.show('grid');
+                        d2h_messages.done(
+                            display.show('grid'),
+                            __('display/created')
+                        );
                     }
                 }
             });
@@ -191,20 +204,24 @@ d2h_display.goGridAction = function(formServer, action) {
             formServer.delete({
                 afterDelete: function(){
                     gridServer.loadGrid();
-                    display.show('grid');
+                    d2h_messages.removed(
+                        display.show('grid'),
+                        __('display/deleted')
+                    );
                 }
             });
             break;
-        case 'show-grid': 
-            display.show('grid');
+        case 'show-grid':
+            d2h_messages.clear(display.show('grid'));
             break;
     }
 };
 
-d2h_display.goFormAction = function(server, action, _keys) {
+d2h_display.goFormAction = function(server, action, _keys, _options) {
     var display = d2h_display.get(server),
         formServer = display.getServer('detail'),
         formElem = formServer.getElem();
+    _options = _options ? _options : {};
     switch (action) {
         case 'show-edit':
             formServer.loadForm({
@@ -213,7 +230,10 @@ d2h_display.goFormAction = function(server, action, _keys) {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_delete,.d2h_insert', formElem).hide();
                     $('.d2h_update,.d2h_move', formElem).show();
-                    display.show('detail');
+                    d2h_messages.clear(display.show('detail'));
+                    if (_options.after) {
+                        _options.after.call(this);
+                    }
                 }
             });
             break;
@@ -224,7 +244,10 @@ d2h_display.goFormAction = function(server, action, _keys) {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_update,.d2h_insert', formElem).hide();
                     $('.d2h_delete,.d2h_move', formElem).show();
-                    display.show('detail');
+                    d2h_messages.clear(display.show('detail'));
+                    if (_options.after) {
+                        _options.after.call(this);
+                    }
                 }
             });
             break;
@@ -237,7 +260,10 @@ d2h_display.goFormAction = function(server, action, _keys) {
                         .trigger('hideLeafs');
                     $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                     $('.d2h_insert', formElem).show();
-                    display.show('detail');
+                    d2h_messages.clear(display.show('detail'));
+                    if (_options.after) {
+                        _options.after.call(this);
+                    }
                 }
             });
             break;
@@ -245,7 +271,10 @@ d2h_display.goFormAction = function(server, action, _keys) {
             formServer.clearForm().trigger('hideLeafs');
             $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
             $('.d2h_insert', formElem).show();
-            display.show('detail');
+            d2h_messages.clear(display.show('detail'));
+            if (_options.after) {
+                _options.after.call(this);
+            }
             break;
     }
 };
