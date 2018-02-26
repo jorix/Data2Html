@@ -13,8 +13,8 @@ var d2h_display = function(options) {
     var branch = this._options.branch;
     if (branch) {
         var _this = this
-        var pServer = d2h_display.getServer(branch, 'grid');                               
-        pServer.on('hideLeafs',  function() { _this.hide(); });
+        var gridServer = d2h_display.get(branch).getServer('grid');                               
+        gridServer.on('hideLeafs',  function() { _this.hide(); });
     }
 };
 
@@ -52,8 +52,8 @@ d2h_display.prototype = {
                     };
                 switch (name) {
                     case 'grid':
-                        var pServer = d2h_display.getServer(branch, 'detail');                               
-                        pServer.on(
+                        var detailServer = d2h_display.get(branch).getServer('detail');                               
+                        detailServer.on(
                             'applyLeafKeys',  
                             function(branchKeys) {
                                 var grid = _this.getServer('grid');
@@ -148,26 +148,15 @@ d2h_display.prototype = {
 
 // Static methods
 // --------------
-d2h_display.show = function(serverObj, name) {
-    var displayObj = d2h_display.get(serverObj);
-    if (!name) {
-        name = displayObj.getServerName(serverObj);
-    }
-    return displayObj.show(name);
-};
-
-d2h_display.hide = function(serverObj) {
-    d2h_display.get(serverObj).hide();
-};
-
-d2h_display.loadGrid = function(gridServer) {
-    var grid = d2h_display.getServer(gridServer, 'grid');
-    grid.loadGrid();
-    d2h_display.show(grid);
+d2h_display.loadGrid = function(gridSelector) {
+    var display = d2h_display.get(gridSelector);
+    display.getServer('grid').loadGrid();
+    display.show('grid');
 };
 
 d2h_display.goGridAction = function(formServer, action) {
-    var gridServer = d2h_display.getServer(formServer, 'grid');
+    var display = d2h_display.get(formServer),
+        gridServer = display.getServer('grid');
     switch (action) {
         case 'read-previous':
         //TODO
@@ -179,21 +168,21 @@ d2h_display.goGridAction = function(formServer, action) {
             formServer.save({
                 afterSave: function(){
                     gridServer.loadGrid();
-                    d2h_display.show(formServer, 'grid');
+                    display.show('grid');
                 }
             });
             break;
         case 'create':
             formServer.save({
                 afterSave: function(jsonData) {
-                    var gridServer = d2h_display.getServer(formServer, 'grid'),
+                    var gridServer = display.getServer('grid'),
                         keys = jsonData.keys;
                     gridServer.selectedKeys(keys);
                     if (formServer.isEventUsed('applyLeafKeys')) {
                         d2h_display.goFormAction(formServer, 'edit', keys);
                     } else {
                         gridServer.loadGrid();
-                        d2h_display.show(formServer, 'grid');
+                        display.show('grid');
                     }
                 }
             });
@@ -202,18 +191,19 @@ d2h_display.goGridAction = function(formServer, action) {
             formServer.delete({
                 afterDelete: function(){
                     gridServer.loadGrid();
-                    d2h_display.show(formServer, 'grid');
+                    display.show('grid');
                 }
             });
             break;
         case 'show-grid': 
-            d2h_display.show(formServer, 'grid');
+            display.show('grid');
             break;
     }
 };
 
 d2h_display.goFormAction = function(server, action, _keys) {
-    var formServer = d2h_display.getServer(server, 'detail'),
+    var display = d2h_display.get(server),
+        formServer = display.getServer('detail'),
         formElem = formServer.getElem();
     switch (action) {
         case 'show-edit':
@@ -223,7 +213,7 @@ d2h_display.goFormAction = function(server, action, _keys) {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_delete,.d2h_insert', formElem).hide();
                     $('.d2h_update,.d2h_move', formElem).show();
-                    d2h_display.show(formServer);
+                    display.show('detail');
                 }
             });
             break;
@@ -234,7 +224,7 @@ d2h_display.goFormAction = function(server, action, _keys) {
                     formServer.trigger('applyLeafKeys', [_keys]);
                     $('.d2h_update,.d2h_insert', formElem).hide();
                     $('.d2h_delete,.d2h_move', formElem).show();
-                    d2h_display.show(formServer);
+                    display.show('detail');
                 }
             });
             break;
@@ -247,7 +237,7 @@ d2h_display.goFormAction = function(server, action, _keys) {
                         .trigger('hideLeafs');
                     $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                     $('.d2h_insert', formElem).show();
-                    d2h_display.show(formServer);
+                    display.show('detail');
                 }
             });
             break;
@@ -255,18 +245,18 @@ d2h_display.goFormAction = function(server, action, _keys) {
             formServer.clearForm().trigger('hideLeafs');
             $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
             $('.d2h_insert', formElem).show();
-            d2h_display.show(formServer);
+            display.show('detail');
             break;
     }
 };
 
-d2h_display.get = function(serverObj) {
+d2h_display.get = function(serverSelector) {
     var elem, elemSelector;
-    if (typeof serverObj === 'string' ) {
-        elemSelector = serverObj;
-        elem = d2h_display.singleElement(serverObj);
+    if (typeof serverSelector === 'string' ) {
+        elem = d2h_display.singleElement(serverSelector);
+        elemSelector = serverSelector;
     } else {
-        elem = serverObj.getElem();
+        elem = serverSelector.getElem();
         elemSelector = 'd2h_server(#' + elem.id + ')';
     }
     var displayObj = $.data(elem, "Data2Html_display");
@@ -279,11 +269,6 @@ d2h_display.get = function(serverObj) {
     return displayObj;
 };
 
-
-d2h_display.getServer = function(serverObj, name) {
-    return d2h_display.get(serverObj).getServer(name);
-};
-
 d2h_display.singleElement = function(selector) {
     var $elem = $(selector);
     if ($elem.length !== 1) {
@@ -294,4 +279,4 @@ d2h_display.singleElement = function(selector) {
         );
     }
     return $elem[0];
-}
+};
