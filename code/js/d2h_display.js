@@ -191,11 +191,14 @@ d2h_display.goGridAction = function(formServer, action) {
                             }
                         });
                     } else {
-                        gridServer.loadGrid();
-                        d2h_messages.done(
-                            display.show('grid'),
-                            __('display/created')
-                        );
+                        gridServer.loadGrid({
+                            afterLoadGrid: function() {
+                                d2h_messages.done(
+                                    display.show('grid'),
+                                    __('display/created')
+                                );
+                            }
+                        });
                     }
                 }
             });
@@ -203,11 +206,14 @@ d2h_display.goGridAction = function(formServer, action) {
         case 'delete':
             formServer.delete({
                 afterDelete: function(){
-                    gridServer.loadGrid();
-                    d2h_messages.removed(
-                        display.show('grid'),
-                        __('display/deleted')
-                    );
+                    gridServer.loadGrid({
+                        afterLoadGrid: function() {
+                            d2h_messages.removed(
+                                display.show('grid'),
+                                __('display/deleted')
+                            );
+                        }
+                    });
                 }
             });
             break;
