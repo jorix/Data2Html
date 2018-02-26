@@ -96,7 +96,7 @@
     /**
      * d2h_message
      */
-    .d2h_message { position: absolute; left: 3px; bottom: 30px; opacity: 0.9; }
+    .d2h_message { position: absolute; left: 15px; bottom: 30px; opacity: 0.9; }
     .d2h_message .alert { margin-bottom: 0; }
     th .d2h_message { font-weight: normal; }
     th { position: relative;}

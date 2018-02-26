@@ -199,6 +199,7 @@ d2h_display.goGridAction = function(formServer, action) {
                         keys = jsonData.keys;
                     gridServer.selectedKeys(keys);
                     if (formServer.isEventUsed('applyLeafKeys')) {
+                        gridServer.loadGrid(); // To show new record in the grid
                         d2h_display.goFormAction(formServer, 'show-edit', keys, {
                             after: function() {
                                 d2h_messages.done(
