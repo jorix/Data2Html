@@ -433,7 +433,7 @@ jQuery.ajaxSetup({ cache: false });
             if ($.isArray(selector)) {
                 if (selector.length < 1 || selector.length > 2) {
                     $.error(
-                        "d2h_server can not initialize compoment '" + 
+                        "d2h_server can not initialize component '" + 
                         compomentName +
                         "'. When selector is array must have 1 or 2 items!"
                     );
@@ -457,8 +457,7 @@ jQuery.ajaxSetup({ cache: false });
                 return;
             } else if ($elem.length !== 1) {
                 $.error(
-                    "d2h_server: Selector '" + selector + 
-                  //  "' of component '" + componentName +
+                    "d2h_server: Selector '" + selector +
                     "' has selected " + $elem.length +
                     " elements. Must select only one element!"
                 );
