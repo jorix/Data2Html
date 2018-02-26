@@ -13,7 +13,7 @@ var d2h_display = function(options) {
     var branch = this._options.branch;
     if (branch) {
         var _this = this
-        var gridServer = d2h_display.get(branch).getServer('grid');                               
+        var gridServer = d2h_display.get(branch).getServer('grid');
         gridServer.on('hideLeafs',  function() { _this.hide(); });
     }
 };
@@ -52,7 +52,7 @@ d2h_display.prototype = {
                     };
                 switch (name) {
                     case 'grid':
-                        var detailServer = d2h_display.get(branch).getServer('detail');                               
+                        var detailServer = d2h_display.get(branch).getServer('detail');
                         detailServer.on(
                             'applyLeafKeys',  
                             function(branchKeys) {
@@ -166,17 +166,34 @@ d2h_display.goGridAction = function(formServer, action) {
             break;
         case 'save': 
             formServer.save({
-                afterSave: function(){
-                    gridServer.loadGrid();
-                    d2h_messages.done(
-                        display.show('grid'),
-                        __('display/saved')
+                errorSave: function(message) {
+                    d2h_messages.fail(
+                        formServer,
+                        __('display/save-error')
                     );
+                    return false;
+                },
+                afterSave: function(){
+                    gridServer.loadGrid({
+                        afterLoadGrid: function() {
+                            d2h_messages.done(
+                                display.show('grid'),
+                                __('display/saved')
+                            );
+                        }
+                    });
                 }
             });
             break;
         case 'create':
             formServer.save({
+                errorSave: function(message) {
+                    d2h_messages.fail(
+                        formServer,
+                        __('display/create-error')
+                    );
+                    return false;
+                },
                 afterSave: function(jsonData) {
                     var gridServer = display.getServer('grid'),
                         keys = jsonData.keys;
@@ -205,6 +222,13 @@ d2h_display.goGridAction = function(formServer, action) {
             break;
         case 'delete':
             formServer.delete({
+                errorDelete: function(message) {
+                    d2h_messages.fail(
+                        formServer,
+                        __('display/delete-error')
+                    );
+                    return false;
+                },
                 afterDelete: function(){
                     gridServer.loadGrid({
                         afterLoadGrid: function() {
@@ -308,7 +332,7 @@ d2h_display.singleElement = function(selector) {
     var $elem = $(selector);
     if ($elem.length !== 1) {
         $.error(
-            "d2h_display.singleElement(): Selector '" + selector + 
+            "d2h_display.singleElement(): Selector '" + selector +
             "' has selected " + $elem.length +
             " elements. Must select only one DOM element!"
         );

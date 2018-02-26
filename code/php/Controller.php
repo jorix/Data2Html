@@ -344,8 +344,10 @@ class Data2Html_Controller
             $result = $this->db->execute($sql);
         } catch (Exception $e) {
             $this->db->rollback();
-            header('HTTP/1.0 401 '.$e->getMessage());
-            die($e->getMessage() . $sql);
+            header('HTTP/1.0 401 Database error');
+            die(Data2Html_Value::toJson(
+                Data2Html_Exception::toArray($e, $this->debug)
+            ));
         }
         $this->model->afterDelete($this->db, $values, $keys);
         $this->db->commit();

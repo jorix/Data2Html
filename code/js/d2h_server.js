@@ -249,25 +249,33 @@ jQuery.ajaxSetup({ cache: false });
                     _wait.show();
                     return response;
                 },
-                error: function(jqXHR, textStatus, errorThrown){
-                    var response = true
-                        errorArray = _options.error;
+                error: function(jqXHR, textStatus, textError){
+                    var response = true,
+                        errorArray = _options.error,
+                        jsonError,
+                        userMessages,
+                        message = 'An error occurred executing a database action.';
+                    try {
+                        jsonError = JSON.parse(jqXHR.responseText);
+                        if (jsonError['user-messages']) {
+                            userMessages = jsonError['user-messages'];
+                        }
+                    } catch (e) {
+                        jsonError = {'responseText': jqXHR.responseText};
+                    }
+                    console.log(jqXHR.status + ' ' + textError + ': ' + message, jsonError);
                     for (i = 0, l = errorArray.length; i < l; i++) {
                         var error_ = errorArray[i];
                         if (error_) {
                             if (typeof error_ === "string") {
-                                response = _this.trigger(error_, [jqXHR, _settings]);
+                                response = _this.trigger(error_, [message, jsonError]);
                             } else {
-                                response = error_.apply(_this, [jqXHR, _settings]);
+                                response = error_.apply(_this, [message, jsonError]);
                             }
                             if (response === false) { return false; }
                         }
                     }
-                    alert(
-                        'An error "' + errorThrown + '", status "' + 
-                        textStatus + '" occurred during loading data: ' + 
-                        jqXHR.responseText
-                    );
+                    alert(message);
                 },
                 success: function(jsonData) {
                     var response = true
