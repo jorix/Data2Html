@@ -47,10 +47,11 @@
     <link  href="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <script src="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
-    <script src="../code/js/d2h_server.js" ></script>
-    <script src="../code/js/d2h_display.js" ></script>
-    <script src="../code/js/d2h_sort.js" ></script>
-    <script src="../code/js/d2h_values.js" ></script>
+    <script src="../code/js/d2h_server.js"></script>
+    <script src="../code/js/d2h_display.js"></script>
+    <script src="../code/js/d2h_messages.js"></script>
+    <script src="../code/js/d2h_sort.js"></script>
+    <script src="../code/js/d2h_values.js"></script>
     
     <style>    
     .d2h_sort_no .d2h_sortIco_no {color: #777}
@@ -91,6 +92,8 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    .d2h_message {position: absolute; left: 3px; bottom: 3px;}
+    th {position: relative;}
     </style>
 </head>
 <body>

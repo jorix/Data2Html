@@ -1,11 +1,11 @@
 <?php
-$return = array(
-    'items' =>array(
-        array(
+$return = [
+    'items' => [
+        [
             'layout-template' => 'no_label',
             'content-template' => 'empty',
-            'items' => array(    
-                array(
+            'items' => [    
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'arrow-left',
@@ -13,8 +13,8 @@ $return = array(
                     'title' => '__{show-grid}',
                     'description' => null,
                     'action' => 'show-grid'
-                ),
-                array(
+                ],
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-backward',
@@ -22,8 +22,8 @@ $return = array(
                     'visualClassLayout' => 'd2h_move',
                     'description' => null,
                     'action' => 'read-previous'
-                ),
-                array(
+                ],
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-forward',
@@ -31,8 +31,8 @@ $return = array(
                     'visualClassLayout' => 'd2h_move',
                     'description' => null,
                     'action' => 'read-next'
-                ),
-                array(
+                ],
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-danger',
@@ -40,8 +40,8 @@ $return = array(
                     'icon' => 'remove',
                     'title' => '$Delete',
                     'action' => 'delete'
-                ),
-                array(
+                ],
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
@@ -49,9 +49,8 @@ $return = array(
                     'icon' => 'ok',
                     'title' => '$Save',
                     'action' => 'save'
-                )
-                ,
-                array(
+                ],
+                [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
@@ -59,8 +58,12 @@ $return = array(
                     'icon' => 'ok',
                     'title' => '$Create',
                     'action' => 'create'
-                )
-            )
-        )
-    )
-);
+                ],
+                [
+                    'layout-template' => 'bare',
+                    'content-template' => 'html-message'
+                ]
+            ]
+        ]
+    ]
+];

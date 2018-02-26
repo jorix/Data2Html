@@ -1,16 +1,7 @@
+// Class
 function d2h_sort() {
     this._init.apply(this, arguments);
 }
-
-// Static
-d2h_sort.create = function(dataObj, sortSelector) {
-    return new this(dataObj, sortSelector);
-};
-d2h_sort.show = function(dataObj, sort) {
-    return $.data(dataObj.getElem(), "Data2Html_sort").show(sort);
-};
-
-// Class
 d2h_sort.prototype = {
     _init: function(dataObj, sortSelector) {
         var $sort = $(sortSelector);
@@ -66,4 +57,12 @@ d2h_sort.prototype = {
         $(this.sortElem).val(sort);
         return this;
     }
+};
+
+// Static
+d2h_sort.create = function(dataObj, sortSelector) {
+    return new this(dataObj, sortSelector);
+};
+d2h_sort.show = function(dataObj, sort) {
+    return $.data(dataObj.getElem(), "Data2Html_sort").show(sort);
 };
