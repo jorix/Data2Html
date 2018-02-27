@@ -20,7 +20,7 @@ class Data2Html_Model_Grid
         $this->gridName = $gridName;
       
         // Set fields
-        $this->columns = new Data2Html_Model_Set_Table(
+        $this->columns = new Data2Html_Model_Set_Grid(
             $model,
             $gridName,
             $defs,

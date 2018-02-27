@@ -111,7 +111,7 @@ class Data2Html_Render
         }
         $klColumns = $lkGrid->getColumnsSet();
         
-        $result = $this->renderTable(
+        $result = $this->renderGridSet(
             $this->templateObj->getTemplateBranch('table', $tplGrid),
             $klColumns->getLinkedItems(),
             array(
@@ -150,7 +150,7 @@ class Data2Html_Render
         );
     }
     
-    private function renderTable($templateTable, $columns, $replaces)
+    private function renderGridSet($templateTable, $columns, $replaces)
     {
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");
@@ -158,7 +158,7 @@ class Data2Html_Render
         if (count($columns) === 0) {
             return $this->templateObj->emptyRender();
         }
-        list($thead, $renderCount) = $this->renderSet(
+        list($thead, $renderCount) = $this->renderFlatSet(
             array_merge(
                 $this->parseIncludeItems('startItems', $templateTable, 'head-item'),
                 $columns,
@@ -166,7 +166,7 @@ class Data2Html_Render
             ),
             $this->templateObj->getTemplateBranch('heads', $templateTable)
         );
-        list($tbody) = $this->renderSet(
+        list($tbody) = $this->renderFlatSet(
             array_merge(
                 $this->parseIncludeItems('startItems', $templateTable),
                 $columns,
@@ -186,7 +186,32 @@ class Data2Html_Render
         $previusLevel = $level;
     }
 
-    protected function renderSet($items, $template, $iReplaces = array())
+    protected function renderFormSet(
+        $formId,
+        $templateBranch,
+        $items,
+        $replaces
+    ){
+        $items = array_merge(
+            $this->parseIncludeItems('startItems', $templateBranch),
+            $items ? $items : array(),
+            $this->parseIncludeItems('endItems', $templateBranch)
+        );
+        list($body) = $this->renderFlatSet($items, $templateBranch);
+        
+        $replaces['visual'] = $this->getVisualItems($items);
+        $form = $this->templateObj->renderTemplate(
+            $templateBranch,
+            array_merge($replaces, array(
+                'id' => $formId,
+                'body' => $body
+            ))
+        );
+        $form['id'] = $formId; // Required to use d2h_display.js
+        return $form;
+    }
+    
+    protected function renderFlatSet($items, $template, $iReplaces = array())
     {
         $assignTemplate = Data2Html_Value::getItem(
             $template[1], 
@@ -317,31 +342,6 @@ class Data2Html_Render
         }
     }
 
-    protected function renderFormSet(
-        $formId,
-        $templateBranch,
-        $items,
-        $replaces
-    ){
-        $items = array_merge(
-            $this->parseIncludeItems('startItems', $templateBranch),
-            $items ? $items : array(),
-            $this->parseIncludeItems('endItems', $templateBranch)
-        );
-        list($body) = $this->renderSet($items, $templateBranch);
-        
-        $replaces['visual'] = $this->getVisualItems($items);
-        $form = $this->templateObj->renderTemplate(
-            $templateBranch,
-            array_merge($replaces, array(
-                'id' => $formId,
-                'body' => $body
-            ))
-        );
-        $form['id'] = $formId; // Required to use d2h_display.js
-        return $form;
-    }
-    
     protected function getVisualItems($lkItems) {
         $visualItems = array();
         foreach ($lkItems as $k => $v) {

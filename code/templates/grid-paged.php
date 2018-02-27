@@ -2,7 +2,7 @@
 $return = [
     'grid' => [
         'includes' => [
-            'tables/grid-paged.php',
+            'grids/grid-paged.php',
             'forms/filter/filter-auto.php',
             'forms/page/page.php'
         ]
