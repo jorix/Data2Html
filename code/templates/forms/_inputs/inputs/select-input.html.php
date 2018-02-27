@@ -5,5 +5,5 @@
     data-d2h="url:'$${url}'"
 >
 <option value="">( . . . )</option>
-<option class="d2h_repeat" value="${[keys]}">${0}</option>
+<option class="d2h_repeat" value="${[keys] | }">${0}</option>
 </select>

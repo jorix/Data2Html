@@ -574,7 +574,7 @@ jQuery.ajaxSetup({ cache: false });
                     $parentContainer.children()[this._repeatStart - 1]
                 );
             }
-            var patt = /\$\{(\[keys\]|[\w\d]+|[\w\d]+\s*\|[\s\w\d,;:\(\)\.\|\-+'"]+)\}/g,
+            var patt = /\$\{(\[keys\]\s*\|?\s*|[\w\d]+|[\w\d]+\s*\|[\s\w\d,;:\(\)\.\|\-+'"]+)\}/g,
                 repl,
                 replaces = [];
             while (repl = patt.exec(this._repeatHtml)) {
@@ -611,14 +611,20 @@ jQuery.ajaxSetup({ cache: false });
                 }
                 for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
                     var replItem = replaces[ii],
-                        iName = replItem.name,
-                        visualEle = visualData[iName],
-                        dataType =  visualEle ? visualEle.type : null,
+                        iName = replItem.name.replace(' ', ''),
                         val;
                     if (iName === '[keys]') {
-                        rowKeys = JSON.stringify(row['[keys]']);
+                        val = row['[keys]'];
+                        if (replItem.repl.indexOf('|') > 0 && val.length === 1) {
+                            // When pattern ${[keys] | } force scalar if is possible
+                            rowKeys = val[0];
+                        } else {
+                            rowKeys = JSON.stringify(val);
+                        }
                         html = html.replace(replItem.repl, rowKeys);
                     } else {
+                        var visualEle = visualData[iName],
+                            dataType =  visualEle ? visualEle.type : null;
                         if ($.isNumeric(iName)) {
                             val = row[cols[iName]];
                         } else {
