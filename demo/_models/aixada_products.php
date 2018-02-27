@@ -47,7 +47,6 @@ class aixada_products extends Data2Html_Model {
                         'ts'
                     ),
                     'filter' => array(
-                        'layout' => 'inline',
                         'items' => array(
                             'name' => array('check' => 'LK', 'no-required'),
                             '%barcode',

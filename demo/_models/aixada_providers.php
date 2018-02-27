@@ -57,7 +57,6 @@ class aixada_providers extends Data2Html_Model {
                 'default' => array(
                     'sort' => 'name',
                     'filter' => array(
-                        'layout' => 'inline',
                         'items' => array(
                             'name' => 'LK',
                             'active' => 'EQ'

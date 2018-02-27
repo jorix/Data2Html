@@ -43,6 +43,7 @@ $return = [
             ]
         ],
         'main' => [
+            'layout' => 'edit-grid-paged',
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [

@@ -35,7 +35,7 @@
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
-	<title>title</title>
+	<title>manage_ufs</title>
 
     <script><?php echo Data2Html_Lang::jsCode('ca'); ?></script>
     <script src="../external/jquery-2.1.0/jquery.js" ></script>

@@ -40,6 +40,19 @@ class Data2Html_Render
         return Data2Html_Config::getPath('controllerUrl') . '?';
     }
     
+    public function renderMix($model, $gridName)
+    {
+        try {
+            $this->idRender = $this->createIdRender();
+            $this->templateObj->setTemplate($templateName);
+            return $this->renderGridObj($model, $gridName);            
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            exit();
+        }
+    }
+    
     public function renderGrid($model, $templateName, $gridName)
     {
         try {
@@ -78,10 +91,7 @@ class Data2Html_Render
         $lkGrid = $model->getGrid($gridName);
         $lkGrid->createLink();
         
-        $tplGrid = $this->templateObj->getTemplateBranch(
-            $lkGrid->getAttribute('layout', 'grid'),
-            $this->templateObj->getTemplateRoot()
-        );
+        $tplGrid = $this->templateObj->getTemplateRoot();
         $gridId = $this->idRender . '_grid_' . $gridName;
         
         $tmplPage = $this->templateObj->getTemplateBranch('page', $tplGrid, false);
@@ -112,7 +122,7 @@ class Data2Html_Render
         $klColumns = $lkGrid->getColumnsSet();
         
         $result = $this->renderGridSet(
-            $this->templateObj->getTemplateBranch('table', $tplGrid),
+            $this->templateObj->getTemplateBranch('grid', $tplGrid),
             $klColumns->getLinkedItems(),
             array(
                 'title' => $lkGrid->getAttributeUp('title'),

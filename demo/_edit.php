@@ -22,8 +22,8 @@
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
-	<title>title</title>
-   
+	<title>_edit</title>
+
     <script><?php echo Data2Html_Lang::jsCode('ca'); ?></script>
     <script src="../external/jquery-2.1.0/jquery.js" ></script>
     <link  href="../external/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
@@ -34,10 +34,11 @@
     <link  href="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <script src="../external/date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
-    <script src="../code/js/d2h_server.js" ></script>
-    <script src="../code/js/d2h_display.js" ></script>
-    <script src="../code/js/d2h_sort.js" ></script>
-    <script src="../code/js/d2h_values.js" ></script>
+    <script src="../code/js/d2h_server.js"></script>
+    <script src="../code/js/d2h_display.js"></script>
+    <script src="../code/js/d2h_messages.js"></script>
+    <script src="../code/js/d2h_sort.js"></script>
+    <script src="../code/js/d2h_values.js"></script>
     
     <style>    
     .d2h_sort_no .d2h_sortIco_no {color: #777}
@@ -78,6 +79,14 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    /**
+     * d2h_message
+     */
+    .d2h_message { position: absolute; left: 15px; bottom: 30px; opacity: 0.9; }
+    .d2h_message .alert { margin-bottom: 0; }
+    th .d2h_message { font-weight: normal; }
+    th { position: relative;}
     </style>
 </head>
 <body>
@@ -87,6 +96,7 @@
     <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
+        (function() {
             new d2h_display({
                 items: {
                     grid: {selector: '#<?=$idGrid?>'},
@@ -94,6 +104,7 @@
                 }
             });
             d2h_display.loadGrid('#<?=$idGrid?>');
+        })();
     </script>
 </body>
 </html>

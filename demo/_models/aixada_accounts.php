@@ -45,7 +45,6 @@ class aixada_accounts extends Data2Html_Model {
                         'payment_method_id[description]',
                         'balance'),
                     'filter' => array(
-                        'layout' => 'inline',
                         'items' => array(
                             array(
                                 'base' => 'account_uf_id',

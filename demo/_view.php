@@ -12,7 +12,7 @@
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
-	<title>title</title>
+	<title>_view</title>
    
     <script><?php echo Data2Html_Lang::jsCode('ca'); ?></script>
     <script src="../external/jquery-2.1.0/jquery.js" ></script>
@@ -77,7 +77,7 @@
     <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
-        $('#<?=$idGrid?>').d2h_server();
+        $('#<?=$idGrid?>').d2h_server('get').loadGrid();
     </script>
 </body>
 </html>
