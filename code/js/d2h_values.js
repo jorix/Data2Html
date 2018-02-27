@@ -47,5 +47,17 @@ d2h_values = {
             vals = vals + (vals ? '&' : '') + checkOff.join('&');
         }
         return vals;
+    },
+    
+    getData: function(formElem, visualData) {
+        var data = {},
+            iName;
+        for (iName in visualData) {
+            var visualEle = visualData[iName];
+            data[iName] = d2h_values.get(
+                $('[name=' + iName + ']', formElem),
+                visualEle ? visualEle.type : null
+            );
+        }
     }
 };

@@ -733,7 +733,8 @@ jQuery.ajaxSetup({ cache: false });
             var visualData = this._visualData,
                 d2h_oper,
                 data = {};
-            for (iName in this._visualData) {
+            var iName;
+            for (iName in visualData) {
                 var visualEle = visualData[iName];
                 data[iName] = d2h_values.get(
                     $('[name=' + iName + ']', this.objElem),
