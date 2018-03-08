@@ -30,7 +30,7 @@ class Data2Html_Model_Link
             }
             $sortBy = Data2Html_Value::getItem(
                 $this->items['main'],
-                array($dafaultSort, 'sortBy')
+                [$dafaultSort, 'sortBy']
             );
             if (!$sortBy) {
                 throw new Data2Html_Exception(

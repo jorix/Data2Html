@@ -18,6 +18,7 @@ class Data2Html_Utils
             array('/', '/', '/'),
             $fileName
         );
+        $fileName = preg_replace('/^\.\//i', '', $fileName);
         $path = explode('/', $fileName);
         $cleanFile = '';
         for ($i = 0; $i + 1 < count($path); $i++) {
@@ -117,6 +118,7 @@ class Data2Html_Utils
                 $pathObj = $pathObj2;
             }
         }
+        $pathObj[0] = $fileName;
         return $pathObj;
     }
     

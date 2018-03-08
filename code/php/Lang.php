@@ -83,7 +83,6 @@ class Data2Html_Lang
         $lang->load('', Data2Html_Autoload::getCodeFolder() . '/../js');
         return "
             var __ = (function () {
-                
             var literals = " . Data2Html_Value::toJson(
                 $lang->getLiterals(),
                 Data2Html_Config::debug()

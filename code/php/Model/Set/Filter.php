@@ -1,10 +1,6 @@
 <?php
 class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
 {
-    protected $attributeNames = array(
-        'layout' => 'attribute'
-    );
-    
     protected $keywords = array('check' => 'string');
     
     protected $startToChk = array(

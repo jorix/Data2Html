@@ -2,11 +2,12 @@
 class Data2Html_Model_Set_Grid extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
-        'sort' => 'attribute',
-        'layout' => 'attribute',
         'edit-name' => 'attribute',
-        'filter' => false
+        'filter' => false,
+        'sort' => 'attribute',
+        'template' => 'attribute',
     );
+    
     protected $keywords = array(
         'sortBy' => null
     );
