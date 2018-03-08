@@ -2,8 +2,10 @@
 
 class Data2Html_Render_FileContents
 {
-    private static $culprit = 'Render_FileContents';
+    // 0 => file-info, 1 => file content, 2 => resolved content, "xx" => translated to "xx"
     private static $templateContents = [];
+    
+    // Configured template folders
     private static $folders;
     
     public static function dump($subject = null)
@@ -14,31 +16,35 @@ class Data2Html_Render_FileContents
                 $subject[$k] = $v[0][0];
             }
         }
-        Data2Html_Utils::dump(self::$culprit, $subject);
+        Data2Html_Utils::dump(get_called_class(), $subject);
     }
     
     public static function load($templateName)
     {
-        $filePath = Data2Html_Utils::toCleanFilePath($templateName . '.php');
-        if (!array_key_exists($filePath, self::$templateContents)) {
-            if (count(self::$folders) === 0) {
-                self::$folders = array_reverse(
-                    (array)Data2Html_Config::getForlder('templateFolder')
-                );
-            }
-            // Replace with resolved tree
-            self::$templateContents[$filePath][1] = self::readTemplateTreeFile($filePath);
+        if (count(self::$folders) === 0) {
+            self::$folders = array_reverse(
+                (array)Data2Html_Config::getForlder('templateFolder')
+            );
         }
-        return self::$templateContents[$filePath];  
+        return self::readTemplateTreeFile($templateName . '.php');
     }
     
     private static function readTemplateTreeFile($fileName)
     {
-        $tree = self::readArrayFile($fileName);
-        return self::loadTemplateTree(
-            Data2Html_Utils::toCleanFolderPath(dirname($fileName)),
-            $tree
-        );
+        $filePath = Data2Html_Utils::toCleanFilePath($fileName);
+        
+        // Load unresolved tree if is necessary
+        $tree = self::readArrayFile($filePath);
+        
+        // Resolved tree
+        if (!array_key_exists(2, self::$templateContents[$filePath])) {
+            $resolvedTree = self::loadTemplateTree(
+                Data2Html_Utils::toCleanFolderPath(dirname($fileName)),
+                $tree
+            );
+            self::$templateContents[$filePath][2] = $resolvedTree;
+        }
+        return self::$templateContents[$filePath][2];
     }
     
     private static function loadTemplateTree($folder, $tree)
@@ -83,7 +89,7 @@ class Data2Html_Render_FileContents
                         $response[$k] = self::loadTemplateTree($folder, $v);
                     } else {
                         throw new Data2Html_Exception(
-                            "{$this->culprit}: Tree of \"{$k}\"must be a array or a function!",
+                            "Tree of \"{$k}\"must be a array or a function!",
                             $tree
                         );
                     }
@@ -98,7 +104,7 @@ class Data2Html_Render_FileContents
         $response = self::getContent(self::loadContent($filePath));
         if (!is_array($response)) {
             throw new Data2Html_Exception(
-                self::$culprit .
+                get_called_class() .
                 "::readArrayFile(\"{$filePath}\") Tree must be a array!",
                 $response
             );
@@ -171,7 +177,7 @@ class Data2Html_Render_FileContents
                 break;
             default:
                 throw new Data2Html_Exception(
-                    self::$culprit . ": Extension \"{$pathObj['extension']}\" for template \"{$filePath}\" and file \"{$fullFileName}\" is not supported.",
+                    "Extension \"{$pathObj['extension']}\" for template \"{$filePath}\" and file \"{$fullFileName}\" is not supported.",
                     $pathObj
                 );
         }
@@ -204,8 +210,7 @@ class Data2Html_Render_FileContents
             if (!$loaded) {
                 if ($required) {
                     throw new Data2Html_Exception(
-                        self::$culprit .
-                        ": File \"{$filePath}\" does not exist in configured `templateFolder`.",
+                        "File \"{$filePath}\" does not exist in configured `templateFolder`.",
                         self::$folders
                     );
                 } else {
@@ -219,7 +224,7 @@ class Data2Html_Render_FileContents
     private static function getFileType($filePath) {
         if (!array_key_exists($filePath, self::$templateContents)) {
             throw new Data2Html_Exception(
-                self::$culprit . ": filePath\"{$filePath}\" is yet not loaded.",
+                "File \"{$filePath}\" is yet not loaded.",
                 $filePath
             );
         }
@@ -229,7 +234,7 @@ class Data2Html_Render_FileContents
     public static function getContent($filePath, $lang = null) {
         if (!array_key_exists($filePath, self::$templateContents)) {
             throw new Data2Html_Exception(
-                self::$culprit . ": filePath\"{$filePath}\" is yet not loaded.",
+               "File \"{$filePath}\" is yet not loaded.",
                 $filePath
             );
         }
@@ -240,7 +245,7 @@ class Data2Html_Render_FileContents
             $fileName = $pathObj[0];
             switch ($pathObj['extension']) {
             case '.html':
-                $content = Data2Html_Utils::readWrappedFile($fileName, self::$culprit);
+                $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (self::$debug) {
                     $content = 
                         "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[ -->\n" .
@@ -249,7 +254,7 @@ class Data2Html_Render_FileContents
                 }
                 break;
             case '.js':
-                $content = Data2Html_Utils::readWrappedFile($fileName, self::$culprit);
+                $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (self::$debug) {
                     $content = 
                         "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[\n" .
@@ -258,13 +263,13 @@ class Data2Html_Render_FileContents
                 }
                 break;
             case '.json':
-                $content = Data2Html_Utils::readFileJson($fileName, self::$culprit);
+                $content = Data2Html_Utils::readFileJson($fileName, get_called_class());
                 break;
             case '.php':
-                $content = Data2Html_Utils::readFilePhp($fileName, self::$culprit);
+                $content = Data2Html_Utils::readFilePhp($fileName, get_called_class());
                 break;
             default:
-                throw new Exception("{$this->culprit}: Extension \"{$pathObj['extension']}\" on definitions name \"{$fileName}\" is not supported.");
+                throw new Exception("Extension \"{$pathObj['extension']}\" on definitions name \"{$fileName}\" is not supported.");
             }
             self::$templateContents[$filePath][1] = $content;
         }
