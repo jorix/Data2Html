@@ -19,11 +19,17 @@ class Data2Html_Render_FileContents
     
     public static function load($templateName)
     {
-        self::$folders = array_reverse(
-            (array)Data2Html_Config::getForlder('templateFolder')
-        );
-        
-        return self::readTemplateTreeFile($templateName . '.php');
+        $filePath = Data2Html_Utils::toCleanFilePath($templateName . '.php');
+        if (!array_key_exists($filePath, self::$templateContents)) {
+            if (count(self::$folders) === 0) {
+                self::$folders = array_reverse(
+                    (array)Data2Html_Config::getForlder('templateFolder')
+                );
+            }
+            // Replace with resolved tree
+            self::$templateContents[$filePath][1] = self::readTemplateTreeFile($filePath);
+        }
+        return self::$templateContents[$filePath];  
     }
     
     private static function readTemplateTreeFile($fileName)
