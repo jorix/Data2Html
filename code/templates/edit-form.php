@@ -1,6 +1,4 @@
 <?php
 $return = [
-    'form' => [
-        'includes' => ['forms/edit/edit.php']
-    ]
+    'includes' => ['forms/edit/edit.php']
 ];

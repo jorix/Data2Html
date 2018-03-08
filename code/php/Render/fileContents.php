@@ -246,7 +246,7 @@ class Data2Html_Render_FileContents
             switch ($pathObj['extension']) {
             case '.html':
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
-                if (self::$debug) {
+                if (Data2Html_Config::debug()) {
                     $content = 
                         "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[ -->\n" .
                         $content .
@@ -255,7 +255,7 @@ class Data2Html_Render_FileContents
                 break;
             case '.js':
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
-                if (self::$debug) {
+                if (Data2Html_Config::debug()) {
                     $content = 
                         "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[\n" .
                         $content .

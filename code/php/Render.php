@@ -1,4 +1,6 @@
 <?php
+use Data2Html_Render_Branches as _branches;
+use Data2Html_Render_Templates as _templates;
 
 class Data2Html_Render
 {
@@ -22,8 +24,6 @@ class Data2Html_Render
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Render";
-        
-        $this->templateObj = new Data2Html_Render_Template();
     }
 
     public function dump($subject = null)
@@ -40,25 +40,15 @@ class Data2Html_Render
         return Data2Html_Config::getPath('controllerUrl') . '?';
     }
     
-    public function renderMix($model, $gridName)
-    {
-        try {
-            $this->idRender = $this->createIdRender();
-            $this->templateObj->setTemplate($templateName);
-            return $this->renderGridObj($model, $gridName);            
-        } catch(Exception $e) {
-            // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
-            exit();
-        }
-    }
-    
     public function renderGrid($model, $templateName, $gridName)
     {
         try {
             $this->idRender = $this->createIdRender();
-            $this->templateObj->setTemplate($templateName);
-            return $this->renderGridObj($model, $gridName);            
+            return $this->renderGridObj(
+                _branches::startTree($templateName),
+                $model,
+                $gridName
+            );            
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -70,8 +60,11 @@ class Data2Html_Render
     {
         try {
             $this->idRender = $this->createIdRender();
-            $this->templateObj->setTemplate($templateName);
-            return $this->renderFormObj($model, $formName);            
+            return $this->renderFormObj(
+                _branches::startTree($templateName),
+                $model,
+                $formName
+            );            
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -84,35 +77,29 @@ class Data2Html_Render
         return 'd2h_' . self::$idRenderCount;
     }
 
-    private function renderGridObj($model, $gridName)
+    private function renderGridObj($templateBranch, $model, $gridName)
     {        
         
         $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
         $lkGrid = $model->getGrid($gridName);
         $lkGrid->createLink();
         
-        $tplGrid = $this->templateObj->getTemplateRoot();
         $gridId = $this->idRender . '_grid_' . $gridName;
-        
-        $tmplPage = $this->templateObj->getTemplateBranch('page', $tplGrid, false);
-        if ($tmplPage) {
-            $pageForm = $this->renderFormSet(
-                $gridId . '_page',
-                $tmplPage,
-                null,
-                array()
-            );
-        } else {
-            $pageForm = null;
-        }
+
+        $pageForm = $this->renderFormSet(
+            $gridId . '_page',
+            _branches::getBranch('page', $templateBranch, false),
+            null,
+            array()
+        );
         
         $lkFilter = $lkGrid->getFilter();
         if (!$lkFilter) {
-            $filterForm = $this->templateObj->emptyRender();
+            $filterForm = _branches::renderEmpty();
         } else {
             $filterForm = $this->renderFormSet(
                 $gridId . '_filter',
-                $this->templateObj->getTemplateBranch('filter', $tplGrid),
+                _branches::getBranch('filter', $templateBranch, false),
                 $lkFilter->getLinkedItems(),
                 array(
                     'title' => $lkFilter->getAttributeUp('title'),
@@ -122,7 +109,7 @@ class Data2Html_Render
         $klColumns = $lkGrid->getColumnsSet();
         
         $result = $this->renderGridSet(
-            $this->templateObj->getTemplateBranch('grid', $tplGrid),
+            _branches::getBranch('grid', $templateBranch),
             $klColumns->getLinkedItems(),
             array(
                 'title' => $lkGrid->getAttributeUp('title'),
@@ -138,7 +125,7 @@ class Data2Html_Render
         return $result;
     }
     
-    private function renderFormObj($model, $formName)
+    private function renderFormObj($templateBranch, $model, $formName)
     {
         $this->culprit =
             "Render for form: \"{$model->getModelName()}:{$formName}\"";
@@ -147,10 +134,7 @@ class Data2Html_Render
         
         return $this->renderFormSet(
             $this->idRender . '_form_' . $formName,
-            $this->templateObj->getTemplateBranch(
-                $lkForm->getAttribute('layout', 'form'),
-                $this->templateObj->getTemplateRoot()
-            ),
+            $templateBranch,
             $lkForm->getLinkedItems(),
             array(
                 'title' => $lkForm->getAttributeUp('title'),
@@ -160,29 +144,30 @@ class Data2Html_Render
         );
     }
     
-    private function renderGridSet($templateTable, $columns, $replaces)
+    private function renderGridSet($templateBranch, $columns, $replaces)
     {
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");
         }
         if (count($columns) === 0) {
-            return $this->templateObj->emptyRender();
+            return _branches::renderEmpty();
         }
+
         list($thead, $renderCount) = $this->renderFlatSet(
             array_merge(
-                $this->parseIncludeItems('startItems', $templateTable, 'head-item'),
+                $this->parseIncludeItems('startItems', $templateBranch, 'head-item'),
                 $columns,
-                $this->parseIncludeItems('endItems', $templateTable, 'head-item')
+                $this->parseIncludeItems('endItems', $templateBranch, 'head-item')
             ),
-            $this->templateObj->getTemplateBranch('heads', $templateTable)
+            _branches::getBranch('heads', $templateBranch)
         );
         list($tbody) = $this->renderFlatSet(
             array_merge(
-                $this->parseIncludeItems('startItems', $templateTable),
+                $this->parseIncludeItems('startItems', $templateBranch),
                 $columns,
-                $this->parseIncludeItems('endItems', $templateTable)
+                $this->parseIncludeItems('endItems', $templateBranch)
             ),
-            $this->templateObj->getTemplateBranch('cells', $templateTable)
+            _branches::getBranch('cells', $templateBranch)
         );
         
         // End
@@ -192,7 +177,10 @@ class Data2Html_Render
             'colCount' => $renderCount,
             'visual' => $this->getVisualItems($columns)
         ));
-        return $this->templateObj->renderTemplate($templateTable, $replaces);
+        return _templates::apply(
+            _branches::getItem('template', $templateBranch),
+            $replaces
+        );
         $previusLevel = $level;
     }
 
@@ -210,8 +198,8 @@ class Data2Html_Render
         list($body) = $this->renderFlatSet($items, $templateBranch);
         
         $replaces['visual'] = $this->getVisualItems($items);
-        $form = $this->templateObj->renderTemplate(
-            $templateBranch,
+        $form = _templates::apply(
+            _branches::getItem('template', $templateBranch),
             array_merge($replaces, array(
                 'id' => $formId,
                 'body' => $body
@@ -228,15 +216,13 @@ class Data2Html_Render
             "assign-template", 
             function() { return array('base', 'base', array()); }
         );
-        $tLayouts =
-            $this->templateObj->getTemplateBranch('layouts', $template);
-        $tContents =
-            $this->templateObj->getTemplateBranch('contents', $template);
+        $tLayouts = _branches::getBranch('layouts', $template);
+        $tContents = _branches::getBranch('contents', $template);
         
         $renderSetLevel = function($currentLevel) 
         use(&$renderSetLevel, &$assignTemplate, &$items, $tContents, $tLayouts, $iReplaces)
         {
-            $body = $this->templateObj->getEmptyBody();
+            $body = null;
             $vDx = new Data2Html_Collection();
 
             // Declare end previous item function
@@ -246,14 +232,16 @@ class Data2Html_Render
                     return;
                 }
                 if ($levelBody) {
-                    $this->templateObj->concatContents($itemBody, $levelBody);
+                    _templates::concat($itemBody, $levelBody);
                 }
                 $replaces['body'] = $itemBody;
-                $this->templateObj->concatContents(
+                _templates::concat(
                     $body,
-                    $this->templateObj->renderTemplateItem(
-                        $layoutTemplName,
-                        $tLayouts,
+                    _templates::apply(
+                        _branches::getItem(
+                            ['templates', $layoutTemplName],
+                            $tLayouts
+                        ),
                         $replaces
                     )
                 );
@@ -324,9 +312,11 @@ class Data2Html_Render
                         $vDx->getArray('validations', array())
                     )
                 );
-                $itemBody = $this->templateObj->renderTemplateItem(
-                    $contentTemplName,
-                    $tContents,
+                $itemBody = _templates::apply(
+                    _branches::getItem(
+                        ['templates', $contentTemplName],
+                       $tContents
+                    ),
                     $replaces
                 );
                 ++$renderCount;
@@ -343,7 +333,7 @@ class Data2Html_Render
 
     protected function parseIncludeItems($setName, $templateBranch, $alternativeItem = null)
     {
-        $items = $this->templateObj->getTemplateItems($setName, $templateBranch);
+        $items = _branches::getItem($setName, $templateBranch);
         if (count($items) === 0) {
             return array();
         } else {
