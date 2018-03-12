@@ -12,7 +12,9 @@ class Data2Html_Render_Templates
     
     public static function apply($template, $replaces)
     {
-        if (array_key_exists('html', $template)) {
+        if (is_callable($template)) {
+            return $template($replaces);
+        } elseif (array_key_exists('html', $template)) {
             $html = _contents::getContent($template['html']);
         } else {
             $html = '';

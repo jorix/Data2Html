@@ -2,7 +2,7 @@
 class Data2Html_Model_Set_Grid extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
-        'edit-name' => 'attribute',
+        'form-name' => 'attribute',
         'filter' => false,
         'sort' => 'attribute',
         'template' => 'attribute',

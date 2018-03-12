@@ -1,24 +1,11 @@
 <!DOCTYPE html>
-    <?php
-        require_once("../code/php/Autoload.php");
-        Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
-    
-        $model = Data2Html_Handler::createModel($_REQUEST['model']);
-        $render = Data2Html_Handler::createRender();
-    
-    // Grid    
-        $result = $render->renderGrid($model, 'main', 'edit-grid-paged');
-        $idGrid = $result['id'];
-        $jsCode = $result['js'];
-        $htmlCode = $result['html'];
-        
-    // Form edit
-        $result = $render->renderForm($model, 'main', 'edit-form');
-        $idEdit = $result['id'];
-        $jsCode .= $result['js'];
-        $htmlCode .= $result['html'];
-        
-    ?>
+<?php
+    require_once("../code/php/Autoload.php");
+    Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+
+    $render = Data2Html_Handler::createRender();
+    $result = $render->render($_REQUEST, 'edit.php');
+?>
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
@@ -91,20 +78,11 @@
 </head>
 <body>
     <div class="container">
-        <?=$htmlCode?>
+        <?=$result['html']?>
     </div>
     <div class="d2h_waiting"></div>
     <script>
-        <?=$jsCode?>
-        (function() {
-            new d2h_display({
-                items: {
-                    grid: {selector: '#<?=$idGrid?>'},
-                    detail: {selector: '#<?=$idEdit?>'}
-                }
-            });
-            d2h_display.loadGrid('#<?=$idGrid?>');
-        })();
+        <?=$result['js']?>
     </script>
 </body>
 </html>

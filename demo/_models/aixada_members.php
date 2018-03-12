@@ -72,7 +72,7 @@ $return = [
             ]
         ],
         'uf_members' => [
-            'edit-name' => 'main',
+            'form-name' => 'main',
             'items' => ['name', 'active' => ['sortBy' => null], 'phones'],
             'filter' => [
                 'items' => [

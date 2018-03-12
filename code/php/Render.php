@@ -40,7 +40,21 @@ class Data2Html_Render
         return Data2Html_Config::getPath('controllerUrl') . '?';
     }
     
-    public function renderGrid($model, $templateName, $gridName)
+    public function render($replaces, $templateName)
+    {
+        try {
+            return _templates::apply(
+                Data2Html_Render_FileContents::get($templateName),
+                $replaces
+            );           
+        } catch(Exception $e) {
+            // Message to user            
+            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            exit();
+        }
+    }
+    
+    public function renderGrid($model, $gridName, $templateName)
     {
         try {
             $this->idRender = $this->createIdRender();
@@ -56,7 +70,7 @@ class Data2Html_Render
         }
     }
     
-    public function renderForm($model, $templateName, $formName)
+    public function renderForm($model, $formName, $templateName)
     {
         try {
             $this->idRender = $this->createIdRender();
@@ -312,6 +326,7 @@ class Data2Html_Render
                         $vDx->getArray('validations', array())
                     )
                 );
+                ++$renderCount;
                 $itemBody = _templates::apply(
                     _branches::getItem(
                         ['templates', $contentTemplName],
@@ -319,7 +334,6 @@ class Data2Html_Render
                     ),
                     $replaces
                 );
-                ++$renderCount;
 
                 $v = next($items);
             }

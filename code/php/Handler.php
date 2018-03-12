@@ -52,9 +52,9 @@ class Data2Html_Handler
         }
         $render = self::createRender();
         if (array_key_exists('form', $payerNames)) {
-            $result = $render->renderForm($model, $templateName, $payerNames['form']);
+            $result = $render->renderForm($model, $payerNames['form'], $templateName);
         } elseif (array_key_exists('grid', $payerNames)) {
-            $result = $render->renderGrid($model, $templateName, $payerNames['grid']);
+            $result = $render->renderGrid($model, $payerNames['grid'], $templateName);
         } else {
             throw new Exception("no request object.");
         }

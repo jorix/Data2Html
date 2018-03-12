@@ -36,13 +36,17 @@ class Data2Html_Render_Branches
         return $result;
     }
     
-    public static function getItem($keys, $templateBranch)
+    public static function getItem($keys, $templateBranch = null)
     {
-        $leaf = Data2Html_Value::getItem($templateBranch[1], $keys);
-        if (is_string($leaf)) {
-            return _contents::getContent($leaf);
+        if ($templateBranch) {
+            $leaf = Data2Html_Value::getItem($templateBranch[1], $keys);
+            if (is_string($leaf)) {
+                return _contents::getContent($leaf);
+            } else {
+                return $leaf ? $leaf : [];
+            }
         } else {
-            return $leaf ? $leaf : [];
+            return _contents::getContent($keys);
         }
     }
 }

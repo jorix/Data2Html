@@ -195,6 +195,7 @@ class Data2Html_Render_FileContents
                 );
                 $fullFile = $pathObj['dirname'] . $pathObj['filename'] . $pathObj['extension'];
                 if (!file_exists($fullFile) &&
+                    $pathObj['extension'] &&
                     strpos('.html.js.json', $pathObj['extension']) !== false
                 ) {
                     $fullFile .= '.php';
@@ -231,10 +232,21 @@ class Data2Html_Render_FileContents
         return self::$templateContents[$filePath][0]['extension'];
     }
     
+    public static function get($filePath, $lang = null) {
+        if (count(self::$folders) === 0) {
+            self::$folders = array_reverse(
+                (array)Data2Html_Config::getForlder('templateFolder')
+            );
+        }
+        return self::getContent(
+            self::loadContent($filePath), $lang
+        );
+    }
+    
     public static function getContent($filePath, $lang = null) {
         if (!array_key_exists($filePath, self::$templateContents)) {
             throw new Data2Html_Exception(
-               "File \"{$filePath}\" is yet not loaded.",
+               "File \"{$filePath}\" is not yet loaded.",
                 $filePath
             );
         }

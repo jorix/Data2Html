@@ -9,24 +9,24 @@
     
     $mUfs = Data2Html_Handler::createModel('aixada_ufs');
 // Ufs Grid    
-    $result = $render->renderGrid($mUfs, 'edit-grid-paged', 'main');
+    $result = $render->renderGrid($mUfs, 'main', 'edit-grid-paged');
     $idUfGrid = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
 // Edit uf
-    $result = $render->renderForm($mUfs, 'edit-form', 'main');
+    $result = $render->renderForm($mUfs, 'main', 'edit-form');
     $idUfEdit = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
     
     $mMembers = Data2Html_Handler::createModel('aixada_members');
 // Members Grid    
-    $result = $render->renderGrid($mMembers, 'edit-grid-nopaged', 'uf_members');
+    $result = $render->renderGrid($mMembers, 'uf_members', 'edit-grid-nopaged');
     $idMemberGrid = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
 // Edit Member
-    $result = $render->renderForm($mMembers, 'edit-form', 'main');
+    $result = $render->renderForm($mMembers, 'main', 'edit-form');
     $idMemberEdit = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
