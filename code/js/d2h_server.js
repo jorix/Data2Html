@@ -126,7 +126,7 @@ jQuery.ajaxSetup({ cache: false });
             }
             this._events[eventName]++;
             $(this.objElem).on(
-                'd2h_' + eventName,
+                'd2h_srv_' + eventName,
                 function() {
                     var args = [];
                     Array.prototype.push.apply(args, arguments);
@@ -142,7 +142,7 @@ jQuery.ajaxSetup({ cache: false });
         },
         
         trigger: function(eventName, args) {
-            return $(this.objElem).triggerHandler('d2h_' + eventName, args);
+            return $(this.objElem).triggerHandler('d2h_srv_' + eventName, args);
         },
         
         getPromise: function() {

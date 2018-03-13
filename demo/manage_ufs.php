@@ -7,18 +7,6 @@
     $htmlCode = '';
     $jsCode = '';
     
-    $mUfs = Data2Html_Handler::createModel('aixada_ufs');
-// Ufs Grid    
-    $result = $render->renderGrid($mUfs, 'main', 'edit-grid-paged');
-    $idUfGrid = $result['id'];
-    $htmlCode .= $result['html'];
-    $jsCode .= $result['js'];
-// Edit uf
-    $result = $render->renderForm($mUfs, 'main', 'edit-form');
-    $idUfEdit = $result['id'];
-    $htmlCode .= $result['html'];
-    $jsCode .= $result['js'];
-    
     $mMembers = Data2Html_Handler::createModel('aixada_members');
 // Members Grid    
     $result = $render->renderGrid($mMembers, 'uf_members', 'edit-grid-nopaged');
@@ -28,6 +16,18 @@
 // Edit Member
     $result = $render->renderForm($mMembers, 'main', 'edit-form');
     $idMemberEdit = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+    
+    $mUfs = Data2Html_Handler::createModel('aixada_ufs');
+// Ufs Grid    
+    $result = $render->renderGrid($mUfs, 'main', 'edit-grid-paged');
+    $idUfGrid = $result['id'];
+    $htmlCode .= $result['html'];
+    $jsCode .= $result['js'];
+// Edit uf
+    $result = $render->renderForm($mUfs, 'main', 'edit-form');
+    $idUfEdit = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
     
@@ -109,22 +109,22 @@
     <div class="d2h_waiting"></div>
     <script>
         <?=$jsCode?>
-        (function() {
-            new d2h_display({
-                items: {
-                    grid: '#<?=$idUfGrid?>',
-                    detail: '#<?=$idUfEdit?>'
-                }
-            });
-            new d2h_display({
-                items: {
-                    grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
-                    detail: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
-                },
-                branch: '#<?=$idUfGrid?>'
-            });
-            d2h_display.loadGrid('#<?=$idUfGrid?>');
-        })();
+
+        d2h_display.create({
+            branch: '#<?=$idUfGrid?>',
+            items: {
+                grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
+                detail: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
+            }
+        });
+        
+        d2h_display.create({
+            auto: 'loadGrid',
+            items: {
+                grid: '#<?=$idUfGrid?>',
+                detail: '#<?=$idUfEdit?>'
+            }
+        });
     </script>
 </body>
 </html>
