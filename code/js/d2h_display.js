@@ -2,7 +2,7 @@ var d2h_display = (function($) {
     
     // Class
     // -----
-    var _display = function(options) {
+    var _displayClass = function(options) {
         this._options = options;
         this._selectors = {};
         this._currentName = null;
@@ -12,16 +12,34 @@ var d2h_display = (function($) {
                 this.add(iName, elems[iName]);
             }
         }
+        
+        // Manage branch or auto option
         var branch = this._options.branch;
         if (branch) {
             var _this = this
             _on(branch, 'hideLeafs',  function() { 
                 _this.hide();
             });
+            this.hide();
+        } else {
+            switch (this._options.auto) {
+                case 'hide':
+                    this.hide();
+                    break;
+                case 'loadGrid':
+                    this.loadGrid();
+                    break;
+                case 'showDetail':
+                    this.show('detail');
+                    break;
+                case 'showGrid':
+                default:
+                    this.show('grid');
+            }
         }
     };
 
-    _display.prototype = {
+    _displayClass.prototype = {
         _selectors: null,
         _options: null,
         _currentName: '',
@@ -34,14 +52,14 @@ var d2h_display = (function($) {
                 selector = options.selector;
                 if (!options.selector) {
                     $.error(
-                        "_display.add(): If options is a plain object 'selector' key is required!"
+                        "[d2h_display].add(): If options is a plain object 'selector' key is required!"
                     );
                 }
                 if (options.leafKeys) {
                     var branch = this._options.branch;
                     if (!branch) {
                         $.error(
-                            "_display.add(): If 'leafKeys' is used needs a 'branch' global options."
+                            "[d2h_display].add(): If 'leafKeys' is used needs a 'branch' global options."
                         );
                     }
                     var _this = this,
@@ -85,7 +103,7 @@ var d2h_display = (function($) {
                 }
             } else {
                 $.error(
-                    "_display.add(): If selector must be a plain object or a string!"
+                    "[d2h_display].add(): If selector must be a plain object or a string!"
                 );
             }
             $.data(_singleElement(selector), "Data2Html_display", this);
@@ -96,7 +114,7 @@ var d2h_display = (function($) {
         getSelector: function(name) {
             if (!name in this._selectors) {
                 $.error(
-                    "_display.getServer(): Name " + name + 
+                    "[d2h_display].getServer(): Name " + name + 
                     '" not exist on items. Add it firts!'
                 );
             }
@@ -104,22 +122,15 @@ var d2h_display = (function($) {
         },
         
         getServer: function(name) {
-            return $(_singleElement(this._selectors[name])).d2h_server('get');
+            return $(_singleElement(this.getSelector(name))).d2h_server('get');
         },
         
-        getServerName: function(serverObj) {
-            var dataSelector = '#' + serverObj.getElem().id,
-                sels = this._selectors,
-                response = null;
-                iName;
-            for (iName in sels) {
-                if (sels[iName] === dataSelector) {
-                    return iName;
-                }
-            }
+        loadGrid: function() {
+            this.getServer('grid').loadGrid();
+            this.show('grid');
         },
         
-        show: function(name, message) {
+        show: function(name) {
             var iName,
                 sels = this._selectors,
                 serverSelector = this.getSelector(name);
@@ -227,19 +238,13 @@ var d2h_display = (function($) {
     
     // Static public methods
     // --------------
-    _display.create = function(options) {
-        return new _display(options);
-    };
-    
-    _display.loadGrid = function(gridSelector) {
-        var display = _get(gridSelector);
-        display.getServer('grid').loadGrid();
-        display.show('grid');
+    _displayClass.create = function(options) {
+        return new _displayClass(options);
     };
 
-    _display.goGridAction = function(formServer, action) {
-        var display = _get(formServer),
-            gridServer = display.getServer('grid');
+    _displayClass.goGridAction = function(server, action) {
+        var _displayObj = _get(server),
+            formServer = _displayObj.getServer('detail');
         switch (action) {
             case 'read-previous':
             //TODO
@@ -257,10 +262,11 @@ var d2h_display = (function($) {
                         return false;
                     },
                     afterSave: function(){
+                        var gridServer = _displayObj.getServer('grid');
                         gridServer.loadGrid({
                             afterLoadGrid: function() {
                                 d2h_messages.done(
-                                    display.show('grid'),
+                                    _displayObj.show('grid'),
                                     __('display/saved')
                                 );
                             }
@@ -278,13 +284,13 @@ var d2h_display = (function($) {
                         return false;
                     },
                     afterSave: function(jsonData) {
-                        var gridServer = display.getServer('grid'),
+                        var gridServer = _displayObj.getServer('grid'),
                             keys = jsonData.keys,
-                            gridSelector = display.getSelector('grid');
+                            gridSelector = _displayObj.getSelector('grid');
                         gridServer.selectedKeys(keys);
                         if (_isEventUsed(gridSelector, 'applyFormLeafKeys')) {
                             gridServer.loadGrid(); // To show new record in the grid
-                            _display.goFormAction(formServer, 'show-edit', keys, {
+                            _displayClass.goFormAction(formServer, 'show-edit', keys, {
                                 after: function() {
                                     d2h_messages.done(
                                         formServer,
@@ -296,7 +302,7 @@ var d2h_display = (function($) {
                             gridServer.loadGrid({
                                 afterLoadGrid: function() {
                                     d2h_messages.done(
-                                        display.show('grid'),
+                                        _displayObj.show('grid'),
                                         __('display/created')
                                     );
                                 }
@@ -315,10 +321,11 @@ var d2h_display = (function($) {
                         return false;
                     },
                     afterDelete: function(){
+                        var gridServer = _displayObj.getServer('grid');
                         gridServer.loadGrid({
                             afterLoadGrid: function() {
                                 d2h_messages.removed(
-                                    display.show('grid'),
+                                    _displayObj.show('grid'),
                                     __('display/deleted')
                                 );
                             }
@@ -327,15 +334,15 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-grid':
-                d2h_messages.clear(display.show('grid'));
+                d2h_messages.clear(_displayObj.show('grid'));
                 break;
         }
     };
 
-    _display.goFormAction = function(server, action, _keys, _options) {
-        var display = _get(server),
-            formSelector = display.getSelector('detail'),
-            formServer = display.getServer('detail'),
+    _displayClass.goFormAction = function(server, action, _keys, _options) {
+        var _displayObj = _get(server),
+            formSelector = _displayObj.getSelector('detail'),
+            formServer = _displayObj.getServer('detail'),
             formElem = formServer.getElem();
         _options = _options ? _options : {};
         switch (action) {
@@ -343,11 +350,11 @@ var d2h_display = (function($) {
                 formServer.loadForm({
                     keys: _keys,
                     afterLoadForm: function() {
-                        var gridSelector = display.getSelector('grid');
+                        var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_delete,.d2h_insert', formElem).hide();
                         $('.d2h_update,.d2h_move', formElem).show();
-                        d2h_messages.clear(display.show('detail'));
+                        d2h_messages.clear(_displayObj.show('detail'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -358,11 +365,11 @@ var d2h_display = (function($) {
                 formServer.loadForm({
                     keys: _keys,
                     afterLoadForm: function() {
-                        var gridSelector = display.getSelector('grid');
+                        var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_update,.d2h_insert', formElem).hide();
                         $('.d2h_delete,.d2h_move', formElem).show();
-                        d2h_messages.clear(display.show('detail'));
+                        d2h_messages.clear(_displayObj.show('detail'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -377,7 +384,7 @@ var d2h_display = (function($) {
                         _trigger(formSelector, 'hideLeafs');
                         $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                         $('.d2h_insert', formElem).show();
-                        d2h_messages.clear(display.show('detail'));
+                        d2h_messages.clear(_displayObj.show('detail'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -389,7 +396,7 @@ var d2h_display = (function($) {
                 _trigger(formSelector, 'hideLeafs');
                 $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                 $('.d2h_insert', formElem).show();
-                d2h_messages.clear(display.show('detail'));
+                d2h_messages.clear(_displayObj.show('detail'));
                 if (_options.after) {
                     _options.after.call(this);
                 }
@@ -398,5 +405,5 @@ var d2h_display = (function($) {
     };
     
     // 
-    return _display;
+    return _displayClass;
 })(jQuery);
