@@ -115,8 +115,9 @@ jQuery.ajaxSetup({ cache: false });
             return this.objElem;
         },
         
-        $: function(selector) {
-            return $(selector, this.objElem);
+        $: function(selector, elem) {
+            return $(selector, (elem ? elem : this.objElem))
+                .filter('[data-d2h-from=' + this.objElem.id + ']');
         },
         
         on: function(eventName, handlerFn) {
@@ -186,9 +187,11 @@ jQuery.ajaxSetup({ cache: false });
                 }
             };
             // all sub-elements
-            $('[data-d2h-on]', handlerEle).each(function() {
-                _fnAction.call(this);
-            });
+            this.$('[data-d2h-on]', handlerEle).each(
+                function() {
+                    _fnAction.call(this);
+                }
+            );
             // self element
             if ($(handlerEle).attr('data-d2h-on')) {
                 _fnAction.call(handlerEle);
@@ -736,25 +739,15 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         save: function(options) {
-            var visualData = this._visualData,
+            var data = d2h_values.getData(this, this._visualData),
                 d2h_oper,
-                data = {};
-            var iName;
-            for (iName in visualData) {
-                var visualEle = visualData[iName];
-                data[iName] = d2h_values.get(
-                    $('[name=' + iName + ']', this.objElem),
-                    visualEle ? visualEle.type : null
-                );
-            }
-            var d2hKeys = $(this.objElem).data('d2h-keys');
+                d2hKeys = $(this.objElem).data('d2h-keys');
             if (d2hKeys) {
                 data['[keys]'] = JSON.parse(d2hKeys);
                 d2h_oper = 'update';
             } else {
                 d2h_oper = 'insert';
             }
-            
             this._rows = null;
             this.server({
                 ajaxType: 'POST',	
@@ -781,15 +774,7 @@ jQuery.ajaxSetup({ cache: false });
             return this;
         },
         'delete': function(options) {
-            var visualData = this._visualData,
-                data = {};
-            for (iName in this._visualData) {
-                var visualEle = visualData[iName];
-                data[iName] = d2h_values.get(
-                    $('[name=' + iName + ']', this.objElem),
-                    visualEle ? visualEle.type : null
-                );
-            }
+            var data = d2h_values.getData(this, this._visualData);
             data['[keys]'] = JSON.parse($(this.objElem).data('d2h-keys'));
             this.server({
                 ajaxType: 'POST',	
@@ -833,7 +818,7 @@ jQuery.ajaxSetup({ cache: false });
                 if (allElements || hasDefault) {
                     try {
                         d2h_values.put(
-                            $('[name=' + tagName + ']', this.objElem), 
+                            this.$('[name=' + tagName + ']'), 
                             val,
                             visualEle.type
                         );
@@ -849,7 +834,7 @@ jQuery.ajaxSetup({ cache: false });
             for (tagName in visualData) {
                 var val = row[tagName] !== undefined ? row[tagName] : "",
                     visualEle = visualData[tagName];
-                d2h_values.put($('[name=' + tagName + ']', this.objElem), val, visualEle.type);
+                d2h_values.put(this.$('[name=' + tagName + ']'), val, visualEle.type);
             }
             $(this.objElem).data('d2h-keys', JSON.stringify(row['[keys]']));
             return this;

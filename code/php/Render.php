@@ -16,7 +16,7 @@ class Data2Html_Render
         'date' =>       array('base', 'datetimepicker')
     );
     private $visualWords = array(
-        'display', 'format', 'size', 'title', 'type', 'validations', 'default'
+        'display', 'format', 'size', 'title', 'type', 'validations', 'default', 'db'
     );
     private static $idRenderCount = 0;
     
@@ -109,7 +109,7 @@ class Data2Html_Render
         
         $lkFilter = $lkGrid->getFilter();
         if (!$lkFilter) {
-            $filterForm = _branches::renderEmpty();
+            $filterForm = _templates::renderEmpty();
         } else {
             $filterForm = $this->renderFormSet(
                 $gridId . '_filter',
@@ -127,6 +127,7 @@ class Data2Html_Render
             $klColumns->getLinkedItems(),
             array(
                 'title' => $lkGrid->getAttributeUp('title'),
+                'debug-name' => "{$model->getModelName()}@grid={$gridName}",
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}&",
@@ -152,6 +153,7 @@ class Data2Html_Render
             $lkForm->getLinkedItems(),
             array(
                 'title' => $lkForm->getAttributeUp('title'),
+                'debug-name' => "{$model->getModelName()}@form={$formName}",
                 'url' => $this->getControllerUrl() .
                      "model={$model->getModelName()}&form={$formName}&"
             )
@@ -173,7 +175,8 @@ class Data2Html_Render
                 $columns,
                 $this->parseIncludeItems('endItems', $templateBranch, 'head-item')
             ),
-            _branches::getBranch('heads', $templateBranch)
+            _branches::getBranch('heads', $templateBranch),
+            ['from-id' => $replaces['id']]
         );
         list($tbody) = $this->renderFlatSet(
             array_merge(
@@ -181,7 +184,8 @@ class Data2Html_Render
                 $columns,
                 $this->parseIncludeItems('endItems', $templateBranch)
             ),
-            _branches::getBranch('cells', $templateBranch)
+            _branches::getBranch('cells', $templateBranch),
+            ['from-id' => $replaces['id']]
         );
         
         // End
@@ -198,18 +202,18 @@ class Data2Html_Render
         $previusLevel = $level;
     }
 
-    protected function renderFormSet(
-        $formId,
-        $templateBranch,
-        $items,
-        $replaces
-    ){
+    protected function renderFormSet($formId, $templateBranch, $items, $replaces)
+    {
         $items = array_merge(
             $this->parseIncludeItems('startItems', $templateBranch),
             $items ? $items : array(),
             $this->parseIncludeItems('endItems', $templateBranch)
         );
-        list($body) = $this->renderFlatSet($items, $templateBranch);
+        list($body) = $this->renderFlatSet(
+            $items,
+            $templateBranch,
+            ['from-id' => $formId]
+        );
         
         $replaces['visual'] = $this->getVisualItems($items);
         $form = _templates::apply(
@@ -313,6 +317,7 @@ class Data2Html_Render
                 ) = $assignTemplate($this, $v);
                 $replaces += $iReplaces + array(
                     'id' => $this->createIdRender(),
+                    'debug-name' => key($items),
                     'name' => key($items),
                     'title' => $vDx->getString('title'),
                     'description' => $vDx->getString('description'),
@@ -334,6 +339,7 @@ class Data2Html_Render
                     ),
                     $replaces
                 );
+                //$this->dump([$contentTemplName, $tContents, $replaces, $itemBody]);
 
                 $v = next($items);
             }

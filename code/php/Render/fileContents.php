@@ -136,11 +136,18 @@ class Data2Html_Render_FileContents
                             $pathObj = Data2Html_Utils::parseWrappedPath(
                                 $fInfo->getFilename()
                             );
-                            if ($pathObj['extension'] === '.html') {
-                                $htmlFiles[$pathObj['filename']] = self::loadTemplateFile(
-                                    $folderPath . 
-                                    $pathObj['filename'] .$pathObj['extension']
-                                );
+                            $fullFile = $folderPath .
+                                $pathObj['filename'] .
+                                $pathObj['extension'];
+                            switch ($pathObj['extension']) {
+                                case '.html':
+                                    $htmlFiles[$pathObj['filename']] = 
+                                        self::loadTemplateFile($fullFile);
+                                    break;
+                                case '.php':
+                                    $htmlFiles[$pathObj['filename']] = 
+                                        self::loadContent($fullFile);
+                                    break;
                             }
                         }
                     }
@@ -260,7 +267,7 @@ class Data2Html_Render_FileContents
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (Data2Html_Config::debug()) {
                     $content = 
-                        "\n<!-- name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[ -->\n" .
+                        "\n<!-- debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[ -->\n" .
                         $content .
                         "\n<!-- ]] #\$\${_renderCount}# -->\n";
                 }
@@ -269,7 +276,7 @@ class Data2Html_Render_FileContents
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (Data2Html_Config::debug()) {
                     $content = 
-                        "\n// name=\"\$\${name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[\n" .
+                        "\n// debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[\n" .
                         $content .
                         "\n// ]] #\$\${_renderCount}#\n";
                 }

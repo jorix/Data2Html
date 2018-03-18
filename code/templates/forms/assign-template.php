@@ -13,12 +13,17 @@ $return = array(
         
         $type = $itemDx->getString('type');
         $link = $itemDx->getString('link');
+        $leafs = $itemDx->getString('leafs');
         $url = '';
         if ($content === 'hidden-input') {
             $layout = 'bare';
         } elseif ($link) {
             $content = 'select-input';
             $url = $render->getControllerUrl() . "model={$link}&";
+        } elseif ($leafs) {
+            $layout = 'bare';
+            $content = 'edit-leafs';
+            $url = $render->getControllerUrl() . "model={$leafs}&";
         } elseif ($type) {
             $typeToInputTemplates = array(
                 'boolean' =>    'checkbox',

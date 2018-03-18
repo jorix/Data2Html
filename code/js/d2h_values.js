@@ -49,15 +49,26 @@ d2h_values = {
         return vals;
     },
     
-    getData: function(formElem, visualData) {
-        var data = {},
-            iName;
-        for (iName in visualData) {
-            var visualEle = visualData[iName];
-            data[iName] = d2h_values.get(
-                $('[name=' + iName + ']', formElem),
-                visualEle ? visualEle.type : null
-            );
+    getSerialized: function(server, visualData) {
+        $.param(this.getData(server, visualData));
+    },
+    
+    getData: function(server, visualData) {
+        var _data = {};
+        if (visualData) {
+            var iName;
+            for (iName in visualData) {
+                var visualEle = visualData[iName];
+                _data[iName] = d2h_values.get(
+                    server.$('[name=' + iName + ']'),
+                    visualEle ? visualEle.type : null
+                );
+            }
+        } else {
+            server.$('[name]').each(function() {
+                _data[this.name] = d2h_values.get(this, null);
+            });
         }
+        return _data;
     }
 };

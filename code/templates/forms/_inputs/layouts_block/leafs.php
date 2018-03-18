@@ -10,7 +10,7 @@ $return = function($replaces) {
     $formName = $grid->getAttribute('form-name', 'main');
     
     $form = $model->getForm($formName);
-    $templateFormName = $form->getAttribute('template', 'edit-form');
+    $templateFormName = $grid->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();
     // Grid    

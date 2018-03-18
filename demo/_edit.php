@@ -97,13 +97,13 @@
     <script>
         <?=$jsCode?>
         (function() {
-            new d2h_display({
+            d2h_display.create({
+                auto: 'loadGrid',
                 items: {
                     grid: {selector: '#<?=$idGrid?>'},
                     detail: {selector: '#<?=$idEdit?>'}
                 }
             });
-            d2h_display.loadGrid('#<?=$idGrid?>');
         })();
     </script>
 </body>

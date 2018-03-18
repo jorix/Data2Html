@@ -2,9 +2,9 @@
 //abstract 
 abstract class Data2Html_Model_Set
 {
-    protected $attributeNames = array();
-    protected $wordsAlias = array();
-    protected $keywords = array();
+    protected $attributeNames = [];
+    protected $wordsAlias = [];
+    protected $keywords = [];
 
     protected $setItems = null;
 
@@ -30,47 +30,43 @@ abstract class Data2Html_Model_Set
         // fields as: link_name[field_name]
     private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
-    private $baseAttributeNames = array(
+    private $baseAttributeNames = [
         'title' => 'attribute',
         'items' => 'items',
-    );
-    private $baseWordsAlias = array(
-        'autoKey' =>    array('type' => 'integer', 'key' => 'autoKey'),
-        'boolean' =>    array('type' => 'boolean'),
-        'date' =>       array('type' => 'date'),
-        'email' =>      array('type' => 'string', 'size' => '[]', 'validations' => 'email'),
-        'emails' =>     array('type' => 'string', 'size' => '[]', 'validations' => array('emails')),
-        'float' =>      array('type' => 'float'),
-        'hidden' =>     array('display' => 'none'),
-        'integer' =>    array('type' => 'integer'),
-        'key' =>        array('key' => 'key'),
-        'number' =>     array('type' => 'number', 'size' => '[]'),
-        'currency' =>   array('type' => 'number', 'size' => '[]'),
-        'required' =>   array('validations' => array('required')),
-        'string' =>     array('type' => 'string', 'size' => '[]'),
-        'text' =>       array('type' => 'text'),
-        'url' =>        array('type' => 'string', 'validations' => 'url')
-    );
+    ];
+    private $baseWordsAlias = [
+        'autoKey' =>    ['type' => 'integer', 'key' => 'autoKey'],
+        'boolean' =>    ['type' => 'boolean'],
+        'date' =>       ['type' => 'date'],
+        'email' =>      ['type' => 'string', 'size' => '{}', 'validations' => 'email'],
+        'emails' =>     ['type' => 'string', 'size' => '{}', 'validations' => ['emails']],
+        'float' =>      ['type' => 'float'],
+        'hidden' =>     ['display' => 'none'],
+        'integer' =>    ['type' => 'integer'],
+        'key' =>        ['key' => 'key'],
+        'number' =>     ['type' => 'number', 'size' => '{}'],
+        'currency' =>   ['type' => 'number', 'size' => '{}'],
+        'required' =>   ['validations' => ['required']],
+        'string' =>     ['type' => 'string', 'size' => '{}'],
+        'text' =>       ['type' => 'text'],
+        'url' =>        ['type' => 'string', 'validations' => 'url']
+    ];
     private $subItemsKey = 'items';
-    private $baseKeywords = array(
+    private $baseKeywords = [
         'base' => 'string',
         'db' => 'string|null',
         'default' => null,
         'description' => 'string|null',
-        'display' => array(
-            'options' => array('none', 'html', 'all')
-        ),
-        'format' => 'string',
-        'key' => array(
-            'options' => array('autoKey', 'key')
-        ),
-        'level' => 'integer',
-        'link' => 'string|null',
-        'leafs' => 'string',
-        'linkedTo' => 'array',
-        'items' => 'array',
-        'name' => 'string',
-        'size' => '(array)integer',
+        'display'   => ['options' => ['none', 'html', 'all']],
+        'format'    => 'string',
+        'key'       => ['options' => ['autoKey', 'key']],
+        'level'     => 'integer',
+        'link'      => 'string|null',
+        'leafs'     => 'string',
+        'linkedTo'  => 'array',
+        'items'     => 'array',
+        'name'      => 'string',
+        'size'      => 'array(integer)',
         
         // from form
         'layout-template' => 'string',
@@ -81,26 +77,26 @@ abstract class Data2Html_Model_Set
         'action' => 'string',
          
         'title' => 'string',
-        'type' => array(
-            'options' => array(
+        'type' => [
+            'options' => [
                 'boolean', 'date', 'float', 'integer', 'number', 'string', 'text'
-            )
-        ),
-        'validations' => array(
+            ]
+        ],
+        'validations' => [
             'multiple' => true,
-            'options' => array('required', 'email', 'emails', 'url')
-        ),
+            'options' => ['required', 'email', 'emails', 'url']
+        ],
         'value' => null,
         'visualClass' => 'string'
-    );
+    ];
     
-    private $sortByStartToOrder = array(
+    private $sortByStartToOrder = [
         '<' => 1,
         '>' => -1,
         '+' => 1,
         '-' => -1,
         '!' => -1,
-    );
+    ];
     
     public function __construct(
         $model,
@@ -136,7 +132,7 @@ abstract class Data2Html_Model_Set
         $this->baseSet = $baseSet;
         
         // Read defs
-        $this->attributes = array();
+        $this->attributes = [];
         $attNamesDx = new Data2Html_Collection($this->attributeNames);
         foreach ($defs as $k => $v) {
             $attributeType = $attNamesDx->getString($k);
@@ -151,7 +147,7 @@ abstract class Data2Html_Model_Set
                     $this->attributes[$k] = $v;
                     break;
                 case 'items':
-                    $this->setItems = array();
+                    $this->setItems = [];
                     $this->parseItems($v);
                     break;
             }
@@ -161,11 +157,11 @@ abstract class Data2Html_Model_Set
     public function dump($subject = null)
     {
         if (!$subject) {
-            $subject = array(
+            $subject = [
                 'attributes' => $this->attributes,
                 'keys' => $this->keys,
                 'setItems' => $this->setItems
-            );
+            ];
         }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
@@ -353,7 +349,7 @@ abstract class Data2Html_Model_Set
             $baseItems = $this->setItems;
         }
         
-        $keys = array();
+        $keys = [];
         foreach ($this->setItems as $k => &$v) {
             if (array_key_exists('base', $v)) {
                 $base = $v['base'];
@@ -369,7 +365,7 @@ abstract class Data2Html_Model_Set
                     if ($v['db'] === null) {
                         unset($v['db']);
                     }
-                    $v = array_replace_recursive(array(), $baseItems[$base], $v);
+                    $v = array_replace_recursive([], $baseItems[$base], $v);
                 }
             }
             
@@ -402,7 +398,7 @@ abstract class Data2Html_Model_Set
                 }
             }
             if (array_key_exists('key', $v)) {
-                $keys[$k] = array();
+                $keys[$k] = [];
             }
         }
         if (count($keys) === 0 && $this->baseSet) {
@@ -452,7 +448,7 @@ abstract class Data2Html_Model_Set
     // Overwrite this function to `{ return null; }` to ignore sortBy.
     protected function parseSortBy($sortBy, $baseItems) {
         if (!is_array($sortBy)) {
-            $sortBy = array($sortBy);
+            $sortBy = [$sortBy];
         } elseif ( // Already parsed 
             array_key_exists('items', $sortBy) && (
                 count($sortBy) === 1 || 
@@ -463,7 +459,7 @@ abstract class Data2Html_Model_Set
         }
         
         // Create a empty parsed sort
-        $sortByNew = array('linkedTo' => array(), 'items' => array());
+        $sortByNew = ['linkedTo' => [], 'items' => []];
         
         $startsWith = function($haystack, $needle) {
             return (
@@ -491,10 +487,10 @@ abstract class Data2Html_Model_Set
                     );
                 }
             }
-            $sortByNew['items'][$item] = array(
+            $sortByNew['items'][$item] = [
                 'base' => $item,
                 'order' => $order
-            );
+            ];
         }
         if (count($sortByNew['linkedTo']) === 0) {
             unset($sortByNew['linkedTo']);
@@ -510,15 +506,15 @@ abstract class Data2Html_Model_Set
         $matches = null;
         preg_match_all($this->matchLinked, $base, $matches);
         
-        $linkedTo = array();
+        $linkedTo = [];
         for ($i = 0; $i < count($matches[0]); $i++) {
             if ($matches[1][$i] && $matches[2][$i]) {
                 $baseLink = $matches[1][$i];
                 $match = $matches[0][$i];
-                $linkedTo[$match] = array(
+                $linkedTo[$match] = [
                     'link' => $baseLink,
                     'base' => $matches[2][$i]
-                );
+                ];
                 if (!array_key_exists($baseLink, $baseItems)) {
                     throw new Data2Html_Exception(
                         "{$this->culprit}: Defining \"{$base}\", the link \"{$baseLink}\" was not found.",
@@ -541,16 +537,16 @@ abstract class Data2Html_Model_Set
         
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
-                $field = array('value' => substr($field, 1));
+                $field = ['value' => substr($field, 1)];
             } elseif ($this->baseSet) {
-                $field = array('base' => $field);
+                $field = ['base' => $field];
             } else {
                 $matches = null;
                 preg_match_all($this->matchLinked, $field, $matches);
                 if (count($matches[0]) > 0) {
-                    $field = array('base' => $field);
+                    $field = ['base' => $field];
                 } else {
-                    $field = array('db' => $field);
+                    $field = ['db' => $field];
                 }
             }
         }
@@ -562,6 +558,7 @@ abstract class Data2Html_Model_Set
         } elseif ($name && 
             !array_key_exists('value', $field) && 
             !array_key_exists('base', $field) &&
+            !array_key_exists('leafs', $field) &&
             !array_key_exists('db', $field)) {
             $db = $name;
         }
@@ -570,7 +567,7 @@ abstract class Data2Html_Model_Set
         $words = $this->keywords;
 
         // Create parsed field
-        $pField = array();
+        $pField = [];
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
                 if (is_array($vv)) {
@@ -610,29 +607,23 @@ abstract class Data2Html_Model_Set
             }
         }
         if (array_key_exists('value', $pField)) {
-            $value = $pField['value'];
-            if ($value) {
-                if (isset($field['db'])) {
-                    throw new Exception(
-                        "{$this->culprit}: Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
-                    );
+            if (isset($field['db'])) {
+                throw new Exception(
+                    "{$this->culprit}: Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
+                );
+            }
+            $matches = null;
+            // $${name} | $${link[name]}
+            preg_match_all($this->matchTemplate, $pField['value'], $matches);
+            if (count($matches[0]) > 0) {
+                if (!array_key_exists('type', $pField)) {
+                    $pField['type'] = 'string';
                 }
-                $field['db'] = null;
-                $matches = null;
-                // $${name} | $${link[name]}
-                preg_match_all($this->matchTemplate, $value, $matches);
-                if (count($matches[0]) > 0) {
-                    if (!array_key_exists('type', $pField)) {
-                        $pField['type'] = 'string';
-                    }
-                    $tItems = array();
-                    for ($i = 0; $i < count($matches[0]); $i++) {
-                        $tItems[$matches[0][$i]] = array(
-                            'base' => $matches[1][$i]
-                        );
-                    }
-                    $pField['teplateItems'] = $tItems;
+                $tItems = [];
+                for ($i = 0; $i < count($matches[0]); $i++) {
+                    $tItems[$matches[0][$i]] = ['base' => $matches[1][$i]];
                 }
+                $pField['teplateItems'] = $tItems;
             }
         }
         
@@ -649,13 +640,13 @@ abstract class Data2Html_Model_Set
             $this->fNameCount++;
             $pKey = $this->fNamePrefix . '_' . $this->fNameCount;
         }
-        return array($pKey, $pField);
+        return [$pKey, $pField];
     }
     
     private function applyAlias($iField, $fieldName, &$pField, $aliasValue, $toWord)
     {
         foreach ($toWord as $k => $v) {
-            if ($v === '[]') {
+            if ($v === '{}') {
                 $v = $aliasValue;
             }
             if (array_key_exists($k, $pField) && is_array($pField[$k])) {
@@ -685,7 +676,7 @@ abstract class Data2Html_Model_Set
                 if (array_key_exists($wordName, $pField)) {
                     $newWord = $pField[$wordName];
                 } else {
-                    $newWord = array();
+                    $newWord = [];
                 }
                 foreach ($word as $vvv) {
                     if (!in_array($vvv, $keyword['options'])) {
@@ -747,7 +738,7 @@ abstract class Data2Html_Model_Set
                         );
                     }
                     break;
-                case '(array)integer':
+                case 'array(integer)':
                     $word = (array)$word;
                     foreach ($word as $vvv) {
                         if (!is_int($vvv)) {

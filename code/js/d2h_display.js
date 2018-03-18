@@ -66,7 +66,7 @@ var d2h_display = (function($) {
                         _leafKeys = options.leafKeys,
                         _applyKeys = function(server, branchKeys) {
                             for (var i = 0, l = _leafKeys.length; i < l; i++) {
-                                server.$('[name=' + _leafKeys[i] + ']', server.getElem()).val(
+                                server.$('[name=' + _leafKeys[i] + ']').val(
                                     (branchKeys ? branchKeys[i] : '')
                                 );
                             }

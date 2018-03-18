@@ -2,8 +2,13 @@
 $return = function($replaces) {
     $rx = new Data2Html_Collection($replaces, true); // Required
     
-    $model = Data2Html_Handler::createModel($rx->getString('model'));
-    $gridName = $rx->getString('grid', 'main');
+    $urlRequest = null;
+    parse_str(explode('?', $rx->getString('url'))[1], $urlRequest);
+    $modelNames = Data2Html_Handler::parseRequest($urlRequest);
+    $model = Data2Html_Handler::createModel(
+        Data2Html_Value::getItem($modelNames, 'model')
+    );
+    $gridName = Data2Html_Value::getItem($modelNames, 'grid', 'main');
     
     $grid = $model->getGrid($gridName);
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
@@ -26,6 +31,8 @@ $return = function($replaces) {
     $htmlCode .= $result['html'];
     
     return [
+        'd2hToken_content' => true,
+        'rrrr' => '555',
         'html' => 
             "<div class=\"container\">
                 {$htmlCode}
