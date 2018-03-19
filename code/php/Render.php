@@ -104,7 +104,7 @@ class Data2Html_Render
             $gridId . '_page',
             _branches::getBranch('page', $templateBranch, false),
             null,
-            array()
+            []
         );
         
         $lkFilter = $lkGrid->getFilter();
@@ -115,9 +115,7 @@ class Data2Html_Render
                 $gridId . '_filter',
                 _branches::getBranch('filter', $templateBranch, false),
                 $lkFilter->getLinkedItems(),
-                array(
-                    'title' => $lkFilter->getAttributeUp('title'),
-                )
+                ['title' => $lkFilter->getAttributeUp('title')]
             );
         }
         $klColumns = $lkGrid->getColumnsSet();
@@ -206,7 +204,7 @@ class Data2Html_Render
     {
         $items = array_merge(
             $this->parseIncludeItems('startItems', $templateBranch),
-            $items ? $items : array(),
+            $items ? $items : [],
             $this->parseIncludeItems('endItems', $templateBranch)
         );
         list($body) = $this->renderFlatSet(
@@ -218,10 +216,10 @@ class Data2Html_Render
         $replaces['visual'] = $this->getVisualItems($items);
         $form = _templates::apply(
             _branches::getItem('template', $templateBranch),
-            array_merge($replaces, array(
+            array_merge($replaces, [
                 'id' => $formId,
                 'body' => $body
-            ))
+            ])
         );
         $form['id'] = $formId; // Required by d2h_display.js
         return $form;

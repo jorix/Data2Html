@@ -1,11 +1,11 @@
 <?php 
-$return = array(
-    array(
-        "layout" => "bare",
-        "input" => "button",
-        "icon" => "filter",
-        "title" => "$$Refres>\"hàdata",
-        "description" => null,
-        "action" => "readPage"
-    )
-);
+$return = [
+    [
+        'layout' => 'bare',
+        'input' => 'button',
+        'icon' => 'filter',
+        'title' => '$$Refres>\'hàdata',
+        'description' => null,
+        'action' => 'read-page'
+    ]
+];

@@ -480,9 +480,9 @@ jQuery.ajaxSetup({ cache: false });
                 data = {},
                 pageStart = 1;
             if (this.components.filter) {
-                var values =
-                    d2h_values.serialize($(this.components.filter.getElem()));
-                data['d2h_filter'] = values.replace(/&/g, '[,]');
+                data['d2h_filter'] = $.param(
+                    d2h_values.getData(this.components.filter)
+                ).replace(/&/g, '{and}');
             }
             if (sortSelector) {
                 data['d2h_sort'] = $(sortSelector, this.objElem).val();
@@ -497,9 +497,9 @@ jQuery.ajaxSetup({ cache: false });
                 if (_add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
-                data['d2h_page'] = 'pageStart=' + pageStart + '[,]' +
-                    d2h_values.serialize($(this.components.page.getElem()))
-                        .replace(/&/g, '[,]');
+                var aux = d2h_values.getData(this.components.page);
+                aux['pageStart'] = pageStart;
+                data['d2h_page'] = $.param(aux).replace(/&/g, '{and}');
             }
             this.server({
                 ajaxType: 'GET',
@@ -688,7 +688,7 @@ jQuery.ajaxSetup({ cache: false });
                     return false;
                 });
             }
-            $formEle.change(function() {
+            this.$('[name]').change(function() {
                 $formEle.addClass(_globalDefaults.classFormChanged);
             });
                    

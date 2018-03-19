@@ -20,7 +20,7 @@ $('#' + $${id}).d2h_server({
     },
     filter:['#' +'$${id}_filter', {
         actions: {
-            'readPage': function() {this.loadGrid();}
+            'read-page': function() {this.loadGrid();}
         }
     }],
     page: ['#' + '$${id}_page', {

@@ -196,7 +196,7 @@ class Data2Html_Render_FileContents
         $filePath = Data2Html_Utils::toCleanFilePath($filePath);
         if (!array_key_exists($filePath, self::$templateContents)) {
             $loaded = false;
-            foreach(self::$folders as $v) {
+            foreach(self::$folders as $k => $v) {
                 $pathObj = Data2Html_Utils::parseWrappedPath(
                     Data2Html_Utils::toCleanFilePath($v . $filePath)
                 );
@@ -211,6 +211,8 @@ class Data2Html_Render_FileContents
                     self::$templateContents[$filePath] = [
                         0 => Data2Html_Utils::parseWrappedPath($fullFile)
                     ];
+                    self::$templateContents[$filePath][0]['conf-index'] = 
+                        count(self::$folders) - (1 + $k);
                     $loaded = true;
                     break;
                 }
@@ -261,13 +263,15 @@ class Data2Html_Render_FileContents
         $contentItem = self::$templateContents[$filePath];
         if (!array_key_exists(1, self::$templateContents[$filePath])) {
             $pathObj = self::$templateContents[$filePath][0];
+            
             $fileName = $pathObj[0];
+            $fileNameDebug = "config=>templateFolder[{$pathObj['conf-index']}]/\"{$filePath}\"";
             switch ($pathObj['extension']) {
             case '.html':
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (Data2Html_Config::debug()) {
                     $content = 
-                        "\n<!-- debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[ -->\n" .
+                        "\n<!-- debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[ -->\n" .
                         $content .
                         "\n<!-- ]] #\$\${_renderCount}# -->\n";
                 }
@@ -276,7 +280,7 @@ class Data2Html_Render_FileContents
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
                 if (Data2Html_Config::debug()) {
                     $content = 
-                        "\n// debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - \"{$filePath}\" #\$\${_renderCount}# [[\n" .
+                        "\n// debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[\n" .
                         $content .
                         "\n// ]] #\$\${_renderCount}#\n";
                 }

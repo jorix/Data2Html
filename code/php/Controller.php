@@ -37,7 +37,7 @@ class Data2Html_Controller
                     if (is_array($val)) {
                         $postData[$key] = $val;
                     } elseif (strpos($val, '=') !== false) {
-                        parse_str(str_replace('[,]', '&', $val), $reqArr);
+                        parse_str(str_replace('{and}', '&', $val), $reqArr);
                         $postData[$key] = $reqArr;
                     } else {
                         $postData[$key] = $val;
