@@ -54,15 +54,51 @@ class Data2Html_Render
         }
     }
     
-    public function renderGrid($model, $gridName, $templateName)
+    public function renderGrid($model, $gridName, $templateName, $options = null)
     {
         try {
-            $this->idRender = $this->createIdRender();
-            return $this->renderGridObj(
-                _branches::startTree($templateName),
-                $model,
-                $gridName
-            );            
+            $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
+            
+            $gridId = $this->createIdRender() . '_grid_' . $gridName;
+            $templateBranch = _branches::startTree($templateName);
+            $lkGrid = $model->getGrid($gridName);
+            $lkGrid->createLink();
+
+            // Page
+            $pageForm = $this->renderFormSet(
+                $gridId . '_page',
+                _branches::getBranch('page', $templateBranch, false),
+                null,
+                []
+            );
+            // Filter
+            $lkFilter = $lkGrid->getFilter();
+            if (!$lkFilter) {
+                $filterForm = _templates::renderEmpty();
+            } else {
+                $filterForm = $this->renderFormSet(
+                    $gridId . '_filter',
+                    _branches::getBranch('filter', $templateBranch, false),
+                    $lkFilter->getLinkedItems(),
+                    ['title' => $lkFilter->getAttributeUp('title')]
+                );
+            }
+
+            return $this->renderGridSet(
+                $gridId,
+                _branches::getBranch('grid', $templateBranch),
+                $lkGrid->getColumnsSet()->getLinkedItems(),
+                array(
+                    'title' => $lkGrid->getAttributeUp('title'),
+                    'debug-name' => "{$model->getModelName()}@grid={$gridName}",
+                    'id' => $gridId,
+                    'url' => $this->getControllerUrl() .
+                        "model={$model->getModelName()}:{$gridName}&",
+                    'sort' => $lkGrid->getAttributeUp('sort'),
+                    'filter' => $filterForm,
+                    'page' => $pageForm
+                )
+            );
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -70,15 +106,25 @@ class Data2Html_Render
         }
     }
     
-    public function renderForm($model, $formName, $templateName)
+    public function renderForm($model, $formName, $templateName, $options = null)
     {
         try {
-            $this->idRender = $this->createIdRender();
-            return $this->renderFormObj(
+            $this->culprit =
+                "Render for form: \"{$model->getModelName()}:{$formName}\"";
+            $lkForm = $model->getForm($formName);
+            $lkForm->createLink();
+            
+            return $this->renderFormSet(
+                $this->createIdRender() . '_form_' . $formName,
                 _branches::startTree($templateName),
-                $model,
-                $formName
-            );            
+                $lkForm->getLinkedItems(),
+                array(
+                    'title' => $lkForm->getAttributeUp('title'),
+                    'debug-name' => "{$model->getModelName()}@form={$formName}",
+                    'url' => $this->getControllerUrl() .
+                         "model={$model->getModelName()}&form={$formName}&"
+                )
+            );
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -91,74 +137,7 @@ class Data2Html_Render
         return 'd2h_' . self::$idRenderCount;
     }
 
-    private function renderGridObj($templateBranch, $model, $gridName)
-    {        
-        
-        $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
-        $lkGrid = $model->getGrid($gridName);
-        $lkGrid->createLink();
-        
-        $gridId = $this->idRender . '_grid_' . $gridName;
-
-        $pageForm = $this->renderFormSet(
-            $gridId . '_page',
-            _branches::getBranch('page', $templateBranch, false),
-            null,
-            []
-        );
-        
-        $lkFilter = $lkGrid->getFilter();
-        if (!$lkFilter) {
-            $filterForm = _templates::renderEmpty();
-        } else {
-            $filterForm = $this->renderFormSet(
-                $gridId . '_filter',
-                _branches::getBranch('filter', $templateBranch, false),
-                $lkFilter->getLinkedItems(),
-                ['title' => $lkFilter->getAttributeUp('title')]
-            );
-        }
-        $klColumns = $lkGrid->getColumnsSet();
-        
-        $result = $this->renderGridSet(
-            _branches::getBranch('grid', $templateBranch),
-            $klColumns->getLinkedItems(),
-            array(
-                'title' => $lkGrid->getAttributeUp('title'),
-                'debug-name' => "{$model->getModelName()}@grid={$gridName}",
-                'id' => $gridId,
-                'url' => $this->getControllerUrl() .
-                    "model={$model->getModelName()}:{$gridName}&",
-                'sort' => $lkGrid->getAttributeUp('sort'),
-                'filter' => $filterForm,
-                'page' => $pageForm
-            )
-        );
-        $result['id'] = $gridId; // Required by d2h_display.js
-        return $result;
-    }
-    
-    private function renderFormObj($templateBranch, $model, $formName)
-    {
-        $this->culprit =
-            "Render for form: \"{$model->getModelName()}:{$formName}\"";
-        $lkForm = $model->getForm($formName);
-        $lkForm->createLink();
-        
-        return $this->renderFormSet(
-            $this->idRender . '_form_' . $formName,
-            $templateBranch,
-            $lkForm->getLinkedItems(),
-            array(
-                'title' => $lkForm->getAttributeUp('title'),
-                'debug-name' => "{$model->getModelName()}@form={$formName}",
-                'url' => $this->getControllerUrl() .
-                     "model={$model->getModelName()}&form={$formName}&"
-            )
-        );
-    }
-    
-    private function renderGridSet($templateBranch, $columns, $replaces)
+    private function renderGridSet($gridId, $templateBranch, $columns, $replaces)
     {
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");
@@ -193,11 +172,13 @@ class Data2Html_Render
             'colCount' => $renderCount,
             'visual' => $this->getVisualItems($columns)
         ));
-        return _templates::apply(
+        
+        $result = _templates::apply(
             _branches::getItem('template', $templateBranch),
             $replaces
         );
-        $previusLevel = $level;
+        $result['id'] = $gridId; // Required by d2h_display.js
+        return $result;
     }
 
     protected function renderFormSet($formId, $templateBranch, $items, $replaces)

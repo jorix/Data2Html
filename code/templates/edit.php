@@ -6,8 +6,8 @@ $return = function($replaces) {
     $gridName = $rx->getString('grid', 'main');
     
     $grid = $model->getGrid($gridName);
-    $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('form-name', 'main');
+    $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     
     $form = $model->getForm($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
