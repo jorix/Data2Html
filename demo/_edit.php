@@ -13,7 +13,7 @@
         $htmlCode = $result['html'];
         
     // Form edit
-        $result = $render->renderForm($model, 'main', 'edit-form');
+        $result = $render->renderElement($model, 'main', 'edit-form');
         $idEdit = $result['id'];
         $jsCode .= $result['js'];
         $htmlCode .= $result['html'];
@@ -101,7 +101,7 @@
                 auto: 'loadGrid',
                 items: {
                     grid: {selector: '#<?=$idGrid?>'},
-                    detail: {selector: '#<?=$idEdit?>'}
+                    element: {selector: '#<?=$idEdit?>'}
                 }
             });
         })();

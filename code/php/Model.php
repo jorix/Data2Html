@@ -18,7 +18,7 @@ class Data2Html_Model
     // Parsed object definitions
     private $baseSet = null;
     private $grids = array();
-    private $forms = array();
+    private $elements = array();
     
     /**
      * Class constructor, initializes basic properties.
@@ -70,21 +70,21 @@ class Data2Html_Model
         return $this->grids[$gridName];
     }
     
-    public function getForm($formName = '')
+    public function getElement($elementName = '')
     {
-        if (!$formName) {
-            $formName = 'main';
+        if (!$elementName) {
+            $elementName = 'main';
         }
-        if (!array_key_exists($formName, $this->forms)) {
-            $this->forms[$formName] =
-                new Data2Html_Model_Set_FormEdit(
+        if (!array_key_exists($elementName, $this->elements)) {
+            $this->elements[$elementName] =
+                new Data2Html_Model_Set_Element(
                     $this,
-                    $formName, 
-                    $this->getSetDefs($formName, 'forms'),
+                    $elementName, 
+                    $this->getSetDefs($elementName, 'elements'),
                     $this->baseSet
                 );
         }    
-        return $this->forms[$formName];
+        return $this->elements[$elementName];
     }
     
     protected function getSetDefs($name, $setName)

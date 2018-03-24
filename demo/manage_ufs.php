@@ -14,7 +14,7 @@
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
 // Edit Member
-    $result = $render->renderForm($mMembers, 'main', 'edit-form');
+    $result = $render->renderElement($mMembers, 'main', 'edit-form');
     $idMemberEdit = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
@@ -26,7 +26,7 @@
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
 // Edit uf
-    $result = $render->renderForm($mUfs, 'main', 'edit-form');
+    $result = $render->renderElement($mUfs, 'main', 'edit-form');
     $idUfEdit = $result['id'];
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
@@ -114,7 +114,7 @@
             branch: '#<?=$idUfGrid?>',
             items: {
                 grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
-                detail: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
+                element: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
             }
         });
         
@@ -122,7 +122,7 @@
             auto: 'loadGrid',
             items: {
                 grid: '#<?=$idUfGrid?>',
-                detail: '#<?=$idUfEdit?>'
+                element: '#<?=$idUfEdit?>'
             }
         });
     </script>

@@ -59,7 +59,7 @@ $return = array(
             )
         )
     ),
-    'forms' => array(
+    'elements' => array(
         'main' => array(
             'items' => array(
                 'login',

@@ -14,8 +14,14 @@ $return = function($replaces) {
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('form-name', 'main');
     
-    $form = $model->getForm($formName);
+    $form = $model->getElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
+    
+    
+    
+    
+    
+    
     
     $render = Data2Html_Handler::createRender();
     // Grid    
@@ -25,10 +31,18 @@ $return = function($replaces) {
     $htmlCode = $result['html'];
         
     // Form edit
-    $result = $render->renderForm($model, $formName, $templateFormName);
+    $result = $render->renderElement($model, $formName, $templateFormName);
     $idForm = $result['id'];
     $jsCode .= $result['js'];
     $htmlCode .= $result['html'];
+    
+    $displayOptions = [
+        'auto' => 'loadGrid',
+        'items' => [
+            'grid' => '#' . $idGrid,
+            'element' => '#' . $idForm
+        ]
+    ];
     
     return [
         'd2hToken_content' => true,
@@ -40,13 +54,9 @@ $return = function($replaces) {
         'js' =>
             "{$jsCode}
             (function() {
-                d2h_display.create({
-                    auto: 'loadGrid',
-                    items: {
-                        grid: '#{$idGrid}',
-                        detail: '#{$idForm}'
-                    }
-                });
+                d2h_display.create(" . 
+                Data2Html_Value::toJson($displayOptions)
+                . ");
             })();"
     ];
 };

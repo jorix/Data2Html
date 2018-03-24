@@ -3,7 +3,7 @@ class Data2Html_Model_Set_Base extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
         'grids' => false,
-        'forms' => false,
+        'elements' => false,
         'table' => 'attribute',
         'sort' => 'attribute',
         'beforeInsert' => 'attribute',

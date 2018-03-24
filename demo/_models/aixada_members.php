@@ -81,7 +81,7 @@ $return = [
             ]
         ]
     ],
-    'forms' => [
+    'elements' => [
         'main' => [
             'items' => [
                 'name' => ['items' => ['ts', 'active']],

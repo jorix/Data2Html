@@ -30,7 +30,7 @@ var d2h_display = (function($) {
                     this.loadGrid();
                     break;
                 case 'showDetail':
-                    this.show('detail');
+                    this.show('element');
                     break;
                 case 'showGrid':
                 default:
@@ -89,7 +89,7 @@ var d2h_display = (function($) {
                                 }
                             );
                             break;
-                        case 'detail':
+                        case 'element':
                             _on(selector,
                                 'applyBranchKeys', 
                                 function() {
@@ -136,7 +136,7 @@ var d2h_display = (function($) {
                 serverSelector = this.getSelector(name);
                 serverObj = this.getServer(name);
             switch (name) {
-                case 'detail':
+                case 'element':
                     _trigger(serverSelector, 'applyBranchKeys');
                     break;
                 case 'grid':
@@ -244,7 +244,7 @@ var d2h_display = (function($) {
 
     _displayClass.goGridAction = function(server, action) {
         var _displayObj = _get(server),
-            formServer = _displayObj.getServer('detail');
+            formServer = _displayObj.getServer('element');
         switch (action) {
             case 'read-previous':
             //TODO
@@ -341,8 +341,8 @@ var d2h_display = (function($) {
 
     _displayClass.goFormAction = function(server, action, _keys, _options) {
         var _displayObj = _get(server),
-            formSelector = _displayObj.getSelector('detail'),
-            formServer = _displayObj.getServer('detail'),
+            formSelector = _displayObj.getSelector('element'),
+            formServer = _displayObj.getServer('element'),
             formElem = formServer.getElem();
         _options = _options ? _options : {};
         switch (action) {
@@ -354,7 +354,7 @@ var d2h_display = (function($) {
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_delete,.d2h_insert', formElem).hide();
                         $('.d2h_update,.d2h_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('detail'));
+                        d2h_messages.clear(_displayObj.show('element'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -369,7 +369,7 @@ var d2h_display = (function($) {
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_update,.d2h_insert', formElem).hide();
                         $('.d2h_delete,.d2h_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('detail'));
+                        d2h_messages.clear(_displayObj.show('element'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -384,7 +384,7 @@ var d2h_display = (function($) {
                         _trigger(formSelector, 'hideLeafs');
                         $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                         $('.d2h_insert', formElem).show();
-                        d2h_messages.clear(_displayObj.show('detail'));
+                        d2h_messages.clear(_displayObj.show('element'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -396,7 +396,7 @@ var d2h_display = (function($) {
                 _trigger(formSelector, 'hideLeafs');
                 $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                 $('.d2h_insert', formElem).show();
-                d2h_messages.clear(_displayObj.show('detail'));
+                d2h_messages.clear(_displayObj.show('element'));
                 if (_options.after) {
                     _options.after.call(this);
                 }

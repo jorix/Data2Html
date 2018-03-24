@@ -9,7 +9,7 @@ $return = function($replaces) {
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('form-name', 'main');
     
-    $form = $model->getForm($formName);
+    $form = $model->getElement($formName);
     $templateFormName = $grid->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();
@@ -20,7 +20,7 @@ $return = function($replaces) {
     $htmlCode = $result['html'];
         
     // Form edit
-    $result = $render->renderForm($model, $formName, $templateFormName);
+    $result = $render->renderElement($model, $formName, $templateFormName);
     $idForm = $result['id'];
     $jsCode .= $result['js'];
     $htmlCode .= $result['html'];
@@ -37,7 +37,7 @@ $return = function($replaces) {
                     auto: 'loadGrid',
                     items: {
                         grid: '#{$idGrid}',
-                        detail: '#{$idForm}'
+                        element: '#{$idForm}'
                     }
                 });
             })();"

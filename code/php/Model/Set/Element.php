@@ -1,5 +1,5 @@
 <?php
-class Data2Html_Model_Set_FormEdit extends Data2Html_Model_Set
+class Data2Html_Model_Set_Element extends Data2Html_Model_Set
 {
     protected $attributeNames = array(
         'template' => 'attribute',

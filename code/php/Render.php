@@ -106,13 +106,24 @@ class Data2Html_Render
         }
     }
     
-    public function renderForm($model, $formName, $templateName, $options = null)
+    public function renderElement($model, $formName, $templateName, $options = null)
     {
         try {
             $this->culprit =
                 "Render for form: \"{$model->getModelName()}:{$formName}\"";
-            $lkForm = $model->getForm($formName);
+            $lkForm = $model->getElement($formName);
             $lkForm->createLink();
+            
+            $options = [
+                'branch' => [
+                    'model' => 'aixada_ufs',
+                    'grid' => 'uf_members',
+                    'from' => 'main'
+                ]
+            ];
+            
+            
+            
             
             return $this->renderFormSet(
                 $this->createIdRender() . '_form_' . $formName,
@@ -122,7 +133,12 @@ class Data2Html_Render
                     'title' => $lkForm->getAttributeUp('title'),
                     'debug-name' => "{$model->getModelName()}@form={$formName}",
                     'url' => $this->getControllerUrl() .
-                         "model={$model->getModelName()}&form={$formName}&"
+                         "model={$model->getModelName()}&form={$formName}&",
+                    'branch' => [
+                        'model' => 'aixada_ufs',
+                        'grid' => 'uf_members',
+                        'from' => 'main'
+                    ]
                 )
             );
         } catch(Exception $e) {

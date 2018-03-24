@@ -52,7 +52,7 @@ $return = [
             ]
         ]
     ],
-    'forms' => [
+    'elements' => [
         'main' => [
             'items' => [
                 'name',
