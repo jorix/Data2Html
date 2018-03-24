@@ -365,7 +365,7 @@ class Data2Html_Model_Link
                 );
             }
             $model = Data2Html_Handler::getModel($modelName);
-            $grid = $model->getGrid($playerNames['grid']);
+            $grid = $model->getUnlinkedGrid($playerNames['grid']);
             $alias = $this->addTable($linkId, $grid->getColumnsSet());
         }
         // Get item

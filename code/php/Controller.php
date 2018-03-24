@@ -66,10 +66,10 @@ class Data2Html_Controller
             case '':
             case 'read':
                 if (isset($playerNames['element'])) {
-                    $lkForm = $model->getElement($playerNames['element'], ['linked' => true]);
+                    $lkForm = $model->getElement($playerNames['element']);
                     return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
-                    $lkGrid = $model->getGrid($playerNames['grid'], ['linked' => true]);
+                    $lkGrid = $model->getGrid($playerNames['grid']);
 
                     // Prepare sql
                     $sqlObj = new Data2Html_Controller_SqlSelect(
@@ -92,7 +92,7 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $lkForm = $model->getElement($playerNames['element'], ['linked' => true]);
+                $lkForm = $model->getElement($playerNames['element']);
                 $values = $postData['d2h_data'];
                 $newId = $this->opInsert($lkForm, $values);
                 

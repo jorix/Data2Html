@@ -17,8 +17,9 @@ class Data2Html_Model
     
     // Parsed object definitions
     private $baseSet = null;
-    private $grids = array();
-    private $elements = array();
+    private $grids = [];
+    private $unlinkedGrids = [];
+    private $elements = [];
     
     /**
      * Class constructor, initializes basic properties.
@@ -53,7 +54,19 @@ class Data2Html_Model
         return $this->baseSet;
     }
     
-    public function getGrid($gridName = '', $options = null)
+    public function getUnlinkedGrid($gridName)
+    {
+        if (!array_key_exists($gridName, $this->unlinkedGrids)) {
+            $this->unlinkedGrids[$gridName] = new Data2Html_Model_Grid(
+                $this,
+                $gridName,
+                $this->getSetDefs($gridName, 'grids')
+            );
+        }    
+        return $this->unlinkedGrids[$gridName];
+    }
+    
+    public function getGrid($gridName = '')
     {
         if (!$gridName) {
             $gridName = 'main';
@@ -63,13 +76,13 @@ class Data2Html_Model
                 $this,
                 $gridName,
                 $this->getSetDefs($gridName, 'grids'),
-                $options
+                ['linked' => true]
             );
         }    
         return $this->grids[$gridName];
     }
     
-    public function getElement($elementName = '', $options = null)
+    public function getElement($elementName = '')
     {
         if (!$elementName) {
             $elementName = 'main';
@@ -81,7 +94,7 @@ class Data2Html_Model
                     $elementName, 
                     $this->getSetDefs($elementName, 'elements'),
                     $this->baseSet,
-                    $options
+                    ['linked' => true]
                 );
         }    
         return $this->elements[$elementName];

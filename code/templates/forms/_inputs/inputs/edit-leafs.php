@@ -10,11 +10,11 @@ $return = function($replaces) {
     );
     $gridName = Data2Html_Value::getItem($modelNames, 'grid', 'main');
     
-    $grid = $model->getGrid($gridName, ['linked' => true]);
+    $grid = $model->getGrid($gridName);
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('element-name', 'main');
     
-    $form = $model->getElement($formName, ['linked' => true]);
+    $form = $model->getElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();
