@@ -10,7 +10,7 @@ class Data2Html_Model_Grid
     protected $filter = null;
     protected $link = null;
     
-    public function __construct($model, $gridName, $defs)
+    public function __construct($model, $gridName, $defs, $options = null)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit =
@@ -33,6 +33,12 @@ class Data2Html_Model_Grid
                 $defs['filter'],
                 $model->getBase()
             );
+        }
+      
+        if (is_array($options) && array_key_exists('linked', $options)) {
+            if ($options['linked']) {
+                $this->createLink();
+            }
         }
     }
     
@@ -77,13 +83,13 @@ class Data2Html_Model_Grid
     {
         if (!$this->link) {
             throw new Exception(
-                "{$this->culprit} getFilter(): Before get the linked filter, must create by createLink()."
+                "{$this->culprit} getFilter(): Requires a linked grid."
             );
         }
         return $this->filter;
     }
     
-    public function createLink()
+    private function createLink()
     {
         if ($this->link) {
             return $this->link;

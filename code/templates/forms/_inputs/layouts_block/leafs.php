@@ -2,7 +2,7 @@
 $return = function($replaces) {
     $rx = new Data2Html_Collection($replaces, true); // Required
     
-    $model = Data2Html_Handler::createModel($rx->getString('model'));
+    $model = Data2Html_Handler::getModel($rx->getString('model'));
     $gridName = $rx->getString('grid', 'main');
     
     $grid = $model->getGrid($gridName);

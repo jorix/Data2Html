@@ -5,23 +5,17 @@ $return = function($replaces) {
     $urlRequest = null;
     parse_str(explode('?', $rx->getString('url'))[1], $urlRequest);
     $modelNames = Data2Html_Handler::parseRequest($urlRequest);
-    $model = Data2Html_Handler::createModel(
+    $model = Data2Html_Handler::getModel(
         Data2Html_Value::getItem($modelNames, 'model')
     );
     $gridName = Data2Html_Value::getItem($modelNames, 'grid', 'main');
     
-    $grid = $model->getGrid($gridName);
+    $grid = $model->getGrid($gridName, ['linked' => true]);
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('element-name', 'main');
     
-    $form = $model->getElement($formName);
+    $form = $model->getElement($formName, ['linked' => true]);
     $templateFormName = $form->getAttribute('template', 'edit-form');
-    
-    
-    
-    
-    
-    
     
     $render = Data2Html_Handler::createRender();
     // Grid    
@@ -43,6 +37,12 @@ $return = function($replaces) {
             'element' => '#' . $idForm
         ]
     ];
+    if (array_key_exists('branch', $replaces)) {
+        $branch = $replaces['branch'];
+        $branchModel = Data2Html_Handler::getModel($branch['model']);
+        $branchGrid = $branchModel->getGrid($branch['grid']);
+        $branchGrid->getKeys();
+    }
     
     return [
         'd2hToken_content' => true,

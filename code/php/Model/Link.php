@@ -364,7 +364,7 @@ class Data2Html_Model_Link
                     "{$this->culprit}: Link \"{$linkedWith}\" without a grid name."
                 );
             }
-            $model = Data2Html_Handler::createModel($modelName);
+            $model = Data2Html_Handler::getModel($modelName);
             $grid = $model->getGrid($playerNames['grid']);
             $alias = $this->addTable($linkId, $grid->getColumnsSet());
         }

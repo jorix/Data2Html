@@ -20,8 +20,7 @@ class Data2Html_Controller
     public function dump($subject = null)
     {
         if (!$subject) {
-            $subject = array(
-            );
+            $subject = [];
         }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
@@ -67,13 +66,11 @@ class Data2Html_Controller
             case '':
             case 'read':
                 if (isset($playerNames['element'])) {
-                    $lkForm = $model->getElement($playerNames['element']);
-                    $lkForm->createLink();
+                    $lkForm = $model->getElement($playerNames['element'], ['linked' => true]);
                     return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
-                    $lkGrid = $model->getGrid($playerNames['grid']);
-                    $lkGrid->createLink();
-                    
+                    $lkGrid = $model->getGrid($playerNames['grid'], ['linked' => true]);
+
                     // Prepare sql
                     $sqlObj = new Data2Html_Controller_SqlSelect(
                         $this->db,
@@ -95,12 +92,11 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $lkForm = $model->getElement($playerNames['element']);
+                $lkForm = $model->getElement($playerNames['element'], ['linked' => true]);
                 $values = $postData['d2h_data'];
                 $newId = $this->opInsert($lkForm, $values);
                 
                 // Get new keys
-                $lkForm->createLink();
                 $lkItems = $lkForm->getLinkedItems();
                 $keyNames = $lkForm->getLinkedKeys();
                 $keys = [];

@@ -61,9 +61,8 @@ class Data2Html_Render
             
             $gridId = $this->createIdRender() . '_grid_' . $gridName;
             $templateBranch = _branches::startTree($templateName);
-            $lkGrid = $model->getGrid($gridName);
-            $lkGrid->createLink();
-
+            $lkGrid = $model->getGrid($gridName, ['linked' => true]);
+           
             // Page
             $pageForm = $this->renderFormSet(
                 $gridId . '_page',
@@ -111,14 +110,13 @@ class Data2Html_Render
         try {
             $this->culprit =
                 "Render for element: \"{$model->getModelName()}:{$formName}\"";
-            $lkForm = $model->getElement($formName);
-            $lkForm->createLink();
+            $lkForm = $model->getElement($formName, ['linked' => true]);
             
             $options = [
                 'branch' => [
                     'model' => 'aixada_ufs',
                     'grid' => 'uf_members',
-                    'from' => 'main'
+                    'element' => 'main'
                 ]
             ];
             
@@ -137,7 +135,7 @@ class Data2Html_Render
                     'branch' => [
                         'model' => 'aixada_ufs',
                         'grid' => 'uf_members',
-                        'from' => 'main'
+                        'element' => 'main'
                     ]
                 )
             );

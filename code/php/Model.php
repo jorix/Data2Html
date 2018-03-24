@@ -53,24 +53,23 @@ class Data2Html_Model
         return $this->baseSet;
     }
     
-    public function getGrid($gridName = '')
+    public function getGrid($gridName = '', $options = null)
     {
         if (!$gridName) {
             $gridName = 'main';
         }
         if (!array_key_exists($gridName, $this->grids)) {
-            $this->grids[$gridName] = 
-                new Data2Html_Model_Grid(
-                    $this,
-                    $gridName,
-                    $this->getSetDefs($gridName, 'grids'),
-                    $this->baseSet
-                );
+            $this->grids[$gridName] = new Data2Html_Model_Grid(
+                $this,
+                $gridName,
+                $this->getSetDefs($gridName, 'grids'),
+                $options
+            );
         }    
         return $this->grids[$gridName];
     }
     
-    public function getElement($elementName = '')
+    public function getElement($elementName = '', $options = null)
     {
         if (!$elementName) {
             $elementName = 'main';
@@ -81,7 +80,8 @@ class Data2Html_Model
                     $this,
                     $elementName, 
                     $this->getSetDefs($elementName, 'elements'),
-                    $this->baseSet
+                    $this->baseSet,
+                    $options
                 );
         }    
         return $this->elements[$elementName];

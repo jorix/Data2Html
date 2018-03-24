@@ -23,7 +23,7 @@ class Data2Html_Handler
         $debug = Data2Html_Config::debug();
         try {
             $payerNames = self::parseRequest($request);
-            $model = self::createModel($payerNames['model']);
+            $model = self::getModel($payerNames['model']);
             $controller = new Data2Html_Controller($model);
             Data2Html_Utils::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
@@ -44,7 +44,7 @@ class Data2Html_Handler
     {
         try {
             $payerNames = self::parseRequest($request);
-            $model = self::createModel($payerNames['model']);            
+            $model = self::getModel($payerNames['model']);            
         } catch(Exception $e) {
             // Message to user            
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
@@ -76,10 +76,10 @@ class Data2Html_Handler
      * Load and create one model
      * $modelName string||array
      */
-    public static function createModel($modelName)
+    public static function getModel($modelName)
     {
         if (!$modelName) {
-            throw new Exception("Don't use `createModel()` without modelName.");
+            throw new Exception("Don't use `getModel()` without modelName.");
         }
         if (!array_key_exists($modelName, self::$modelObjects)) {
             try {

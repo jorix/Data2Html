@@ -7,7 +7,7 @@
     $htmlCode = '';
     $jsCode = '';
     
-    $mMembers = Data2Html_Handler::createModel('aixada_members');
+    $mMembers = Data2Html_Handler::getModel('aixada_members');
 // Members Grid    
     $result = $render->renderGrid($mMembers, 'uf_members', 'edit-grid-nopaged');
     $idMemberGrid = $result['id'];
@@ -19,7 +19,7 @@
     $htmlCode .= $result['html'];
     $jsCode .= $result['js'];
     
-    $mUfs = Data2Html_Handler::createModel('aixada_ufs');
+    $mUfs = Data2Html_Handler::getModel('aixada_ufs');
 // Ufs Grid    
     $result = $render->renderGrid($mUfs, 'main', 'edit-grid-paged');
     $idUfGrid = $result['id'];
