@@ -467,7 +467,7 @@ jQuery.ajaxSetup({ cache: false });
                 return;
             }
             this.components[compomentName] =
-                new dataForm($elem[0], this, compomentOptions);
+                new dataElement($elem[0], this, compomentOptions);
         },
         
         getComponent: function(compomentName) {
@@ -661,21 +661,21 @@ jQuery.ajaxSetup({ cache: false });
     // ------
     // Form
     // ------
-    function dataForm(objElem, container, options) {
+    function dataElement(objElem, container, options) {
         this._init(objElem, container, options);
         var autoCall = this.settings.auto;
         if (autoCall) {
             autoCall.call(this, this.settings);
         }
     }
-    $.extend(dataForm.prototype, dataHtml.prototype, {
+    $.extend(dataElement.prototype, dataHtml.prototype, {
         enents: [
             'beforeSave', 'afterSave', 'errorSave',
             'beforeDelete', 'afterDelete', 'errorDelete',
-            'beforeLoadForm', 'afterLoadForm','errorLoadForm'
+            'beforeLoadElement', 'afterLoadElement','errorLoadElement'
         ],
         defaults: {
-            type: 'form'
+            type: 'element'
         },
         _init: function(objElem, container, options) {
             dataHtml.prototype._init.apply(this, [objElem, container, options]);
@@ -704,7 +704,8 @@ jQuery.ajaxSetup({ cache: false });
                 this.clearForm();
             });
         },
-        loadForm: function(options) {
+        
+        loadElement: function(options) {
             if (!options || !options.keys) {
                 $.error("d2h_server: Can't load form data without 'keys' option.");
             }
@@ -713,12 +714,12 @@ jQuery.ajaxSetup({ cache: false });
                 ajaxType: 'GET',
                 data: {d2h_keys: options.keys},
                 before: [
-                    "beforeLoadForm",
-                    options && options.beforeLoadForm
+                    "beforeLoadElement",
+                    options && options.beforeLoadElement
                 ],
                 error: [
-                    "errorLoadForm",
-                    options && options.errorLoadForm
+                    "errorLoadElement",
+                    options && options.errorLoadElement
                 ],
                 after: [
                     function(jsonData) {
@@ -729,8 +730,8 @@ jQuery.ajaxSetup({ cache: false });
                             this.clearForm();
                         }
                     },
-                    "afterLoadForm",
-                    options && options.afterLoadForm
+                    "afterLoadElement",
+                    options && options.afterLoadElement
                 ],
                 complete: function(msg){
                     $(this.objElem).removeClass(_globalDefaults.classFormChanged);
@@ -954,8 +955,8 @@ jQuery.ajaxSetup({ cache: false });
             if (!$.data(this, "Data2Html_data") ) {
                 var opData = _getElementOptions(this, _options);
                 switch (opData.type) {
-                    case 'form':
-                        response = new dataForm(this, null, opData);
+                    case 'element':
+                        response = new dataElement(this, null, opData);
                         break;
                     default:
                         response = new dataGrid(this, null, opData);

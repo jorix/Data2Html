@@ -244,7 +244,7 @@ var d2h_display = (function($) {
 
     _displayClass.goGridAction = function(server, action) {
         var _displayObj = _get(server),
-            formServer = _displayObj.getServer('element');
+            elementServer = _displayObj.getServer('element');
         switch (action) {
             case 'read-previous':
             //TODO
@@ -253,10 +253,10 @@ var d2h_display = (function($) {
             //TODO
                 break;
             case 'save': 
-                formServer.save({
+                elementServer.save({
                     errorSave: function(message) {
                         d2h_messages.fail(
-                            formServer,
+                            elementServer,
                             __('display/save-error')
                         );
                         return false;
@@ -275,10 +275,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'create':
-                formServer.save({
+                elementServer.save({
                     errorSave: function(message) {
                         d2h_messages.fail(
-                            formServer,
+                            elementServer,
                             __('display/create-error')
                         );
                         return false;
@@ -290,10 +290,10 @@ var d2h_display = (function($) {
                         gridServer.selectedKeys(keys);
                         if (_isEventUsed(gridSelector, 'applyFormLeafKeys')) {
                             gridServer.loadGrid(); // To show new record in the grid
-                            _displayClass.goFormAction(formServer, 'show-edit', keys, {
+                            _displayClass.goFormAction(elementServer, 'show-edit', keys, {
                                 after: function() {
                                     d2h_messages.done(
-                                        formServer,
+                                        elementServer,
                                         __('display/created-leafs')
                                     );
                                 }
@@ -312,10 +312,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'delete':
-                formServer.delete({
+                elementServer.delete({
                     errorDelete: function(message) {
                         d2h_messages.fail(
-                            formServer,
+                            elementServer,
                             __('display/delete-error')
                         );
                         return false;
@@ -342,14 +342,14 @@ var d2h_display = (function($) {
     _displayClass.goFormAction = function(server, action, _keys, _options) {
         var _displayObj = _get(server),
             formSelector = _displayObj.getSelector('element'),
-            formServer = _displayObj.getServer('element'),
-            formElem = formServer.getElem();
+            elementServer = _displayObj.getServer('element'),
+            formElem = elementServer.getElem();
         _options = _options ? _options : {};
         switch (action) {
             case 'show-edit':
-                formServer.loadForm({
+                elementServer.loadElement({
                     keys: _keys,
-                    afterLoadForm: function() {
+                    afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_delete,.d2h_insert', formElem).hide();
@@ -362,9 +362,9 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-delete':
-                formServer.loadForm({
+                elementServer.loadElement({
                     keys: _keys,
-                    afterLoadForm: function() {
+                    afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_update,.d2h_insert', formElem).hide();
@@ -377,10 +377,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-copy':
-                formServer.loadForm({
+                elementServer.loadElement({
                     keys: _keys,
-                    afterLoadForm: function() {
-                        formServer.clearForm({onlyWithDefault: true});
+                    afterLoadElement: function() {
+                        elementServer.clearForm({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeafs');
                         $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                         $('.d2h_insert', formElem).show();
@@ -392,7 +392,7 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-create':
-                formServer.clearForm();
+                elementServer.clearForm();
                 _trigger(formSelector, 'hideLeafs');
                 $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                 $('.d2h_insert', formElem).show();

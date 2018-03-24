@@ -66,8 +66,8 @@ class Data2Html_Controller
         switch ($oper) {
             case '':
             case 'read':
-                if (isset($playerNames['form'])) {
-                    $lkForm = $model->getElement($playerNames['form']);
+                if (isset($playerNames['element'])) {
+                    $lkForm = $model->getElement($playerNames['element']);
                     $lkForm->createLink();
                     return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
@@ -95,7 +95,7 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $lkForm = $model->getElement($playerNames['form']);
+                $lkForm = $model->getElement($playerNames['element']);
                 $values = $postData['d2h_data'];
                 $newId = $this->opInsert($lkForm, $values);
                 
@@ -120,14 +120,14 @@ class Data2Html_Controller
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opUpdate($model->getElement($playerNames['form']), $data, $keys);
+                $this->opUpdate($model->getElement($playerNames['element']), $data, $keys);
                 break;
 
             case 'delete':
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opDelete($model->getElement($playerNames['form']), $data, $keys);
+                $this->opDelete($model->getElement($playerNames['element']), $data, $keys);
                 break;
 
             default:

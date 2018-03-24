@@ -12,7 +12,7 @@ $return = function($replaces) {
     
     $grid = $model->getGrid($gridName);
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
-    $formName = $grid->getAttribute('form-name', 'main');
+    $formName = $grid->getAttribute('element-name', 'main');
     
     $form = $model->getElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');

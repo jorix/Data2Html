@@ -1,6 +1,6 @@
 $('#' + '$${id}').d2h_server({
     url:    '$${url}',
-    type:   'form',
+    type:   'element',
     actions: {
         'read-previous': function() {
             d2h_display.goGridAction(this, 'read-previous');

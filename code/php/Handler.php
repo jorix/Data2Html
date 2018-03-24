@@ -51,8 +51,8 @@ class Data2Html_Handler
             exit();
         }
         $render = self::createRender();
-        if (array_key_exists('form', $payerNames)) {
-            $result = $render->renderElement($model, $payerNames['form'], $templateName);
+        if (array_key_exists('element', $payerNames)) {
+            $result = $render->renderElement($model, $payerNames['element'], $templateName);
         } elseif (array_key_exists('grid', $payerNames)) {
             $result = $render->renderGrid($model, $payerNames['grid'], $templateName);
         } else {
@@ -101,10 +101,10 @@ class Data2Html_Handler
                 $request
             );
         }
-        if (array_key_exists('form', $request)) {
-            // as ['model' => 'model_name', 'form' => 'form_name']
+        if (array_key_exists('element', $request)) {
+            // as ['model' => 'model_name', 'element' => 'form_name']
             $response = array('model' => $request['model']);
-            $response['form'] = $request['form'];
+            $response['element'] = $request['element'];
         } elseif (array_key_exists('grid', $request)) {
             // as ['model' => 'model_name', 'grid' => 'grid_name'}
             $response = array('model' => $request['model']);
