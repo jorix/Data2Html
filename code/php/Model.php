@@ -89,14 +89,14 @@ class Data2Html_Model
             $elementName = 'main';
         }
         if (!array_key_exists($elementName, $this->elements)) {
-            $this->elements[$elementName] =
+            $this->elements[$elementName] = new Data2Html_Join_LinkedSet(
                 new Data2Html_Model_Set_Element(
                     $this,
                     $elementName, 
                     $this->getSetDefs($elementName, 'elements'),
-                    $this->baseSet,
-                    ['linked' => true]
-                );
+                    $this->baseSet
+                )
+            );
         }    
         return $this->elements[$elementName];
     }

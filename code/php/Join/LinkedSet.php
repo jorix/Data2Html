@@ -1,0 +1,141 @@
+<?php
+class Data2Html_Join_LinkedSet
+{
+    // Internal use
+    private $linkName;
+    private $link;
+    private $set;
+    
+    // Private generic
+    private $culprit = '';
+    private $debug = false;
+    
+    public function __construct($set, $linkName = '', $link = null)
+    {
+        $this->debug = Data2Html_Config::debug();
+        $this->culprit = "Linked {$set->getCulprit()}";
+        
+        if (!$link) {
+            $linkName = 'main';
+            $this->link = new Data2Html_Join_Link($this->culprit, $set);
+        } else {
+            $link->add($linkName, $set->getItems());
+            $this->link = $link;
+        }
+        $this->linkName = $linkName;
+        
+        $this->set = $set;
+    }
+    
+    // -----------------------
+    // Methods from set
+    // -----------------------
+    public function getCulprit()
+    {
+        return $this->culprit;
+    }
+    
+    public function getTableName()
+    {
+        return $this->set->getTableName();
+    }
+    
+    public function getSort() {
+        return $this->set->getSort();
+    }
+    
+    public function getAttributeUp($attrName, $default = null)
+    {
+        return $this->set->getAttributeUp($attrName, $default);
+    }
+    
+    public function getAttribute($attrName, $default = null)
+    {
+        return $this->set->getAttribute($attrName, $default);
+    }
+
+    // -----------------------
+    // Linking
+    // -----------------------
+    public function getLink()
+    {
+        return $this->link;
+    }
+    
+    public function getLinkedFrom()
+    {
+        return $this->link->getFrom();
+    }
+    
+    public function getLinkedItems()
+    {
+        return $this->link->getItems($this->linkName);
+    }
+
+    public function getLinkedKeys()
+    {
+        return $this->link->getKeys();
+    }
+    
+    // -----------------------
+    // Database management
+    // -----------------------
+    public function dbInsert($db, &$values, &$newId)
+    {
+        if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
+            return false;
+        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this->set);
+        $result = $db->execute($sqlObj->getInsert($values));
+        $newId = $db->lastInsertId();
+        
+        $this->callbackEvent('afterInsert', $db, $values, $newId);
+        return $result;
+    }
+    
+    public function dbUpdate($db, &$values, $keys)
+    {
+        if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
+            return false;
+        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this->set);
+        $sqlObj->checkSingleRow($keys);
+        $result = $db->execute($sqlObj->getUpdate($values));
+        
+        $this->callbackEvent('afterUpdate', $db, $values, $keys);
+        return $result;
+    }
+    
+    protected function callbackEvent($eventName, $db, &$values) // arguments may be 3 or 4, depends of the event
+    {
+        $callEvent = function ($set, $args, $response) use($eventName, $db, &$values) {
+            $fn = $set->getAttribute($eventName);
+            if ($fn) {
+                switch (count($args)) {
+                    case 3:
+                        $response = $fn($set, $db, $values);
+                        break;
+                    case 4:
+                        $response = $fn($set, $db, $values, $args[3]);
+                        break;
+                    default:
+                        throw new Exception(
+                            "{$this->culprit}: \"{$eventName}\" defined with incorrect number of arguments=" . count($args)
+                        );  
+                }
+            }
+            return $response;
+        };
+        $response = true;
+        
+
+        $baseSet = $this->set->getBase();
+        if ($baseSet) {
+            $response = $callEvent($baseSet, func_get_args(), $response);
+        }
+        if ($response !== false) {
+            $response = $callEvent($this, func_get_args(), $response);
+        }
+        return $response;
+    }
+}
