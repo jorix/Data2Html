@@ -59,10 +59,6 @@ class Data2Html_Model_Grid
     {
         return $this->columns;
     }
-    public function getFilterSet()
-    {
-        return $this->filter;
-    }
     
     public function getGridName()
     {

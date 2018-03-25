@@ -54,13 +54,14 @@ class Data2Html_Model
         return $this->baseSet;
     }
     
-    public function getUnlinkedGrid($gridName)
+    public function getGridColumns($gridName)
     {
         if (!array_key_exists($gridName, $this->unlinkedGrids)) {
-            $this->unlinkedGrids[$gridName] = new Data2Html_Model_Grid(
+            $this->unlinkedGrids[$gridName] = new Data2Html_Model_Set_Grid(
                 $this,
                 $gridName,
-                $this->getSetDefs($gridName, 'grids')
+                $this->getSetDefs($gridName, 'grids'),
+                $this->getBase()
             );
         }    
         return $this->unlinkedGrids[$gridName];
