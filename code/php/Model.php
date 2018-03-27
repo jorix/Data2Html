@@ -67,13 +67,13 @@ class Data2Html_Model
         return $this->unlinkedGrids[$gridName];
     }
     
-    public function getGrid($gridName = '')
+    public function getLinkedGrid($gridName = '')
     {
         if (!$gridName) {
             $gridName = 'main';
         }
         if (!array_key_exists($gridName, $this->grids)) {
-            $this->grids[$gridName] = new Data2Html_Model_Grid(
+            $this->grids[$gridName] = new  Data2Html_Join_LinkedGrid(
                 $this,
                 $gridName,
                 $this->getSetDefs($gridName, 'grids'),
@@ -83,7 +83,7 @@ class Data2Html_Model
         return $this->grids[$gridName];
     }
     
-    public function getElement($elementName = '')
+    public function getLinkedElement($elementName = '')
     {
         if (!$elementName) {
             $elementName = 'main';

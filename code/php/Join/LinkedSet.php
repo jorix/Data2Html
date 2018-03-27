@@ -40,7 +40,8 @@ class Data2Html_Join_LinkedSet
         return $this->set->getTableName();
     }
     
-    public function getSort() {
+    public function getSort()
+    {
         return $this->set->getSort();
     }
     
@@ -85,7 +86,7 @@ class Data2Html_Join_LinkedSet
         if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
             return false;
         }
-        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this->set);
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
         $result = $db->execute($sqlObj->getInsert($values));
         $newId = $db->lastInsertId();
         
@@ -98,11 +99,24 @@ class Data2Html_Join_LinkedSet
         if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
             return false;
         }
-        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this->set);
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
         $sqlObj->checkSingleRow($keys);
         $result = $db->execute($sqlObj->getUpdate($values));
         
         $this->callbackEvent('afterUpdate', $db, $values, $keys);
+        return $result;
+    }
+
+    public function dbDelete($db, &$values, $keys)
+    {
+        if ($this->callbackEvent('beforeDelete', $db, $values, $keys) === false) {
+            return false;
+        }
+        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $sqlObj->checkSingleRow($keys);
+        $result = $db->execute($sqlObj->getDelete($values));
+        
+        $this->callbackEvent('afterDelete', $db, $values, $keys);
         return $result;
     }
     

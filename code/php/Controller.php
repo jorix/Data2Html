@@ -66,10 +66,10 @@ class Data2Html_Controller
             case '':
             case 'read':
                 if (isset($playerNames['element'])) {
-                    $lkForm = $model->getElement($playerNames['element']);
+                    $lkForm = $model->getLinkedElement($playerNames['element']);
                     return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
-                    $lkGrid = $model->getGrid($playerNames['grid']);
+                    $lkGrid = $model->getLinkedGrid($playerNames['grid']);
 
                     // Prepare sql
                     $sqlObj = new Data2Html_Controller_SqlSelect(
@@ -92,7 +92,7 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $lkForm = $model->getElement($playerNames['element']);
+                $lkForm = $model->getLinkedElement($playerNames['element']);
                 $values = $postData['d2h_data'];
                 $newId = $this->opInsert($lkForm, $values);
                 
@@ -116,14 +116,14 @@ class Data2Html_Controller
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opUpdate($model->getElement($playerNames['element']), $data, $keys);
+                $this->opUpdate($model->getLinkedElement($playerNames['element']), $data, $keys);
                 break;
 
             case 'delete':
                 $data = $postData['d2h_data'];
                 $keys = $data['[keys]'];
                 unset($data['[keys]']);
-                $this->opDelete($model->getElement($playerNames['element']), $data, $keys);
+                $this->opDelete($model->getLinkedElement($playerNames['element']), $data, $keys);
                 break;
 
             default:
@@ -278,14 +278,14 @@ class Data2Html_Controller
         return $response;
     }
 
-    protected function opInsert($set, &$values)
+    protected function opInsert($lkSet, &$values)
     {
         $newId = null;
         
         // Transaction
         $this->db->startTransaction();
         try {
-            $result = $set->dbInsert($this->db, $values, $newId);
+            $result = $lkSet->dbInsert($this->db, $values, $newId);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
@@ -302,12 +302,12 @@ class Data2Html_Controller
         return $newId;
     }
     
-    protected function opUpdate($set, &$values, $keys)
+    protected function opUpdate($lkSet, &$values, $keys)
     {
         // Transaction
         $this->db->startTransaction();
         try {
-            $result = $set->dbUpdate($this->db, $values, $keys);
+            $result = $lkSet->dbUpdate($this->db, $values, $keys);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
@@ -324,20 +324,12 @@ class Data2Html_Controller
         return $result;
     }
     
-    protected function opDelete($set, &$values, $keys)
+    protected function opDelete($lkSet, &$values, $keys)
     {
-        $sqlObj = new Data2Html_Controller_SqlEdit($this->db, $set);
-        $sqlObj->checkSingleRow($keys);
-
-        if ($this->model->beforeDelete($this->db, $values, $keys) === false) {
-            exit;
-        }
-        $sql = $sqlObj->getDelete();
-        
         // Transaction
         $this->db->startTransaction();
         try {
-            $result = $this->db->execute($sql);
+            $result = $lkSet->dbDelete($this->db, $values, $keys);
         } catch (Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
@@ -345,7 +337,10 @@ class Data2Html_Controller
                 Data2Html_Exception::toArray($e, $this->debug)
             ));
         }
-        $this->model->afterDelete($this->db, $values, $keys);
+        if ($result === false) {
+            $this->db->rollback();
+            return false;
+        }
         $this->db->commit();
 
         return $result;

@@ -5,11 +5,11 @@ $return = function($replaces) {
     $model = Data2Html_Handler::getModel($rx->getString('model'));
     $gridName = $rx->getString('grid', 'main');
     
-    $grid = $model->getGrid($gridName);
+    $grid = $model->getLinkedGrid($gridName);
     $formName = $grid->getAttribute('element-name', 'main');
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     
-    $form = $model->getElement($formName);
+    $form = $model->getLinkedElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();

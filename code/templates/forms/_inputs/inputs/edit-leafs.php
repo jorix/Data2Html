@@ -10,11 +10,11 @@ $return = function($replaces) {
     );
     $gridName = Data2Html_Value::getItem($modelNames, 'grid', 'main');
     
-    $grid = $model->getGrid($gridName);
+    $grid = $model->getLinkedGrid($gridName);
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     $formName = $grid->getAttribute('element-name', 'main');
     
-    $form = $model->getElement($formName);
+    $form = $model->getLinkedElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();
@@ -40,7 +40,7 @@ $return = function($replaces) {
     if (array_key_exists('branch', $replaces)) {
         $branch = $replaces['branch'];
         $branchModel = Data2Html_Handler::getModel($branch['model']);
-        $branchGrid = $branchModel->getGrid($branch['grid']);
+        $branchGrid = $branchModel->getLinkedGrid($branch['grid']);
         $branchGrid->getKeys();
     }
     

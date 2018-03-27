@@ -5,17 +5,17 @@ class Data2Html_Controller_SqlEdit
     protected $debug = false;
     
     protected $db;
-    protected $set;
+    protected $lkSet;
     protected $result = array();
 
-    public function __construct($db, $set) {
+    public function __construct($db, $lkSet) {
         $this->debug = Data2Html_Config::debug();
-        $this->culprit = "SqlEdit for " . $set->getCulprit();
+        $this->culprit = "SqlEdit for " . $lkSet->getCulprit();
         
         $this->db = $db;
-        $this->set = $set;
+        $this->lkSet = $lkSet;
         
-        $this->result['table'] = $this->set->getTableName();
+        $this->result['table'] = $this->lkSet->getTableName();
     }
 
     public function dump($subject = null)
@@ -69,7 +69,7 @@ class Data2Html_Controller_SqlEdit
         if (!is_array($keysReq)) {
             $keysReq = array($keysReq);
         }
-        $keysDf = $this->set->getKeys();
+        $keysDf = $this->lkSet->getLinkedKeys();
         if (count($keysReq) !== count($keysDf)) {
             throw new Data2Html_Exception(
                 "{$this->culprit} getWhereByKeys(): Requested keys not match number of keys.",
@@ -79,8 +79,7 @@ class Data2Html_Controller_SqlEdit
                 )
             );
         }
-        $this->set->createLink();
-        $items = $this->set->getLinkedItems();
+        $items = $this->lkSet->getLinkedItems();
         $ix = 0;
         $c = array();
         foreach ($keysDf as $k => $v) {
@@ -109,7 +108,7 @@ class Data2Html_Controller_SqlEdit
         }
         $assigns = array();
         $names = array();
-        $items = $this->set->getItems();
+        $items = $this->lkSet->getLinkedItems();
         foreach($values as $k => $v) {
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];
@@ -148,7 +147,7 @@ class Data2Html_Controller_SqlEdit
             );
         }
         $assigns = array();
-        $items = $this->set->getItems();
+        $items = $this->lkSet->getLinkedItems();
         foreach($values as $k => $v) {
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];

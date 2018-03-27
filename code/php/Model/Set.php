@@ -224,53 +224,6 @@ abstract class Data2Html_Model_Set
     }
     
     // -----------------------
-    // Linking
-    // -----------------------
-    public function createLink()
-    {
-        if ($this->link) {
-            return $this->link;
-        }
-        $this->linkName = 'main';
-        $this->link = new Data2Html_Model_Link($this->culprit, $this);
-        return $this->link;
-    }
-    
-    public function addToLink($link)
-    {
-        if (!$this->link) {
-            $this->linkName = $this->fPrefix;
-            $link->add($this->linkName, $this->getItems());
-            $this->link = $link;
-        }
-        return $this->link->getItems($this->linkName);
-    }
-    
-    public function getLinkedFrom()
-    {
-        if (!$this->link) {
-            $this->createLink();
-        }
-        return $this->link->getFrom();
-    }
-    
-    public function getLinkedItems()
-    {
-        if (!$this->link) {
-            $this->createLink();
-        }
-        return $this->link->getItems($this->linkName);
-    }
-
-    public function getLinkedKeys()
-    {
-        if (!$this->link) {
-            $this->createLink();
-        }
-        return $this->link->getKeys();
-    }
-    
-    // -----------------------
     // Protected
     // -----------------------
     protected function parseItems($items)

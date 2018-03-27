@@ -1,5 +1,5 @@
 <?php
-class Data2Html_Model_Grid
+class Data2Html_Join_LinkedGrid
 {
     protected $gridName = '';
     protected $culprit = '';
@@ -10,7 +10,7 @@ class Data2Html_Model_Grid
     protected $filter = null;
     protected $link = null;
     
-    public function __construct($model, $gridName, $defs, $options = null)
+    public function __construct($model, $gridName, $defs)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit =
@@ -20,25 +20,26 @@ class Data2Html_Model_Grid
         $this->gridName = $gridName;
       
         // Set fields
-        $this->columns = new Data2Html_Model_Set_Grid(
-            $model,
-            $gridName,
-            $defs,
-            $model->getBase()
-        );
-        if (array_key_exists('filter', $defs)) {
-            $this->filter = new Data2Html_Model_Set_Filter(
+        $this->columns = new Data2Html_Join_LinkedSet(
+            new Data2Html_Model_Set_Grid(
                 $model,
                 $gridName,
-                $defs['filter'],
+                $defs,
                 $model->getBase()
+            )
+        );
+        
+        if (array_key_exists('filter', $defs)) {
+            $this->filter = new Data2Html_Join_LinkedSet(
+                new Data2Html_Model_Set_Filter(
+                    $model,
+                    $gridName,
+                    $defs['filter'],
+                    $model->getBase()
+                ),
+                'filter',
+                $this->columns->getLink()
             );
-        }
-      
-        if (is_array($options) && array_key_exists('linked', $options)) {
-            if ($options['linked']) {
-                $this->createLink();
-            }
         }
     }
     
@@ -59,11 +60,6 @@ class Data2Html_Model_Grid
     {
         return $this->columns;
     }
-    
-    public function getGridName()
-    {
-        return $this->gridName;
-    }
 
     public function getAttributeUp($attrName, $default = null)
     {
@@ -77,23 +73,7 @@ class Data2Html_Model_Grid
 
     public function getFilter()
     {
-        if (!$this->link) {
-            throw new Exception(
-                "{$this->culprit} getFilter(): Requires a linked grid."
-            );
-        }
         return $this->filter;
     }
     
-    private function createLink()
-    {
-        if ($this->link) {
-            return $this->link;
-        }
-        $this->link = $this->columns->createLink();
-        if ($this->filter) {
-            $this->filter->addToLink($this->link);
-        }
-        return $this->link;
-    }
 }

@@ -61,7 +61,7 @@ class Data2Html_Render
             
             $gridId = $this->createIdRender() . '_grid_' . $gridName;
             $templateBranch = _branches::startTree($templateName);
-            $lkGrid = $model->getGrid($gridName);
+            $lkGrid = $model->getLinkedGrid($gridName);
            
             // Page
             $pageForm = $this->renderFormSet(
@@ -110,7 +110,7 @@ class Data2Html_Render
         try {
             $this->culprit =
                 "Render for element: \"{$model->getModelName()}:{$formName}\"";
-            $lkForm = $model->getElement($formName);
+            $lkForm = $model->getLinkedElement($formName);
             
             $options = [
                 'branch' => [

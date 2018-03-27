@@ -6,7 +6,9 @@ class Data2Html_Model_Set_Element extends Data2Html_Model_Set
         'beforeInsert' => 'attribute',
         'afterInsert' => 'attribute',
         'beforeUpdate' => 'attribute',
-        'afterUpdate' => 'attribute'
+        'afterUpdate' => 'attribute',
+        'beforeDelete' => 'attribute',
+        'afterDelete' => 'attribute'
     );
 
     protected $keywords = array(
@@ -26,11 +28,6 @@ class Data2Html_Model_Set_Element extends Data2Html_Model_Set
         // If no items then set items as baseIntems
             $this->setItems = array();
             $this->parseItems($baseSet->getItems());
-        }
-        if ($options && array_key_exists('linked', $options)) {
-            if ($options['linked']) {
-                $this->createLink();
-            }
         }
     }
 
