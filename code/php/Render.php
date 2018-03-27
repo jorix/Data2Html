@@ -54,7 +54,7 @@ class Data2Html_Render
         }
     }
     
-    public function renderGrid($model, $gridName, $templateName, $options = null)
+    public function renderGrid($model, $gridName, $templateName, $itemReplaces = null)
     {
         try {
             $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
@@ -105,39 +105,24 @@ class Data2Html_Render
         }
     }
     
-    public function renderElement($model, $formName, $templateName, $options = null)
+    public function renderElement($model, $formName, $templateName, $itemReplaces = null)
     {
         try {
             $this->culprit =
                 "Render for element: \"{$model->getModelName()}:{$formName}\"";
             $lkForm = $model->getLinkedElement($formName);
             
-            $options = [
-                'branch' => [
-                    'model' => 'aixada_ufs',
-                    'grid' => 'uf_members',
-                    'element' => 'main'
-                ]
-            ];
-            
-            
-            
-            
             return $this->renderFormSet(
                 $this->createIdRender() . '_elem_' . $formName,
                 _branches::startTree($templateName),
                 $lkForm->getLinkedItems(),
-                array(
+                [
                     'title' => $lkForm->getAttributeUp('title'),
                     'debug-name' => "{$model->getModelName()}@element={$formName}",
                     'url' => $this->getControllerUrl() .
-                         "model={$model->getModelName()}&element={$formName}&",
-                    'branch' => [
-                        'model' => 'aixada_ufs',
-                        'grid' => 'uf_members',
-                        'element' => 'main'
-                    ]
-                )
+                         "model={$model->getModelName()}&element={$formName}&"
+                ],
+                $itemReplaces
             );
         } catch(Exception $e) {
             // Message to user            
@@ -151,7 +136,7 @@ class Data2Html_Render
         return 'd2h_' . self::$idRenderCount;
     }
 
-    private function renderGridSet($gridId, $templateBranch, $columns, $replaces)
+    private function renderGridSet($gridId, $templateBranch, $columns, $bodyReplaces, $itemReplaces = null)
     {
         if (!$columns) {
             throw new Exception("`\$columns` parameter is empty.");
@@ -160,6 +145,8 @@ class Data2Html_Render
             return _branches::renderEmpty();
         }
 
+        $itemReplaces = $itemReplaces ? $itemReplaces : [];
+        $itemReplaces['from-id'] = $bodyReplaces['id'];
         list($thead, $renderCount) = $this->renderFlatSet(
             array_merge(
                 $this->parseIncludeItems('startItems', $templateBranch, 'head-item'),
@@ -167,7 +154,7 @@ class Data2Html_Render
                 $this->parseIncludeItems('endItems', $templateBranch, 'head-item')
             ),
             _branches::getBranch('heads', $templateBranch),
-            ['from-id' => $replaces['id']]
+            $itemReplaces
         );
         list($tbody) = $this->renderFlatSet(
             array_merge(
@@ -176,11 +163,11 @@ class Data2Html_Render
                 $this->parseIncludeItems('endItems', $templateBranch)
             ),
             _branches::getBranch('cells', $templateBranch),
-            ['from-id' => $replaces['id']]
+            $itemReplaces
         );
         
         // End
-        $replaces = array_merge($replaces, array(
+        $bodyReplaces = array_merge($bodyReplaces, array(
             'head' => $thead,
             'body' => $tbody,
             'colCount' => $renderCount,
@@ -189,29 +176,31 @@ class Data2Html_Render
         
         $result = _templates::apply(
             _branches::getItem('template', $templateBranch),
-            $replaces
+            $bodyReplaces
         );
         $result['id'] = $gridId; // Required by d2h_display.js
         return $result;
     }
 
-    protected function renderFormSet($formId, $templateBranch, $items, $replaces)
+    protected function renderFormSet($formId, $templateBranch, $items, $bodyReplaces, $itemReplaces = null)
     {
         $items = array_merge(
             $this->parseIncludeItems('startItems', $templateBranch),
             $items ? $items : [],
             $this->parseIncludeItems('endItems', $templateBranch)
         );
+        $itemReplaces = $itemReplaces ? $itemReplaces : [];
+        $itemReplaces['from-id'] = $formId;
         list($body) = $this->renderFlatSet(
             $items,
             $templateBranch,
-            ['from-id' => $formId]
+            $itemReplaces
         );
         
-        $replaces['visual'] = $this->getVisualItems($items);
+        $bodyReplaces['visual'] = $this->getVisualItems($items);
         $form = _templates::apply(
             _branches::getItem('template', $templateBranch),
-            array_merge($replaces, [
+            array_merge($bodyReplaces, [
                 'id' => $formId,
                 'body' => $body
             ])

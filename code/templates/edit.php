@@ -2,7 +2,8 @@
 $return = function($replaces) {
     $rx = new Data2Html_Collection($replaces, true); // Required
     
-    $model = Data2Html_Handler::getModel($rx->getString('model'));
+    $modelName = $rx->getString('model');
+    $model = Data2Html_Handler::getModel($modelName);
     $gridName = $rx->getString('grid', 'main');
     
     $grid = $model->getLinkedGrid($gridName);
@@ -14,13 +15,22 @@ $return = function($replaces) {
     
     $render = Data2Html_Handler::createRender();
     // Grid
-    $result = $render->renderGrid($model, $gridName, $templateGridName);
+        
+    $itemReplaces = [
+        'branch' => [
+            'model' => $modelName,
+            'grid' => $gridName,
+            'element' => $formName
+        ]
+    ];
+    
+    $result = $render->renderGrid($model, $gridName, $templateGridName, $itemReplaces);
     $idGrid = $result['id'];
     $jsCode = $result['js'];
     $htmlCode = $result['html'];
         
     // Form edit
-    $result = $render->renderElement($model, $formName, $templateFormName);
+    $result = $render->renderElement($model, $formName, $templateFormName, $itemReplaces);
     $idForm = $result['id'];
     $jsCode .= $result['js'];
     $htmlCode .= $result['html'];

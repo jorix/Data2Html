@@ -165,6 +165,7 @@ abstract class Data2Html_Model_Set
         }
         Data2Html_Utils::dump($this->culprit, $subject);
     }
+    
     public function getCulprit()
     {
         return $this->culprit;

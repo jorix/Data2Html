@@ -27,6 +27,18 @@ class Data2Html_Join_LinkedSet
         $this->set = $set;
     }
     
+    public function dump($subject = null)
+    {
+        if (!$subject) {
+            $subject = [
+                'attributes' => $this->attributes,
+                'keys' => $this->keys,
+                'setItems' => $this->setItems
+            ];
+        }
+        Data2Html_Utils::dump($this->culprit, $subject);
+    }
+    
     // -----------------------
     // Methods from set
     // -----------------------
@@ -76,6 +88,19 @@ class Data2Html_Join_LinkedSet
     public function getLinkedKeys()
     {
         return $this->link->getKeys();
+    }
+    
+    public function getLinkedItemByLink($linkModelName)
+    {
+        $items = $this->getLinkedItems();
+        foreach ($items as $k => $v) {
+            if (array_key_exists('link', $v)) {
+                if (Data2Html_Handler::parseLinkText($v['link'])['model'] === $linkModelName) {
+                    return  [$k => $v];
+                }
+            }
+        }
+        return false;
     }
     
     // -----------------------

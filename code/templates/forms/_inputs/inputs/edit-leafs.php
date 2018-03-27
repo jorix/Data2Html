@@ -18,7 +18,8 @@ $return = function($replaces) {
     $templateFormName = $form->getAttribute('template', 'edit-form');
     
     $render = Data2Html_Handler::createRender();
-    // Grid    
+    // Grid
+    
     $result = $render->renderGrid($model, $gridName, $templateGridName);
     $idGrid = $result['id'];
     $jsCode = $result['js'];
@@ -37,11 +38,14 @@ $return = function($replaces) {
             'element' => '#' . $idForm
         ]
     ];
+    
+    
     if (array_key_exists('branch', $replaces)) {
         $branch = $replaces['branch'];
         $branchModel = Data2Html_Handler::getModel($branch['model']);
         $branchGrid = $branchModel->getLinkedGrid($branch['grid']);
-        $branchGrid->getKeys();
+        $branchForm = $branchModel->getLinkedElement($branch['element']);
+        Data2Html_Utils::dump('00000', [$branch,$model->getLinkedElement($branch['element'])->getLinkedItemByLink($branch['model'])]);
     }
     
     return [
