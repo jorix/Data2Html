@@ -12,7 +12,7 @@ abstract class Data2Html_Model_Set
     private $culprit = '';
     private $debug = false;
     
-    private $fPrefix = '';
+    private $id = '';
     private $fNamePrefix = '';
     private $fNameCount = 0;
     
@@ -105,18 +105,19 @@ abstract class Data2Html_Model_Set
         $baseSet = null
     ) {
         $this->debug = Data2Html_Config::debug();
-        $this->fPrefix = str_replace('Data2Html_Model_Set_', 'd2h_', get_class($this));
-        $this->fNamePrefix = $this->fPrefix;
-        if ($setName) {
-            $this->fNamePrefix .= '_' . $setName;
-        }
+        
+        $setTypeName = str_replace('Data2Html_Model_Set_', '', get_class($this));
+        $this->fNamePrefix = 'd2h_' . $setTypeName;
         if (!$model) {
-            $this->culprit = $this->fPrefix . " for setName \"{$setName}\"";
+            $this->culprit = $setTypeName . " for setName \"{$setName}\"";
         } elseif ($setName) {
-            $this->culprit = $this->fPrefix . 
+            $this->fNamePrefix .= '_' . $setName;
+            $this->id = $model->getId()  . '_' . $setTypeName . '_' . $setName;
+            $this->culprit = $setTypeName . 
                 " for \"{$model->getModelName()}->{$setName}\"";
         } else {
-            $this->culprit = $this->fPrefix . " for \"{$model->getModelName()}\"";
+            $this->id = $model->getId() . $setTypeName;
+            $this->culprit = $setTypeName . " for \"{$model->getModelName()}\"";
         }
         
         $this->attributeNames = array_replace(
@@ -153,7 +154,12 @@ abstract class Data2Html_Model_Set
             }
         }
     }
-        
+    
+    public function getId()
+    {
+        return $this->id;
+    }    
+  
     public function dump($subject = null)
     {
         if (!$subject) {
@@ -164,6 +170,7 @@ abstract class Data2Html_Model_Set
             ];
         }
         Data2Html_Utils::dump($this->culprit, $subject);
+        return $this;
     }
     
     public function getCulprit()

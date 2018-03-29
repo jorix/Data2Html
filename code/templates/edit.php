@@ -13,9 +13,6 @@ $return = function($replaces) {
     $form = $model->getLinkedElement($formName);
     $templateFormName = $form->getAttribute('template', 'edit-form');
     
-    $render = Data2Html_Handler::createRender();
-    // Grid
-        
     $itemReplaces = [
         'branch' => [
             'model' => $modelName,
@@ -24,6 +21,9 @@ $return = function($replaces) {
         ]
     ];
     
+    $render = Data2Html_Handler::createRender();
+        
+    // Grid
     $result = $render->renderGrid($model, $gridName, $templateGridName, $itemReplaces);
     $idGrid = $result['id'];
     $jsCode = $result['js'];
@@ -35,6 +35,17 @@ $return = function($replaces) {
     $jsCode .= $result['js'];
     $htmlCode .= $result['html'];
     
+    $displayOptions = [
+        'auto' => 'loadGrid',
+        'items' => [
+            'grid' => '#' . $idGrid,
+            'element' => '#' . $idForm
+        ]
+    ];
+    
+    // branch
+    
+    // end
     return [
         'html' => 
             "<div class=\"container\">
@@ -43,13 +54,9 @@ $return = function($replaces) {
         'js' =>
             "{$jsCode}
             (function() {
-                d2h_display.create({
-                    auto: 'loadGrid',
-                    items: {
-                        grid: '#{$idGrid}',
-                        element: '#{$idForm}'
-                    }
-                });
+                d2h_display.create(" . 
+                Data2Html_Value::toJson($displayOptions)
+                . ");
             })();"
     ];
 };

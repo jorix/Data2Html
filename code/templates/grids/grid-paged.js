@@ -18,12 +18,12 @@ $('#' + $${id}).d2h_server({
             d2h_display.goFormAction(this, 'show-create');
         }
     },
-    filter:['#' +'$${id}_filter', {
+    filter:['#' +'$${id-filter}', {
         actions: {
             'read-page': function() {this.loadGrid();}
         }
     }],
-    page: ['#' + '$${id}_page', {
+    page: ['#' + '$${id-page}', {
         actions: {
             'read-page': function() {this.loadGrid();},
             'next-page': function() {this.loadGrid({add:true});}

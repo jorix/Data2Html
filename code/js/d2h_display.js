@@ -63,8 +63,12 @@ var d2h_display = (function($) {
                         );
                     }
                     var _this = this,
-                        _leafKeys = options.leafKeys,
-                        _applyKeys = function(server, branchKeys) {
+                        _leafKeys = options.leafKeys;
+                    if (!$.isArray(_leafKeys)) {
+                        _leafKeys = [_leafKeys];
+                    }
+                    var _applyKeys = function(server, branchKeys) {
+                            if (!server) { return; }
                             for (var i = 0, l = _leafKeys.length; i < l; i++) {
                                 server.$('[name=' + _leafKeys[i] + ']').val(
                                     (branchKeys ? branchKeys[i] : '')
@@ -76,8 +80,9 @@ var d2h_display = (function($) {
                             _on(branch,
                                 'applyFormLeafKeys',  
                                 function(branchKeys) {
-                                    var grid = _this.getServer('grid');
-                                    _applyKeys(grid, branchKeys);
+                                    var grid = _this.getServer('grid'),
+                                        filter = grid.getComponent('filter');
+                                    _applyKeys(filter, branchKeys);
                                     // save branch keys on grid
                                     grid.branchKeys(branchKeys);
                                     if (branchKeys) {

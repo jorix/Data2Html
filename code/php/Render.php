@@ -59,24 +59,32 @@ class Data2Html_Render
         try {
             $this->culprit = "Render for grid: \"{$model->getModelName()}:{$gridName}\"";
             
-            $gridId = $this->createIdRender() . '_grid_' . $gridName;
             $templateBranch = _branches::startTree($templateName);
             $lkGrid = $model->getLinkedGrid($gridName);
+            $gridId = $lkGrid->getId();
            
+            $replaces = [
+                'title' => $lkGrid->getAttributeUp('title'),
+                'debug-name' => "{$model->getModelName()}@grid={$gridName}",
+                'id' => $gridId,
+                'url' => $this->getControllerUrl() .
+                    "model={$model->getModelName()}:{$gridName}&",
+                'sort' => $lkGrid->getAttributeUp('sort')
+            ];
             // Page
-            $pageForm = $this->renderFormSet(
-                $gridId . '_page',
+            $replaces['id-page'] = $gridId . '_page';
+            $replaces['page'] = $this->renderFormSet(
+                $replaces['id-page'],
                 _branches::getBranch('page', $templateBranch, false),
                 null,
                 []
             );
             // Filter
             $lkFilter = $lkGrid->getFilter();
-            if (!$lkFilter) {
-                $filterForm = _templates::renderEmpty();
-            } else {
-                $filterForm = $this->renderFormSet(
-                    $gridId . '_filter',
+            if ($lkFilter) {
+                $replaces['id-filter'] = $lkFilter->getId();
+                $replaces['filter'] = $this->renderFormSet(
+                    $replaces['id-filter'],
                     _branches::getBranch('filter', $templateBranch, false),
                     $lkFilter->getLinkedItems(),
                     ['title' => $lkFilter->getAttributeUp('title')]
@@ -87,16 +95,7 @@ class Data2Html_Render
                 $gridId,
                 _branches::getBranch('grid', $templateBranch),
                 $lkGrid->getColumnsSet()->getLinkedItems(),
-                array(
-                    'title' => $lkGrid->getAttributeUp('title'),
-                    'debug-name' => "{$model->getModelName()}@grid={$gridName}",
-                    'id' => $gridId,
-                    'url' => $this->getControllerUrl() .
-                        "model={$model->getModelName()}:{$gridName}&",
-                    'sort' => $lkGrid->getAttributeUp('sort'),
-                    'filter' => $filterForm,
-                    'page' => $pageForm
-                )
+                $replaces
             );
         } catch(Exception $e) {
             // Message to user            
@@ -113,7 +112,7 @@ class Data2Html_Render
             $lkForm = $model->getLinkedElement($formName);
             
             return $this->renderFormSet(
-                $this->createIdRender() . '_elem_' . $formName,
+                $lkForm->getId(),
                 _branches::startTree($templateName),
                 $lkForm->getLinkedItems(),
                 [
@@ -129,11 +128,6 @@ class Data2Html_Render
             echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
             exit();
         }
-    }
-    
-    private function createIdRender() {
-        self::$idRenderCount++;
-        return 'd2h_' . self::$idRenderCount;
     }
 
     private function renderGridSet($gridId, $templateBranch, $columns, $bodyReplaces, $itemReplaces = null)
@@ -298,7 +292,7 @@ class Data2Html_Render
                     $replaces
                 ) = $assignTemplate($this, $v);
                 $replaces += $iReplaces + array(
-                    'id' => $this->createIdRender(),
+                    'id' => 'd2h_item_' . ++self::$idRenderCount,
                     'debug-name' => key($items),
                     'name' => key($items),
                     'title' => $vDx->getString('title'),

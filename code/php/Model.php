@@ -14,8 +14,10 @@ class Data2Html_Model
     
     // original definitions
     private $definitions = null;
+    private static $idModelCount = 0;
     
     // Parsed object definitions
+    private $id = '';
     private $baseSet = null;
     private $grids = [];
     private $unlinkedGrids = [];
@@ -36,6 +38,7 @@ class Data2Html_Model
         $this->modelName = $modelName;
         $this->culprit = "Model \"{$this->modelName}\"";
         
+        $this->id = 'd2h_' . ++self::$idModelCount;
         $this->definitions = Data2Html_Utils::readFilePhp(
             Data2Html_Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
         );
@@ -43,7 +46,12 @@ class Data2Html_Model
             $this, null, $this->definitions
         );
     }
- 
+  
+    public function getId()
+    {
+        return $this->id;
+    }
+    
     public function getModelName()
     {
         return $this->modelName;
@@ -73,7 +81,7 @@ class Data2Html_Model
             $gridName = 'main';
         }
         if (!array_key_exists($gridName, $this->grids)) {
-            $this->grids[$gridName] = new  Data2Html_Join_LinkedGrid(
+            $this->grids[$gridName] = new Data2Html_Join_LinkedGrid(
                 $this,
                 $gridName,
                 $this->getSetDefs($gridName, 'grids'),

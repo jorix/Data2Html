@@ -1,9 +1,9 @@
 <?php die("It's uncooked!"); ?>
 <div class="row">
-    <form id="$${id}" class="form-inline" novalidate
+    <div id="$${id}" class="form-inline" novalidate
         data-d2h-visual="$${visual}"
         data-d2h-on="change:read-page"
     >
     $${body}
-    </form>
+    </div>
 </div>

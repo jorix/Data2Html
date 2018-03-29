@@ -31,12 +31,13 @@ class Data2Html_Join_LinkedSet
     {
         if (!$subject) {
             $subject = [
-                'attributes' => $this->attributes,
-                'keys' => $this->keys,
-                'setItems' => $this->setItems
+                'attributes' => $this->getLinkedFrom(),
+                'keys' => $this->getLinkedKeys(),
+                'setItems' => $this->getLinkedItems()
             ];
         }
         Data2Html_Utils::dump($this->culprit, $subject);
+        return $this;
     }
     
     // -----------------------
@@ -45,6 +46,11 @@ class Data2Html_Join_LinkedSet
     public function getCulprit()
     {
         return $this->culprit;
+    }
+    
+    public function getId()
+    {
+        return $this->set->getId();
     }
     
     public function getTableName()
@@ -90,13 +96,26 @@ class Data2Html_Join_LinkedSet
         return $this->link->getKeys();
     }
     
-    public function getLinkedItemByLink($linkModelName)
+    public function searchItemByLink($linkModelName)
     {
         $items = $this->getLinkedItems();
         foreach ($items as $k => $v) {
             if (array_key_exists('link', $v)) {
                 if (Data2Html_Handler::parseLinkText($v['link'])['model'] === $linkModelName) {
-                    return  [$k => $v];
+                    return  $v;
+                }
+            }
+        }
+        return false;
+    }
+    
+    public function searchItemNameByDb($dbIntemName)
+    {
+        $items = $this->getLinkedItems();
+        foreach ($items as $k => $v) {
+            if (array_key_exists('db', $v)) {
+                if ($v['db'] === $dbIntemName) {
+                    return  $k;
                 }
             }
         }

@@ -56,6 +56,12 @@ class Data2Html_Join_LinkedGrid
         }
     }
     
+    
+    public function getId()
+    {
+        return $this->columns->getId();
+    }
+
     public function getColumnsSet()
     {
         return $this->columns;
