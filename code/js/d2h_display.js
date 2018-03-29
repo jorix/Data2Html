@@ -17,7 +17,7 @@ var d2h_display = (function($) {
         var branch = this._options.branch;
         if (branch) {
             var _this = this
-            _on(branch, 'hideLeafs',  function() { 
+            _on(branch, 'hideLeaves',  function() { 
                 _this.hide();
             });
             this.hide();
@@ -145,7 +145,7 @@ var d2h_display = (function($) {
                     _trigger(serverSelector, 'applyBranchKeys');
                     break;
                 case 'grid':
-                    _trigger(serverSelector, 'hideLeafs');
+                    _trigger(serverSelector, 'hideLeaves');
                     break;
             }
             for (iName in sels) {
@@ -386,7 +386,7 @@ var d2h_display = (function($) {
                     keys: _keys,
                     afterLoadElement: function() {
                         elementServer.clearForm({onlyWithDefault: true});
-                        _trigger(formSelector, 'hideLeafs');
+                        _trigger(formSelector, 'hideLeaves');
                         $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                         $('.d2h_insert', formElem).show();
                         d2h_messages.clear(_displayObj.show('element'));
@@ -398,7 +398,7 @@ var d2h_display = (function($) {
                 break;
             case 'show-create':
                 elementServer.clearForm();
-                _trigger(formSelector, 'hideLeafs');
+                _trigger(formSelector, 'hideLeaves');
                 $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                 $('.d2h_insert', formElem).show();
                 d2h_messages.clear(_displayObj.show('element'));

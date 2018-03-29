@@ -62,7 +62,7 @@ abstract class Data2Html_Model_Set
         'key'       => ['options' => ['autoKey', 'key']],
         'level'     => 'integer',
         'link'      => 'string|null',
-        'leafs'     => 'string',
+        'leaves'    => 'string',
         'linkedTo'  => 'array',
         'items'     => 'array',
         'name'      => 'string',
@@ -454,7 +454,7 @@ abstract class Data2Html_Model_Set
         } elseif ($name && 
             !array_key_exists('value', $field) && 
             !array_key_exists('base', $field) &&
-            !array_key_exists('leafs', $field) &&
+            !array_key_exists('leaves', $field) &&
             !array_key_exists('db', $field)) {
             $db = $name;
         }

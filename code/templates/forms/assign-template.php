@@ -13,17 +13,17 @@ $return = array(
         
         $type = $itemDx->getString('type');
         $link = $itemDx->getString('link');
-        $leafs = $itemDx->getString('leafs');
+        $leaves = $itemDx->getString('leaves');
         $url = '';
         if ($content === 'hidden-input') {
             $layout = 'bare';
         } elseif ($link) {
             $content = 'select-input';
             $url = $render->getControllerUrl() . "model={$link}&";
-        } elseif ($leafs) {
+        } elseif ($leaves) {
             $layout = 'bare';
-            $content = 'edit-leafs';
-            $url = $render->getControllerUrl() . "model={$leafs}&";
+            $content = 'edit-leaves';
+            $url = $render->getControllerUrl() . "model={$leaves}&";
         } elseif ($type) {
             $typeToInputTemplates = array(
                 'boolean' =>    'checkbox',

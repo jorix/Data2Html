@@ -18,7 +18,7 @@ $return = [
         'active'    => ['boolean', 'required', 'default' => true],
         'created'   => ['date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => ['link' => 'aixada_ufs:list'],
-        'members'   => ['leafs' => 'aixada_members:uf_members'],
+        'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
             'title' => 'UF mentora',
             'base' => 'mentor_uf[uf_name]'
