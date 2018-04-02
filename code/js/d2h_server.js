@@ -238,7 +238,7 @@ jQuery.ajaxSetup({ cache: false });
                 beforeSend: function(jqXHR, settings) {
                     var response = true
                         beforeArray = _options.before;
-                    for (i = 0, l = beforeArray.length; i < l; i++) {
+                    for (var i = 0, l = beforeArray.length; i < l; i++) {
                         var before = beforeArray[i];
                         if (before) {
                             if (typeof before === "string") {
@@ -267,7 +267,7 @@ jQuery.ajaxSetup({ cache: false });
                         jsonError = {'responseText': jqXHR.responseText};
                     }
                     console.log(jqXHR.status + ' ' + textError + ': ' + message, jsonError);
-                    for (i = 0, l = errorArray.length; i < l; i++) {
+                    for (var i = 0, l = errorArray.length; i < l; i++) {
                         var error_ = errorArray[i];
                         if (error_) {
                             if (typeof error_ === "string") {
@@ -283,7 +283,7 @@ jQuery.ajaxSetup({ cache: false });
                 success: function(jsonData) {
                     var response = true
                         afterArray = _options.after;
-                    for (i = 0, l = afterArray.length; i < l; i++) {
+                    for (var i = 0, l = afterArray.length; i < l; i++) {
                         var after = afterArray[i];
                         if (after) {
                             if (typeof after === "string") {

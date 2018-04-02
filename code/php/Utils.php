@@ -124,14 +124,19 @@ class Data2Html_Utils
     
     public static function responseJson($obj, $debug)
     {
+        // The prefix `)]}',\n` is used due a security considerations, see: 
+        //    * https://docs.angularjs.org/api/ng/service/$http
+        // ")]}',\n"
+        self::responseJs(Data2Html_Value::toJson($obj), $debug);
+    }
+    
+    public static function responseJs($src, $debug)
+    {
         if ($debug && isset($_REQUEST['debug'])) {
-            echo "<pre>\n" . Data2Html_Value::toJson($obj, $debug). "\n</pre>\n";
+            echo "<pre>\n" . $src . "\n</pre>\n";
         } else {
             header('Content-type: application/responseJson; charset=utf-8;');
-            // The prefix `)]}',\n` is used due a security considerations, see: 
-            //    * https://docs.angularjs.org/api/ng/service/$http
-            echo // ")]}',\n" . 
-                Data2Html_Value::toJson($obj, $debug);
+            echo $src;
         }
     }
     

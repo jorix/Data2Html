@@ -8,5 +8,10 @@ $return = [
         'created-leafs' =>  "S'ha afegit correctament, ara es pot afegir registres dependents",
         'deleted' =>        "S'ha esborrat correctament",
         'delete-error' =>   "ERROR: No s'ha pogut esborrar!",
+    ],
+    'validate' => [
+        'required' =>          "S'ha guardat correctament",
+        'email' =>     "ERROR: No s'ha pogut guardar!",
+        'emails' =>     "ERROR: No s'ha pogut guardar!",
     ]
 ];
