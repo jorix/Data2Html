@@ -80,6 +80,7 @@ class Data2Html_Lang
     public static function jsCode($lang)
     {
         $lang = new Data2Html_Lang($lang);
+        $lang->load('', Data2Html_Autoload::getCodeFolder() . '/_lang');
         $lang->load('', Data2Html_Autoload::getCodeFolder() . '/../js');
         return "
             var __ = (function () {

@@ -21,27 +21,63 @@ describe('d2h_values', function() {
     
     describe('toHtml()', function() {
         it('return same value without argument type', function() {
-            expect(d2h_values.toHtml('text')).to.be('text');
+            expect(d2h_values.toHtml('text')).to.equal('text');
         });
     });
-    describe('validate()', function() {
-        describe("check required", function() {
+    
+    describe('validateValue()', function() {
+        var _validateValue = function(val, visual) {
+            var val = d2h_values.validateValue(val, visual);
+            if (val.errors) {
+                return val.errors[0];
+            } else {
+                return null;
+            }
+        };
+        describe("required", function() {
             it("blank text is integer if is not required", function() {
-                expect(
-                    d2h_values.validate('  ', {type: 'integer'})
-                ).to.be(null);
+                expect(_validateValue('  ', {type: 'integer'})).to.be.null;
             });
             it("blank text is not valid, is required", function() {
-                expect(
-                    d2h_values.validate('  ', {required:true})[0]
-                ).to.be(__('validate/required'));
+                expect(_validateValue('  ', {required:true})).to.equal(__('validate/required'));
             });
         });
-        describe("check types", function() {
-            it("number with only zeros as decimals are integer", function() {
-                expect(
-                    d2h_values.validate('1234.000', {type: 'integer'})
-                ).to.be(null);
+        describe("validate type", function() {
+            it("throw error where uses a type not supported", function() {
+                expect(function () {
+                    _validateValue('1234', {type: 'fake-type'})
+                }).to.throw();
+            });
+            describe("numeric", function() {
+                it(".0 is valid numeric expression", function() {
+                    expect(_validateValue('.0', {type: 'number'})).to.be.null;
+                });
+                it(".0 is valid integer expression", function() {
+                    expect(_validateValue('.0', {type: 'integer'})).to.be.null;
+                });
+                it("number with start or end spaces is parsed as valid", function() {
+                    expect(_validateValue(' 1234 ', {type: 'number'})).to.be.null;
+                });
+                it("not numeric expressions are detected", function() {
+                    expect(_validateValue('12 34.001', {type: 'number'})).to
+                        .equal(__('validate/not-number'));
+                    expect(_validateValue('12+34.001', {type: 'number'})).to
+                        .equal(__('validate/not-number'));
+                    expect(_validateValue('12.345.123', {type: 'number'})).to
+                        .equal(__('validate/not-number'));
+                    expect(_validateValue('12.345,123', {type: 'number'})).to
+                        .equal(__('validate/not-number'));
+                });
+            });
+            describe("integer", function() {
+                it("number with only zeros as decimals are integer", function() {
+                    expect(_validateValue('1,234.000', {type: 'integer'})).to.be.null;
+                });
+                it("number with decimals are not integer", function() {
+                    expect(_validateValue('1234.001', {type: 'integer'})).to
+                        .equal(__('validate/not-integer'));
+                });
+                
             });
         });
     });
