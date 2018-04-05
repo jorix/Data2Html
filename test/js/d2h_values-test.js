@@ -9,12 +9,6 @@ describe('d2h_values', function() {
             ]
         });
     });
-    beforeEach(function () {
-        $('#testDiv').text('<div>' + ++i + '</div>');
-    });
-    afterEach(function() {
-        $('#testDiv').text('<div>(' + ++i + ')</div>');
-    });
     after(function() {
         testDiv_remove();
     });
@@ -68,6 +62,11 @@ describe('d2h_values', function() {
                     expect(_validateValue('12.345,123', {type: 'number'})).to
                         .equal(__('validate/not-number'));
                 });
+                it("value with decimals is the correct number without error", function() {
+                    expect(d2h_values.validateValue(' -12,345.678 ', {type: 'number'}).value).to
+                        .equal(-12345.678);
+                    expect(_validateValue(' -12,345.678 ', {type: 'number'})).to.null;
+                });
             });
             describe("integer", function() {
                 it("number with only zeros as decimals are integer", function() {
@@ -78,6 +77,32 @@ describe('d2h_values', function() {
                         .equal(__('validate/not-integer'));
                 });
                 
+            });
+            describe("numeric using comma as decimal separator (lang=es)", function() {
+                before(function () {
+                    var div = testDiv_create({
+                        js: [
+                            '/external/date_time/moment-2.18.1/min/moment-with-locales.js',
+                            '/test/php/lang-test.js.php?lang=es',
+                            '/code/js/d2h_values.js'
+                        ]
+                    });
+                });
+                after(function () {
+                    var div = testDiv_create({
+                        js: [
+                            '/external/date_time/moment-2.18.1/min/moment-with-locales.js',
+                            '/test/php/lang-test.js.php',
+                            '/code/js/d2h_values.js'
+                        ]
+                    });
+                });
+                it("value with decimals is the correct number without error", function() {
+                    expect(d2h_values.validateValue(' +12.345,6789 ', {type: 'number'}).value).to
+                        .equal(12345.6789);
+                    expect(_validateValue(' +12.345,6789 ', {type: 'number'})).to.null;
+                    expect(_validateValue(' +12,345.6789 ', {type: 'number'})).to.not.null;
+                });
             });
         });
     });
