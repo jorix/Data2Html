@@ -68,16 +68,6 @@ describe('d2h_values', function() {
                     expect(_validateValue(' -12,345.678 ', {type: 'number'})).to.null;
                 });
             });
-            describe("integer", function() {
-                it("number with only zeros as decimals are integer", function() {
-                    expect(_validateValue('1,234.000', {type: 'integer'})).to.be.null;
-                });
-                it("number with decimals are not integer", function() {
-                    expect(_validateValue('1234.001', {type: 'integer'})).to
-                        .equal(__('validate/not-integer'));
-                });
-                
-            });
             describe("numeric using comma as decimal separator (lang=es)", function() {
                 before(function () {
                     var div = testDiv_create({
@@ -103,6 +93,16 @@ describe('d2h_values', function() {
                     expect(_validateValue(' +12.345,6789 ', {type: 'number'})).to.null;
                     expect(_validateValue(' +12,345.6789 ', {type: 'number'})).to.not.null;
                 });
+            });
+            describe("integer", function() {
+                it("number with only zeros as decimals are integer", function() {
+                    expect(_validateValue('1,234.000', {type: 'integer'})).to.be.null;
+                });
+                it("number with decimals are not integer", function() {
+                    expect(_validateValue('1234.001', {type: 'integer'})).to
+                        .equal(__('validate/not-integer'));
+                });
+                
             });
         });
     });
