@@ -3,8 +3,8 @@ describe('d2h_values', function() {
     before(function () {
         var div = testDiv_create({
             js: [
-                '/external/date_time/moment-2.18.1/min/moment-with-locales.js',
-                '/test/php/lang-test.js.php',
+                '/test/_work/lang-test.js.php',
+                '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
                 '/code/js/d2h_values.js'
             ]
         });
@@ -72,8 +72,8 @@ describe('d2h_values', function() {
                 before(function () {
                     var div = testDiv_create({
                         js: [
-                            '/external/date_time/moment-2.18.1/min/moment-with-locales.js',
-                            '/test/php/lang-test.js.php?lang=es',
+                            '/test/_work/lang-test.js.php?lang=es',
+                            '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
                             '/code/js/d2h_values.js'
                         ]
                     });
@@ -81,8 +81,8 @@ describe('d2h_values', function() {
                 after(function () {
                     var div = testDiv_create({
                         js: [
-                            '/external/date_time/moment-2.18.1/min/moment-with-locales.js',
-                            '/test/php/lang-test.js.php',
+                            '/test/_work/lang-test.js.php',
+                            '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
                             '/code/js/d2h_values.js'
                         ]
                     });
@@ -124,7 +124,6 @@ describe('d2h_values', function() {
             );
         });
         it("only error messages for incorrect items", function() {
-            console.log(_result);
             expect(_result).to.nested.include({
                 'errors.no_number[0]': __('validate/not-number')
             });
