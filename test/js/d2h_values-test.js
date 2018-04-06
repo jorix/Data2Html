@@ -106,4 +106,34 @@ describe('d2h_values', function() {
             });
         });
     });
+    
+    describe('validateData()', function() {
+        var _result = null;
+        it("it is executed!", function() {
+            _result = d2h_values.validateData(
+                {
+                    a:'is a',
+                    number:'123.456',
+                    no_number:'12 34',
+                    'null': ''
+                }, {
+                    number:{type: 'number'},
+                    no_number:{type: 'number'},
+                    'null': {type: 'number'}
+                }
+            );
+        });
+        it("only error messages for incorrect items", function() {
+            console.log(_result);
+            expect(_result).to.nested.include({
+                'errors.no_number[0]': __('validate/not-number')
+            });
+            expect(Object.keys(_result.errors)).to.have.lengthOf(1);
+        });
+        it("values are as expected", function() {
+            expect(_result).to.nested.include({'data.a': 'is a'});
+            expect(_result).to.nested.include({'data.number': 123.456});
+            expect(_result).to.nested.include({'data.null': null});
+        });
+    });
 });

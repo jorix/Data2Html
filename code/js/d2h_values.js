@@ -166,20 +166,20 @@ var d2h_values = (function ($) {
             return response;
         },
 
-        validateData: function(data, visualData) {
-            var data = {},
+        validateData: function(inputData, visualData) {
+            var outputData = {},
                 errors = {};
             if (visualData) {
                 var iName;
-                for (iName in data) {
-                    var item = this.validateValue(data[iName], visualData[iName])
-                    data[iName] = item['value'];
+                for (iName in inputData) {
+                    var item = this.validateValue(inputData[iName], visualData[iName])
+                    outputData[iName] = item['value'];
                     if (item['errors']) {
                         errors[iName] = item['errors'];
                     }
                 }
             }
-            return {data: data, errors: errors};
+            return {data: outputData, errors: errors};
         }
     };
 })(jQuery);
