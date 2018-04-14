@@ -1,5 +1,7 @@
 <?php die("It's uncooked!"); ?>
 <div class="row" id="$${id}">
+<div data-d2h-message-for="$${id}" data-d2h-message-pos="bottom-start"></div>
+<div data-d2h-message-for="$${id}" data-d2h-message-pos="top-start"></div>
     <h3>$${title}</h3>
     <div class="col-md-12">
         $${filter}

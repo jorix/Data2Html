@@ -260,7 +260,7 @@ var d2h_display = (function($) {
             case 'save': 
                 elementServer.save({
                     errorSave: function(message) {
-                        d2h_messages.fail(
+                        d2h_messages.danger(
                             elementServer,
                             __('display/save-error')
                         );
@@ -270,7 +270,7 @@ var d2h_display = (function($) {
                         var gridServer = _displayObj.getServer('grid');
                         gridServer.loadGrid({
                             afterLoadGrid: function() {
-                                d2h_messages.done(
+                                d2h_messages.success(
                                     _displayObj.show('grid'),
                                     __('display/saved')
                                 );
@@ -282,7 +282,7 @@ var d2h_display = (function($) {
             case 'create':
                 elementServer.save({
                     errorSave: function(message) {
-                        d2h_messages.fail(
+                        d2h_messages.danger(
                             elementServer,
                             __('display/create-error')
                         );
@@ -297,7 +297,7 @@ var d2h_display = (function($) {
                             gridServer.loadGrid(); // To show new record in the grid
                             _displayClass.goFormAction(elementServer, 'show-edit', keys, {
                                 after: function() {
-                                    d2h_messages.done(
+                                    d2h_messages.success(
                                         elementServer,
                                         __('display/created-leafs')
                                     );
@@ -306,7 +306,7 @@ var d2h_display = (function($) {
                         } else {
                             gridServer.loadGrid({
                                 afterLoadGrid: function() {
-                                    d2h_messages.done(
+                                    d2h_messages.success(
                                         _displayObj.show('grid'),
                                         __('display/created')
                                     );
@@ -319,7 +319,7 @@ var d2h_display = (function($) {
             case 'delete':
                 elementServer.delete({
                     errorDelete: function(message) {
-                        d2h_messages.fail(
+                        d2h_messages.danger(
                             elementServer,
                             __('display/delete-error')
                         );

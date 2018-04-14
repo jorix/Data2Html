@@ -13,7 +13,11 @@ var d2h_values = (function ($) {
         }
     };
     var _toValue = function(val, dataType) {
-        if (typeof val !== 'string') {
+        if (val === undefined) {
+            return undefined; // without value
+        } else if (val === null) {
+            return null;
+        } else if (typeof val !== 'string') {
             throw "?????????????????";
         } else if (val.trim() === '') {
             return null;
@@ -59,14 +63,20 @@ var d2h_values = (function ($) {
                 var iName;
                 for (iName in visualData) {
                     var visualEle = visualData[iName];
-                    _data[iName] = _get(
+                    var val = _get(
                         server.$('[name=' + iName + ']'),
                         visualEle ? visualEle.type : null
                     );
+                    if (val !== undefined) {
+                        _data[iName] = val;
+                    }
                 }
             } else {
                 server.$('[name]').each(function() {
-                    _data[this.name] = _get($(this), null);
+                    var val = _get($(this), null);
+                    if (val !== undefined) {
+                        _data[this.name] = val;
+                    }
                 });
             }
             return _data;

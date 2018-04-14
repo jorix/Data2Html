@@ -117,7 +117,7 @@ jQuery.ajaxSetup({ cache: false });
         
         $: function(selector, elem) {
             return $(selector, (elem ? elem : this.objElem))
-                .filter('[data-d2h-from=' + this.objElem.id + ']');
+                .filter('[data-d2h-from-id=' + this.objElem.id + ']');
         },
         
         on: function(eventName, handlerFn) {

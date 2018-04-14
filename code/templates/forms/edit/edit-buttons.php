@@ -58,10 +58,6 @@ $return = [
                     'icon' => 'ok',
                     'title' => '$Create',
                     'action' => 'create'
-                ],
-                [
-                    'layout-template' => 'bare',
-                    'content-template' => 'html-message'
                 ]
             ]
         ]

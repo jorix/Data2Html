@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>d2h_messages.js development</title>
+   
+    <script src="../../external/js/jquery-2.1.0/jquery.js" ></script>
+    <link  href="../../external/js/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../../external/js/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
+    
+    <link  href="../../external/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
+    <script src="../../external/js/popper.js-1.14.3/dist/umd/popper.js"></script>
+    
+    
+</head>
+<body>
+<div id="all" style="width:600px; margin:auto; padding: 15px;">
+    <br>
+    <br>
+    <div id="reference1" style="background: #ccc; width:300px; margin:auto; padding: 15px;">
+        #reference1
+    </div>
+    <div data-d2h-message-for="reference1" ></div>
+    <br>
+    <div data-d2h-message-for="reference2"></div>
+    <div data-d2h-message-for="reference2" data-d2h-message-pos="bottom-start"></div>
+    <div id="reference2" style="background: #ccc; width:300px; margin:auto; padding: 15px;">
+        #reference2
+    </div>
+    
+    <hr>
+    <div class="alert-success alert alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <b>alert-success</b>
+    </div>
+    <div class="alert-warning alert alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <b>alert-warning</b>
+    </div>
+    <div class="alert-danger alert alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <b>alert-danger</b>
+    </div>
+    <div class="alert-info alert alert-dismissible fade in">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <b>alert-info</b>
+    </div>
+</div>
+    <script>
+        // Static
+var d2h_messages = (function ($) {
+    var _options = {
+        messageTime: 5000 
+    };
+    
+    function _getElement(elemSelector) {
+        if (elemSelector.getElem) { // is a server
+            return elemSelector.getElem();
+        } else {
+            return $(elemSelector)[0];
+        }
+    }
+    
+    function _show(elemSelector, message, visualClass) {
+        var _elem = _getElement(elemSelector),
+            id = _elem.id;
+        if (!$.data(_elem, "Data2Html_messages")) {
+            var $msgElem = $('[data-d2h-message-for=' + id + ']'),
+                _poppers = [];
+            $msgElem.html(
+                '<span></span>' +
+                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                '<div class="popper__arrow" x-arrow></div>'
+            );
+            $msgElem.addClass('popper alert alert-dismissible');
+            $msgElem.each(function() {
+                var pos = $(this).attr('data-d2h-message-pos');
+                pos = pos ? pos : 'top-end';
+                _poppers.push(
+                    new Popper(_elem, this, {
+                        placement: pos,
+                        boundariesElement: _elem.parentNode
+                    })
+                );
+            });
+            $.data(_elem, "Data2Html_messages", {poppers: _poppers, timers: []});   
+        }
+        var messages = $.data(_elem, "Data2Html_messages");
+        if (messages) {
+            var _timers = messages.timers;
+            // cancel previous timers
+            while (_timers.length > 0) {
+                clearTimeout(_timers.pop());
+            }
+            // show all messages for a element
+            $.each(messages.poppers, function() {
+                var $popper = $(this.popper),
+                    curClass = $popper.attr('data-d2h-message-class');
+                $popper
+                    .removeClass(curClass)
+                    .attr('data-d2h-message-class', visualClass)
+                    .addClass(visualClass);
+                if (message) {
+                    $('span', $popper).text(message);
+                }
+                this.update();
+                $popper.show();
+                _timers.push(setTimeout(
+                    function() {
+                        $popper.hide();
+                    },
+                    _options.messageTime
+                ));
+            });
+        }
+    }
+    
+    function _hide(elemSelector) {
+        var messages = $.data(_getElement(elemSelector), "Data2Html_messages");
+        if (messages) {
+            var timers = messages.timers, 
+                poppers = messages.poppers;
+            while (timers.length > 0) {
+                clearTimeout(timers.pop());
+            }
+            for (var i = 0, l = poppers.length; i < l; i++) {
+                var $pElem = $(poppers[i].popper),
+                    curClass = $pElem.attr('data-d2h-message-class');
+                $pElem.hide();
+                if (curClass) {
+                    $pElem.removeClass(curClass);
+                }
+            };
+        }
+    }
+    
+    return {
+        success: function(elemSelector, message) {
+            _show(elemSelector, message, 'd2h-success');
+        },
+        warning: function(elemSelector, message) {
+            _show(elemSelector, message, 'd2h-warning');
+        },
+        danger: function(elemSelector, message) {
+            _show(elemSelector, message, 'd2h-danger');
+        },
+        info: function(elemSelector, message) {
+            _show(elemSelector, message, 'd2h-info');
+        },
+        hide: _hide,
+        clear: function(elemSelector) {
+            $('[data-d2h-message-for]', $(elemSelector)).each(function() {
+                _hide(this);
+            });
+        }
+    };
+})(jQuery);
+
+    </script>
+    <style>
+        @media (max-width: 460px) {
+            #example10popper1 {
+                max-width: 100px;
+            }
+        }
+    </style>
+    <style>
+    .d2h-success {
+        color: #3c763d;
+        background-color: #dff0d8;
+        opacity: 0.8;
+        border-width: 0;
+        padding: 3px;
+        width: 200px;
+    }
+    .d2h-success .popper__arrow {
+        border-color: #ccc;
+    }
+    .d2h-warning {
+        color: #8a6d3b;
+        background-color: #fcf8e3;
+        opacity: 0.8;
+        border-width: 0;
+        padding: 3px;
+        width: 200px;
+    }
+    .d2h-warning .popper__arrow {
+        border-color: #ccc;
+    }
+    .d2h-danger {
+        color: #a94442;
+        background-color: #f2dede;
+        opacity: 0.8;
+        border-width: 0;
+        padding: 3px;
+        width: 200px;
+    }
+    .d2h-danger .popper__arrow {
+        border-color: #ccc;
+    }
+    .d2h-info {
+        color: #31708f;
+        background-color: #d9edf7;
+        opacity: 0.8;
+        border-width: 0;
+        padding: 3px;
+        width: 200px;
+    }
+    .d2h-info .popper__arrow {
+        border-color: #ccc;
+    }
+
+    </style>
+  <script>
+   d2h_messages.success('#reference1', 'avis 1');
+   d2h_messages.success('#reference2', ' avis 2 avis 2 avis 2 avis 2 avis 2 avis 2');
+   //d2h_messages.hide('#reference1');
+   d2h_messages.clear('#all');
+  </script>
+    
+</body>
+</html>

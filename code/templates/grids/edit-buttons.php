@@ -11,10 +11,6 @@ $return = [
                         'title' => '$Add',
                         'description' => '$Add',
                         'action' => 'show-create'
-                    ],
-                    [
-                        'layout-template' => 'bare',
-                        'content-template' => 'html-message'
                     ]
                 ]
             ],

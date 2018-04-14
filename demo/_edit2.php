@@ -16,6 +16,9 @@
     <link  href="../external/js/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="../external/js/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
     
+    <link  href="../external/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
+    <script src="../external/js/popper.js-1.14.3/dist/umd/popper.js"></script>
+    
     <script src="../external/js-date_time/moment-2.18.1/min/moment-with-locales.js" ></script>
     <script src="../external/js-date_time/moment-timezone-0.5.13/builds/moment-timezone-with-data.min.js" ></script>
     <link  href="../external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
@@ -23,6 +26,7 @@
     
     <script src="../code/js/d2h_server.js"></script>
     <script src="../code/js/d2h_display.js"></script>
+    <link  href="../code/css/d2h_messages.css" rel="stylesheet">
     <script src="../code/js/d2h_messages.js"></script>
     <script src="../code/js/d2h_sort.js"></script>
     <script src="../code/js/d2h_values.js"></script>

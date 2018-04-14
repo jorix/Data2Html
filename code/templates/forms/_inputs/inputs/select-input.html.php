@@ -1,8 +1,9 @@
 <?php die("It's uncooked!"); ?>
+<div data-d2h-message-for="$${id}"></div>
 <select class="form-control" style="padding:0;"
     id="$${id}"
     name="$${name}"
-    data-d2h-from="$${from-id}"
+    data-d2h-from-id="$${from-id}"
     data-d2h="url:'$${url}'"
 >
 <option value="">( . . . )</option>
