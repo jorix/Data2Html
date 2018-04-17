@@ -79,7 +79,7 @@ class Data2Html_Render_Templates
     
     private static function renderHtml($html, $replaces)
     {
-        $html = self::replaceContent( // <xx attribute="$${template_item}" ...
+        $html = self::replaceContent( // <elem attribute="$${template_item}" ...
             '/\w[\w-]*\s*=\s*\"\$\$\{(\w[\w\-]*)(\|*\w*-*)\}\"/',
             $replaces,
             function($matchItem, $value) { // $encodeFn

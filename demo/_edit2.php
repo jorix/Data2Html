@@ -24,6 +24,7 @@
     <link  href="../external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
     <script src="../external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>
     
+    <script src="../code/js/d2h_utils.js"></script>
     <script src="../code/js/d2h_server.js"></script>
     <script src="../code/js/d2h_display.js"></script>
     <link  href="../code/css/d2h_messages.css" rel="stylesheet">
@@ -70,14 +71,6 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    
-    /**
-     * d2h_message
-     */
-    .d2h_message { position: absolute; left: 15px; bottom: 30px; opacity: 0.9; }
-    .d2h_message .alert { margin-bottom: 0; }
-    th .d2h_message { font-weight: normal; }
-    th { position: relative;}
     </style>
 </head>
 <body>

@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-<div data-d2h-message-for="$${id}"></div>
+<div data-d2h-message="#$${id}"></div>
 <div class="input-group date" id="$${id}">
     <input type="text" class="form-control"
         placeholder="$${description}"

@@ -1,50 +1,110 @@
 // Static
 var d2h_messages = (function ($) {
     var _options = {
-        messageTime: 5000 
+        messageTime: 10000 
     };
     
     function _getElement(elemSelector) {
         if (elemSelector.getElem) { // is a server
             return elemSelector.getElem();
         } else {
-            return $(elemSelector)[0];
+            return d2h_utils.getSingleElement(elemSelector);
         }
     }
     
-    function _show(elemSelector, message, visualClass) {
-        var _elem = _getElement(elemSelector),
-            id = _elem.id;
-        if (!$.data(_elem, "Data2Html_messages")) {
-            var $msgElem = $('[data-d2h-message-for=' + id + ']'),
-                _poppers = [];
-            $msgElem.html(
-                '<span></span>' +
-                '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
-                '<div class="popper__arrow" x-arrow></div>'
-            );
-            $msgElem.addClass('popper alert alert-dismissible');
-            $msgElem.each(function() {
-                var pos = $(this).attr('data-d2h-message-pos');
-                pos = pos ? pos : 'top';
-                _poppers.push(
-                    new Popper(_elem, this, {
-                        placement: pos,
-                        boundariesElement: _elem.parentNode
-                    })
-                );
-            });
-            $.data(_elem, "Data2Html_messages", {poppers: _poppers, timers: []});   
+    function _getInfoMessages(elemSelector) { 
+        var elemFrom = _getElement(elemSelector),
+            response = $.data(elemFrom, 'Data2Html_messages');
+        if (!response) {
+            var fromId = $(elemFrom).attr('data-d2h-from-id');
+            if (fromId) {
+                response = _create(d2h_utils.getSingleElement('#' + fromId));
+            } else {
+                response = _create(elemFrom);
+                if (false && response) {
+                    $.error(
+                        "d2h_messages(_create()): Element " +
+                        d2h_utils.getElementPath(elemFrom) +
+                        " is used without a 'data-d2h-messages' attribute!"
+                    );
+                }
+            }
         }
-        var messages = $.data(_elem, "Data2Html_messages");
-        if (messages) {
-            var _timers = messages.timers;
+        return response;
+    }
+    
+    function _create(elemFrom) {
+        // Create all data for sub-elements or self with messages 
+        $('[data-d2h-message]', elemFrom).each(function() {
+            var options = d2h_utils.getJsData(this, 'd2h-message');
+            if (!options) {
+                return; // EXIT
+            }
+            
+            var selectorRef, pos;
+            if (typeof options === 'string') {
+                selectorRef = options;
+            } else {
+                selectorRef = options['for'];
+                pos = options.position;
+            }
+            if (!selectorRef || typeof selectorRef !== 'string') {
+                return; // EXIT
+            }
+            
+            selectorRef = selectorRef.trim();
+            var $elemRef;
+            try {
+                $elemRef = $(selectorRef);
+            } catch(e) {
+                $.error(
+                    "d2h_messages(_create()): Invalid jQuery selector \"" +
+                    selectorRef +
+                    "\""
+                );
+                return; // EXIT
+            }
+            if ($elemRef.length === 0)  {
+                return; // EXIT
+            }
+            
+            // Get element container, e.g.: 
+            //      '#myId div' show messages refereed to first div on #myId and
+            //      stores info messages on #myDiv
+            var elemMessages = d2h_utils.getSingleElement(selectorRef.split(' ')[0]),
+                infoMessages = $.data(elemMessages, 'Data2Html_messages');
+            if (!infoMessages) {
+                infoMessages = {poppers: [], timers: []};
+                // Create the infoMessages object.
+                $.data(elemMessages, 'Data2Html_messages', infoMessages);   
+            }
+            $(this).hide().html(
+                    '<span></span>' +
+                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                    '<div class="popper__arrow" x-arrow></div>'
+                )
+                .addClass('popper alert alert-dismissible');
+            pos = pos ? pos : 'top';
+            infoMessages.poppers.push(
+                new Popper($elemRef[0], this, {
+                    placement: pos,
+                    boundariesElement: $elemRef[0].parentNode
+                })
+            );
+        });
+        return $.data(elemFrom, 'Data2Html_messages');
+    }
+    
+    function _show(elemSelector, message, visualClass) {
+        var infoMessages = _getInfoMessages(elemSelector);
+        if (infoMessages) {
+            var _timers = infoMessages.timers;
             // cancel previous timers
             while (_timers.length > 0) {
                 clearTimeout(_timers.pop());
             }
             // show all messages for a element
-            $.each(messages.poppers, function() {
+            $.each(infoMessages.poppers, function() {
                 var $popper = $(this.popper),
                     curClass = $popper.attr('data-d2h-message-class');
                 $popper
@@ -67,10 +127,10 @@ var d2h_messages = (function ($) {
     }
     
     function _hide(elemSelector) {
-        var messages = $.data(_getElement(elemSelector), "Data2Html_messages");
-        if (messages) {
-            var timers = messages.timers, 
-                poppers = messages.poppers;
+        var infoMessages = _getInfoMessages(elemSelector);
+        if (infoMessages) {
+            var timers = infoMessages.timers, 
+                poppers = infoMessages.poppers;
             while (timers.length > 0) {
                 clearTimeout(timers.pop());
             }
@@ -100,7 +160,7 @@ var d2h_messages = (function ($) {
         },
         hide: _hide,
         clear: function(elemSelector) {
-            $('[data-d2h-message-for]', _getElement(elemSelector)).each(function() {
+            $('[data-d2h-message]', _getElement(elemSelector)).each(function() {
                 _hide(this);
             });
         }

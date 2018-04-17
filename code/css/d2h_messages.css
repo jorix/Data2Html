@@ -5,6 +5,7 @@
     border-width: 0;
     padding: 3px;
     width: 200px;
+    z-index: 100;
 }
 .d2h-success .popper__arrow {
     border-color: #ccc;
@@ -17,6 +18,7 @@
     border-width: 0;
     padding: 3px;
     width: 200px;
+    z-index: 100;
 }
 .d2h-warning .popper__arrow {
     border-color: #ccc;
@@ -29,6 +31,7 @@
     border-width: 0;
     padding: 3px;
     width: 200px;
+    z-index: 100;
 }
 .d2h-danger .popper__arrow {
     border-color: #ccc;
@@ -41,6 +44,7 @@
     border-width: 0;
     padding: 3px;
     width: 200px;
+    z-index: 100;
 }
 .d2h-info .popper__arrow {
     border-color: #ccc;
