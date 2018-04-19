@@ -83,7 +83,7 @@ jQuery.ajaxSetup({ cache: false });
                 this._visualData = settings.visual;
                 delete settings.visual;
             } else {
-                this._visualData = _getElementJsData(objElem, 'd2h-visual');;
+                this._visualData = d2h_utils.getJsData(objElem, 'd2h-visual');;
             }
             if (settings.actions) {
                 this.listen(objElem, settings.actions);
@@ -230,6 +230,14 @@ jQuery.ajaxSetup({ cache: false });
         server: function(_options) {
             var _this = this,
                 _settings = this.settings;
+            if (!_settings.url) {
+                try {
+                    console.log({ERROR: 'Request aborted', settings:_settings, options:_options});
+                } catch (e) {}
+                $.error("d2h_server: Request aborted, url is missing for: " +
+                    d2h_utils.getElementPath(this.objElem)
+                );
+            };
             this.promise = $.when(this.getPromise(), $.ajax({
                 dataType: "json",
                 type: _options.ajaxType,
@@ -264,7 +272,10 @@ jQuery.ajaxSetup({ cache: false });
                             userMessages = jsonError['user-messages'];
                         }
                     } catch (e) {
-                        jsonError = {'responseText': jqXHR.responseText};
+                        jsonError = {
+                            'requested': {url:_settings.url, data:_options.data},
+                            'response-text': jqXHR.responseText
+                        };
                     }
                     console.log(jqXHR.status + ' ' + textError + ': ' + message, jsonError);
                     for (var i = 0, l = errorArray.length; i < l; i++) {
@@ -352,40 +363,37 @@ jQuery.ajaxSetup({ cache: false });
             // Check repeat selector
             var $itemRepeat = $(settings.repeat, gridEle);
             if ($itemRepeat.length == 0) {
-                $.error("d2h_server can not initialize DOM object '" +
-                    _getElementPath(gridEle) +
+                $.error("d2h_server: Can not initialize DOM object '" +
+                    d2h_utils.getElementPath(gridEle) +
                     "': Does not contain a '" +
                     settings.repeat +
                     "' selector."
                 );
-                return;
             }
             if ($itemRepeat.length > 1) {
-                $.error("d2h_server can not initialize DOM object '" +
-                    _getElementPath(gridEle) +
+                $.error("d2h_server: Can not initialize DOM object '" +
+                    d2h_utils.getElementPath(gridEle) +
                     "': Contains more than one '" +
                     settings.repeat +
                     "' selector."
                 );
-                return;
             }
 
             // Mark repeat and parent elements.
             $itemRepeat.addClass(iClassRepeat);
             var $parentContainer = $itemRepeat.parent();
             if ($(this._selectorRepeatParent, gridEle).length > 0) {
-                $.error("d2h_server can not initialize DOM object '" +
-                    _getElementPath(gridEle) +
+                $.error("d2h_server: Can not initialize DOM object '" +
+                    d2h_utils.getElementPath(gridEle) +
                     "': Contains selector '" +
                     this._selectorRepeatParent +
                     "' which is for internal use only!"
                 );
-                return;
             }
             $parentContainer.addClass(iClassRepeatParent);
             if ($(this._selectorRepeat, $parentContainer).length > 1) {
-                $.error("d2h_server can not initialize DOM object '" +
-                    _getElementPath($parentContainer[0]) +
+                $.error("d2h_server: Can not initialize DOM object '" +
+                    d2h_utils.getElementPath($parentContainer[0]) +
                     "': Contains more than one '" +
                     this._selectorRepeat +
                     "' selector."
@@ -436,11 +444,10 @@ jQuery.ajaxSetup({ cache: false });
             if ($.isArray(selector)) {
                 if (selector.length < 1 || selector.length > 2) {
                     $.error(
-                        "d2h_server can not initialize component '" + 
+                        "d2h_server: Can not initialize component '" + 
                         compomentName +
                         "'. When selector is array must have 1 or 2 items!"
                     );
-                    return;
                 }
                 if (selector.length >= 2) {
                     compomentOptions = selector[1];
@@ -464,7 +471,6 @@ jQuery.ajaxSetup({ cache: false });
                     "' has selected " + $elem.length +
                     " elements. Must select only one element!"
                 );
-                return;
             }
             this.components[compomentName] =
                 new dataElement($elem[0], this, compomentOptions);
@@ -626,7 +632,7 @@ jQuery.ajaxSetup({ cache: false });
                         }
                         html = html.replace(replItem.repl, rowKeys);
                     } else {
-                        var visualEle = visualData[iName],
+                        var visualEle = visualData ? visualData[iName] : null,
                             dataType =  visualEle ? visualEle.type : null;
                         if ($.isNumeric(iName)) {
                             val = row[cols[iName]];
@@ -842,68 +848,6 @@ jQuery.ajaxSetup({ cache: false });
         }
     });
     
-    
-    /**
-     * Utilities
-     */
-     
-    // scope none
-    function _getElementPath(elem) {
-        if (!elem) {
-            return "undefined";
-        }
-        if (!elem.tagName) {
-            return "no-DOM-element";
-        }
-        var selectorArr = [
-            elem.tagName.toLowerCase() +
-            (elem.id ? '#' + elem.id : '')
-        ];
-        $(elem).parents().map(
-            function() {
-                selectorArr.push(
-                    this.tagName.toLowerCase() +
-                    (this.id ? '#' + this.id : '')
-                );
-            }
-        );
-        return selectorArr.reverse().join(">");
-    }
-    
-    function _getElementOptions(objElem, options) {
-        var optionsEle = _getElementJsData(objElem, 'd2h');
-        if (!optionsEle && !options) {
-            $.error(
-                "Can not initialize a d2h_server handler: " +
-                "Options or HTML attribute 'data-d2h' are required on '" + 
-                    _getElementPath(objElem) + "'"
-            );
-            return;
-        }
-        return $.extend(optionsEle, options); 
-    }
-    
-    function _getElementJsData(objElem, dataName) {
-        var optionsEle = {},
-            dataD2h = $(objElem).data(dataName);
-        if (dataD2h) {
-            if (dataD2h.substr(0, 1) !== '{') {
-                dataD2h = '{' + dataD2h + '}';
-            }
-            try {
-                optionsEle = eval('[(' + dataD2h + ')]')[0];
-            } catch(e) {
-                $.error(
-                    "Can not initialize a d2h_server handler: " +
-                    "HTML attribute 'data-' " + dataName + "' have a not valid js syntax on '" + 
-                        _getElementPath(objElem) + "'" 
-                );
-                return null;
-            }
-        }
-        return optionsEle;
-    }
-    
     /**
      * Plugin declaration
      */
@@ -939,21 +883,27 @@ jQuery.ajaxSetup({ cache: false });
                 $.error(
                     "d2h_server: Can not find a: string, plainObject as arguments!"
                 );
-                return;
             }
             break;
         default:
             $.error(
                 "d2h_server: Excess number of arguments!"
             );
-            return;
         }
         
         var _responses = [];
         this.each(function() {
             var response = null;
             if (!$.data(this, "Data2Html_data") ) {
-                var opData = _getElementOptions(this, _options);
+                // Create a data for "Data2Html_data"
+                var optionsEle = d2h_utils.getJsData(this, 'd2h');
+                if ((!optionsEle && !_options) || typeof optionsEle === 'string') {
+                    $.error(
+                        "d2h_server: Can not initialize, attribute 'data-d2h' is required for " + 
+                        d2h_utils.getElementPath(this)
+                    );
+                }
+                var opData = $.extend(optionsEle, _options);
                 switch (opData.type) {
                     case 'element':
                         response = new dataElement(this, null, opData);

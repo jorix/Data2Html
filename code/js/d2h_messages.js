@@ -62,7 +62,6 @@ var d2h_messages = (function ($) {
                     selectorRef +
                     "\""
                 );
-                return; // EXIT
             }
             if ($elemRef.length === 0)  {
                 return; // EXIT

@@ -111,7 +111,7 @@ var d2h_display = (function($) {
                     "[d2h_display].add(): If selector must be a plain object or a string!"
                 );
             }
-            $.data(_singleElement(selector), "Data2Html_display", this);
+            $.data(d2h_utils.getSingleElement(selector), "Data2Html_display", this);
             this._selectors[name] = selector;
             return this;
         },
@@ -127,7 +127,7 @@ var d2h_display = (function($) {
         },
         
         getServer: function(name) {
-            return $(_singleElement(this.getSelector(name))).d2h_server('get');
+            return $(d2h_utils.getSingleElement(this.getSelector(name))).d2h_server('get');
         },
         
         loadGrid: function() {
@@ -174,7 +174,7 @@ var d2h_display = (function($) {
     var _get = function(serverSelector) {
         var elem, elemSelector;
         if (typeof serverSelector === 'string' ) {
-            elem = _singleElement(serverSelector);
+            elem = d2h_utils.getSingleElement(serverSelector);
             elemSelector = serverSelector;
         } else {
             elem = serverSelector.getElem();
@@ -188,18 +188,6 @@ var d2h_display = (function($) {
             );
         }
         return displayObj;
-    };
-
-    var _singleElement = function(selector) {
-        var $elem = $(selector);
-        if ($elem.length !== 1) {
-            $.error(
-                "_singleElement(): Selector '" + selector +
-                "' has selected " + $elem.length +
-                " elements. Must select only one DOM element!"
-            );
-        }
-        return $elem[0];
     };
     
     // Events

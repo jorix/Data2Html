@@ -4,7 +4,7 @@
     id="$${id}"
     name="$${name}"
     data-d2h-from-id="$${from-id}"
-    data-d2h="url:'$${url}'"
+    data-d2h="{url:'$${url}'}"
 >
 <option value="">( . . . )</option>
 <option class="d2h_repeat" value="${[keys] | }">${0}</option>

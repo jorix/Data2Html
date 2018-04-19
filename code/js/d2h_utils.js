@@ -27,7 +27,6 @@ var d2h_utils = (function ($) {
                         "jsData of attribute 'data-" + dataName + "' have a not valid js syntax on " + 
                         _getElementPath(objElem)
                     );
-                    return null;
                 }
             } else {
                 optionsEle = dataD2h;
