@@ -1,4 +1,4 @@
-$('#' + '$${id}').d2h_server({
+d2h_server('#$${id}', {
     url:    '$${url}',
     type:   'element',
     actions: {

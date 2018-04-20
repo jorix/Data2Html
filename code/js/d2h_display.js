@@ -99,8 +99,10 @@ var d2h_display = (function($) {
                                 'applyBranchKeys', 
                                 function() {
                                     // retrieve branch keys from grid
-                                    var _detail = $(selector).d2h_server('get');
-                                    _applyKeys(_detail, _this.getServer('grid').branchKeys());
+                                    _applyKeys(
+                                        d2h_server(d2h_utils.getSingleElement(selector)),
+                                        _this.getServer('grid').branchKeys()
+                                    );
                                 }
                             );
                             break;
@@ -108,7 +110,7 @@ var d2h_display = (function($) {
                 }
             } else {
                 $.error(
-                    "[d2h_display].add(): If selector must be a plain object or a string!"
+                    "d2h_display.add(): If selector must be a plain object or a string!"
                 );
             }
             $.data(d2h_utils.getSingleElement(selector), "Data2Html_display", this);
@@ -127,7 +129,7 @@ var d2h_display = (function($) {
         },
         
         getServer: function(name) {
-            return $(d2h_utils.getSingleElement(this.getSelector(name))).d2h_server('get');
+            return d2h_server(d2h_utils.getSingleElement(this.getSelector(name)));
         },
         
         loadGrid: function() {
@@ -229,13 +231,13 @@ var d2h_display = (function($) {
         return $(onSelector).triggerHandler('d2h_dsp_' + eventName, args);
     };
     
-    // Static public methods
+    // Static public
     // --------------
-    _displayClass.create = function(options) {
+    var d2h_display = function(options) {
         return new _displayClass(options);
     };
 
-    _displayClass.goGridAction = function(server, action) {
+    d2h_display.goGridAction = function(server, action) {
         var _displayObj = _get(server),
             elementServer = _displayObj.getServer('element');
         switch (action) {
@@ -283,7 +285,7 @@ var d2h_display = (function($) {
                         gridServer.selectedKeys(keys);
                         if (_isEventUsed(gridSelector, 'applyFormLeafKeys')) {
                             gridServer.loadGrid(); // To show new record in the grid
-                            _displayClass.goFormAction(elementServer, 'show-edit', keys, {
+                            d2h_display.goFormAction(elementServer, 'show-edit', keys, {
                                 after: function() {
                                     d2h_messages.success(
                                         elementServer,
@@ -332,7 +334,7 @@ var d2h_display = (function($) {
         }
     };
 
-    _displayClass.goFormAction = function(server, action, _keys, _options) {
+    d2h_display.goFormAction = function(server, action, _keys, _options) {
         var _displayObj = _get(server),
             formSelector = _displayObj.getSelector('element'),
             elementServer = _displayObj.getServer('element'),
@@ -398,5 +400,5 @@ var d2h_display = (function($) {
     };
     
     // 
-    return _displayClass;
+    return d2h_display;
 })(jQuery);

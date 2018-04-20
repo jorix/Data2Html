@@ -70,7 +70,7 @@ $return = function($replaces) {
         'html' => "<div class=\"container\">{$htmlCode}</div>",
         'js' => $jsCode . "
             (function() {
-                d2h_display.create(" . 
+                d2h_display(" . 
                 Data2Html_Value::toJson($displayOptions, true)
                 . ");
             })();"

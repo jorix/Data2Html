@@ -136,6 +136,27 @@ class Data2Html_Render_Templates
             },
             $js
         );
+        $js = self::replaceContent( // start string '$${template_item}...
+            // '/["\']([^"\'\$]*)\$\$\{([\w.:-]+)\}/',
+            '/["\']#\$\$\{([\w.:-]+)\}/',
+            $replaces,
+            function($matchItem, $value) { // $encodeFn
+                if (!is_array($value)) {
+                    if (is_string($value)) {
+                        // remove quotes
+                        $v = substr(Data2Html_Value::toJson('#' . $value), 1, -1);
+                    } else {
+                        $v = Data2Html_Value::toJson($value);
+                    }
+                    return substr($matchItem, 0, 1) . $v;
+                } else {
+                    return 
+                        substr($matchItem, 0, 1) . 
+                        'd2h_error: this value is an array()!';
+                }
+            },
+            $js
+        );
         $js = self::replaceContent( // others ...
             '/\$\$\{([\w.:]+)\}/',
             $replaces,

@@ -1,4 +1,4 @@
-$('#' + $${id}).d2h_server({
+d2h_server('#$${id}', {
     url:'$${url}',
     repeat:'table tbody tr',
     visual: $${visual},
@@ -21,5 +21,5 @@ $('#' + $${id}).d2h_server({
             'readPage': function() {this.load();}
         }
     }],
-    sort: '#' + '$${id}_sort'
+    sort: '#$${id}_sort'
 });

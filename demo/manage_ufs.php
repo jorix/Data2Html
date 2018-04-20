@@ -110,7 +110,7 @@
     <script>
         <?=$jsCode?>
 
-        d2h_display.create({
+        d2h_display({
             branch: '#<?=$idUfGrid?>',
             items: {
                 grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
@@ -118,7 +118,7 @@
             }
         });
         
-        d2h_display.create({
+        d2h_display({
             auto: 'loadGrid',
             items: {
                 grid: '#<?=$idUfGrid?>',

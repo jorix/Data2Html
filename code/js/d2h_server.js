@@ -4,7 +4,7 @@
  */
 jQuery.ajaxSetup({ cache: false });
 
-(function ($) {
+var d2h_server = (function ($) {
 
     var _initCounter = 0;
     var _globalDefaults = {
@@ -700,9 +700,12 @@ jQuery.ajaxSetup({ cache: false });
                    
             // clearForm
             var promises = null,
-                subElements = $('[data-d2h]', this.objElem);
-            if (subElements.length > 0) {
-                promises = subElements.d2h_server('getPromise');
+                $subElements = $('[data-d2h]', this.objElem);
+            if ($subElements.length > 0) {
+                _promises = [];
+                $subElements.each(function() {
+                    _promises.push(d2h_server(this).getPromise());
+                });
             }
             this.whenPromise(promises, function() {
                 // Issue of default value of a select:
@@ -849,85 +852,45 @@ jQuery.ajaxSetup({ cache: false });
     });
     
     /**
-     * Plugin declaration
+     * Public
      */
-    $.fn.d2h_server = function() {
-        if (this.length == 0) {
+    return function(elemSelector, _options) {
+        var $elem = $(elemSelector);
+        if ($elem.length == 0) {
             $.error(
                 "d2h_server: Can not find a DOM object with the selector!"
             );
             return;
         }
-        var _method = '',
-            _options = {};
-        switch (arguments.length) {
-        case 0:
-            break;
-        case 1:
-            if ($.isPlainObject(arguments[0])) {
-                _options = arguments[0];
-            } else if (typeof arguments[0] === "string") {
-                _method = arguments[0];
-            } else {
-                $.error(
-                    "d2h_server: Can not find a plainObject or string as single argument!"
-                );
-                return;
-            }
-            break;
-        case 2:
-            if (typeof arguments[0] === "string" && $.isPlainObject(arguments[1])) {
-                _method = arguments[0];
-                _options = arguments[1];
-            } else {
-                $.error(
-                    "d2h_server: Can not find a: string, plainObject as arguments!"
-                );
-            }
-            break;
-        default:
-            $.error(
-                "d2h_server: Excess number of arguments!"
-            );
-        }
-        
-        var _responses = [];
-        this.each(function() {
-            var response = null;
+        var _response = [];
+        $elem.each(function() {
             if (!$.data(this, "Data2Html_data") ) {
                 // Create a data for "Data2Html_data"
                 var optionsEle = d2h_utils.getJsData(this, 'd2h');
                 if ((!optionsEle && !_options) || typeof optionsEle === 'string') {
                     $.error(
-                        "d2h_server: Can not initialize, attribute 'data-d2h' is required for " + 
+                        "d2h_server: Can not initialize, attribute 'data-d2h' or js options are required for " + 
                         d2h_utils.getElementPath(this)
                     );
                 }
                 var opData = $.extend(optionsEle, _options);
                 switch (opData.type) {
                     case 'element':
-                        response = new dataElement(this, null, opData);
+                        new dataElement(this, null, opData);
                         break;
-                    default:
-                        response = new dataGrid(this, null, opData);
+                    default: // create a grid
+                        new dataGrid(this, null, opData);
                         break;
                 }
             }
-            if (_method) {
-                var thisObj = $.data(this, "Data2Html_data");
-                response = thisObj[_method].call(thisObj, _options);
-            }
-            if (response !== undefined) {
-                _responses.push(response); // To chain d2h_server or retrieve value
-            }
+            _response.push($.data(this, "Data2Html_data"));
         });
-        switch (_responses.length) {
-            case 0: 
-                return;
-            case 1:
-                return _responses[0];
-            default:
-                return _responses; 
+        if (_response.length === 0) {
+            return null;
+        } else if (_response.length === 1) {
+            return _response[0];
+        } else {
+            return _response;
         }
     };
 })(jQuery);

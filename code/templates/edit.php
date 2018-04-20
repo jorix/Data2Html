@@ -54,7 +54,7 @@ $return = function($replaces) {
         'js' =>
             "{$jsCode}
             (function() {
-                d2h_display.create(" . 
+                d2h_display(" . 
                 Data2Html_Value::toJson($displayOptions)
                 . ");
             })();"

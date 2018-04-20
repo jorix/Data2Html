@@ -97,7 +97,7 @@
     <script>
         <?=$jsCode?>
         (function() {
-            d2h_display.create({
+            d2h_display({
                 auto: 'loadGrid',
                 items: {
                     grid: {selector: '#<?=$idGrid?>'},

@@ -1,4 +1,4 @@
-$('#' + $${id}).d2h_server({
+d2h_server('#$${id}', {
     url: '$${url}',
     repeat: 'table tbody tr',
     selectedClass: 'info',
@@ -23,11 +23,11 @@ $('#' + $${id}).d2h_server({
             'read-page': function() {this.loadGrid();}
         }
     }],
-    page: ['#' + '$${id-page}', {
+    page: ['#$${id-page}', {
         actions: {
             'read-page': function() {this.loadGrid();},
             'next-page': function() {this.loadGrid({add:true});}
         }
     }],
-    sort: '#' + '$${id}_sort'
+    sort: '#$${id}_sort'
 });
