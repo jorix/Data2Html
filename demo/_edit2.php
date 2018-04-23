@@ -60,7 +60,7 @@
     }
     .d2h_formChanged, 
     .d2h_formChanged input{
-        background-color: red
+        background-color: #fff8f8
     }
     @-webkit-keyframes spin {
         0% { -webkit-transform: rotate(0deg); }

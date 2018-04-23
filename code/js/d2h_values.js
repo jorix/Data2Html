@@ -13,9 +13,7 @@ var d2h_values = (function ($) {
         }
     };
     var _toValue = function(val, dataType) {
-        if (val === undefined) {
-            return undefined; // without value
-        } else if (val === null) {
+        if (val === undefined || val === null) {
             return null;
         } else if (typeof val !== 'string') {
             throw "?????????????????";
@@ -85,18 +83,17 @@ var d2h_values = (function ($) {
         validateValue: function(val, visual) {
 
             visual = visual ? visual : {};
-            if (typeof val !== 'string') {
-                val = val.toString();
-            }
-            val = val.trim();
             var messages = [],
                 finalVal;
             
             // type match and set final value
-            if (val === '') {
+            if (typeof val === 'string') {
+                val = val.trim();
+            }
+            if (val === '' || val === null) {
                 finalVal = null;
                 // required
-                if (visual.required) {
+                if (visual.validations && visual.validations.indexOf('required') >= 0) {
                     messages.push(__('validate/required'));
                 }
             } else if (messages.length === 0) {
@@ -104,7 +101,7 @@ var d2h_values = (function ($) {
                     case undefined:
                         finalVal = val;
                         break;
-                    
+                        
                     case 'boolean':
                         if(/^(true|1|-1)$/.test(val)) {
                             finalVal = true;
@@ -117,6 +114,8 @@ var d2h_values = (function ($) {
                         break;
                         
                     case 'date':
+                        finalVal = val;
+                        break;
                         var date = moment(val, 'L LT', true);
                         if (!date.isValid()) {
                             throw "tipus no ??????";
@@ -161,8 +160,12 @@ var d2h_values = (function ($) {
                         
                     case 'string':
                         finalVal = val;
+                        break;
                     
                     case 'text':
+                        finalVal = val;
+                        break;
+                        
                     default:
                         throw "Type '" + visual.type + "' is not supported";
                 }
@@ -182,14 +185,35 @@ var d2h_values = (function ($) {
             if (visualData) {
                 var iName;
                 for (iName in inputData) {
-                    var item = this.validateValue(inputData[iName], visualData[iName])
-                    outputData[iName] = item['value'];
-                    if (item['errors']) {
-                        errors[iName] = item['errors'];
+                    if (iName === '[keys]') {
+                        outputData[iName] = inputData[iName];
+                    } else {
+                        var valItem = this.validateValue(inputData[iName], visualData[iName])
+                        outputData[iName] = valItem['value'];
+                        if (valItem['errors']) {
+                            errors[iName] = valItem['errors'];
+                        }
                     }
                 }
             }
             return {data: outputData, errors: errors};
+        },
+        
+        validateServer: function(server) {
+            var visual = server.getVisual(),
+                data = d2h_values.getData(server, visual),
+                iName,
+                val = d2h_values.validateData(data, visual);
+            if (Object.keys(val.errors).length > 0) {
+                for (iName in val.errors) {
+                    var $msg = $('[name=' + iName + ']', server.getElem());
+                    d2h_messages.danger($msg, val.errors[iName].join('<br>'));
+                }
+                return false;
+            } else {
+                return val.data;
+            }
         }
+        
     };
 })(jQuery);

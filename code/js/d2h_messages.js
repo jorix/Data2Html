@@ -13,18 +13,22 @@ var d2h_messages = (function ($) {
     }
     
     function _getInfoMessages(elemSelector) { 
-        var elemFrom = _getElement(elemSelector),
-            response = $.data(elemFrom, 'Data2Html_messages');
+        var elem = _getElement(elemSelector),
+            response = $.data(elem, 'Data2Html_messages');
         if (!response) {
-            var fromId = $(elemFrom).attr('data-d2h-from-id');
+            var fromId = $(elem).attr('data-d2h-from-id');
             if (fromId) {
-                response = _create(d2h_utils.getSingleElement('#' + fromId));
+                var elemFrom = d2h_utils.getSingleElement('#' + fromId);
+                if (!$.data(elem, 'Data2Html_messages')) {
+                    _create(elemFrom);
+                    response = $.data(elem, 'Data2Html_messages');
+                }
             } else {
-                response = _create(elemFrom);
+                response = _create(elem);
                 if (false && response) {
                     $.error(
                         "d2h_messages(_create()): Element " +
-                        d2h_utils.getElementPath(elemFrom) +
+                        d2h_utils.getElementPath(elem) +
                         " is used without a 'data-d2h-messages' attribute!"
                     );
                 }
@@ -83,7 +87,7 @@ var d2h_messages = (function ($) {
                     '<div class="popper__arrow" x-arrow></div>'
                 )
                 .addClass('popper alert alert-dismissible');
-            pos = pos ? pos : 'top';
+            pos = pos ? pos : 'top-start';
             infoMessages.poppers.push(
                 new Popper($elemRef[0], this, {
                     placement: pos,

@@ -6,5 +6,4 @@
     name="$${name}"
     data-d2h-from-id="$${from-id}"
     value=""
-    $${validations}
 >

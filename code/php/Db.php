@@ -103,8 +103,9 @@ abstract class Data2Html_Db
                 $r = '' . Data2Html_Value::parseNumber($value);
                 break;
             case 'integer':
-            case 'boolean':
                 $r = '' . Data2Html_Value::parseInteger($value);
+            case 'boolean':
+                $r = Data2Html_Value::parseBoolean($value) ? '1' : '0';
                 break;
             case 'string':
                 $r = $this->stringToSql(Data2Html_Value::parseString($value));

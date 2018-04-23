@@ -144,7 +144,32 @@ class Data2Html_Value
         }
         return $value + 0;
     }
-
+    
+    public static function parseBoolean($value, $default = null, $strict = false)
+    {
+        if (!is_numeric($value)) {
+            if (is_string($value)) {
+                if (preg_match('/^\s*true\s*$/i', $value)) {
+                    $value = true;
+                } elseif(preg_match('/^\s*false\s*$/i', $value)) {
+                    $value = false;
+                }
+            }
+            if (!is_bool($value)) {
+                if ($strict) {
+                    throw new Exception(
+                        "Value `{$value}` is not a integer."
+                    );
+                }
+                if ($default === null) {
+                    return null;
+                }
+                return self::parseBoolean($default, null, $strict);
+            }
+        }
+        return !!$value;
+    }
+    
     public static function parseDate(
         $value,
         $default = null,

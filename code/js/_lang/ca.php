@@ -10,7 +10,7 @@ $return = [
         'delete-error' =>   "ERROR: No s'ha pogut esborrar!",
     ],
     'validate' => [
-        'required' =>          "S'ha guardat correctament",
+        'required' =>          "Cal omplir aquest camp",
         'email' =>     "ERROR: No s'ha pogut guardar!",
         'emails' =>     "ERROR: No s'ha pogut guardar!",
     ]

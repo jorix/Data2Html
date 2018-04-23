@@ -115,6 +115,10 @@ var d2h_server = (function ($) {
             return this.objElem;
         },
         
+        getVisual: function() {
+            return this._visualData;
+        },       
+        
         $: function(selector, elem) {
             return $(selector, (elem ? elem : this.objElem))
                 .filter('[data-d2h-from-id=' + this.objElem.id + ']');
@@ -486,9 +490,11 @@ var d2h_server = (function ($) {
                 data = {},
                 pageStart = 1;
             if (this.components.filter) {
-                data['d2h_filter'] = $.param(
-                    d2h_values.getData(this.components.filter)
-                ).replace(/&/g, '{and}');
+                var dataFilter = d2h_values.validateServer(this.components.filter);
+                if (dataFilter === false) {
+                    return this;
+                }
+                data['d2h_filter'] = $.param(dataFilter).replace(/&/g, '{and}');
             }
             if (sortSelector) {
                 data['d2h_sort'] = $(sortSelector, this.objElem).val();
@@ -749,8 +755,11 @@ var d2h_server = (function ($) {
             return this;
         },
         save: function(options) {
-            var data = d2h_values.getData(this, this._visualData),
-                d2h_oper,
+            var data = d2h_values.validateServer(this);
+            if (data === false) {
+                return this;
+            }
+            var d2h_oper,
                 d2hKeys = $(this.objElem).data('d2h-keys');
             if (d2hKeys) {
                 data['[keys]'] = JSON.parse(d2hKeys);
