@@ -113,17 +113,28 @@ class Data2Html_Controller
                 break;
 
             case 'update':
-                $data = $postData['d2h_data'];
-                $keys = $data['[keys]'];
-                unset($data['[keys]']);
-                $this->opUpdate($model->getLinkedElement($playerNames['element']), $data, $keys);
+                $val = new Data2Html_Controller_Validate('ca');
+                $elem = $model->getLinkedElement($playerNames['element']);
+                
+                $validation = $val->validateData(
+                    Data2Html_Value::getItem($postData, ['d2h_data', 'data']),
+                    Data2Html_Model_Set::getVisualItems($elem->getLinkedItems())
+                );
+                if (count($validation['errors']) > 0) {
+                    header('HTTP/1.0 401 Validation errors');
+                    die(Data2Html_Value::toJson($validation));
+                }
+                $this->dump($validation); die();
+                $values = $validation['data'];
+                $keys = $Data2Html_Value::getItem($postData, ['d2h_data', '[keys]']);
+                $this->opUpdate($elem, $values, $keys);
                 break;
 
             case 'delete':
-                $data = $postData['d2h_data'];
-                $keys = $data['[keys]'];
-                unset($data['[keys]']);
-                $this->opDelete($model->getLinkedElement($playerNames['element']), $data, $keys);
+                $values = $postData['d2h_data'];
+                $keys = $values['[keys]'];
+                unset($values['[keys]']);
+                $this->opDelete($model->getLinkedElement($playerNames['element']), $values, $keys);
                 break;
 
             default:

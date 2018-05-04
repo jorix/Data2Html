@@ -45,7 +45,7 @@ $return = [
             'string' => 255,
             'required'
         ],
-        'address' => ['string' => 255, 'required'],
+        'address' => ['email' => 255, 'required'],
         'nif' => ['string' => 255],
         'zip' => ['string' => 10],
         'city' => ['string' => 255, 'required'],

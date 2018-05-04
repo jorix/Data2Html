@@ -104,6 +104,7 @@ abstract class Data2Html_Db
                 break;
             case 'integer':
                 $r = '' . Data2Html_Value::parseInteger($value);
+                break;
             case 'boolean':
                 $r = Data2Html_Value::parseBoolean($value) ? '1' : '0';
                 break;

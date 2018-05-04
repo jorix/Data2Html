@@ -13,14 +13,16 @@
     
         try {
             $payerNames = Data2Html_Handler::parseRequest($_REQUEST);
-            $model = Data2Html_Handler::createModel($payerNames['model']);
-            if (array_key_exists('form', $payerNames)) {
-                $obj = $model->getForm($payerNames['form']);
+            
+            $model = Data2Html_Handler::getModel($payerNames['model']);
+            $model->dump($payerNames);
+            if (array_key_exists('element', $payerNames)) {
+                $obj = $model->getLinkedElement($payerNames['element']);
             } else {
-                $obj = $model->getGrid($payerNames['grid']);
+                $obj = $model->getLinkedGrid($payerNames['grid']);
             }
             // $obj->dump();
-            $obj->createLink()->dump();
+            $obj->dump();
             
         } catch(Exception $e) {
             echo Data2Html_Exception::toHtml($e, true);

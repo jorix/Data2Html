@@ -199,19 +199,22 @@ var d2h_values = (function ($) {
             return {data: outputData, errors: errors};
         },
         
-        validateServer: function(server) {
+        validateServer: function(server, bypass) {
+            if (bypass) {
+                return {data: d2h_values.getData(server, visual), errors: []};
+            }
             var visual = server.getVisual(),
                 data = d2h_values.getData(server, visual),
                 iName,
-                val = d2h_values.validateData(data, visual);
-            if (Object.keys(val.errors).length > 0) {
-                for (iName in val.errors) {
+                validation = d2h_values.validateData(data, visual);
+            if (Object.keys(validation.errors).length > 0) {
+                for (iName in validation.errors) {
                     var $msg = $('[name=' + iName + ']', server.getElem());
-                    d2h_messages.danger($msg, val.errors[iName].join('<br>'));
+                    d2h_messages.danger($msg, validation.errors[iName].join('<br>'));
                 }
                 return false;
             } else {
-                return val.data;
+                return validation.data;
             }
         }
         

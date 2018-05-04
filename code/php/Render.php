@@ -15,9 +15,7 @@ class Data2Html_Render
         'boolean' =>    array('checkbox', 'checkbox'),
         'date' =>       array('base', 'datetimepicker')
     );
-    private $visualWords = array(
-        'display', 'format', 'size', 'title', 'type', 'validations', 'default', 'db'
-    );
+
     private static $idRenderCount = 0;
     
     public function __construct()
@@ -165,7 +163,7 @@ class Data2Html_Render
             'head' => $thead,
             'body' => $tbody,
             'colCount' => $renderCount,
-            'visual' => $this->getVisualItems($columns)
+            'visual' => Data2Html_Model_Set::getVisualItems($columns)
         ));
         
         $result = _templates::apply(
@@ -191,7 +189,7 @@ class Data2Html_Render
             $itemReplaces
         );
         
-        $bodyReplaces['visual'] = $this->getVisualItems($items);
+        $bodyReplaces['visual'] = Data2Html_Model_Set::getVisualItems($items);
         $form = _templates::apply(
             _branches::getItem('template', $templateBranch),
             array_merge($bodyReplaces, [
@@ -336,24 +334,5 @@ class Data2Html_Render
             $tempModel = new Data2Html_Model_Set_Includes(null, $setName, $items, $alternativeItem);
             return $tempModel->getItems();
         }
-    }
-
-    protected function getVisualItems($lkItems) {
-        $visualItems = array();
-        foreach ($lkItems as $k => $v) {
-            if (!Data2Html_Value::getItem($v, 'virtual')) {
-                if (!is_int($k)) {
-                    $item = array();
-                    $visualItems[$k] = &$item;
-                    foreach ($this->visualWords as $w) {
-                        if (array_key_exists($w, $v)) {
-                            $item[$w] = $v[$w];
-                        }
-                    }
-                    unset($item);
-                }
-            }
-        }
-        return $visualItems;
     }
 }

@@ -38,18 +38,18 @@ abstract class Data2Html_Model_Set
         'autoKey' =>    ['type' => 'integer', 'key' => 'autoKey'],
         'boolean' =>    ['type' => 'boolean'],
         'date' =>       ['type' => 'date'],
-        'email' =>      ['type' => 'string', 'size' => '{}', 'validations' => 'email'],
-        'emails' =>     ['type' => 'string', 'size' => '{}', 'validations' => ['emails']],
+        'email' =>      ['type' => 'string', 'size' => '{}', 'validations' => ['email' => true]],
+        'emails' =>     ['type' => 'string', 'size' => '{}', 'validations' => ['emails' => true]],
         'float' =>      ['type' => 'float'],
         'hidden' =>     ['display' => 'none'],
         'integer' =>    ['type' => 'integer'],
         'key' =>        ['key' => 'key'],
         'number' =>     ['type' => 'number', 'size' => '{}'],
         'currency' =>   ['type' => 'number', 'size' => '{}'],
-        'required' =>   ['validations' => ['required']],
+        'required' =>   ['validations' => ['required' => true]],
         'string' =>     ['type' => 'string', 'size' => '{}'],
         'text' =>       ['type' => 'text'],
-        'url' =>        ['type' => 'string', 'validations' => 'url']
+        'url' =>        ['type' => 'string', 'validations' => ['url' => true]]
     ];
     private $subItemsKey = 'items';
     private $baseKeywords = [
@@ -97,6 +97,10 @@ abstract class Data2Html_Model_Set
         '-' => -1,
         '!' => -1,
     ];
+    
+    private static $visualWords = array(
+        'display', 'format', 'size', 'title', 'type', 'validations', 'default', 'db'
+    );
     
     public function __construct(
         $model,
@@ -545,15 +549,7 @@ abstract class Data2Html_Model_Set
             if ($v === '{}') {
                 $v = $aliasValue;
             }
-            if (array_key_exists($k, $pField) && is_array($pField[$k])) {
-                foreach ((array)$v as $vv) {
-                    if (!in_array($vv, $pField[$k])) {
-                        $this->applyWord($iField, $fieldName, $pField, $k, $vv);
-                    }
-                }
-            } else {
-                $this->applyWord($iField, $fieldName, $pField, $k, $v);
-            }
+            $this->applyWord($iField, $fieldName, $pField, $k, $v);
         }
     }
     
@@ -574,16 +570,20 @@ abstract class Data2Html_Model_Set
                 } else {
                     $newWord = [];
                 }
-                foreach ($word as $vvv) {
-                    if (!in_array($vvv, $keyword['options'])) {
+                foreach ($word as $kkk => $vvv) {
+                    if (is_integer($kkk)) {
                         throw new Data2Html_Exception(
-                            "{$this->culprit}: Option \"{$vvv}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                            "{$this->culprit}: Invalid usage of multiple keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                            [$pField, $kkk, $word]
+                        );
+                    }
+                    if (!in_array($kkk, $keyword['options'])) {
+                        throw new Data2Html_Exception(
+                            "{$this->culprit}: Option \"{$kkk}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
                             $pField
                         );
                     }
-                    if (!in_array($vvv, $newWord)) {
-                        array_push($newWord, $vvv);
-                    }
+                    $newWord[$kkk] = $vvv;
                 }
                 $word = $newWord;
             } else {
@@ -648,5 +648,25 @@ abstract class Data2Html_Model_Set
             }
         }
         $pField[$wordName] = $word;
+    }
+    
+    
+    public static function getVisualItems($lkItems) {
+        $visualItems = array();
+        foreach ($lkItems as $k => $v) {
+            if (!Data2Html_Value::getItem($v, 'virtual')) {
+                if (!is_int($k)) {
+                    $item = array();
+                    $visualItems[$k] = &$item;
+                    foreach (self::$visualWords as $w) {
+                        if (array_key_exists($w, $v)) {
+                            $item[$w] = $v[$w];
+                        }
+                    }
+                    unset($item);
+                }
+            }
+        }
+        return $visualItems;
     }
 }

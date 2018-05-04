@@ -47,6 +47,19 @@ class Data2Html_Model
         );
     }
   
+    public function dump($subject = null)
+    {
+        if (!$subject) {
+            $subject = [
+                'languages-priority' => $this->languages,
+                'literals' => $this->literals,
+                'fromFiles' => $this->fromFiles,
+            ];
+        }
+        Data2Html_Utils::dump($this->culprit, $subject);
+        return $this;
+    }
+    
     public function getId()
     {
         return $this->id;

@@ -11,9 +11,11 @@
     Data2Html_Autoload::start(__DIR__, '../_config/d2h_config.ini');
 
     try {
-        $templateObj = new Data2Html_Render_Template();
-        $templateObj->setTemplate($_REQUEST['templateName']);
-        $templateObj->dump();
+        Data2Html_Utils::dump(
+            'tree',
+            Data2Html_Render_fileContents::load($_REQUEST['templateName'])
+        );
+        Data2Html_Render_fileContents::dump();
     } catch(Exception $e) {
         echo Data2Html_Exception::toHtml($e, true);
     }

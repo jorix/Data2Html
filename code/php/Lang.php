@@ -8,7 +8,7 @@ class Data2Html_Lang
     private $fromFiles = null;
     private $literals = null;
     
-    public function __construct($language)
+    public function __construct($language, $folders)
     {
         $this->debug = Data2Html_Config::debug();
         $this->culprit = "Lang";
@@ -23,6 +23,14 @@ class Data2Html_Lang
         
         $this->literals = ['lang' => $language];
         $this->fromFiles = [];
+        
+        foreach($folders as $k => $v) {
+            if (is_integer($k)) {
+                $this->load('', Data2Html_Autoload::getCodeFolder() . $v);
+            } else {
+                $this->load($k, Data2Html_Autoload::getCodeFolder() . $v);
+            }
+        }
     }
 
     public function dump($subject = null)
@@ -63,7 +71,7 @@ class Data2Html_Lang
         }
     }
     
-    public function load($name, $folders)
+    private function load($name, $folders)
     {
         foreach(array_reverse($this->languages) as $v) {
             foreach((array)$folders as $vv) {
@@ -79,9 +87,7 @@ class Data2Html_Lang
     
     public static function jsCode($lang)
     {
-        $lang = new Data2Html_Lang($lang);
-        $lang->load('', Data2Html_Autoload::getCodeFolder() . '/_lang');
-        $lang->load('', Data2Html_Autoload::getCodeFolder() . '/../js');
+        $lang = new Data2Html_Lang($lang, ['/_lang', '/../js']);
         return "
             var __ = (function () {
             var literals = " . Data2Html_Value::toJson(
