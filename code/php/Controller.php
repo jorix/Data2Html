@@ -120,11 +120,10 @@ class Data2Html_Controller
                     Data2Html_Value::getItem($postData, ['d2h_data', 'data']),
                     Data2Html_Model_Set::getVisualItems($elem->getLinkedItems())
                 );
-                if (count($validation['errors']) > 0) {
+                if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
                     die(Data2Html_Value::toJson($validation));
                 }
-                $this->dump($validation); die();
                 $values = $validation['data'];
                 $keys = $Data2Html_Value::getItem($postData, ['d2h_data', '[keys]']);
                 $this->opUpdate($elem, $values, $keys);

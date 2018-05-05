@@ -153,6 +153,6 @@ class Data2Html_Controller_Validate
                 }
             }
         }
-        return ['data' => $outputData, 'errors' => $errors];
+        return ['data' => $outputData, 'user-errors' => $errors];
     }
 };

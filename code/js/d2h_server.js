@@ -267,33 +267,35 @@ var d2h_server = (function ($) {
                 error: function(jqXHR, textStatus, textError){
                     var response = true,
                         errorArray = _options.error,
-                        jsonError,
-                        userMessages,
-                        message = 'An error occurred executing a database action.';
+                        jsonError;
                     try {
                         jsonError = JSON.parse(jqXHR.responseText);
-                        if (jsonError['user-messages']) {
-                            userMessages = jsonError['user-messages'];
-                        }
                     } catch (e) {
                         jsonError = {
-                            'requested': {url:_settings.url, data:_options.data},
-                            'response-text': jqXHR.responseText
+                            'response-text-is-not-json': jqXHR.responseText
                         };
                     }
-                    console.log(jqXHR.status + ' ' + textError + ': ' + message, jsonError);
+                    var errorMessage = jqXHR.status + ' ' + textError;
+                    try {
+                        console.log(errorMessage, jsonError);
+                    } catch (e) {}
+                    if (jsonError['user-errors']) {
+                        if (d2h_display.showErrors(_this, jsonError['user-errors'])) {
+                            return false;
+                        }
+                    }
                     for (var i = 0, l = errorArray.length; i < l; i++) {
                         var error_ = errorArray[i];
                         if (error_) {
                             if (typeof error_ === "string") {
-                                response = _this.trigger(error_, [message, jsonError]);
+                                response = _this.trigger(error_, [errorMessage, jsonError]);
                             } else {
-                                response = error_.apply(_this, [message, jsonError]);
+                                response = error_.apply(_this, [errorMessage, jsonError]);
                             }
                             if (response === false) { return false; }
                         }
                     }
-                    alert(message);
+                    alert(errorMessage); // Notify the user since everything has failed
                 },
                 success: function(jsonData) {
                     var response = true
@@ -492,6 +494,8 @@ var d2h_server = (function ($) {
             if (this.components.filter) {
                 var dataFilter = d2h_values.validateServer(this.components.filter);
                 if (dataFilter === false) {
+                    this._rows = null;
+                    this.clearGrid();
                     return this;
                 }
                 data['d2h_filter'] = $.param(dataFilter).replace(/&/g, '{and}');

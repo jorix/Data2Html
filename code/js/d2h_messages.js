@@ -15,6 +15,7 @@ var d2h_messages = (function ($) {
     function _getInfoMessages(elemSelector) { 
         var elem = _getElement(elemSelector),
             response = $.data(elem, 'Data2Html_messages');
+            $(elem).addClass('d2h_has_messages')
         if (!response) {
             var fromId = $(elem).attr('data-d2h-from-id');
             if (fromId) {
@@ -108,20 +109,20 @@ var d2h_messages = (function ($) {
             }
             // show all messages for a element
             $.each(infoMessages.poppers, function() {
-                var $popper = $(this.popper),
-                    curClass = $popper.attr('data-d2h-message-class');
-                $popper
+                var $pElem = $(this.popper),
+                    curClass = $pElem.attr('data-d2h-message-class');
+                $pElem
                     .removeClass(curClass)
                     .attr('data-d2h-message-class', visualClass)
                     .addClass(visualClass);
                 if (message) {
-                    $('span', $popper).text(message);
+                    $('span', $pElem).text(message);
                 }
                 this.update();
-                $popper.show();
+                $pElem.show();
                 _timers.push(setTimeout(
                     function() {
-                        $popper.hide();
+                        $pElem.hide();
                     },
                     _options.messageTime
                 ));
@@ -129,7 +130,7 @@ var d2h_messages = (function ($) {
         }
     }
     
-    function _hide(elemSelector) {
+    function _clear(elemSelector) {
         var infoMessages = _getInfoMessages(elemSelector);
         if (infoMessages) {
             var timers = infoMessages.timers, 
@@ -141,6 +142,7 @@ var d2h_messages = (function ($) {
                 var $pElem = $(poppers[i].popper),
                     curClass = $pElem.attr('data-d2h-message-class');
                 $pElem.hide();
+                $('span', $pElem).text(''); // clear message text
                 if (curClass) {
                     $pElem.removeClass(curClass);
                 }
@@ -161,10 +163,9 @@ var d2h_messages = (function ($) {
         info: function(elemSelector, message) {
             _show(elemSelector, message, 'd2h-info');
         },
-        hide: _hide,
         clear: function(elemSelector) {
-            $('[data-d2h-message]', _getElement(elemSelector)).each(function() {
-                _hide(this);
+            $('.d2h_has_messages', _getElement(elemSelector)).each(function() {
+                _clear(this);
             });
         }
     };
