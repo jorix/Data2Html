@@ -759,7 +759,7 @@ var d2h_server = (function ($) {
             return this;
         },
         save: function(options) {
-            var data = d2h_values.validateServer(this, true);
+            var data = d2h_values.validateServer(this);
             if (data === false) {
                 return this;
             }

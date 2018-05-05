@@ -101,7 +101,9 @@ var d2h_messages = (function ($) {
     
     function _show(elemSelector, message, visualClass) {
         var infoMessages = _getInfoMessages(elemSelector);
-        if (infoMessages) {
+        if (!infoMessages) {
+            alert(message); // There is no element to show the message
+        } else {
             var _timers = infoMessages.timers;
             // cancel previous timers
             while (_timers.length > 0) {

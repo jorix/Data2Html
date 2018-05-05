@@ -92,13 +92,23 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $lkForm = $model->getLinkedElement($playerNames['element']);
-                $values = $postData['d2h_data'];
-                $newId = $this->opInsert($lkForm, $values);
+                $val = new Data2Html_Controller_Validate('ca');
+                $lkElem = $model->getLinkedElement($playerNames['element']);
+                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
+                $validation = $val->validateData(
+                    $postValues,
+                    Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
+                );
+                if (count($validation['user-errors']) > 0) {
+                    header('HTTP/1.0 401 Validation errors');
+                    die(Data2Html_Value::toJson($validation));
+                }
+                $values = $validation['data'];
+                $newId = $this->opInsert($lkElem, $values);
                 
                 // Get new keys
-                $lkItems = $lkForm->getLinkedItems();
-                $keyNames = $lkForm->getLinkedKeys();
+                $lkItems = $lkElem->getLinkedItems();
+                $keyNames = $lkElem->getLinkedKeys();
                 $keys = [];
                 foreach($keyNames as $k => $v) {
                     if (Data2Html_Value::getItem($lkItems, [$k, 'key']) === 'autoKey') {
@@ -114,26 +124,25 @@ class Data2Html_Controller
 
             case 'update':
                 $val = new Data2Html_Controller_Validate('ca');
-                $elem = $model->getLinkedElement($playerNames['element']);
-                
+                $lkElem = $model->getLinkedElement($playerNames['element']);
+                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
+                $keys = Data2Html_Value::getItem($postValues, '[keys]');
                 $validation = $val->validateData(
-                    Data2Html_Value::getItem($postData, ['d2h_data', 'data']),
-                    Data2Html_Model_Set::getVisualItems($elem->getLinkedItems())
+                    $postValues,
+                    Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
                     die(Data2Html_Value::toJson($validation));
                 }
-                $values = $validation['data'];
-                $keys = $Data2Html_Value::getItem($postData, ['d2h_data', '[keys]']);
-                $this->opUpdate($elem, $values, $keys);
+                $this->opUpdate($lkElem, $validation['data'], $keys);
                 break;
 
             case 'delete':
-                $values = $postData['d2h_data'];
-                $keys = $values['[keys]'];
-                unset($values['[keys]']);
-                $this->opDelete($model->getLinkedElement($playerNames['element']), $values, $keys);
+                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
+                $keys = Data2Html_Value::getItem($postValues, '[keys]');
+                unset($postValues['[keys]']);
+                $this->opDelete($model->getLinkedElement($playerNames['element']), $postValues, $keys);
                 break;
 
             default:

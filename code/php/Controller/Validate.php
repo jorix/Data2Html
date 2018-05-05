@@ -18,9 +18,7 @@ class Data2Html_Controller_Validate
     {
         if (!$subject) {
             $subject = [
-                'attributes' => $this->attributes,
-                'keys' => $this->keys,
-                'setItems' => $this->setItems
+                'emmty'
             ];
         }
         Data2Html_Utils::dump($this->culprit, $subject);
