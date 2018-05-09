@@ -17,7 +17,7 @@ class ControllerValidateTest extends \Codeception\Test\Unit
     }
 
     // tests
-    public function testSomeFeature()
+    public function testValidateValue()
     {
         $val = new Data2Html_Controller_Validate('dummy');
         $this->assertEquals('bill', $val->validateValue('x', ['required' => true]));
