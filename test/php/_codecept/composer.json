@@ -2,4 +2,7 @@
     "require-dev": {
         "codeception/codeception": "^2.4"
     }
+    "autoload": {
+        "files": ["../start-test.php"]
+    }
 }
