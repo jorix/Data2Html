@@ -18,14 +18,6 @@ $return = [
             'items' => [
                 [
                     'content-template' => 'button',
-                    'icon' => 'edit',
-                    'visualClassBody' => 'btn-default',
-                    'title' => '$Edit',
-                    'description' => null,
-                    'action' => 'show-edit'
-                ],
-                [
-                    'content-template' => 'button',
                     'icon' => 'duplicate',
                     'visualClassBody' => 'btn-default',
                     'title' => '$Copy',

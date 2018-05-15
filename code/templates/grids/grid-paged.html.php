@@ -14,7 +14,7 @@
                     $${page}
                 </td>
             </tr></tfoot>
-            <tbody><tr class="clickable" data-d2h-keys="${[keys]}">$${body}</tr></tbody>
+            <tbody><tr class="clickable" data-d2h-keys="${[keys]}" data-d2h-on="click:show-edit">$${body}</tr></tbody>
         </table>
     </div>
 </div>
