@@ -26,9 +26,9 @@ class Data2Html_Lang
         
         foreach($folders as $k => $v) {
             if (is_integer($k)) {
-                $this->load('', Data2Html_Autoload::getCodeFolder() . $v);
+                $this->load('', Data2Html\Autoload::getCodeFolder() . $v);
             } else {
-                $this->load($k, Data2Html_Autoload::getCodeFolder() . $v);
+                $this->load($k, Data2Html\Autoload::getCodeFolder() . $v);
             }
         }
     }
@@ -129,7 +129,7 @@ class Data2Html_Lang
         $literals = [];
         $files = [];
         foreach($regexKeys as $k) {
-            $file = Data2Html_Utils::str_removeStart(
+            $file = Data2Html_Utils::strRemoveStart(
                 Data2Html_Utils::toCleanFilePath($k, '/'),
                 $cleanForlder
             );

@@ -39,6 +39,78 @@ class Data2Html_Value
         return $result;
     }
     
+    protected static function toPhp($obj)
+    {
+        return toPhpStep($obj);
+    }
+    
+    protected static function toPhpStep($a, $level = 0)
+    {
+        $indent = '    ';
+        static $replaces = array(
+            array("\n",  "\t",  "\r",  "\b",  "\f",  "'"),
+            array('\\n', '\\t', '\\r', '\\b', '\\f', "\\'"),
+        );
+        if (is_null($a)) {
+            return 'null';
+        }
+        if ($a === false) {
+            return 'false';
+        }
+        if ($a === true) {
+            return 'true';
+        }
+        if (is_scalar($a)) {
+            if (is_float($a)) {
+                return str_replace(',', '.', strval($a));
+            }
+            if (is_numeric($a)) {
+                return $a;
+            }
+            if (is_string($a) &&
+                    substr($a, 0, 7) === '<?code ' &&
+                    substr($a, -2, 2) === '?>') {
+                return substr($a, 7, -2);
+            }
+
+            return "'".str_replace($replaces[0], $replaces[1], $a)."'";
+        }
+        if (is_callable($a)) {
+            return 'function() { ... }';
+        }
+        $isList = true;
+        for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
+            if (key($a) !== $i) {
+                $isList = false;
+                break;
+            }
+        }
+        $result = array();
+        if ($isList) {
+            foreach ($a as $v) {
+                $result[] = 
+                    "\n".str_repeat($indent, $level + 1) . 
+                    self::toPhpStep($v, $level + 1);
+            }
+            return 
+                '[ ' . implode(', ', $result) .
+                "\n" . str_repeat($indent, $level) . ']';
+        } else {
+            foreach ($a as $k => $v) {
+                $result[] =
+                    "\n".str_repeat($indent, $level + 1).
+                    self::toPhpStep($k).' => ' . self::toPhpStep($v, $level + 1);
+            }
+            if ($level > 0) {
+                return 
+                    '[ ' . implode(', ', $result) .
+                    "\n" . str_repeat($indent, $level) . ']';
+            } else {
+                return '[ '.implode(', ', $result)."\n];\n";
+            }
+        }
+    }
+    
     public static function getItem(&$array, $keys, $default = null)
     {
         if (!$keys) {

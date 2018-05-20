@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <?php
-    require_once("../code/php/Autoload.php");
-    Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+    require_once '_start.php';
 
     $render = Data2Html_Handler::createRender();
     $result = $render->render($_REQUEST, 'edit.php');

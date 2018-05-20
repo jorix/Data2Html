@@ -1,43 +1,66 @@
 <?php
-class Data2Html_Autoload
+// https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md
+namespace Data2Html;
+class Autoload
 {
     protected static $codeFolder;
     
     /**
      * Register autoload
      */
-    public static function start($baseFolder, $configFile)
+    public static function start()
     {
         if (version_compare(PHP_VERSION, '5.4.0', '<')) {
             die('<b>At least PHP 5.4 or PHP7 is required to run Data2Html</b>');
         }
-        self::$codeFolder = dirname(__FILE__) . DIRECTORY_SEPARATOR;
-        spl_autoload_register('self::autoload');
-        Data2Html_Config::load($baseFolder, $configFile);
+        self::$codeFolder = __DIR__ . DIRECTORY_SEPARATOR;
+        spl_autoload_register('self::load');
     }
     
     public static function getCodeFolder()
     {
         return self::$codeFolder;
     }
+    
     /**
-     * Auto load.
+     * Loads the class file for a given class name.
+     *
+     * @param string $class A class name.
      */
-    protected static function autoload($class)
+    protected static function load($class)
     {
-        #Not a Data2Html_% class
-        if (strpos($class, 'Data2Html_') !== 0) {
+        $classX = $class; 
+        $class = str_replace('_', '\\', $class);
+        
+        $prefix = 'Data2Html\\';
+        $len = strlen($prefix);
+        if (strncmp($prefix, $class, $len) !== 0) {
             return;
         }
-        $file = str_replace('Data2Html_', '', $class);
-        $file = str_replace('_', '/', $file).'.php';
-        $phisicalFile = self::$codeFolder . $file;
-        #Do not interfere with other autoloads
-        if (file_exists($phisicalFile)) {
-            require $phisicalFile;
+        $file = substr($class, $len);
+        $file = str_replace('\\', '/', $file).'.php';
+        if (!self::requireFile(self::$codeFolder . $file)) {
+            throw new \Exception(
+                "->autoload({$classX}): File \"{$file}\" does not exist in \"" . 
+                self::$codeFolder .
+                "\""
+            );
+        }
+    }
+    
+    /**
+     * If a file exists, require it from the file system.
+     *
+     * @param string $file Name of the file to require.
+     * @return bool True if file exists.
+     */
+    protected static function requireFile($file)
+    {
+        if (file_exists($file)) {
+            require $file;
+            return true;
         } else {
-            throw new Exception(
-                "->autoload({$class}): File \"{$file}\" does not exist in \"" . self::$codeFolder . "\"");
+            return false;
         }
     }
 }

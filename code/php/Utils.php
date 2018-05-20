@@ -44,7 +44,7 @@ class Data2Html_Utils
         }
     }
 
-    public static function str_removeStart($string, $start)
+    public static function strRemoveStart($string, $start)
     {
         if (strpos($string, $start) === 0) {
             return substr($string, strlen($start));
@@ -215,7 +215,7 @@ class Data2Html_Utils
         echo "</pre><hr>\n";
     }
 
-    public static function toPhp($a, $level = 0)
+    private static function toPhp($a, $level = 0)
     {
         $indent = '    ';
         static $replaces = array(

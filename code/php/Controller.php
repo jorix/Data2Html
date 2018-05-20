@@ -1,33 +1,32 @@
 <?php
-class Data2Html_Controller
+namespace Data2Html;
+use Data2Html\ExceptionData;
+use Data2Html\Controller\SqlSelect;
+use Data2Html\Data\Lot;
+use Data2Html\Data\To;
+
+class Controller
 {
+    use \Data2Html\Base;
+    
     protected $model;
     protected $db;
     protected $debug = false;
     public function __construct($model)
     {
-        $this->debug = Data2Html_Config::debug();
+        $this->debug = \Data2Html_Config::debug();
         $this->culprit = "Controler for \"{$model->getModelName()}\"";
         
         // Data base
-        $dbConfig = Data2Html_Config::getSection('db');
+        $dbConfig = \Data2Html_Config::getSection('db');
         $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
         $this->db = new $db_class($dbConfig);
 
         $this->model = $model;
     }
-
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = [];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
-    }
     
     public function manage($request)
     {
-
         $postData = array();
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
@@ -48,7 +47,7 @@ class Data2Html_Controller
                 $postData = json_decode(file_get_contents("php://input"), true);
                 break;
             default:
-                throw new Exception(
+                throw new \Exception(
                     "Server method {$serverMethod} is not supported."
                 );
         }
@@ -58,21 +57,21 @@ class Data2Html_Controller
     protected function oper($request, $postData)
     {
         $model = $this->model;
-        $r = new Data2Html_Collection($postData);
+        $r = new Lot($postData);
         $oper = $r->getString('d2h_oper', '');
-        $playerNames = Data2Html_Handler::parseRequest($request);
+        $playerNames = \Data2Html_Handler::parseRequest($request);
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
                 if (isset($playerNames['element'])) {
                     $lkForm = $model->getLinkedElement($playerNames['element']);
-                    return $this->opReadForm($lkForm, $r->getItem('d2h_keys'));
+                    return $this->opReadForm($lkForm, $r->get('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
                     $lkGrid = $model->getLinkedGrid($playerNames['grid']);
 
                     // Prepare sql
-                    $sqlObj = new Data2Html_Controller_SqlSelect(
+                    $sqlObj = new SqlSelect(
                         $this->db,
                         $lkGrid->getColumnsSet()
                     );
@@ -83,7 +82,7 @@ class Data2Html_Controller
                     $sqlObj->addSort($r->getString('d2h_sort'));
                     
                     // Response
-                    $page = $r->getCollection('d2h_page', array());
+                    $page = $r->getLot('d2h_page', array());
                     return $this->opRead(
                         $sqlObj->getSelect(),
                         $lkGrid->getColumnsSet(),
@@ -92,16 +91,16 @@ class Data2Html_Controller
                     );
                 }
             case 'insert':
-                $val = new Data2Html_Controller_Validate('ca');
+                $val = new \Data2Html_Controller_Validate('ca');
                 $lkElem = $model->getLinkedElement($playerNames['element']);
-                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
+                $postValues = Lot::getItem('d2h_data', $postData);
                 $validation = $val->validateData(
                     $postValues,
-                    Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
+                    \Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
-                    die(Data2Html_Value::toJson($validation));
+                    die(To::json($validation));
                 }
                 $values = $validation['data'];
                 $newId = $this->opInsert($lkElem, $values);
@@ -111,7 +110,7 @@ class Data2Html_Controller
                 $keyNames = $lkElem->getLinkedKeys();
                 $keys = [];
                 foreach($keyNames as $k => $v) {
-                    if (Data2Html_Value::getItem($lkItems, [$k, 'key']) === 'autoKey') {
+                    if (Lot::getItem([$k, 'key'], $lkItems) === 'autoKey') {
                         $keys[] = $newId + 0;
                     } else {
                         $keys[] = $values[$k];
@@ -123,30 +122,30 @@ class Data2Html_Controller
                 break;
 
             case 'update':
-                $val = new Data2Html_Controller_Validate('ca');
+                $val = new \Data2Html_Controller_Validate('ca');
                 $lkElem = $model->getLinkedElement($playerNames['element']);
-                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
-                $keys = Data2Html_Value::getItem($postValues, '[keys]');
+                $postValues = Lot::getItem('d2h_data', $postData);
+                $keys = Lot::getItem('[keys]', $postValues);
                 $validation = $val->validateData(
                     $postValues,
-                    Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
+                    \Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
-                    die(Data2Html_Value::toJson($validation));
+                    die(To::json($validation));
                 }
                 $this->opUpdate($lkElem, $validation['data'], $keys);
                 break;
 
             case 'delete':
-                $postValues = Data2Html_Value::getItem($postData, 'd2h_data');
-                $keys = Data2Html_Value::getItem($postValues, '[keys]');
+                $postValues = Lot::getItem('d2h_data', $postData);
+                $keys = Lot::getItem('[keys]', $postValues);
                 unset($postValues['[keys]']);
                 $this->opDelete($model->getLinkedElement($playerNames['element']), $postValues, $keys);
                 break;
 
             default:
-                throw new Exception("Oper '{$oper}' is not defined");
+                $this->error("Oper '{$oper}' is not defined");
                 break;
         }
         $response['success'] = 1;
@@ -159,7 +158,7 @@ class Data2Html_Controller
     protected function opReadForm($lkForm, $keys)
     {
         // Prepare sql
-        $sqlObj = new Data2Html_Controller_SqlSelect($this->db, $lkForm);
+        $sqlObj = new SqlSelect($this->db, $lkForm);
         $sqlObj->addFilterByKeys($keys);
         
         // Response
@@ -175,10 +174,10 @@ class Data2Html_Controller
         try {
             $pageSize = intval($pageSize);
             $pageStart = intval($pageStart);
-        } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
         };
-        $itemDx = new Data2Html_Collection();
+        $itemDx = new Lot();
         $lkColumns = $lkSet->getLinkedItems();
         $resTypes = array();
         $dbTypes = array();
@@ -187,12 +186,12 @@ class Data2Html_Controller
         $addValue = function($depth, $keyItem, $lkItem)
                     use(&$addValue, $lkColumns, &$values, &$teplateItems) {
             if ($depth > 10) {
-                throw new Data2Html_Exception(
+                throw new ExceptionData(
                     "{$this->culprit} getDbData::\$addValue(): Possible circular reference in \"{$keyItem}\" teplateItems.",
                     $lkItem
                 );
             }
-            $matches = Data2Html_Value::getItem($lkItem, 'teplateItems');
+            $matches = Lot::getItem('teplateItems', $lkItem);
             if ($matches) {
                 foreach ($matches as $v) {
                     $ref = $v['ref'];
@@ -243,7 +242,7 @@ class Data2Html_Controller
                         } elseif (array_key_exists($ref, $valueRow)) {
                             $value = $valueRow[$ref];
                         } else {
-                            throw new Data2Html_Exception(
+                            throw new ExceptionData(
                                 "{$this->culprit} getDbData(): Reference \"{$ref}\" is neither db field nor value.",
                                 array('dbRow' => $dbRow, 'valueRow' => $valueRow)
                             );
@@ -305,11 +304,11 @@ class Data2Html_Controller
         $this->db->startTransaction();
         try {
             $result = $lkSet->dbInsert($this->db, $values, $newId);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(Data2Html_Value::toJson(
-                Data2Html_Exception::toArray($e, $this->debug)
+            die(To::json(
+                ExceptionData::toArray($e, $this->debug)
             ));
         }
         if ($result === false) {
@@ -327,11 +326,11 @@ class Data2Html_Controller
         $this->db->startTransaction();
         try {
             $result = $lkSet->dbUpdate($this->db, $values, $keys);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(Data2Html_Value::toJson(
-                Data2Html_Exception::toArray($e, $this->debug)
+            die(To::json(
+                ExceptionData::toArray($e, $this->debug)
             ));
         }
         if ($result === false) {
@@ -349,11 +348,11 @@ class Data2Html_Controller
         $this->db->startTransaction();
         try {
             $result = $lkSet->dbDelete($this->db, $values, $keys);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(Data2Html_Value::toJson(
-                Data2Html_Exception::toArray($e, $this->debug)
+            die(To::json(
+                ExceptionData::toArray($e, $this->debug)
             ));
         }
         if ($result === false) {

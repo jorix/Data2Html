@@ -24,15 +24,12 @@ class Data2Html_Handler
         try {
             $payerNames = self::parseRequest($request);
             $model = self::getModel($payerNames['model']);
-            $controller = new Data2Html_Controller($model);
+            $controller = new Data2Html\Controller($model);
             Data2Html_Utils::responseJson($controller->manage($request), $debug);
         } catch(Exception $e) {
             // Message to user
-            if ($e instanceof Data2Html_Exception_User) {
-                header('HTTP/1.1 409 Conflict');
-            } else {
-                header('HTTP/1.1 500 Error');
-            }
+            // header('HTTP/1.1 409 Conflict');
+            header('HTTP/1.1 500 Error');
             Data2Html_Utils::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
         }
     }
