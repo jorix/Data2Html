@@ -1,5 +1,5 @@
 <?php 
-$return = [
+return [
     'filter' => [
         'template' =>   'filter-man.html.php',
         'endItems' =>   'filter-man.buttons.php',

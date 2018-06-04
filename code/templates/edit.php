@@ -1,5 +1,5 @@
 <?php
-$return = function($replaces) {
+return function($replaces) {
     $rx = new Data2Html_Collection($replaces, true); // Required
     
     $modelName = $rx->getString('model');

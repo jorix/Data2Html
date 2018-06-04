@@ -1,23 +1,18 @@
 <?php
 namespace Data2Html\Controller;
 
+use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 
 class SqlSelect
 {
-    use \Data2Html\Base;
-    
-    protected $culprit = '';
-    protected $debug = false;
+    use \Data2Html\Debug;
     
     protected $db;
     protected $linkedSet;
     protected $result = array();
 
     public function __construct($db, $linkedSet) {
-        $this->debug = \Data2Html_Config::debug();
-        $this->culprit = "SqlSelect for " . $linkedSet->getCulprit();
-        
         $this->db = $db;
         $this->linkedSet = $linkedSet;
         
@@ -113,7 +108,7 @@ class SqlSelect
         }
         $keys = $this->linkedSet->getLinkedKeys();
         if (count($request) !== count($keys)) {
-            $this->error("Requested keys not match number of keys.", [
+            throw new DebugException("Requested keys not match number of keys.", [
                 'keys' => $keys,
                 'request' => $request
             ]);
@@ -129,7 +124,7 @@ class SqlSelect
                 array_push($c, "{$refDb} is null");
             } else {
                 if (!array_key_exists('type', $lkColumns[$baseName])) {
-                    $this->error("Requested key withot type.", [
+                    throw new DebugException("Requested key withot type.", [
                         'baseName' => $baseName,
                         'item' => $lkColumns[$baseName]
                     ]);
@@ -159,8 +154,7 @@ class SqlSelect
                 continue;
             }
             if (!array_key_exists($k, $filterItems)) {
-                throw new \Data2Html_Exception(
-                    "{$this->culprit} getWhere(): Requested filter field '{$k}' not found on filter definition.",
+                throw new DebugException("Requested filter field '{$k}' not found on filter definition.",
                     $filterItems
                 );
             }
@@ -186,8 +180,7 @@ class SqlSelect
                     }
                     break;
                 default:
-                throw new \Data2Html_Exception(
-                    "{$this->culprit} getWhere(): Check '{$check}' on '{$k}' not supported.",
+                throw new DebugException("Check '{$check}' on '{$k}' not supported.",
                     array(
                         'request' => $request,
                         'filterItems' => $filterItems
@@ -220,8 +213,7 @@ class SqlSelect
         }
         $sortBy = \Data2Html_Value::getItem($columns, array($baseName, 'sortBy', 'items'));
         if (!$sortBy) {
-            throw new \Data2Html_Exception(
-                "{$this->culprit} getOrderBy(): Requested sort field '{$baseName}' not found or don't have sortBy .",
+            throw new DebugException("Requested sort field '{$baseName}' not found or don't have sortBy .",
                 $columns
             );
         }

@@ -1,5 +1,5 @@
 <?php
-$return = [
+return [
     'display' => [
         'saved' =>          "S'ha guardat correctament",
         'save-error' =>     "ERROR: No s'ha pogut guardar!",

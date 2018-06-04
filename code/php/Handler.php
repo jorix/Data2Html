@@ -1,4 +1,12 @@
-<?php
+<?p
+namespace Data2Html;
+
+use Data2Html\DebugException;
+use Data2Html\Controller\SqlSelect;
+use Data2Html\Data\Lot;
+use Data2Html\Data\To;
+use Data2Html\Data\Response;
+
 /**
  * Nomenclature
  *  * Variable name suffixes:
@@ -20,17 +28,16 @@ class Data2Html_Handler
      */    
     public static function manage($request)
     {
-        $debug = Data2Html_Config::debug();
         try {
             $payerNames = self::parseRequest($request);
             $model = self::getModel($payerNames['model']);
-            $controller = new Data2Html\Controller($model);
-            Data2Html_Utils::responseJson($controller->manage($request), $debug);
+            $controller = new Controller($model);
+            Response::json($controller->manage($request));
         } catch(Exception $e) {
             // Message to user
             // header('HTTP/1.1 409 Conflict');
             header('HTTP/1.1 500 Error');
-            Data2Html_Utils::responseJson(Data2Html_Exception::toArray($e, $debug), $debug);
+            Response::json(DebugException::toArray($e));
         }
     }
  
@@ -44,7 +51,7 @@ class Data2Html_Handler
             $model = self::getModel($payerNames['model']);            
         } catch(Exception $e) {
             // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            echo DebugException::toHtml($e);
             exit();
         }
         $render = self::createRender();
@@ -61,10 +68,10 @@ class Data2Html_Handler
     public static function createRender()
     {
         try {
-            return new Data2Html_Render();
+            return new Render();
         } catch(Exception $e) {
             // Message to user            
-            echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+            echo DebugException::toHtml($e);
             exit();
         }
     }
@@ -80,10 +87,10 @@ class Data2Html_Handler
         }
         if (!array_key_exists($modelName, self::$modelObjects)) {
             try {
-                self::$modelObjects[$modelName] = new Data2Html_Model($modelName);
+                self::$modelObjects[$modelName] = new Model($modelName);
             } catch(Exception $e) {
                 // Is assumed is called from a view, so message on html        
-                echo Data2Html_Exception::toHtml($e, Data2Html_Config::debug());
+                echo DebugException::toHtml($e);
                 exit();
             }
         }
@@ -93,7 +100,7 @@ class Data2Html_Handler
     public static function parseRequest($request) 
     {
         if (!array_key_exists('model', $request)) {
-            throw new Data2Html_Exception(
+            throw new DebugExecption(
                 'The URL parameter `?model=` is not set.',
                 $request
             );
@@ -120,8 +127,8 @@ class Data2Html_Handler
         try {
             parse_str('model=' . $linkText, $reqArr);
             return self::parseRequest($reqArr);
-        } catch(Exception $e) {
-            throw new Exception("Link \"{$linkText}\" can't be parsed.");
+        } catch(\Exception $e) {
+            throw new \Exception("Link \"{$linkText}\" can't be parsed.");
         }
     }
 }

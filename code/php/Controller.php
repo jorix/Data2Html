@@ -1,22 +1,19 @@
 <?php
 namespace Data2Html;
-use Data2Html\ExceptionData;
+
+use Data2Html\DebugException;
 use Data2Html\Controller\SqlSelect;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
 
 class Controller
 {
-    use \Data2Html\Base;
+    use \Data2Html\Debug;
     
     protected $model;
     protected $db;
-    protected $debug = false;
     public function __construct($model)
     {
-        $this->debug = \Data2Html_Config::debug();
-        $this->culprit = "Controler for \"{$model->getModelName()}\"";
-        
         // Data base
         $dbConfig = \Data2Html_Config::getSection('db');
         $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
@@ -145,7 +142,7 @@ class Controller
                 break;
 
             default:
-                $this->error("Oper '{$oper}' is not defined");
+                throw new DebugException("Oper '{$oper}' is not defined");
                 break;
         }
         $response['success'] = 1;
@@ -186,8 +183,8 @@ class Controller
         $addValue = function($depth, $keyItem, $lkItem)
                     use(&$addValue, $lkColumns, &$values, &$teplateItems) {
             if ($depth > 10) {
-                throw new ExceptionData(
-                    "{$this->culprit} getDbData::\$addValue(): Possible circular reference in \"{$keyItem}\" teplateItems.",
+                throw new DebugException(
+                    "Possible circular reference in \"{$keyItem}\" teplateItems.",
                     $lkItem
                 );
             }
@@ -242,10 +239,10 @@ class Controller
                         } elseif (array_key_exists($ref, $valueRow)) {
                             $value = $valueRow[$ref];
                         } else {
-                            throw new ExceptionData(
-                                "{$this->culprit} getDbData(): Reference \"{$ref}\" is neither db field nor value.",
-                                array('dbRow' => $dbRow, 'valueRow' => $valueRow)
-                            );
+                            throw new DebugException("Reference \"{$ref}\" is neither db field nor value.", [
+                                'dbRow' => $dbRow,
+                                'valueRow' => $valueRow
+                            ]);
                         }
                         $valueRow[$k] = str_replace($kk, $value, $valueRow[$k]);
                         $allIsNull = $allIsNull && is_null($value);
@@ -273,7 +270,7 @@ class Controller
         $this->db->closeQuery($result);
         
         $response = array();
-        if ($this->debug) {
+        if (Config::debug()) {
             $response['debug'] = array(
                 'sql' => explode("\n", $query),
                 'keys' => $lkSet->getLinkedKeys(),
@@ -307,9 +304,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(
-                ExceptionData::toArray($e, $this->debug)
-            ));
+            die(To::json(DebugException::toArray($e)));
         }
         if ($result === false) {
             $this->db->rollback();
@@ -329,9 +324,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(
-                ExceptionData::toArray($e, $this->debug)
-            ));
+            die(To::json(DebugException::toArray($e)));
         }
         if ($result === false) {
             $this->db->rollback();
@@ -351,9 +344,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(
-                ExceptionData::toArray($e, $this->debug)
-            ));
+            die(To::json(DebugException::toArray($e)));
         }
         if ($result === false) {
             $this->db->rollback();

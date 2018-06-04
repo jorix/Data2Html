@@ -1,35 +1,59 @@
 <?php
+namespace Data2Html\Render;
 
-class Data2Html_Render_FileContents
+class FileContents
 {
+    use \Data2Html\Debug;
+    
     // 0 => file-info, 1 => file content, 2 => resolved content, "xx" => translated to "xx"
-    private static $templateContents = [];
+    protected $templateContents = [];
     
     // Configured template folders
-    private static $folders;
+    protected $folders;
     
-    public static function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = [];
-            foreach(self::$templateContents as $k => $v) {
-                $subject[$k] = $v[0][0];
-            }
-        }
-        Data2Html_Utils::dump(get_called_class(), $subject);
-    }
+    protected $obj;
     
     public static function load($templateName)
     {
-        if (count(self::$folders) === 0) {
+        if ($obj) {
             self::$folders = array_reverse(
-                (array)Data2Html_Config::getForlder('templateFolder')
+                (array)Config::getForlder('templateFolder')
             );
         }
         return self::readTemplateTreeFile($templateName . '.php');
     }
+
+    public static function get($filePath, $lang = null) {
+        if (count(self::$folders) === 0) {
+            self::$folders = array_reverse(
+                (array)Config::getForlder('templateFolder')
+            );
+        }
+        return self::getContent(
+            self::loadContent($filePath), $lang
+        );
+    }
+
+    public static function getContent($filePath, $lang = null) {
+        return self::single->getContentFile($filePath, $lang);
+    }
     
-    private static function readTemplateTreeFile($fileName)
+    public function __construct($folders)
+    {
+        $this->folders = array_reverse(
+            (array)Config::getForlder('templateFolder')
+        );
+    }
+    
+    public function __debugInfo()
+        $subject = [];
+        foreach($this->templateContents as $k => $v) {
+            $subject[$k] = $v[0][0];
+        }
+        reuturn $subject;
+    }
+    
+    protected function readTemplateTreeFile($fileName)
     {
         $filePath = Data2Html_Utils::toCleanFilePath($fileName);
         
@@ -37,17 +61,17 @@ class Data2Html_Render_FileContents
         $tree = self::readArrayFile($filePath);
         
         // Resolved tree
-        if (!array_key_exists(2, self::$templateContents[$filePath])) {
+        if (!array_key_exists(2, $this->templateContents[$filePath])) {
             $resolvedTree = self::loadTemplateTree(
                 Data2Html_Utils::toCleanFolderPath(dirname($fileName)),
                 $tree
             );
-            self::$templateContents[$filePath][2] = $resolvedTree;
+            $this->templateContents[$filePath][2] = $resolvedTree;
         }
-        return self::$templateContents[$filePath][2];
+        return $this->templateContents[$filePath][2];
     }
     
-    private static function loadTemplateTree($folder, $tree)
+    protected function loadTemplateTree($folder, $tree)
     {
         if (array_key_exists('folder', $tree)) {
             $folder = Data2Html_Utils::toCleanFolderPath($folder . $tree['folder']);
@@ -99,9 +123,9 @@ class Data2Html_Render_FileContents
         return $response;
     }
     
-    private static function readArrayFile($filePath)
+    protected function readArrayFile($filePath)
     {
-        $response = self::getContent(self::loadContent($filePath));
+        $response = self::getContentFile(self::loadContent($filePath));
         if (!is_array($response)) {
             throw new Data2Html_Exception(
                 get_called_class() .
@@ -112,21 +136,21 @@ class Data2Html_Render_FileContents
         return $response;
     }
 
-    private static function readFolderTemplates($baseFolder, $folders)
+    protected function readFolderTemplates($baseFolder, $folders)
     {
         $templates = [];
         foreach ((array)$folders as $v) {
-            $templates += self::getContent(self::loadFolderHtml($baseFolder . $v));
+            $templates += self::getContentFile(self::loadFolderHtml($baseFolder . $v));
         }
         return ['templates' => $templates];
     }
     
     
     // =======================================================================
-    private static function loadFolderHtml($folderPath)
+    protected function loadFolderHtml($folderPath)
     {
         $folderPath = Data2Html_Utils::toCleanFilePath($folderPath);
-        if (!array_key_exists($folderPath, self::$templateContents)) {
+        if (!array_key_exists($folderPath, $this->templateContents)) {
             $htmlFiles = [];
             foreach(self::$folders as $v) {
                 $fullFolder = Data2Html_Utils::toCleanFilePath($v . $folderPath);
@@ -153,7 +177,7 @@ class Data2Html_Render_FileContents
                     }
                 }
             }
-            self::$templateContents[$folderPath] = [
+            $this->templateContents[$folderPath] = [
                 0 => Data2Html_Utils::parseWrappedPath($folderPath),
                 1 => $htmlFiles
             ];
@@ -161,7 +185,7 @@ class Data2Html_Render_FileContents
         return $folderPath;
     }
     
-    private static function loadTemplateFile($filePath)
+    protected function loadTemplateFile($filePath)
     {
         $filePath = self::loadContent($filePath);
         $fileType = self::getFileType($filePath);
@@ -191,10 +215,10 @@ class Data2Html_Render_FileContents
         return $response;
     }
 
-    private static function loadContent($filePath, $required = true)
+    protected function loadContent($filePath, $required = true)
     {
         $filePath = Data2Html_Utils::toCleanFilePath($filePath);
-        if (!array_key_exists($filePath, self::$templateContents)) {
+        if (!array_key_exists($filePath, $this->templateContents)) {
             $loaded = false;
             foreach(self::$folders as $k => $v) {
                 $pathObj = Data2Html_Utils::parseWrappedPath(
@@ -208,10 +232,10 @@ class Data2Html_Render_FileContents
                     $fullFile .= '.php';
                 } 
                 if (file_exists($fullFile)) {
-                    self::$templateContents[$filePath] = [
+                    $this->templateContents[$filePath] = [
                         0 => Data2Html_Utils::parseWrappedPath($fullFile)
                     ];
-                    self::$templateContents[$filePath][0]['conf-index'] = 
+                    $this->templateContents[$filePath][0]['conf-index'] = 
                         count(self::$folders) - (1 + $k);
                     $loaded = true;
                     break;
@@ -231,45 +255,34 @@ class Data2Html_Render_FileContents
         return $filePath;
     }
     
-    private static function getFileType($filePath) {
-        if (!array_key_exists($filePath, self::$templateContents)) {
+    protected function getFileType($filePath) {
+        if (!array_key_exists($filePath, $this->templateContents)) {
             throw new Data2Html_Exception(
                 "File \"{$filePath}\" is yet not loaded.",
                 $filePath
             );
         }
-        return self::$templateContents[$filePath][0]['extension'];
+        return $this->templateContents[$filePath][0]['extension'];
     }
-    
-    public static function get($filePath, $lang = null) {
-        if (count(self::$folders) === 0) {
-            self::$folders = array_reverse(
-                (array)Data2Html_Config::getForlder('templateFolder')
-            );
-        }
-        return self::getContent(
-            self::loadContent($filePath), $lang
-        );
-    }
-    
-    public static function getContent($filePath, $lang = null) {
-        if (!array_key_exists($filePath, self::$templateContents)) {
+
+    protected function getContentFile($filePath, $lang = null) {
+        if (!array_key_exists($filePath, $this->templateContents)) {
             throw new Data2Html_Exception(
                "File \"{$filePath}\" is not yet loaded.",
                 $filePath
             );
         }
         
-        $contentItem = self::$templateContents[$filePath];
-        if (!array_key_exists(1, self::$templateContents[$filePath])) {
-            $pathObj = self::$templateContents[$filePath][0];
+        $contentItem = $this->templateContents[$filePath];
+        if (!array_key_exists(1, $this->templateContents[$filePath])) {
+            $pathObj = $this->templateContents[$filePath][0];
             
             $fileName = $pathObj[0];
             $fileNameDebug = "config=>templateFolder[{$pathObj['conf-index']}]/\"{$filePath}\"";
             switch ($pathObj['extension']) {
             case '.html':
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
-                if (Data2Html_Config::debug()) {
+                if (Config::debug()) {
                     $content = 
                         "\n<!-- debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[ -->\n" .
                         $content .
@@ -278,7 +291,7 @@ class Data2Html_Render_FileContents
                 break;
             case '.js':
                 $content = Data2Html_Utils::readWrappedFile($fileName, get_called_class());
-                if (Data2Html_Config::debug()) {
+                if (Config::debug()) {
                     $content = 
                         "\n// debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[\n" .
                         $content .
@@ -294,17 +307,17 @@ class Data2Html_Render_FileContents
             default:
                 throw new Exception("Extension \"{$pathObj['extension']}\" on definitions name \"{$fileName}\" is not supported.");
             }
-            self::$templateContents[$filePath][1] = $content;
+            $this->templateContents[$filePath][1] = $content;
         }
-        if ($lang && !array_key_exists($lang, self::$templateContents[$filePath])) {
+        if ($lang && !array_key_exists($lang, $this->templateContents[$filePath])) {
             // TODO
-            self::$templateContents[$filePath][$lang] = self::$templateContents[$filePath][1];
+            $this->templateContents[$filePath][$lang] = $this->templateContents[$filePath][1];
         } 
         
         if ($lang) {
-            return self::$templateContents[$filePath][$lang];
+            return $this->templateContents[$filePath][$lang];
         } else {
-            return self::$templateContents[$filePath][1];
+            return $this->templateContents[$filePath][1];
         }
     }
 }    

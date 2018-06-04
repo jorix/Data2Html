@@ -1,5 +1,5 @@
 <?php
-$return = [
+return [
     'items' => [
         [
             'layout-template' => 'no_label',

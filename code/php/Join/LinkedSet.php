@@ -1,23 +1,18 @@
 <?php
-class Data2Html_Join_LinkedSet
+namespace Data2Html\Join;
+
+class LinkedSet
 {
     // Internal use
     private $linkName;
     private $link;
     private $set;
     
-    // Private generic
-    private $culprit = '';
-    private $debug = false;
-    
     public function __construct($set, $linkName = '', $link = null)
     {
-        $this->debug = Data2Html_Config::debug();
-        $this->culprit = "Linked {$set->getCulprit()}";
-        
         if (!$link) {
             $linkName = 'main';
-            $this->link = new Data2Html_Join_Link($this->culprit, $set);
+            $this->link = new LinkUp($set);
         } else {
             $link->add($linkName, $set->getItems());
             $this->link = $link;
@@ -26,28 +21,10 @@ class Data2Html_Join_LinkedSet
         
         $this->set = $set;
     }
-    
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = [
-                'attributes' => $this->getLinkedFrom(),
-                'keys' => $this->getLinkedKeys(),
-                'setItems' => $this->getLinkedItems()
-            ];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
-        return $this;
-    }
-    
+
     // -----------------------
     // Methods from set
     // -----------------------
-    public function getCulprit()
-    {
-        return $this->culprit;
-    }
-    
     public function getId()
     {
         return $this->set->getId();
@@ -178,7 +155,7 @@ class Data2Html_Join_LinkedSet
                         break;
                     default:
                         throw new Exception(
-                            "{$this->culprit}: \"{$eventName}\" defined with incorrect number of arguments=" . count($args)
+                            "\"{$eventName}\" defined with incorrect number of arguments=" . count($args)
                         );  
                 }
             }

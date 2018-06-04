@@ -1,6 +1,7 @@
 <?php
 // https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader-examples.md
 namespace Data2Html;
+
 class Autoload
 {
     protected static $codeFolder;
@@ -29,9 +30,6 @@ class Autoload
      */
     protected static function load($class)
     {
-        $classX = $class; 
-        $class = str_replace('_', '\\', $class);
-        
         $prefix = 'Data2Html\\';
         $len = strlen($prefix);
         if (strncmp($prefix, $class, $len) !== 0) {
@@ -41,7 +39,7 @@ class Autoload
         $file = str_replace('\\', '/', $file).'.php';
         if (!self::requireFile(self::$codeFolder . $file)) {
             throw new \Exception(
-                "->autoload({$classX}): File \"{$file}\" does not exist in \"" . 
+                "->autoload({$class}): File \"{$file}\" does not exist in \"" . 
                 self::$codeFolder .
                 "\""
             );

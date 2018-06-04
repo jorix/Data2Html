@@ -1,21 +1,18 @@
 <?php
-use Data2Html_Render_FileContents as _contents;
+namespace Data2Html\Render;
 
-class Data2Html_Render_Templates
+class Templates
 {
+    use \Data2Html\Debug;
+
     private static $renderCount = 0;
-    
-    public static function dump($subject = null)
-    {
-        Data2Html_Utils::dump(get_called_class(), $subject);
-    }
     
     public static function apply($template, $replaces)
     {
         if (is_callable($template)) {
             return $template($replaces);
         } elseif (array_key_exists('html', $template)) {
-            $html = _contents::getContent($template['html']);
+            $html = FileContents::getContent($template['html']);
         } else {
             $html = '';
         }
@@ -44,7 +41,7 @@ class Data2Html_Render_Templates
         }
         if (array_key_exists('js', $template)) {
             $js = self::renderJs(
-                _contents::getContent($template['js']),
+                FileContents::getContent($template['js']),
                 $finalReplaces,
                 false
             ) . $js;

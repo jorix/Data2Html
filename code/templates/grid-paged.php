@@ -1,5 +1,5 @@
 <?php 
-$return = [
+return [
     'grid' => [
         'template' => 'grids/grid-paged.html.php',
         'include' => 'grids/grid-elements.php'

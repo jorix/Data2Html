@@ -1,30 +1,17 @@
 <?php
+namespace Data2Html\Controller;
 
-class Data2Html_Controller_Validate
+class Validate
 {
+    use \Data2Html\Debug;
+    
     private $langObj;
     
-    // Private generic
-    private $culprit = '';
-    private $debug = false;
-    
     public function __construct($lang) {
-        $this->culprit = 'Validate()';
         
         $this->langObj = new Data2Html_Lang($lang, ['/_lang', '/../js']);
     }
-    
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = [
-                'emmty'
-            ];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
-        return $this;
-    }
-    
+
     public function __($key)
     {
         return $this->langObj->_($key);
@@ -142,7 +129,7 @@ class Data2Html_Controller_Validate
                 } else {
                     $valItem = $this->validateValue(
                         $v,
-                        Data2Html_Value::getItem($visualData, $iName)
+                        Lot::getItem($iName, $visualData)
                     );
                     $outputData[$iName] = $valItem['value'];
                     if (array_key_exists('errors', $valItem)) {

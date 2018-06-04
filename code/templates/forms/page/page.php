@@ -1,5 +1,5 @@
 <?php 
-$return = [
+return [
     'page' => [
         'folder' => './',
         'template' =>   'page.html.php',

@@ -2,8 +2,6 @@
 class Data2Html_Join_LinkedGrid
 {
     protected $gridName = '';
-    protected $culprit = '';
-    protected $debug = false;
     
     protected $model = null;
     protected $columns = null;
@@ -12,10 +10,6 @@ class Data2Html_Join_LinkedGrid
     
     public function __construct($model, $gridName, $defs)
     {
-        $this->debug = Data2Html_Config::debug();
-        $this->culprit =
-            "d2h_Grid for \"{$model->getModelName()}->{$gridName}\"";
-        
         $this->model = $model;
         $this->gridName = $gridName;
       
@@ -42,20 +36,6 @@ class Data2Html_Join_LinkedGrid
             );
         }
     }
-    
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $this->columns->dump();
-            if ($this->filter) {
-                $this->filter->dump();
-            }
-            $this->columns->getBase()->dump();
-        } else {
-            Data2Html_Utils::dump($this->culprit, $subject);
-        }
-    }
-    
     
     public function getId()
     {

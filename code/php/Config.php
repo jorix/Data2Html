@@ -1,8 +1,10 @@
 <?php
+namespace Data2Html;
 
-class Data2Html_Config
+use Data2Html\Data\InfoFile;
+
+class Config
 {
-    protected static $debug = false;
     protected static $config = array();
     protected static $configPath = null;
     protected static $configFolder = null;
@@ -12,26 +14,12 @@ class Data2Html_Config
         if (self::$configFolder) {
             return;
         }
-        self::$configPath = Data2Html_Utils::toCleanFilePath(dirname($fileName), '/' ) . '/' ;
-        self::$configFolder = Data2Html_Utils::toCleanFolderPath(
+        self::$configPath = InfoFile::toCleanFilePath(dirname($fileName), '/' ) . '/' ;
+        self::$configFolder = InfoFile::toCleanFolderPath(
             $basePath . '/' . dirname($fileName)
         );
         self::loadFile($fileName);
         self::$debug = self::get('debug');
-    }
-    
-    public static function dump($subject = null)
-    {
-        if(!$subject) {
-            $subject = array(
-                'configPath' => self::$configPath,
-                'configFolder' => self::$configFolder,
-                'controllerUrl' => self::getPath('controllerUrl'),
-                'templateFolder' => self::getForlder('templateFolder'),
-                'config' => self::$config
-            );
-        }
-        Data2Html_Utils::dump("Data2Html_Config", $subject);
     }
     
     public static function debug() {
@@ -51,7 +39,7 @@ class Data2Html_Config
     {
         $val = self::get($key, $default, $sectionKey);
         if ($val) {
-            return Data2Html_Utils::toCleanFilePath(self::$configPath . $val, '/');
+            return InfoFile::toCleanFilePath(self::$configPath . $val, '/');
         } else {
             return $val;
         }
@@ -64,11 +52,11 @@ class Data2Html_Config
             if (is_array($val)) {
                 $response = [];
                 foreach ($val as $v) {
-                    $response[] = Data2Html_Utils::toCleanFolderPath(self::$configFolder . $v);
+                    $response[] = InfoFile::toCleanFolderPath(self::$configFolder . $v);
                 }
                 return $response;
             } else {
-                return Data2Html_Utils::toCleanFolderPath(self::$configFolder . $val);
+                return InfoFile::toCleanFolderPath(self::$configFolder . $val);
             }
         } else {
             return $val;

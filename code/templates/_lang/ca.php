@@ -1,5 +1,5 @@
 <?php
-$return = [
+return [
     'forms' => ['page' => [
         'next-page' => 'Següent',
         'nitro' => 'larus',

@@ -5,12 +5,13 @@
  *      * ..vDx: Definitions as a `Data2Html_Collection`.
  *      * ..Ds: Definitions as a array.
  */
- 
-class Data2Html_Model
+namespace Data2Html;
+
+class Model
 {
-    protected $debug = false;
+    use \Data2Html\Debug;
+    
     protected $modelName = '';
-    protected $culprit = '';
     
     // original definitions
     private $definitions = null;
@@ -34,9 +35,7 @@ class Data2Html_Model
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
 
-        $this->debug = Data2Html_Config::debug();
         $this->modelName = $modelName;
-        $this->culprit = "Model \"{$this->modelName}\"";
         
         $this->id = 'd2h_' . ++self::$idModelCount;
         $this->definitions = Data2Html_Utils::readFilePhp(
@@ -47,17 +46,13 @@ class Data2Html_Model
         );
     }
   
-    public function dump($subject = null)
+    public function __debugInfo()
     {
-        if (!$subject) {
-            $subject = [
-                'languages-priority' => $this->languages,
-                'literals' => $this->literals,
-                'fromFiles' => $this->fromFiles,
-            ];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
-        return $this;
+        return [
+            'languages-priority' => $this->languages,
+            'literals' => $this->literals,
+            'fromFiles' => $this->fromFiles,
+        ];
     }
     
     public function getId()
@@ -136,14 +131,14 @@ class Data2Html_Model
                 $objDf = array();
             } else {
                 throw new Data2Html_Exception(
-                    "{$this->culprit}: \"{$name}\" not exist on \"{$setName}\" definitions.",
+                    "\"{$name}\" not exist on \"{$setName}\" definitions.",
                     $this->definitions
                 );
             }
         }
         if ($objDf === null) {
             throw new Data2Html_Exception(
-                "{$this->culprit}: \"{$name}\" not be used as \"{$setName}\" definition, is null.",
+                "\"{$name}\" not be used as \"{$setName}\" definition, is null.",
                 $this->definitions
             );
         }

@@ -1,5 +1,5 @@
 <?php 
-$return = [
+return [
     'filter' => [
         'template' =>   'filter-auto.html.php',
         'includes' =>   '../assign-template.php',

@@ -1,7 +1,16 @@
 <?php
-//abstract 
-abstract class Data2Html_Model_Set
+//abstract
+namespace Data2Html\Model;
+
+use Data2Html\DebugException;
+use Data2Html\Data\InfoFile;
+use Data2Html\Data\Lot;
+use Data2Html\Data\To;
+ 
+abstract class Set
 {
+    use \Data2Html\Debug;
+        
     protected $attributeNames = [];
     protected $wordsAlias = [];
     protected $keywords = [];
@@ -9,9 +18,6 @@ abstract class Data2Html_Model_Set
     protected $setItems = null;
 
     // Private generic
-    private $culprit = '';
-    private $debug = false;
-    
     private $id = '';
     private $fNamePrefix = '';
     private $fNameCount = 0;
@@ -107,21 +113,14 @@ abstract class Data2Html_Model_Set
         $setName,
         $defs,
         $baseSet = null
-    ) {
-        $this->debug = Data2Html_Config::debug();
-        
-        $setTypeName = str_replace('Data2Html_Model_Set_', '', get_class($this));
+    ) { 
+        $setTypeName = str_replace('Data2Html\\Model\\Set\\', '', get_class($this));
         $this->fNamePrefix = 'd2h_' . $setTypeName;
-        if (!$model) {
-            $this->culprit = $setTypeName . " for setName \"{$setName}\"";
-        } elseif ($setName) {
+        if ($setName) {
             $this->fNamePrefix .= '_' . $setName;
             $this->id = $model->getId()  . '_' . $setTypeName . '_' . $setName;
-            $this->culprit = $setTypeName . 
-                " for \"{$model->getModelName()}->{$setName}\"";
         } else {
             $this->id = $model->getId() . $setTypeName;
-            $this->culprit = $setTypeName . " for \"{$model->getModelName()}\"";
         }
         
         $this->attributeNames = array_replace(
@@ -138,14 +137,11 @@ abstract class Data2Html_Model_Set
         
         // Read defs
         $this->attributes = [];
-        $attNamesDx = new Data2Html_Collection($this->attributeNames);
+        $attNamesDx = new Lot($this->attributeNames);
         foreach ($defs as $k => $v) {
             $attributeType = $attNamesDx->getString($k);
             if ($attributeType === null) {
-                throw new Data2Html_Exception(
-                    "{$this->culprit}: Attribute \"{$k}\" is not supported.",
-                    $defs
-                );
+                throw new DebugException("Attribute \"{$k}\" is not supported.", $defs);
             }
             switch ($attributeType) {
                 case 'attribute':
@@ -164,22 +160,13 @@ abstract class Data2Html_Model_Set
         return $this->id;
     }    
   
-    public function dump($subject = null)
+    public function __debugInfo()
     {
-        if (!$subject) {
-            $subject = [
-                'attributes' => $this->attributes,
-                'keys' => $this->keys,
-                'setItems' => $this->setItems
-            ];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
-        return $this;
-    }
-    
-    public function getCulprit()
-    {
-        return $this->culprit;
+        return [
+            'attributes' => $this->attributes,
+            'keys' => $this->keys,
+            'setItems' => $this->setItems
+        ];
     }
     
     // -----------------------
@@ -209,15 +196,13 @@ abstract class Data2Html_Model_Set
     public function getAttribute($attrName, $default = null)
     {
         if (!isset($this->attributeNames[$attrName])) {
-            throw new Exception(
-                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is not supported."
-            );
+            throw new DebugException("Attribute \"{$attrName}\" is not supported.");
         } elseif ($this->attributeNames[$attrName] === false) {
-            throw new Exception(
-                "{$this->culprit} getAttribute(): Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
+            throw new DebugException(
+                "Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
             );
         }
-        return Data2Html_Value::getItem($this->attributes, $attrName, $default);
+        return Lot::getItem($attrName, $this->attributes, $default);
     }
     
     public function getSort()
@@ -258,8 +243,8 @@ abstract class Data2Html_Model_Set
                     $v['linkedTo'] = $linkedTo;                    
                 } else {
                     if (!array_key_exists($base, $baseItems)) {
-                        throw new Exception(
-                            "{$this->culprit}: Defining field \"{$k}\", `base` \"{$base}\" was not found."
+                        throw new DebugException(
+                            "Defining field \"{$k}\", `base` \"{$base}\" was not found."
                         );
                     }
                     if ($v['db'] === null) {
@@ -290,8 +275,8 @@ abstract class Data2Html_Model_Set
                         !array_key_exists($base, $baseItems) &&
                         !array_key_exists($base, $linkedTo)
                     ) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: On template \"{$kk}\", the \"{$base}\" is not a base or link.",
+                        throw new DebugException(
+                            "On template \"{$kk}\", the \"{$base}\" is not a base or link.",
                             $this->setItems
                         );
                     }
@@ -326,7 +311,7 @@ abstract class Data2Html_Model_Set
             if (is_array($v) && array_key_exists($this->subItemsKey, $v)) {
                 $this->parseSetItems(
                     $level + 1,
-                    Data2Html_Value::getItem($v, 'prefix', ''),
+                    Lot::getItem('prefix', $v, ''),
                     $v[$this->subItemsKey]
                 );
             }
@@ -381,8 +366,8 @@ abstract class Data2Html_Model_Set
                     array_replace($sortByNew['linkedTo'], $linkedTo);
             } else {
                 if (!array_key_exists($item, $this->setItems) && !array_key_exists($item, $baseItems)) {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Defining sortBy \"{$item}\", item and base was not found.",
+                    throw new DebugException(
+                        "Defining sortBy \"{$item}\", item and base was not found.",
                         $sortBy
                     );
                 }
@@ -416,14 +401,14 @@ abstract class Data2Html_Model_Set
                     'base' => $matches[2][$i]
                 ];
                 if (!array_key_exists($baseLink, $baseItems)) {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Defining \"{$base}\", the link \"{$baseLink}\" was not found.",
+                    throw new DebugException(
+                        "Defining \"{$base}\", the link \"{$baseLink}\" was not found.",
                         $baseItems
                     );
                 }
                 if (!array_key_exists('link', $baseItems[$baseLink])) {
-                    throw new Exception(
-                        "{$this->culprit}: Defining \"{$base}\", the \"{$baseLink}\" is not a link."
+                    throw new DebugException(
+                        "Defining \"{$base}\", the \"{$baseLink}\" is not a link."
                     );
                 }
                 $linkedTo[$match]['linkedWith'] = $baseItems[$baseLink]['link'];
@@ -471,15 +456,12 @@ abstract class Data2Html_Model_Set
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
                 if (is_array($vv)) {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Field \"{$fieldName}\" is an array.",
-                        $field
-                    );
+                    throw new DebugException("Field \"{$fieldName}\" is an array.", $field);
                 } elseif (array_key_exists($vv, $alias)) {
                     $this->applyAlias($field, $fieldName, $pField, $vv, $alias[$vv]);
                 } else {
-                    throw new Exception(
-                        "{$this->culprit}: Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
+                    throw new DebugException(
+                        "Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
                     );
                 }
             } else {
@@ -508,8 +490,8 @@ abstract class Data2Html_Model_Set
         }
         if (array_key_exists('value', $pField)) {
             if (isset($field['db'])) {
-                throw new Exception(
-                    "{$this->culprit}: Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
+                throw new DebugException(
+                    "Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
                 );
             }
             $matches = null;
@@ -531,9 +513,9 @@ abstract class Data2Html_Model_Set
         $pKey = $fieldName;
         if (is_int($pKey)) {
             if (array_key_exists('base', $pField)) {
-                $pKey = Data2Html_Utils::toCleanName($pField['base'], '_');
+                $pKey = self::toCleanName($pField['base'], '_');
             } elseif (isset($pField['db'])) {
-                $pKey = Data2Html_Utils::toCleanName($pField['db'], '_');
+                $pKey = self::toCleanName($pField['db'], '_');
             }
         }
         if (is_int($pKey) || array_key_exists($fieldName, $this->setItems)) {
@@ -556,8 +538,8 @@ abstract class Data2Html_Model_Set
     private function applyWord($iField, $fieldName, &$pField, $wordName, $word)
     {
         if (!array_key_exists($wordName, $this->keywords)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit}: Word \"{$wordName}\" on field \"{$fieldName}\" is not supported.",
+            throw new DebugException(
+                "Word \"{$wordName}\" on field \"{$fieldName}\" is not supported.",
                 $iField
             );
         }
@@ -572,14 +554,14 @@ abstract class Data2Html_Model_Set
                 }
                 foreach ($word as $kkk => $vvv) {
                     if (is_integer($kkk)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Invalid usage of multiple keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                        throw new DebugException(
+                            "Invalid usage of multiple keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
                             [$pField, $kkk, $word]
                         );
                     }
                     if (!in_array($kkk, $keyword['options'])) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Option \"{$kkk}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                        throw new DebugException(
+                            "Option \"{$kkk}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
                             $pField
                         );
                     }
@@ -588,14 +570,14 @@ abstract class Data2Html_Model_Set
                 $word = $newWord;
             } else {
                 if (!in_array($word, $keyword['options']) ) {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Option \"{$word}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
+                    throw new DebugException(
+                        "Option \"{$word}\" on keyword \"{$wordName}\" on field \"{$fieldName}\" is not valid.",
                         $pField
                     );
                 }
                 if (array_key_exists($wordName, $pField) && $pField[$wordName] !== $word) {
-                    throw new Data2Html_Exception(
-                        "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" not allows multiple values, additional option \"{$word}\" refused.",
+                    throw new DebugException(
+                        "Keyword \"{$wordName}\" on field \"{$fieldName}\" not allows multiple values, additional option \"{$word}\" refused.",
                         $pField
                     );
                 }
@@ -604,32 +586,32 @@ abstract class Data2Html_Model_Set
             switch ($keyword) {
                 case 'string':
                     if (!is_string($word)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string'.",
+                       throw new DebugException(
+                            "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string'.",
                             $pField
                         );
                     }
                     break;
                 case 'string|null':
                     if (!is_string($word) && !is_null($word)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string' o null.",
+                        throw new DebugException(
+                            "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'string' o null.",
                             $pField
                         );
                     }
                     break;
                 case 'integer':
                     if (!is_int($word)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'integer'.",
+                        throw new DebugException(
+                            "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'integer'.",
                             $pField
                         );
                     }
                     break;
                 case 'array':
                     if (!is_array($word)) {
-                        throw new Data2Html_Exception(
-                            "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'array'.",
+                        throw new DebugException(
+                            "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'array'.",
                             $pField
                         );
                     }
@@ -638,8 +620,8 @@ abstract class Data2Html_Model_Set
                     $word = (array)$word;
                     foreach ($word as $vvv) {
                         if (!is_int($vvv)) {
-                            throw new Data2Html_Exception(
-                                "{$this->culprit}: Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a array of integers.",
+                            throw new DebugException(
+                                "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a array of integers.",
                                 $pField
                             );
                         }
@@ -654,7 +636,7 @@ abstract class Data2Html_Model_Set
     public static function getVisualItems($lkItems) {
         $visualItems = array();
         foreach ($lkItems as $k => $v) {
-            if (!Data2Html_Value::getItem($v, 'virtual')) {
+            if (!Lot::getItem('virtual', $v)) {
                 if (!is_int($k)) {
                     $item = array();
                     $visualItems[$k] = &$item;
@@ -668,5 +650,16 @@ abstract class Data2Html_Model_Set
             }
         }
         return $visualItems;
+    }
+    
+    protected static function toCleanName($str, $delimiter = '-') {
+        //test: echo Data2Html_Utils::toCleanName('Xús_i[ sin("lint CC") ]+3');
+        $str = strtolower(trim($str, " '\"_|+-,.[]()"));
+        $str = str_replace("'", '"', $str); // To protect apostrophes to not 
+            // confuse with accented letters converted to ASCII//TRANSLIT, á='a
+        $str = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+        $str = preg_replace("/[^ \"\_|+-,\.\[\]\(\)a-zA-Z0-9]/", '', $str);
+        $str = preg_replace("/[ \"\_|+-,\.\[\]\(\)]+/", $delimiter, $str);
+        return $str;
     }
 }

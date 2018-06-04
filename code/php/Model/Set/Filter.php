@@ -32,7 +32,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
                 }
                 if (is_string($field)) {
                     throw new Exception(
-                        "{$this->culprit}: String \"{$field}\" needs a value as string or array."
+                        "String \"{$field}\" needs a value as string or array."
                     );
                 }
             }
@@ -64,7 +64,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
             array_key_exists('check', $field)
         ) {
             throw new Exception(
-                "{$this->culprit}: Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` or `base` attributes."
+                "Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` or `base` attributes."
             );
         }
         return true;

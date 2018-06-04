@@ -1,5 +1,5 @@
 <?php
-$return = array(
+return array(
     'items' => array(
         array(
             'layout-template' => 'bare',

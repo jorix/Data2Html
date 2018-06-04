@@ -1,5 +1,5 @@
 <?php 
-$return = [
+return [
     [
         'layout' => 'bare',
         'input' => 'button',

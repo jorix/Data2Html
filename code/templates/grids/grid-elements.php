@@ -1,5 +1,5 @@
 <?php
-$return = [
+return [
     'heads' => [
         'assign-template' => function($render, $item) {
             $itemDx = new Data2Html_Collection($item);

@@ -1,8 +1,11 @@
 <?php
+namespace Data2Html;
 
-class Data2Html_Lang
+use Data2Html\Data\To;
+
+class Lang
 {
-    private $debug = false;
+    use \Data2Html\Debug;
     
     private $languages = null;
     private $fromFiles = null;
@@ -10,9 +13,6 @@ class Data2Html_Lang
     
     public function __construct($language, $folders)
     {
-        $this->debug = Data2Html_Config::debug();
-        $this->culprit = "Lang";
-        
         $language = strtolower($language);
         $cfgLangs = Data2Html_Config::get('languages');
         if (array_key_exists($language, $cfgLangs)) {
@@ -33,16 +33,12 @@ class Data2Html_Lang
         }
     }
 
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = [
-                'languages-priority' => $this->languages,
-                'literals' => $this->literals,
-                'fromFiles' => $this->fromFiles,
-            ];
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
+    public function __debugInfo()
+        return [
+            'languages-priority' => $this->languages,
+            'literals' => $this->literals,
+            'fromFiles' => $this->fromFiles,
+        ];
     }
     
     public function _($key)
@@ -59,7 +55,7 @@ class Data2Html_Lang
     
     public function from($key)
     {
-        if ($this->debug) {
+        if (Config::debug()) {
             if (is_array($key)) {
                 $key = implode('/', $key);
             }
@@ -90,10 +86,8 @@ class Data2Html_Lang
         $lang = new Data2Html_Lang($lang, ['/_lang', '/../js']);
         return "
             var __ = (function () {
-            var literals = " . Data2Html_Value::toJson(
-                $lang->getLiterals(),
-                Data2Html_Config::debug()
-            ) . ";
+            var literals = " . 
+                To::json($lang->getLiterals(), Config::debug()) . ";
             return function(key) {
                 if (Array.isArray(key)) {
                     key = key.join('/');
@@ -129,7 +123,7 @@ class Data2Html_Lang
         $literals = [];
         $files = [];
         foreach($regexKeys as $k) {
-            $file = Data2Html_Utils::strRemoveStart(
+            $file = self::strRemoveStart(
                 Data2Html_Utils::toCleanFilePath($k, '/'),
                 $cleanForlder
             );
@@ -157,7 +151,7 @@ class Data2Html_Lang
                     $iterator->next();
                 }
             };
-            $content = Data2Html_Utils::readFilePhp($k, $this->culprit);
+            $content = InfoFile::readPhp($k);
             $itr2 = new RecursiveArrayIterator($content);
             iterator_apply($itr2, $flatten, array($itr2, $base));
             $literals = array_replace($literals, $flatContent);
@@ -166,6 +160,13 @@ class Data2Html_Lang
         $this->literals = array_replace($this->literals, $literals);
         $this->fromFiles = array_replace($this->fromFiles, $files);
     }
-    
-    
+
+    public static function strRemoveStart($string, $start)
+    {
+        if (strpos($string, $start) === 0) {
+            return substr($string, strlen($start));
+        } else {
+            return $string;
+        }
+    }
 }

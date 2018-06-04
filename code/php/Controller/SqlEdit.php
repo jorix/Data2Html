@@ -1,29 +1,21 @@
 <?php
-class Data2Html_Controller_SqlEdit
-{
-    protected $culprit = '';
-    protected $debug = false;
+namespace Data2Html\Controller;
+
+use Data2Html\DebugException;
+
+class SqlEdit
+{   
+    use \Data2Html\Debug;
     
     protected $db;
     protected $lkSet;
     protected $result = array();
 
-    public function __construct($db, $lkSet) {
-        $this->debug = Data2Html_Config::debug();
-        $this->culprit = "SqlEdit for " . $lkSet->getCulprit();
-        
+    public function __construct($db, $lkSet) {        
         $this->db = $db;
         $this->lkSet = $lkSet;
         
         $this->result['table'] = $this->lkSet->getTableName();
-    }
-
-    public function dump($subject = null)
-    {
-        if (!$subject) {
-            $subject = $result;
-        }
-        Data2Html_Utils::dump($this->culprit, $subject);
     }
     
     /**
@@ -33,10 +25,7 @@ class Data2Html_Controller_SqlEdit
     public function checkSingleRow($keysReq)
     {
         if (!$keysReq) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} setKeys(): Keys are required.",
-                $this->result
-            );
+            throw new DebugException("Keys are required.", $this->result);
         }
         $this->result['where'] = $this->getWhereByKeys($keysReq);
         $count = $this->db->getValue(
@@ -45,22 +34,16 @@ class Data2Html_Controller_SqlEdit
             'integer'
         );
         if (!$count) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} checkSingleRow(): No rows with this keys.",
-                array(
-                    'keys' => $keysReq,
-                    'result' => $this->result
-                )
-            );
+            throw new DebugException("No rows with this keys.", [
+                'keys' => $keysReq,
+                'result' => $this->result
+            ]);
         }
         if ($count > 1) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} checkSingleRow(): The keys has {$count} rows, only single row is valid.",
-                array(
-                    'keys' => $keysReq,
-                    'result' => $this->result
-                )
-            );
+            throw new DebugException("The keys has {$count} rows, only single row is valid.", [
+                'keys' => $keysReq,
+                'result' => $this->result
+            ]);
         } 
     }
     
@@ -71,13 +54,10 @@ class Data2Html_Controller_SqlEdit
         }
         $keysDf = $this->lkSet->getLinkedKeys();
         if (count($keysReq) !== count($keysDf)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getWhereByKeys(): Requested keys not match number of keys.",
-                array(
+            throw new DebugException("Requested keys not match number of keys.", [
                     'keysDf' => $keysDf,
                     'keysReq' => $keysReq
-                )
-            );
+            ]);
         }
         $items = $this->lkSet->getLinkedItems();
         $ix = 0;
@@ -101,10 +81,7 @@ class Data2Html_Controller_SqlEdit
     public function getInsert($values)
     {
         if (array_key_exists('where', $this->result)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getInsert(): Keys are not required.",
-                $this->result
-            );
+            throw new DebugException("Keys are not required.", $this->result);
         }
         $assigns = array();
         $names = array();
@@ -122,14 +99,11 @@ class Data2Html_Controller_SqlEdit
             }
         }
         if (count($assigns) === 0) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getInsert(): Nothing to SET.",
-                array(
-                    'items' => $items,
-                    'values' => $values,
-                    'result' => $this->result
-                )
-            );
+            throw new DebugException("Nothing to SET.", [
+                'items' => $items,
+                'values' => $values,
+                'result' => $this->result
+            ]);
         }
         return "INSERT INTO {$this->result['table']}\n(". 
                 implode(', ', $names) . 
@@ -141,8 +115,7 @@ class Data2Html_Controller_SqlEdit
     public function getUpdate($values)
     {
         if (!array_key_exists('where', $this->result)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getUpdate(): Keys are required, use checkSingleRow() before getUpdate().",
+            throw new DebugException("Keys are required, use checkSingleRow() before getUpdate().",
                 $this->result
             );
         }
@@ -158,14 +131,11 @@ class Data2Html_Controller_SqlEdit
             }
         }
         if (count($assigns) === 0) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getUpdate(): Nothing to SET.",
-                array(
-                    'items' => $items,
-                    'values' => $values,
-                    'result' => $this->result
-                )
-            );
+            throw new DebugException("Nothing to SET.", [
+                'items' => $items,
+                'values' => $values,
+                'result' => $this->result
+            ]);
         }
         return "UPDATE {$this->result['table']}
                     SET " . implode(",\n", $assigns) . "
@@ -175,8 +145,7 @@ class Data2Html_Controller_SqlEdit
     public function getDelete()
     {
         if (!array_key_exists('where', $this->result)) {
-            throw new Data2Html_Exception(
-                "{$this->culprit} getUpdate(): Keys are required, use checkSingleRow() before getDelete().",
+            throw new DebugException("Keys are required, use checkSingleRow() before getDelete().",
                 $this->result
             );
         }
