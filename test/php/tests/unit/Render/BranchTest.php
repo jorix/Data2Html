@@ -10,43 +10,44 @@ class BranchTest extends \Codeception\Test\Unit
     // Tests
     public function testBranch()
     {
-        $this->specify("Throw error if argument is not a array.", function() {
-            $this->tester->expectException(
-                new \Exception(
-                    'Argument $tree must be a array.'
-                ), 
-                function() {
-                    new Branch(null);
-                }
-            );
+        // NOTE: $this->tester->expectException not fails if no exception is throw, oops!
+        try {
+            $fail = false;
+            new Branch(null);
+        } catch (\Exception $e) { $fail = true; }
+        $this->assertTrue($fail, "Exception is throw when construct argument is not a array");
             
-        });
-        $tt = $this->construct('Data2Html\\Render\\Branch', [
-            ['a' => [
-                'b' => [
-                    'c' => 'file',
-                    'd' => []
-                ]
-            ]]
-        ], [
-            'json' => function () { return json_encode($this->tree); }
-        ]);
-        $t = new Branch(['a' => [
+        // Dummy branch
+        $br = new Branch(['a' => [
             'b' => [
                 'c' => 'file',
                 'd' => []
             ]
         ]]);
-        $this->assertEquals(
-            '{"c":"file","d":[]}',
-            json_encode($t->getBranch(['a', 'b'], $t, true)->__debugInfo()),
-            'Get nested branch'
-        );
-        $this->assertEquals(
-            '{"c":"file","d":[]}',
-            json_encode($tt->getBranch(['a', 'b'], $t, true)->__debugInfo()),
-            'Get nested branch brix'
-        );
+        $this->specify("Retrieve a existing branch.", function() use ($br) {
+            // Expend response as sub-branch
+            $rJson = '{"keys":["a","b"],"tree":{"c":"file","d":[]}}'; 
+            $this->assertEquals($rJson,
+                json_encode($br->getBranch(['a', 'b'],true)->__debugInfo()),
+                'Get nested branch.'
+            );
+            $this->assertEquals($rJson,
+                json_encode($br->getBranch('a')->getBranch('b')->__debugInfo()),
+                'Get recursive branch.'
+            );
+        });
 
+        $this->specify("Retrieve a not existing branch.", function() use ($br) {
+            try {
+                $fail = false;
+                $br->getBranch('?');
+            } catch (\Exception $e) { $fail = true; }
+            $this->assertTrue($fail, "Exception is throw");
+            
+            $this->assertNull(
+                $br->getBranch('?', false),
+                'Not existing branch if is not required is null.'
+            );
+        });
     }
 }

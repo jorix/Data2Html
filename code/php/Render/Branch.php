@@ -31,20 +31,20 @@ class Branch
         ];
     }
     
-    public function getBranch($keys, Branch $branch, $required = true)
+    public function getBranch($keys, $required = true)
     {
         if (!is_array($keys)) {
             $keys = [$keys];
         }
-        $finalKeys = $branch->keys + $keys; 
-        $tree = Lot::getItem($keys, $branch->tree);
+        $finalKeys = array_merge($this->keys, $keys); 
+        $tree = Lot::getItem($keys, $this->tree);
         if ($tree) {
             $result = new self($tree, $finalKeys);
         } else {
             if ($required) {
                 throw new DebugException(
-                    "Branch ['" . implode("', '", $finalKeys) . "'], ...) keys does not exist.",
-                    $branch[1]
+                    "Keys ['" . implode("', '", $keys) . "'] does not exist.",
+                    $this->__debugInfo()
                 );
             }
             $result = null;

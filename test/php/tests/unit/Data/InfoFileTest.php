@@ -59,13 +59,10 @@ class InfoFileTest extends \Codeception\Test\Unit
             '{"a":"test-ReadPhp"}',
             json_encode( InfoFile::readPhp($this->infoFolder . 'testReadPhp-01.php'))
         );
-        $this->tester->expectException(
-            new \Exception(
-                'Error parsing php file: "tests/_data/Data/testReadPhp-error.php"'
-            ), 
-            function() {
-                InfoFile::readPhp($this->infoFolder . 'testReadPhp-error.php');
-            }
-        );
+        try {
+            $fail = false;
+            InfoFile::readPhp($this->infoFolder . 'testReadPhp-error.php');
+        } catch (\Exception $e) { $fail = true; }
+        $this->assertTrue($fail, "Error when parsing a incorrect php file");
     }
 }
