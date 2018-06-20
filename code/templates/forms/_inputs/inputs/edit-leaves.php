@@ -1,6 +1,6 @@
 <?php
 return function($replaces) {
-    $rx = new Data2Html_Collection($replaces, true); // Required
+    $rx = new \Data2Html\Lot($replaces, true); // Required
     $urlRequest = null;
     parse_str(explode('?', $rx->getString('url'))[1], $urlRequest);
     $modelNames = Data2Html_Handler::parseRequest($urlRequest);

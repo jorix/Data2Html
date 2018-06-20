@@ -1,6 +1,8 @@
 <?php
 namespace Data2Html\Render;
 
+use Data2Html\DebugException;
+
 class FileContents
 {
     use \Data2Html\Debug;
@@ -35,7 +37,7 @@ class FileContents
     }
 
     public static function getContent($filePath, $lang = null) {
-        return self::single->getContentFile($filePath, $lang);
+        return self::getContentFile($filePath, $lang);
     }
     
     public function __construct($folders)
@@ -78,6 +80,21 @@ class FileContents
         }
         $response = [];
         foreach($tree as $k => $v) {
+            if (substr($v, 0, 1) = '@') {
+                @paths = array_map('trim', explode(',', substr($v, 1)));
+                if (is_integer($k))) {
+                    // short-cut to include file: '@path_to_file_1, path_to_file_2, ...'
+                    $k = 'include';
+                    $v = @paths;
+                } else {
+                    // short-cut to include file on folder: 'keyword' => '@path_to_folder_1, path_to_folder_2, ...'
+                    $response[$k] = self::loadTemplateTree(
+                        $folder, 
+                        [$k => ['includeFolder' => $paths]]
+                    );
+                    $k = 'folder'; // to by-pass next switch
+                }
+            }
             switch ($k) {
                 // Declarative words
                 case 'folder':
@@ -96,7 +113,7 @@ class FileContents
                     }
                     $response[$k] = $items;
                     break;
-                case 'templatesFolder':
+                case 'includeFolder':
                     $response += self::readFolderTemplates($folder, $v);
                     break;
                 // Add to the tree
@@ -112,8 +129,8 @@ class FileContents
                     } elseif (is_array($v)) {
                         $response[$k] = self::loadTemplateTree($folder, $v);
                     } else {
-                        throw new Data2Html_Exception(
-                            "Tree of \"{$k}\"must be a array or a function!",
+                        throw new ExceptionDebug(
+                            "Tree of \"{$k}\" must be a array or a function!",
                             $tree
                         );
                     }

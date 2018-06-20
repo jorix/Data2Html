@@ -16,14 +16,23 @@ $matchTemplate_v = '$${Base_namE} or $${link_name[field_name]} $${tow-word}';
 $langTemplate = '/__\{([a-z][\w\-\/]*)\}/i';
 $langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
 
-test($matchTemplate_old, $matchTemplate_v);
-test($matchTemplate_n, $matchTemplate_v);
-test($langTemplate, $langTemplate_v);
+// test($matchTemplate_old, $matchTemplate_v);
+// test($matchTemplate_n, $matchTemplate_v);
+// test($langTemplate, $langTemplate_v);
 
+$pattern = '/\$\$\{([a-z][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
+$text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
+test($pattern, $text);
+
+test('/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',' style="$${a-r}" stole = "$${b-s|f}" stule="$${c2-s | 5 f(rq5)+24}"');
+
+test('/\$\$\{([a-z][\w\-]*)(|.*?)\}/i',' style="$${a-r}" stole = "$${b-s}" stule="$${c2-s | 5 f(rq5)+24}"');
+
+test('/["\']#\$\$\{([a-z][\w\-]*)(|.*?)\}/i',' style="#$${a-r}" stole = "$${b-s}" stule="$${c2-s | 5 f(rq5)+24}"');
  
-function test($patern, $value) {
+function test($pattern, $value) {
     $matches = null;
-    preg_match_all($patern, $value, $matches); // \[(\w+|\d+)\]/', $value, $matches);
+    preg_match_all($pattern, $value, $matches); // \[(\w+|\d+)\]/', $value, $matches);
     echo "'{$value}' :<pre>";
     print_r($matches);
     echo '</pre><hr>';

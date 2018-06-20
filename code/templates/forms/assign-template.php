@@ -1,7 +1,7 @@
 <?php
 return array(
     "assign-template" => function($render, $item) {
-        $itemDx = new Data2Html_Collection($item);
+        $itemDx = new \Data2Html\Lot($item);
         
         $level = $itemDx->getInteger('level', 0);
         $layout = $itemDx->getString(

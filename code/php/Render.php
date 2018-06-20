@@ -1,7 +1,7 @@
 <?php
 namespace Data2Html;
 
-use Data2Html\Render\Branches;
+use Data2Html\Render\Branch;
 use Data2Html\Render\Templates;
 use Data2Html\Render\FileContents;
 
@@ -128,7 +128,7 @@ class Render
             throw new Exception("`\$columns` parameter is empty.");
         }
         if (count($columns) === 0) {
-            return Branches::renderEmpty();
+            return Templates::renderEmpty();
         }
 
         $itemReplaces = $itemReplaces ? $itemReplaces : [];

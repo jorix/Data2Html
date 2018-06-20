@@ -12,8 +12,8 @@ return [
             }
             return [$layout, $content, []];
         },
-        'layouts' => ['templatesFolder' => 'heads_layouts/'],
-        'contents' => ['templatesFolder' => ['heads/', '../forms/_inputs/inputs/']]
+        'layouts' =>    '@ heads_layouts/',
+        'contents' =>   '@ heads/, ../forms/_inputs/inputs/'
     ], 
     'cells' => [
         'assign-template' => function($render, $item) {
@@ -47,7 +47,7 @@ return [
             // Return
             return [$layout, $content, $replaces];
         },
-        'layouts' =>  ['templatesFolder' => 'cells_layouts/'], 
-        'contents' => ['templatesFolder' => ['cells/', '../forms/_inputs/inputs/']]
+        'layouts' =>  '@ cells_layouts/',
+        'contents' => '@ cells/,../forms/_inputs/inputs/'
     ]
 ];

@@ -4,8 +4,6 @@ return [
         'template' => 'grids/grid-paged.html.php',
         'include' => 'grids/grid-elements.php'
     ],
-    'includes' => [
-        'forms/filter/filter-auto.php',
-        'forms/page/page.php'
-    ]
+    'filter' => '@ forms/filter/filter-auto.php',
+    'page' =>   '@ forms/page/page.php'
 ];

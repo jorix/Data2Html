@@ -1,4 +1,4 @@
 <?php
 return [
-    'includes' => ['forms/edit/edit.php']
+    '@ forms/edit/edit.php'
 ];
