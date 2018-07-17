@@ -2,25 +2,23 @@
 return [
     'heads' => [
         'assign-template' => function($render, $item) {
-            $itemDx = new Data2Html_Collection($item);
+            $itemDx = new \Data2Html\Data\Lot($item);
             
-            $level = $itemDx->getInteger('level', 0);
-            $layout = $level ? 'base_1' : 'base';
+            $layout = 'base';
             $content = $itemDx->getString('content-template', 'title');
             if ($itemDx->getItem('sortBy')) {
                 $content = 'title-sortable';
             }
             return [$layout, $content, []];
         },
-        'layouts' =>    '@ heads_layouts/',
-        'contents' =>   '@ heads/, ../forms/_inputs/inputs/'
+        'layouts' =>    '@@ heads_layouts/',
+        'contents' =>   '@@ heads/, ../forms/_inputs/inputs/'
     ], 
     'cells' => [
         'assign-template' => function($render, $item) {
-            $itemDx = new Data2Html_Collection($item);
+            $itemDx = new \Data2Html\Data\Lot($item);
             
-            $level = $itemDx->getInteger('level', 0);
-            $layout = $level ? 'base_1' : 'base';
+            $layout = 'base';
             $content = $itemDx->getString('content-template', 'base');
             
             // Classes
@@ -31,7 +29,7 @@ return [
             ];
             $type = $itemDx->getString('type', '');
             $ngClass = '';
-            $class = Data2Html_Value::getItem($typeToHtmlClass, $type, '');
+            $class = \Data2Html\Data\Lot::getItem($type, $typeToHtmlClass, '');
             if ($visual = $itemDx->getString('visualClass')) {
                 if (strpos($visual, ':') !== false) {
                     $ngClass = '{'.str_replace(':', ':item.{$k}', $visual).'}';
@@ -47,7 +45,7 @@ return [
             // Return
             return [$layout, $content, $replaces];
         },
-        'layouts' =>  '@ cells_layouts/',
-        'contents' => '@ cells/,../forms/_inputs/inputs/'
+        'layouts' =>  '@@ cells_layouts/',
+        'contents' => '@@ cells/, ../forms/_inputs/inputs/'
     ]
 ];

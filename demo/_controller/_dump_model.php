@@ -7,25 +7,22 @@
 <body>
     <div class="container">
     <?php
-        require_once("../../code/php/Autoload.php");
-        Data2Html_Autoload::start(__DIR__, '../_config/d2h_config.ini');
-        // Data2Html_Config::dump();
+        require_once '../_start.php';
     
         try {
-            $payerNames = Data2Html_Handler::parseRequest($_REQUEST);
+            $payerNames = \Data2Html\Handler::parseRequest($_REQUEST);
             
-            $model = Data2Html_Handler::getModel($payerNames['model']);
-            $model->dump($payerNames);
-            if (array_key_exists('element', $payerNames)) {
-                $obj = $model->getLinkedElement($payerNames['element']);
+            $model = \Data2Html\Handler::getModel($payerNames['model']);
+            //$model->dump();
+            if (array_key_exists('block', $payerNames)) {
+                $obj = $model->getLinkedBlock($payerNames['block']);
             } else {
                 $obj = $model->getLinkedGrid($payerNames['grid']);
             }
             // $obj->dump();
             $obj->dump();
-            
         } catch(Exception $e) {
-            echo Data2Html_Exception::toHtml($e, true);
+            echo \Data2Html\DebugException::toHtml($e, true);
         }
     ?>
     </div>

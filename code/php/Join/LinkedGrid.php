@@ -1,6 +1,13 @@
 <?php
-class Data2Html_Join_LinkedGrid
+namespace Data2Html\Join;
+
+use Data2Html\Model\Set\Filter as SetFilter;
+use Data2Html\Model\Set\Grid as SetGrid;
+
+class LinkedGrid
 {
+    use \Data2Html\Debug;
+    
     protected $gridName = '';
     
     protected $model = null;
@@ -14,8 +21,8 @@ class Data2Html_Join_LinkedGrid
         $this->gridName = $gridName;
       
         // Set fields
-        $this->columns = new Data2Html_Join_LinkedSet(
-            new Data2Html_Model_Set_Grid(
+        $this->columns = new LinkedSet(
+            new SetGrid(
                 $model,
                 $gridName,
                 $defs,
@@ -24,8 +31,8 @@ class Data2Html_Join_LinkedGrid
         );
         
         if (array_key_exists('filter', $defs)) {
-            $this->filter = new Data2Html_Join_LinkedSet(
-                new Data2Html_Model_Set_Filter(
+            $this->filter = new LinkedSet(
+                new SetFilter(
                     $model,
                     $gridName,
                     $defs['filter'],
@@ -35,6 +42,16 @@ class Data2Html_Join_LinkedGrid
                 $this->columns->getLink()
             );
         }
+    }
+    
+    public function __debugInfo()
+    {
+        $response = ['columns' => $this->columns->__debugInfo()];
+        if ($this->filter) {
+            $response['filter'] = $this->filter->__debugInfo();
+        }
+        // $response['base'] = $this->columns->getBase()->__debugInfo();
+        return $response;
     }
     
     public function getId()

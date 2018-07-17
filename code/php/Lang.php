@@ -1,7 +1,10 @@
 <?php
 namespace Data2Html;
 
+use Data2Html\Config;
 use Data2Html\Data\To;
+use Data2Html\Data\InfoFile;
+use Data2Html\Lang;
 
 class Lang
 {
@@ -14,7 +17,7 @@ class Lang
     public function __construct($language, $folders)
     {
         $language = strtolower($language);
-        $cfgLangs = Data2Html_Config::get('languages');
+        $cfgLangs = Config::get('languages');
         if (array_key_exists($language, $cfgLangs)) {
             $this->languages = explode(',', $cfgLangs[$language]);
         } else {
@@ -81,9 +84,14 @@ class Lang
         return $this->literals;
     }
     
-    public static function jsCode($lang)
+    public function responseJs($lang)
     {
-        $lang = new Data2Html_Lang($lang, ['/_lang', '/../js']);
+        Data2Html\Data\Response::js(self::jsCode($lang));
+    }
+    
+    protected static function jsCode($lang)
+    {
+        $lang = new Lang($lang, ['/_lang', '/../js']);
         return "
             var __ = (function () {
             var literals = " . 
@@ -119,12 +127,12 @@ class Lang
         }
         $regexKeys = array_reverse($regexKeys);
         
-        $cleanForlder = Data2Html_Utils::toCleanFolderPath($folder, '/');
+        $cleanForlder = InfoFile::toCleanFolderPath($folder, '/');
         $literals = [];
         $files = [];
         foreach($regexKeys as $k) {
             $file = self::strRemoveStart(
-                Data2Html_Utils::toCleanFilePath($k, '/'),
+                InfoFile::toCleanFilePath($k, '/'),
                 $cleanForlder
             );
             $base = substr(strstr($file, '_lang/', true), 0, -1);
@@ -161,7 +169,7 @@ class Lang
         $this->fromFiles = array_replace($this->fromFiles, $files);
     }
 
-    public static function strRemoveStart($string, $start)
+    protected static function strRemoveStart($string, $start)
     {
         if (strpos($string, $start) === 0) {
             return substr($string, strlen($start));

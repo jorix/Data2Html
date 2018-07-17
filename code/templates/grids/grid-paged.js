@@ -18,16 +18,20 @@ d2h_server('#$${id}', {
             d2h_display.goFormAction(this, 'show-create');
         }
     },
-    filter:['#' +'$${id-filter}', {
-        actions: {
-            'read-page': function() {this.loadGrid();}
-        }
-    }],
-    page: ['#$${id-page}', {
-        actions: {
-            'read-page': function() {this.loadGrid();},
-            'next-page': function() {this.loadGrid({add:true});}
-        }
-    }],
+    $${filter?[[
+        filter:['#$${id-filter}', {
+            actions: {
+                'read-page': function() {this.loadGrid();}
+            }
+        }],
+    ]]}
+    $${page?[[
+        page: ['#$${id-page}', {
+            actions: {
+                'read-page': function() {this.loadGrid();},
+                'next-page': function() {this.loadGrid({add:true});}
+            }
+        }],
+    ]]}
     sort: '#$${id}_sort'
 });

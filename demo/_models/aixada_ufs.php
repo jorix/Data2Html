@@ -1,5 +1,5 @@
 <?php
-$return = [
+return [
     'table' => 'aixada_uf',
     'title' => 'Unitats familiars',
     'sort' => 'uf_name',

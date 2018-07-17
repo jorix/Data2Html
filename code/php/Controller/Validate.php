@@ -1,6 +1,9 @@
 <?php
 namespace Data2Html\Controller;
 
+use Data2Html\Lang;
+use Data2Html\Data\Lot;
+
 class Validate
 {
     use \Data2Html\Debug;
@@ -9,7 +12,7 @@ class Validate
     
     public function __construct($lang) {
         
-        $this->langObj = new Data2Html_Lang($lang, ['/_lang', '/../js']);
+        $this->langObj = new Lang($lang, ['/_lang', '/../js']);
     }
 
     public function __($key)
@@ -30,7 +33,7 @@ class Validate
         if ($value === '' || $value === null) {
             $finalVal = null;
             // required
-            if (Data2Html_Value::getItem($visual, ['validations', 'required'], false)) {
+            if (Lot::getItem(['validations', 'required'], $visual, false)) {
                 $messages[] = $this->__('validate/required');
             }
         } else {

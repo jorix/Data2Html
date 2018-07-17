@@ -1,43 +1,40 @@
 <?php
 return function($replaces) {
-    $rx = new \Data2Html\Lot($replaces, true); // Required
     $urlRequest = null;
-    parse_str(explode('?', $rx->getString('url'))[1], $urlRequest);
-    $modelNames = Data2Html_Handler::parseRequest($urlRequest);
-    $rx = new Data2Html_Collection($modelNames, true); // Required
+    parse_str(explode('?', \Data2Html\Data\Lot::getItem('url', $replaces))[1], $urlRequest);
+    
+    $modelNames = \Data2Html\Handler::parseRequest($urlRequest);
+    $rx = new \Data2Html\Data\Lot($modelNames, true); // Required
     
     $modelName = $rx->getString('model');
-    $model = Data2Html_Handler::getModel($modelName);
+    $model = \Data2Html\Handler::getModel($modelName);
     $gridName = $rx->getString('grid', 'main');
     
     $grid = $model->getLinkedGrid($gridName);
-    $formName = $grid->getAttribute('element-name', 'main');
+    $blockName = $grid->getAttribute('block-name', 'main');
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     
-    $form = $model->getLinkedElement($formName);
-    $templateFormName = $form->getAttribute('template', 'edit-form');
+    $form = $model->getLinkedBlock($blockName);
+    $templateFormName = $form->getAttribute('template', 'forms/edit/edit');
     
     $itemReplaces = [
         'branch' => [
             'model' => $modelName,
             'grid' => $gridName,
-            'element' => $formName
+            'block' => $blockName
         ]
     ];
     
-    $render = Data2Html_Handler::createRender();
+    $render = \Data2Html\Handler::createRender();
     
     // Grid
     $result = $render->renderGrid($model, $gridName, $templateGridName, $itemReplaces);
-    $idGrid = $result['id'];
-    $jsCode = $result['js'];
-    $htmlCode = $result['html'];
+    $idGrid = $result->get('id');
         
-    // Form edit
-    $result = $render->renderElement($model, $formName, $templateFormName, $itemReplaces);
-    $idForm = $result['id'];
-    $jsCode .= $result['js'];
-    $htmlCode .= $result['html'];
+    // Block of edit form
+    $resultBlock = $render->renderBlock($model, $blockName, $templateFormName, $itemReplaces);
+    $idForm = $resultBlock['id'];
+    $result->add($resultBlock);
     
     $displayOptions = [
         'auto' => 'loadGrid',
@@ -47,15 +44,15 @@ return function($replaces) {
         ]
     ];
     
-    // branch
+    // Put display options of branch
     if (array_key_exists('branch', $replaces)) {
         $branch = $replaces['branch'];
         $itemToLink = $model
-            ->getLinkedElement($branch['element'])
+            ->getLinkedBlock($branch['element'])
             ->searchItemByLink($branch['model']);
-        $itemDbToLink = Data2Html_Value::getItem($itemToLink, 'db');
+        $itemDbToLink = \Data2Html\Data\Lot::getItem('db', $itemToLink);
         
-        $branchModel = Data2Html_Handler::getModel($branch['model']);
+        $branchModel = \Data2Html\Handler::getModel($branch['model']);
         $filterItemNames = $grid->getFilter()->searchItemNameByDb($itemDbToLink);
         $formItemNames = $form->searchItemNameByDb($itemDbToLink);
 
@@ -65,14 +62,17 @@ return function($replaces) {
     }
     
     // end
-    return [
-        'd2hToken_content' => true,
-        'html' => "<div class=\"container\">{$htmlCode}</div>",
-        'js' => $jsCode . "
-            (function() {
-                d2h_display(" . 
-                Data2Html_Value::toJson($displayOptions, true)
-                . ");
-            })();"
-    ];
+    return new \Data2Html\Render\Content(
+        [
+            'html' => "<div class=\"container\">{$body}</div>",
+            'js' => "
+                (function() {
+                    d2h_display(" . 
+                    \Data2Html\Data\To::json($displayOptions, true)
+                    . ");
+                })();"
+        ], [
+            'body' => $result
+        ]
+    );
 };

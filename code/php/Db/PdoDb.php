@@ -2,7 +2,9 @@
 /**
  * The recommended PDO driver for jqGridPHP.
  */
-class Data2Html_Db_Pdo extends Data2Html_Db
+namespace Data2Html\Db;
+
+class PdoDb extends \Data2Html\Db
 {
     public function __construct($parameters, $options = array())
     {
@@ -23,7 +25,7 @@ class Data2Html_Db_Pdo extends Data2Html_Db
             );
             $link->setAttribute(PDO::ATTR_ERRMODE, 2);
         } catch (PDOException $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
         $this->link = $link;
     }
@@ -32,8 +34,8 @@ class Data2Html_Db_Pdo extends Data2Html_Db
     {
         try {
             return $this->link->query($sql);
-        } catch (Exception $e) {
-            throw new Data2Html_Exception(
+        } catch (PDOException $e) {
+            throw new DebugException(
                 $e->getMessage(),
                 array(
                     'sql' => explode("\n", $sql)
@@ -72,8 +74,8 @@ class Data2Html_Db_Pdo extends Data2Html_Db
         try {
             $result = $this->query($sql);
             return $result->rowCount();
-        } catch (Exception $e) {
-            throw new Data2Html_Exception(
+        } catch (PDOException $e) {
+            throw new DebugException(
                 $e->getMessage(),
                 array(
                     'sql' => explode("\n", $sql)
@@ -82,32 +84,38 @@ class Data2Html_Db_Pdo extends Data2Html_Db
             );
         };
     }
+
+    public function lastInsertId()
+    {
+        return $this->link->lastInsertId();
+    }
     
     public function startTransaction()
     {
-        $this->execute("START TRANSACTION;");
+        $this->link->beginTransaction();
     }
 
     public function commit()
     {
-        $this->execute("COMMIT;");
+        $this->link->commit();
     }
 
     public function rollback()
     {
-        $this->execute("ROLLBACK;");
-    }
-
-    public function lastInsertId();
-        return $this->link->lastInsertId();
+        $this->link->rollback();
     }
 
     // Utils
     public function stringToSql($val)
     {
-        if (is_null($val)) {
-            return 'null';
-        }
         return $this->link->quote($val);
+    }
+    public function dateToSql($date)
+    {
+        return "'" . $date->format('Y-m-d H:i:s') . "'";
+    }
+    public function toDate($val)
+    {
+        return Parse::date($val, null, 'Y-m-d H:i:s');
     }
 }

@@ -2,6 +2,7 @@
 namespace Data2Html\Controller;
 
 use Data2Html\DebugException;
+use Data2Html\Data\Lot;
 
 class SqlEdit
 {   
@@ -90,8 +91,8 @@ class SqlEdit
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];
                 if (isset($item['db'])) {
-                    if (Data2Html_Value::getItem($item, 'key') !== 'autoKey') {
-                        $type = Data2Html_Value::getItem($item, 'type', 'string');
+                    if (Lot::getItem('key', $item) !== 'autoKey') {
+                        $type = Lot::getItem('type', $item, 'string');
                         $names[] = $item['db'];
                         $assigns[] =  $this->db->toSql($v, $type);
                     }
@@ -125,7 +126,7 @@ class SqlEdit
             if (array_key_exists($k, $items)) {
                 $item = $items[$k];
                 if (isset($item['db'])) {
-                    $type = Data2Html_Value::getItem($item, 'type', 'string');
+                    $type = Lot::getItem('type', $item, 'string');
                     $assigns[] =  $item['db'] . ' = ' . $this->db->toSql($v, $type);
                 }
             }

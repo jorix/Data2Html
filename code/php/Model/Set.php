@@ -6,6 +6,8 @@ use Data2Html\DebugException;
 use Data2Html\Data\InfoFile;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
+
+use Data2Html\Model;
  
 abstract class Set
 {
@@ -109,7 +111,7 @@ abstract class Set
     );
     
     public function __construct(
-        $model,
+        Model $model,
         $setName,
         $defs,
         $baseSet = null
@@ -653,7 +655,7 @@ abstract class Set
     }
     
     protected static function toCleanName($str, $delimiter = '-') {
-        //test: echo Data2Html_Utils::toCleanName('Xús_i[ sin("lint CC") ]+3');
+        //test: echo InfoFile::toCleanName('Xús_i[ sin("lint CC") ]+3');
         $str = strtolower(trim($str, " '\"_|+-,.[]()"));
         $str = str_replace("'", '"', $str); // To protect apostrophes to not 
             // confuse with accented letters converted to ASCII//TRANSLIT, á='a

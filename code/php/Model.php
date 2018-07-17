@@ -2,10 +2,19 @@
 /**
  * Nomenclature
  *  * Variable name suffixes:
- *      * ..vDx: Definitions as a `Data2Html_Collection`.
+ *      * ..vDx: Definitions as a `Lot` instance.
  *      * ..Ds: Definitions as a array.
  */
 namespace Data2Html;
+
+use Data2Html\Config;
+use Data2Html\Data\InfoFile;
+use Data2Html\Model\Set\Base as SetBase;
+use Data2Html\Model\Set\Block as SetBlock;
+use Data2Html\Model\Set\Grid as SetGrid;
+use Data2Html\Join\LinkedSet;
+use Data2Html\Join\LinkedGrid;
+use Data2Html\Join\LinkedBlock;
 
 class Model
 {
@@ -38,10 +47,10 @@ class Model
         $this->modelName = $modelName;
         
         $this->id = 'd2h_' . ++self::$idModelCount;
-        $this->definitions = Data2Html_Utils::readFilePhp(
-            Data2Html_Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
+        $this->definitions = InfoFile::readPhp(
+            Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
         );
-        $this->baseSet = new Data2Html_Model_Set_Base(
+        $this->baseSet = new SetBase(
             $this, null, $this->definitions
         );
     }
@@ -49,9 +58,8 @@ class Model
     public function __debugInfo()
     {
         return [
-            'languages-priority' => $this->languages,
-            'literals' => $this->literals,
-            'fromFiles' => $this->fromFiles,
+            'definitions' => $this->definitions,
+            'baseSet' => $this->baseSet->__debugInfo()
         ];
     }
     
@@ -73,7 +81,7 @@ class Model
     public function getGridColumns($gridName)
     {
         if (!array_key_exists($gridName, $this->unlinkedGrids)) {
-            $this->unlinkedGrids[$gridName] = new Data2Html_Model_Set_Grid(
+            $this->unlinkedGrids[$gridName] = new SetGrid(
                 $this,
                 $gridName,
                 $this->getSetDefs($gridName, 'grids'),
@@ -89,7 +97,7 @@ class Model
             $gridName = 'main';
         }
         if (!array_key_exists($gridName, $this->grids)) {
-            $this->grids[$gridName] = new Data2Html_Join_LinkedGrid(
+            $this->grids[$gridName] = new LinkedGrid(
                 $this,
                 $gridName,
                 $this->getSetDefs($gridName, 'grids'),
@@ -99,14 +107,14 @@ class Model
         return $this->grids[$gridName];
     }
     
-    public function getLinkedElement($elementName = '')
+    public function getLinkedBlock($elementName = '')
     {
         if (!$elementName) {
             $elementName = 'main';
         }
         if (!array_key_exists($elementName, $this->elements)) {
-            $this->elements[$elementName] = new Data2Html_Join_LinkedSet(
-                new Data2Html_Model_Set_Element(
+            $this->elements[$elementName] = new LinkedSet(
+                new SetBlock(
                     $this,
                     $elementName, 
                     $this->getSetDefs($elementName, 'elements'),
@@ -130,54 +138,18 @@ class Model
             if ($name === 'main') {
                 $objDf = array();
             } else {
-                throw new Data2Html_Exception(
+                throw new DebugException(
                     "\"{$name}\" not exist on \"{$setName}\" definitions.",
                     $this->definitions
                 );
             }
         }
         if ($objDf === null) {
-            throw new Data2Html_Exception(
+            throw new DebugException(
                 "\"{$name}\" not be used as \"{$setName}\" definition, is null.",
                 $this->definitions
             );
         }
         return $objDf;
-    }
-
-    // ========================
-    // Events
-    // ========================
-    /**
-     * Insert events
-     */
-    public function beforeInsert($db, &$values)
-    {
-        return true;
-    }
-    public function afterInsert($db, &$values, &$keys)
-    {
-    }
-
-    /**
-     * Update events
-     */
-    public function beforeUpdate($db, &$values, &$keys)
-    {
-        return true;
-    }
-    public function afterUpdate($db, &$values, &$keys)
-    {
-    }
-
-    /**
-     * Delete events
-     */
-    public function beforeDelete($db, &$values, &$keys)
-    {
-        return true;
-    }
-    public function afterDelete($db, &$values, &$keys)
-    {
     }
 }

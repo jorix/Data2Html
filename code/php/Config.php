@@ -6,6 +6,7 @@ use Data2Html\Data\InfoFile;
 class Config
 {
     protected static $config = array();
+    protected static $debug = false;
     protected static $configPath = null;
     protected static $configFolder = null;
     
@@ -18,7 +19,7 @@ class Config
         self::$configFolder = InfoFile::toCleanFolderPath(
             $basePath . '/' . dirname($fileName)
         );
-        self::loadFile($fileName);
+        self::loadFile($basePath . '/' . $fileName);
         self::$debug = self::get('debug');
     }
     
@@ -87,8 +88,7 @@ class Config
             $file .= '.php';
             $config = parse_ini_file($file, true);
         } else {
-            throw new Exception(
-                "Data2Html_Config: File \"{$file}\" does not exist");
+            throw new \Exception("File \"{$file}\" does not exist");
         }
         if ($config) {
             static::$config = array_replace_recursive(static::$config, $config);

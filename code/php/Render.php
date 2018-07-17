@@ -1,24 +1,18 @@
 <?php
 namespace Data2Html;
 
+use Data2Html\Data\Lot;
 use Data2Html\Render\Branch;
-use Data2Html\Render\Templates;
-use Data2Html\Render\FileContents;
+use Data2Html\Render\Content;
+use Data2Html\Model\Set;
+use Data2Html\Model\Set\Includes as SetIncludes;
 
 class Render
 {
     use Debug;
-
-    private $templateObj;
-    private $idRender = null;
     
     private $matchTranslate = '/__\{([a-z][\w\-\/]*)\}/i';
         // Text are as: __{tow-word} or __{house/word}';
-    private $typeToInputTemplates = array(
-        '[default]' =>    array('base', 'text-input'),
-        'boolean' =>    array('checkbox', 'checkbox'),
-        'date' =>       array('base', 'datetimepicker')
-    );
 
     private static $idRenderCount = 0;
     
@@ -34,11 +28,12 @@ class Render
     public function render($replaces, $templateName)
     {
         try {
-            return Templates::apply(
-                FileContents::get($templateName),
+            $templateBranch = new Branch($templateNam);
+            return new Content(
+                $templateBranch->gtTemplate('template'),
                 $replaces
-            );           
-        } catch(Exception $e) {
+            );        
+        } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
             exit();
@@ -48,7 +43,7 @@ class Render
     public function renderGrid($model, $gridName, $templateName, $itemReplaces = null)
     {
         try {
-            $templateBranch = new Branch(FileContents::load($templateName));
+            $templateBranch = new Branch($templateName);
             $lkGrid = $model->getLinkedGrid($gridName);
             $gridId = $lkGrid->getId();
            
@@ -86,7 +81,7 @@ class Render
                 $lkGrid->getColumnsSet()->getLinkedItems(),
                 $replaces
             );
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
             exit();
@@ -96,11 +91,11 @@ class Render
     public function renderElement($model, $formName, $templateName, $itemReplaces = null)
     {
         try {
-            $lkForm = $model->getLinkedElement($formName);
+            $lkForm = $model->getLinkedBlock($formName);
             
             return $this->renderFormSet(
                 $lkForm->getId(),
-                new Branch(FileContents::load($templateName)),
+                new Branch($templateName),
                 $lkForm->getLinkedItems(),
                 [
                     'title' => $lkForm->getAttributeUp('title'),
@@ -110,7 +105,7 @@ class Render
                 ],
                 $itemReplaces
             );
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
             exit();
@@ -125,10 +120,10 @@ class Render
         $itemReplaces = null
     ) {
         if (!$columns) {
-            throw new Exception("`\$columns` parameter is empty.");
+            throw new \Exception("`\$columns` parameter is empty.");
         }
         if (count($columns) === 0) {
-            return Templates::renderEmpty();
+            return new Content();
         }
 
         $itemReplaces = $itemReplaces ? $itemReplaces : [];
@@ -154,18 +149,17 @@ class Render
         
         // End
         $bodyReplaces = array_merge($bodyReplaces, array(
+            'id' => $gridId,
             'head' => $thead,
             'body' => $tbody,
             'colCount' => $renderCount,
-            'visual' => Data2Html_Model_Set::getVisualItems($columns)
+            'visual' => Set::getVisualItems($columns)
         ));
         
-        $result = Templates::apply(
-            $templateBranch->getItem('template'),
+        return new Content(
+            $templateBranch->getTemplate('template'),
             $bodyReplaces
         );
-        $result['id'] = $gridId; // Required by d2h_display.js
-        return $result;
     }
 
     protected function renderFormSet(
@@ -188,15 +182,14 @@ class Render
             $itemReplaces
         );
         
-        $bodyReplaces['visual'] = Data2Html_Model_Set::getVisualItems($items);
-        $form = Templates::apply(
-            $templateBranch->getItem('template'),
+        $bodyReplaces['visual'] = Set::getVisualItems($items);
+        $form = new Content(
+            $templateBranch->getTemplate('template'),
             array_merge($bodyReplaces, [
                 'id' => $formId,
                 'body' => $body
             ])
         );
-        $form['id'] = $formId; // Required by d2h_display.js
         return $form;
     }
     
@@ -206,117 +199,109 @@ class Render
             "assign-template"
             function() { return array('base', 'base', array()); }
         );
-        $tLayouts = $template->getBranch('layouts');
-        $tContents = $template->getBranch('contents');
+        $tLayouts = $template->getBranch(['layouts', 'templates']);
+        $tContents = $template->getBranch(['contents', 'templates']);
         
-        $renderSetLevel = function($currentLevel) 
-        use(&$renderSetLevel, &$assignTemplate, &$items, $tContents, $tLayouts, $iReplaces)
-        {
-            $body = null;
-            $vDx = new Data2Html_Collection();
-
-            // Declare end previous item function
-            $endPreviousItem = function($itemBody, $levelBody, $layoutTemplName, $replaces) 
-            use(&$body, $tLayouts) {
-                if (!$itemBody) {
-                    return;
-                }
-                if ($levelBody) {
-                    Templates::concat($itemBody, $levelBody);
-                }
-                $replaces['body'] = $itemBody;
-                Templates::concat(
-                    $body,
-                    Templates::apply(
-                        $tLayouts->getItem(['templates', $layoutTemplName]),
-                        $replaces
-                    )
-                );
-            };
-            
-            // Current level
-            $itemBody = null;
-            $levelBody = null;
-            $layoutTemplName = null;
-            $replaces = null;
-            $renderCount = 0;
-            $v = current($items); 
-            while ($v !== false) {
-                $level =  Lot::getItem('level', $v, 0);
-                if ($level < $currentLevel) {
-                    break;
-                }
-                // Down level / Finalize previous item
-                if ($level > $currentLevel) {
-                    list($levelBody) = $renderSetLevel($level);
-                    $v = current($items);
-                    if ($v === false) {
-                        break;
-                    }
-                    $level =  Lot::getItem($v, 'level', $v, 0);
-                }
-                if ($level === $currentLevel) {
-                    $endPreviousItem(
-                        $itemBody,
-                        $levelBody,
-                        $layoutTemplName,
-                        $replaces
-                    );
-                }
-                
-                // Start current item
-                $vDx->set($v);
-                $itemBody = null;
-                $levelBody = null;
-                $layoutTemplName = null;
-                $replaces = null;
-                if ($vDx->getBoolean('virtual')) {
-                    $v = next($items);
-                    continue;
-                }
-                $display = $vDx->getString('display', 'html');
-                if ($display === 'none') {
-                    $v = next($items);
-                    continue;
-                }
-                list(
-                    $layoutTemplName,
-                    $contentTemplName,
-                    $replaces
-                ) = $assignTemplate($this, $v);
-                $replaces += $iReplaces + array(
-                    'id' => 'd2h_item_' . ++self::$idRenderCount,
-                    'debug-name' => key($items),
-                    'name' => key($items),
-                    'title' => $vDx->getString('title'),
-                    'description' => $vDx->getString('description'),
-                    'format' => $vDx->getString('format'),
-                    'type' => $vDx->getString('type'),
-                    'icon' => $vDx->getString('icon'),
-                    'visualClassLayout' => $vDx->getString('visualClassLayout'),
-                    'visualClassBody' => $vDx->getString('visualClassBody'),
-                    'action' => $vDx->getString('action'),
-                    'validations' => implode(' ', 
-                        $vDx->getArray('validations', array())
-                    )
-                );
-                ++$renderCount;
-                $itemBody = Templates::apply(
-                    $tContents->getItem(['templates', $contentTemplName]),
-                    $replaces
-                );
-                //$this->dump([$contentTemplName, $tContents, $replaces, $itemBody]);
-
-                $v = next($items);
-            }
-            // Finalize previous item
-            $endPreviousItem($itemBody, $levelBody, $layoutTemplName, $replaces);
-            return array($body, $renderCount);
-        };
-        reset($items);
-        return $renderSetLevel(0);
+        return $this->renderFlatLevelSet(0, &$assignTemplate, $tContents, $tLayouts, &$items, $iReplaces)
     }
 
+    protected function renderFlatLevelSet($currentLevel, &$items, $tContents, $tLayouts, &$assignTemplate, $iReplaces)
+    {
+        $body = new Content();
+        
+        // Current level
+        $levelBody = new Content();
+        $itemLayoutName = null;
+        $itemReplaces = null;
+        $vDx = new Lot();
+        $renderCount = 0;
+        
+        $v = current($items); 
+        while ($v !== false) {
+            $level = Lot::getItem('level', $v, 0);
+            
+            // Get down level and add to previous item
+            if ($level > $currentLevel) { 
+                // a level always is started with a item, therefore previous item exist and $itemReplaces is not null
+                list($nextLevelBody) = $this->renderFlatLevelSet($level, $items, $tContents, $tLayouts, $assignTemplate, $itemReplaces)
+                $itemBody->add($nextLevelBody);
+                // read next item and force current level
+                $v = current($items); // v$ is pending to verify if items are ended
+                $level = $currentLevel; // to force finish previous item ()
+            }
+            
+            // Apply the layout to finish previous item only if is started 
+            if ($level === $currentLevel && $itemReplaces) {
+                $itemReplaces['body'] = $itemBody;
+                $levelBody->add(
+                    $tLayouts->getTemplate($itemLayoutName),
+                    $itemReplaces
+                );
+                // verify if items are ended by a previous down level
+                if ($v === false) {
+                    break;
+                }
+                // set next item level
+                $level = Lot::getItem('level', $v, 0);
+            }
+
+            // this level is ended
+            if ($level < $currentLevel) {
+                break;
+            }
+            
+            // Start current item
+            $vDx->set($v);
+            $itemLayoutName = null;
+            $itemReplaces = null;
+            if ($vDx->getBoolean('virtual')) {
+                $v = next($items);
+                continue;
+            }
+            $display = $vDx->getString('display', 'html');
+            if ($display === 'none') {
+                $v = next($items);
+                continue;
+            }
+            list(
+                $itemLayoutName,
+                $contentTemplName,
+                $itemReplaces
+            ) = $assignTemplate($this, $v);
+            $itemReplaces += $iReplaces + array(
+                'id' => 'd2h_item_' . ++self::$idRenderCount,
+                'debug-name' => key($items),
+                'name' => key($items),
+                'title' => $vDx->getString('title'),
+                'description' => $vDx->getString('description'),
+                'format' => $vDx->getString('format'),
+                'type' => $vDx->getString('type'),
+                'icon' => $vDx->getString('icon'),
+                'visualClassLayout' => $vDx->getString('visualClassLayout'),
+                'visualClassBody' => $vDx->getString('visualClassBody'),
+                'action' => $vDx->getString('action'),
+                'validations' => implode(' ', 
+                    $vDx->getArray('validations', array())
+                )
+            );
+            ++$renderCount;
+            $itemBody = new Content(
+                $tContents->getTemplate($contentTemplName),
+                $itemReplaces
+            );
+            $v = next($items);
+        }
+        // Finalize previous item
+        if ($itemReplaces) {
+            $itemReplaces['body'] = $itemBody;
+            $levelBody->add(
+                $tLayouts->getTemplate($itemLayoutName),
+                $itemReplaces
+            );
+        }
+        return [$levelBody, $renderCount]
+    };
+    
     protected function parseIncludeItems(
         $setName,
         Branch $templateBranch,
@@ -324,9 +309,9 @@ class Render
     ) {
         $items = $templateBranch->getItem($setName);
         if (count($items) === 0) {
-            return array();
+            return [];
         } else {
-            $tempModel = new Data2Html_Model_Set_Includes(null, $setName, $items, $alternativeItem);
+            $tempModel = new SetIncludes(null, $setName, $items, $alternativeItem);
             return $tempModel->getItems();
         }
     }

@@ -1,8 +1,10 @@
 <?php
-class Data2Html_Model_Set_Grid extends Data2Html_Model_Set
+namespace Data2Html\Model\Set;
+
+class Grid extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
-        'element-name' => 'attribute',
+        'block-name' => 'attribute',
         'filter' => false,
         'sort' => 'attribute',
         'template' => 'attribute',

@@ -3,6 +3,7 @@ namespace Data2Html\Render;
 
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;
+use Data2Html\Render\FileContents;
 
 class Branch
 {
@@ -13,7 +14,9 @@ class Branch
     
     public function __construct($tree, $keys = [])
     {
-        if (!is_array($tree)) {
+        if (is_string($tree)) {
+            $tree = FileContents::load($tree);
+        } elseif (!is_array($tree)) {
             throw new DebugException(
                 "Argument \$tree must be a array.",
                 ['$tree' => $tree]
@@ -51,14 +54,26 @@ class Branch
         }
         return $result;
     }
-    
-    public function getItem($keys)
+        
+    public function getItem($keys, $default = null)
     {
-        $leaf = Lot::getItem($keys, $this->tree);
-        if (is_string($leaf)) {
-            return FileContents::getContent($leaf);
+        return Lot::getItem($keys, $this->tree, $default);
+    }
+    
+    public function getTemplate($keys, $default = null)
+    {
+        $item = Lot::getItem($keys, $this->tree, $default);
+        if (!is_string($item)) {
+            return $item;
         } else {
-            $leaf;
+            $final = [];
+            if (array_key_exists('html', $item)) {
+                $final['html'] = FileContents::getContent($item['html']);
+            }
+            if (array_key_exists('js', $item)) {
+                $final['js'] = FileContents::getContent($item['js']);
+            }
+            return $final;
         }
     }
 }

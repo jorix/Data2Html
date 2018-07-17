@@ -1,5 +1,7 @@
 <?php
-class Data2Html_Model_Set_Base extends Data2Html_Model_Set 
+namespace Data2Html\Model\Set;
+
+class Base extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
         'grids' => false,

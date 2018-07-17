@@ -7,6 +7,8 @@ use Data2Html\Data\Lot;
 
 class Lot
 {
+    use \Data2Html\Debug;
+    
     public static function getItem($keys, &$array, $default = null)
     {
         if (!$keys) {
@@ -53,22 +55,17 @@ class Lot
         }
     }
     
-    public function getValues() 
-    {
-        return $this->values;
-    }
-    
     public function get($itemKey, $default = null)
     {
         if (!is_array($this->values)) {
-            throw new Data2Html_Exception(
-                "Data2Html_Collection: 'values' must be an array, get '{$itemKey}' is not possible.",
+            throw new DebugException(
+                "'values' must be an array, get '{$itemKey}' is not possible.",
                 $this->values
             );
         }
         if (!is_string($itemKey) && !is_numeric($itemKey)) {
-            throw new Data2Html_Exception(
-                "Data2Html_Collection: 'itemKey' should be either a string or an integer.",
+            throw new DebugException(
+                "'itemKey' should be either a string or an integer.",
                 array(
                     'itemKey' => $itemKey,
                     '->values' => $this->values
@@ -139,8 +136,8 @@ class Lot
         }
         if (!is_array($val) && !is_object($val)) {
             if ($this->strict) {
-                throw new Exception(
-                    "getArray(): The '{$itemKey}' is not a array."
+                throw new \Exception(
+                    "The '{$itemKey}' is not a array."
                 );
             }
             return null;

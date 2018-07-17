@@ -148,7 +148,7 @@ class SqlSelect
             $filterItems = array();
         }
         $c = array();
-        $itemDx = new \Data2Html_Collection();
+        $itemDx = new Lot();
         foreach ($request as $k => $v) {
             if ($v === '' || $v === null) {
                 continue;
@@ -211,7 +211,7 @@ class SqlSelect
                 $baseName = $colNameRequest;
                 $order = 1;
         }
-        $sortBy = \Data2Html_Value::getItem($columns, array($baseName, 'sortBy', 'items'));
+        $sortBy = Lot::getItem([$baseName, 'sortBy', 'items'], $columns);
         if (!$sortBy) {
             throw new DebugException("Requested sort field '{$baseName}' not found or don't have sortBy .",
                 $columns

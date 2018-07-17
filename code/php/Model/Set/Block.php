@@ -1,5 +1,7 @@
 <?php
-class Data2Html_Model_Set_Element extends Data2Html_Model_Set
+namespace Data2Html\Model\Set;
+
+class Block extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
         'template' => 'attribute',

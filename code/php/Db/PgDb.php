@@ -1,9 +1,10 @@
 <?php
 /**
- * Sample PostgreSQL driver
- * It's just an example - use PDO if you can.
+ * PostgreSQL driver
  */
-class jqGrid_DB_Pgsql extends jqGrid_DB
+namespace Data2Html\Db;
+
+class PgDb extends \Data2Html\Db
 {
     protected $db_type = 'postgresql';
 
@@ -15,7 +16,7 @@ class jqGrid_DB_Pgsql extends jqGrid_DB
             if (!$link) {
                 throw new jqGrid_Exception_DB(pg_last_error());
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw new jqGrid_Exception_DB($e->getMessage(), null);
         }
         $this->link = $link;

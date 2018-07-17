@@ -1,0 +1,11 @@
+.d2h_sort_no .d2h_sortIco_no {color: #777}
+.d2h_sort_asc .d2h_sortIco_asc,
+.d2h_sort_desc .d2h_sortIco_desc,
+.d2h_sort_no .d2h_sortIco_no {display: inline;}
+.d2h_sort_asc .d2h_sortIco_desc,
+.d2h_sort_asc .d2h_sortIco_no, 
+.d2h_sort_desc .d2h_sortIco_asc,
+.d2h_sort_desc .d2h_sortIco_no,
+.d2h_sort_no .d2h_sortIco_asc,
+.d2h_sort_no .d2h_sortIco_desc {display: none;}
+ 

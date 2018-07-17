@@ -1,12 +1,11 @@
 <?php
-return array(
+return [
     "assign-template" => function($render, $item) {
         $itemDx = new \Data2Html\Lot($item);
         
-        $level = $itemDx->getInteger('level', 0);
         $layout = $itemDx->getString(
             'layout-template',
-            $level ? 'base_1' : 'base'
+            'base'
         );
         $content = 'text-input';
         $content = $itemDx->getString('content-template', $content);
@@ -32,14 +31,14 @@ return array(
             $contentToLayout = array(
                 'checkbox' =>    'checkbox'
             );
-            $content = Data2Html_Value::getItem(
-                $typeToInputTemplates,
+            $content = \Data2Html\Data\Lot::getItem(
                 $type,
+                $typeToInputTemplates,
                 'text-input'
             );
-            $layout = Data2Html_Value::getItem(
-                $contentToLayout,
+            $layout = \Data2Html\Data\Lot::getItem(
                 $content,
+                $contentToLayout,
                 $layout
             );
         }
@@ -49,4 +48,4 @@ return array(
         // Return
         return array($layout, $content, $replaces);
     }
-);
+];

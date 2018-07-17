@@ -1,10 +1,15 @@
 <?php
 namespace Data2Html;
 
+use Data2Html\Config;
 use Data2Html\DebugException;
-use Data2Html\Controller\SqlSelect;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
+use Data2Html\Model\Set;
+use Data2Html\Controller\SqlSelect;
+use Data2Html\Controller\Validate;
+
+use Data2Html\Handler;
 
 class Controller
 {
@@ -15,8 +20,8 @@ class Controller
     public function __construct($model)
     {
         // Data base
-        $dbConfig = \Data2Html_Config::getSection('db');
-        $db_class = 'Data2Html_Db_' . $dbConfig['db_class'];
+        $dbConfig = Config::getSection('db');
+        $db_class = '\\Data2Html\\Db\\' . $dbConfig['db_class'];
         $this->db = new $db_class($dbConfig);
 
         $this->model = $model;
@@ -56,13 +61,13 @@ class Controller
         $model = $this->model;
         $r = new Lot($postData);
         $oper = $r->getString('d2h_oper', '');
-        $playerNames = \Data2Html_Handler::parseRequest($request);
+        $playerNames = Handler::parseRequest($request);
         $response = array();
         switch ($oper) {
             case '':
             case 'read':
                 if (isset($playerNames['element'])) {
-                    $lkForm = $model->getLinkedElement($playerNames['element']);
+                    $lkForm = $model->getLinkedBlock($playerNames['element']);
                     return $this->opReadForm($lkForm, $r->get('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
                     $lkGrid = $model->getLinkedGrid($playerNames['grid']);
@@ -88,12 +93,12 @@ class Controller
                     );
                 }
             case 'insert':
-                $val = new \Data2Html_Controller_Validate('ca');
-                $lkElem = $model->getLinkedElement($playerNames['element']);
+                $val = new Validate('ca');
+                $lkElem = $model->getLinkedBlock($playerNames['element']);
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $validation = $val->validateData(
                     $postValues,
-                    \Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
+                    Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
@@ -119,13 +124,13 @@ class Controller
                 break;
 
             case 'update':
-                $val = new \Data2Html_Controller_Validate('ca');
-                $lkElem = $model->getLinkedElement($playerNames['element']);
+                $val = new Validate('ca');
+                $lkElem = $model->getLinkedBlock($playerNames['element']);
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $keys = Lot::getItem('[keys]', $postValues);
                 $validation = $val->validateData(
                     $postValues,
-                    \Data2Html_Model_Set::getVisualItems($lkElem->getLinkedItems())
+                    Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
@@ -138,7 +143,7 @@ class Controller
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $keys = Lot::getItem('[keys]', $postValues);
                 unset($postValues['[keys]']);
-                $this->opDelete($model->getLinkedElement($playerNames['element']), $postValues, $keys);
+                $this->opDelete($model->getLinkedBlock($playerNames['element']), $postValues, $keys);
                 break;
 
             default:

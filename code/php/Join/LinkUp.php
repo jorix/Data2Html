@@ -1,8 +1,13 @@
 <?php
 namespace Data2Html\Join;
+
+use Data2Html\Data\Lot;
+use Data2Html\Handler;
+
 class LinkUp
 {
-    
+    use \Data2Html\Debug;
+ 
     protected $originSet = null;
     
     protected $tableSources = array();
@@ -24,12 +29,9 @@ class LinkUp
             if (substr($dafaultSort, 0, 1) === '!') {
                 $dafaultSort = substr($dafaultSort, 1);
             }
-            $sortBy = Data2Html_Value::getItem(
-                $this->items['main'],
-                [$dafaultSort, 'sortBy']
-            );
+            $sortBy = Lot::getItem([$dafaultSort, 'sortBy'], $this->items['main']);
             if (!$sortBy) {
-                throw new Data2Html_Exception(
+                throw new DebugException(
                     "Default sort '{$dafaultSort}' not found or don't have sortBy .",
                     $this->items['main']
                 );
@@ -52,10 +54,7 @@ class LinkUp
         if (!$this->linkDone) {
             $this->linkKeys();
         } 
-        return Data2Html_Value::getItem(
-            $this->items,
-            ($groupName ? $groupName : 'main')
-        );
+        return Lot::getItem(($groupName ? $groupName : 'main'), $this->items);
     }
 
     public function getFrom() {
@@ -75,7 +74,7 @@ class LinkUp
     public function add($groupName, $fromItems)
     {
         if ($this->linkDone) {
-            throw new Data2Html_Exception(
+            throw new DebugException(
                 "Link is done, It is not possible to add more sets.",
                 $this->items[$groupName]
             );
@@ -118,12 +117,9 @@ class LinkUp
                     $lkItem = $this->getLinkItemByBase($tableAlias, $baseName);
                     $ref = $this->linkVirtualItem('linkKeys()', $groupName, $tableAlias, $baseName, $lkItem);
                 }    
-                $refDb = Data2Html_Value::getItem(
-                    $this->items,
-                    array($groupName, $ref, 'refDb')
-                );
+                $refDb = Lot::getItem([$groupName, $ref, 'refDb'], $this->items);
                 if (!$refDb) {
-                    throw new Data2Html_Exception(
+                    throw new DebugException(
                         "Key base \"{$baseName}\" of \"{$tableAlias}\" without refDb.",
                         $fromTable
                     );
@@ -157,10 +153,7 @@ class LinkUp
     }
     
     protected function getRef($groupName, $tableAlias, $baseName) {
-        return Data2Html_Value::getItem(
-            $this->refItems,
-            array($groupName, $tableAlias, $baseName)
-        );
+        return Lot::getItem([$groupName, $tableAlias, $baseName], $this->refItems);
     }
         
     protected function linkVirtualItem($debugOrigin, $groupName, $tableAlias, $base, $item) {
@@ -193,7 +186,7 @@ class LinkUp
         $this->addRefByItem($groupName, $tableAlias, $item, $newRef);
         
         if (array_key_exists('linkedTo', $item)) {
-            $itemBase = Data2Html_Value::getItem($item, 'base');
+            $itemBase = Lot::getItem('base', $item);
             foreach ($item['linkedTo'] as $k => &$v) {
                 $lkItem = $this->getLinkItemByLinkTo($tableAlias, $v);
                 $lkAlias = $lkItem['tableAlias'];
@@ -237,7 +230,7 @@ class LinkUp
         
         if (array_key_exists('teplateItems', $item)) {
             foreach ($item['teplateItems'] as $k => &$v) {
-                $refKey = Data2Html_Value::getItem($item, array('linkedTo', $v['base'] , 'ref'));
+                $refKey = Lot::getItem(['linkedTo', $v['base'] , 'ref'], $item);
                 $baseName = $v['base'];
                 if ($refKey) {
                     $v['ref'] = $refKey;
@@ -253,7 +246,7 @@ class LinkUp
                         $v['ref'] = $this->linkVirtualItem(
                             'linkItem()-teplateItems-2', $groupName, $lkAlias, $baseName, $lk['base'][$baseName]);
                     } else {
-                        throw new Data2Html_Exception(
+                        throw new DebugException(
                             "Base \"{$baseName}\" not fount (on \"{$newRef}\").",
                             $item
                         );
@@ -280,7 +273,7 @@ class LinkUp
                 unset($v);
             }
             foreach ($sortBy['items'] as $k => &$v) {
-                $refKey = Data2Html_Value::getItem($sortBy, array('linkedTo', $v['base'] , 'ref'));
+                $refKey = Lot::getItem(['linkedTo', $v['base'] , 'ref'], $sortBy);
                 $baseName = $v['base'];
                 if ($refKey) {
                     $v['ref'] = $refKey;
@@ -298,7 +291,7 @@ class LinkUp
                             $v['ref'] = $this->linkVirtualItem(
                                 'linkItem()-sortBy-base', $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
-                            throw new Data2Html_Exception(
+                            throw new DebugException(
                                 "Base sortBy \"{$baseName}\" not fount (on \"{$newRef}\").",
                                 $item
                             );
@@ -312,7 +305,7 @@ class LinkUp
                 }
                 $ref = $v['ref'];
                 if (!array_key_exists('db', $this->items[$groupName][$ref])) {
-                    throw new Data2Html_Exception(
+                    throw new DebugException(
                         "SortBy base \"{$baseName}\" to ref \"{$ref}\" without db attribute (on \"{$newRef}\").",
                         $item
                     );
@@ -335,26 +328,26 @@ class LinkUp
     }
         
     protected function getLinkItemByBase($fromAlias, $baseName) {
-        $linkId = Data2Html_Value::getItem($this->tableSources, array($fromAlias, 'from'));
+        $linkId = Lot::getItem([$fromAlias, 'from'], $this->tableSources);
         return $this->getLinkItemById($linkId, $baseName);
     }
     
     protected function getLinkItemById($linkId, $baseName, $linkedWith = null) {
         if (!array_key_exists($linkId, $this->links)) {
             if (!$linkedWith) {
-                throw new Data2Html_Exception(
+                throw new DebugException(
                     "LinkId \"{$linkId}\" not exist.",
                     $this->tableSources
                 );
             }
-            $playerNames = Data2Html_Handler::parseLinkText($linkedWith);
+            $playerNames = Handler::parseLinkText($linkedWith);
             $modelName = $playerNames['model'];
             if (!array_key_exists('grid', $playerNames)) {
-                throw new Exception(
+                throw new \Exception(
                     "Link \"{$linkedWith}\" without a grid name."
                 );
             }
-            $model = Data2Html_Handler::getModel($modelName);
+            $model = Handler::getModel($modelName);
             $grid = $model->getGridColumns($playerNames['grid']);
             $alias = $this->addTable($linkId, $grid);
         }
@@ -367,7 +360,7 @@ class LinkUp
             $lkItem = $l['base'][$baseName];
         }
         if (!$lkItem) {
-            throw new Exception(
+            throw new \Exception(
                 "Base \"{$baseName}\" from \"{$fromAlias}\" on grid \"{$linkedWith}\" not found."
             );
         }
@@ -407,9 +400,7 @@ class LinkUp
                 $ref = $this->linkVirtualItem('addTable()', $groupName, $lkAlias, $lkBaseName, $lkItem);
             }
             $this->tableSources[$tableAlias]['fromField'] = 
-                Data2Html_Value::getItem(
-                    $this->items, array($groupName, $ref, 'refDb')
-                );
+                Lot::getItem([$groupName, $ref, 'refDb'], $this->items);
         }
         return $tableAlias;
     }

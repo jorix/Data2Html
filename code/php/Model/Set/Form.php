@@ -1,5 +1,7 @@
 <?php
-class Data2Html_Model_Set_Form extends Data2Html_Model_Set 
+namespace Data2Html\Model\Set;
+
+class Form extends \Data2Html\Model\Set 
 {
     protected function parseSortBy($sortBy, $baseItems) {
         return null;

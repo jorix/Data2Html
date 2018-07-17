@@ -1,7 +1,13 @@
 <?php
+namespace Data2Html;
 
-abstract class Data2Html_Db
+use Data2Html\Data\Parse;
+use Data2Html\DebugException;
+
+abstract class Db
 {
+    use \Data2Html\Debug;
+        
     /**  */
     protected $link;
     protected $db_type = 'abstract_Db';
@@ -98,19 +104,19 @@ abstract class Data2Html_Db
         switch ($type) {
             case 'number':
             case 'currency':            
-                $r = '' . Data2Html_Value::parseNumber($value);
+                $r = '' . Parse::number($value);
                 break;
             case 'integer':
-                $r = '' . Data2Html_Value::parseInteger($value);
+                $r = '' . Parse::integer($value);
                 break;
             case 'boolean':
-                $r = Data2Html_Value::parseBoolean($value) ? '1' : '0';
+                $r = Parse::boolean($value) ? '1' : '0';
                 break;
             case 'string':
-                $r = $this->stringToSql(Data2Html_Value::parseString($value));
+                $r = $this->stringToSql(Parse::string($value));
                 break;
             case 'date':
-                $date = Data2Html_Value::parseDate($value, null, 'Y-m-d\TH:i:sP');
+                $date = Parse::date($value, null, 'Y-m-d\TH:i:sP');
                 if ($date) {
                     $r = $this->dateToSql($date);
                 } else {
@@ -118,7 +124,7 @@ abstract class Data2Html_Db
                 }
                 break;
             default:
-                throw new Exception("`{$type}` is not defined.");
+                throw new \Exception("`{$type}` is not defined.");
         }
         return $r;
     }
@@ -144,7 +150,7 @@ abstract class Data2Html_Db
                 $r = $this->toDate($v)->format('Y-m-d\TH:i:sP');
                 break;
             default:
-                throw new Exception("`{$type}` is not defined.");
+                throw new \Exception("`{$type}` is not defined.");
         }
         return $r;
     }
@@ -178,7 +184,21 @@ abstract class Data2Html_Db
         } else {
             $result = $row;
         }
-        return Data2Html_Value::parseValue($result, $type);
+        switch ($type) {
+            case 'number':
+            case 'currency':
+                return Parse:number($result);
+            case 'integer':
+                return Parse:integer($result);
+            case 'boolean':
+                return Parse:boolean($result);
+            case 'string':
+                return Parse:string($result);
+            case 'date':
+                return Parse:date($result);
+            default:
+                throw new \Exception("`{$type}` is not defined.");
+        }
     }
     
     public function executeArray($sqlArray)

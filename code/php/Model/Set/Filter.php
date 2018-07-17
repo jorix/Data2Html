@@ -1,5 +1,7 @@
 <?php
-class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
+namespace Data2Html\Model\Set;
+
+class Filter extends \Data2Html\Model\Set
 {
     protected $keywords = array('check' => 'string');
     
@@ -31,7 +33,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
                     }
                 }
                 if (is_string($field)) {
-                    throw new Exception(
+                    throw new \Exception(
                         "String \"{$field}\" needs a value as string or array."
                     );
                 }
@@ -63,7 +65,7 @@ class Data2Html_Model_Set_Filter extends Data2Html_Model_Set
             !array_key_exists('base', $field) &&
             array_key_exists('check', $field)
         ) {
-            throw new Exception(
+            throw new \Exception(
                 "Key `{$key}=>[...]` with check=\"{$field['check']}\" requires a `db` or `base` attributes."
             );
         }

@@ -1,5 +1,5 @@
 [db]
-    db_class = Pdo
+    db_class = PdoDb
     dsn =  'mysql:dbname=d2h_demo;host=127.0.0.1'
     user = root
     pass = ''

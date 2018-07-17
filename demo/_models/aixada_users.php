@@ -18,7 +18,7 @@
   foreign key (provider_id) references aixada_provider(id)  
 )
 */
-$return = array(
+return [
     'table' => 'aixada_user',
     'title' => 'Users',
     'items' => array(
@@ -69,4 +69,4 @@ $return = array(
             ),
         )
     )
-);
+];

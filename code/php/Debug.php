@@ -4,13 +4,19 @@ namespace Data2Html;
 use Data2Html\Data\To;
 
 trait Debug {   
-    public function dump($a) {
+    public function dump($value = '{$this}') {
         if (!Config::debug()) {
             echo "Debug mode is not activated, activate it to make a dump!";
             return;
         }
-        echo "<h2>Dump on: " . get_class($this) . "</h2>\n<pre>";
-        echo To::php($this->__debugInfo());
+        if ($value === '{$this}') {
+            echo "<h2>Dump class: " . get_class($this) . "</h2>\n<pre>";
+            echo To::php($this->__debugInfo());
+        } else {
+            echo "<h2>Dump value on: " . 
+                get_class($this) . "</h2>\n<pre>";
+            echo To::php($value);
+        }
         echo "</pre><hr>\n";
     }
     

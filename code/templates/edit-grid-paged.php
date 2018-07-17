@@ -6,5 +6,6 @@ return [
         'include' => 'grids/grid-elements.php'
     ],
     'filter' => '@ forms/filter/filter-auto.php',
-    'page' =>   '@ forms/page/page.php'
+    'page' =>   '@ forms/page/page.php',
+    'require' =>'@ require.php'
 ];

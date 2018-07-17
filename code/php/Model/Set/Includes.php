@@ -1,5 +1,7 @@
 <?php
-class Data2Html_Model_Set_Includes extends Data2Html_Model_Set 
+namespace Data2Html\Model\Set;
+
+class Includes extends \Data2Html\Model\Set
 {
     protected $keywords = array(
         'head-item' => 'array'        

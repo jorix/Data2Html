@@ -37,7 +37,7 @@ class DebugException extends \Exception
             $exeptionData['fileLine'] = $exception->getFile().
                 ' [ line: '.$exception->getLine().' ]';
             $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
-            if ($exception instanceof \Data2Html_Exception || 
+            if ($exception instanceof \DebugException || 
                 $exception instanceof self
             ) {
                 $debugData = $exception->getData();

@@ -35,14 +35,14 @@ class To
                     $textError = 'Unknown error';
                     break;
             }
-            throw new Exception('JSON Error: ' . $json_error . ' - '. $textError);
+            throw new \Exception('JSON Error: ' . $json_error . ' - '. $textError);
         }   
         return $result;
     }
     
-    protected static function php($obj)
+    public static function php($obj)
     {
-        return toPhpStep($obj);
+        return self::toPhpStep($obj);
     }
     
     protected static function toPhpStep($a, $level = 0)

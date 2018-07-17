@@ -7,18 +7,18 @@ class Parse
     public static function string($value, $default = null, $strict = false)
     {
         if (is_array($value)) {
-            throw new Exception(
+            throw new \Exception(
                 "Value is not a string, is a array."
             );
         }
         if (is_object($value)) {
-            throw new Exception(
+            throw new \Exception(
                 "Value is not a string, is a object."
             );
         }
         if (is_null($value)) {
             if ($strict) {
-                throw new Exception(
+                throw new \Exception(
                     "Value is not a string, is null."
                 );
             }
@@ -34,7 +34,7 @@ class Parse
     {
         if (!is_numeric($value)) {
             if ($strict) {
-                throw new Exception(
+                throw new \Exception(
                     "Value `{$value}`  is not a number."
                 );
             }
@@ -50,7 +50,7 @@ class Parse
     {
         if (!is_numeric($value) || !is_int($value+0)) {
             if ($strict) {
-                throw new Exception(
+                throw new \Exception(
                     "Value `{$value}` is not a integer."
                 );
             }
@@ -74,7 +74,7 @@ class Parse
             }
             if (!is_bool($value)) {
                 if ($strict) {
-                    throw new Exception(
+                    throw new \Exception(
                         "Value `{$value}` is not a integer."
                     );
                 }
@@ -96,7 +96,7 @@ class Parse
         $d = date_parse_from_format($input_format, $value);
         if ($d['error_count'] !== 0) {
             if ($strict) {
-                throw new Exception(
+                throw new \Exception(
                     "Value `{$value}` is not a date."
                 );
             }

@@ -1,8 +1,13 @@
 <?php
 namespace Data2Html\Join;
 
+use Data2Html\Handler;
+use Data2Html\Controller\SqlEdit;
+
 class LinkedSet
 {
+    use \Data2Html\Debug;
+   
     // Internal use
     private $linkName;
     private $link;
@@ -22,6 +27,14 @@ class LinkedSet
         $this->set = $set;
     }
 
+    public function __debugInfo()
+    {
+        return [
+            'attributes' => $this->getLinkedFrom(),
+            'keys' => $this->getLinkedKeys(),
+            'setItems' => $this->getLinkedItems()
+        ];
+    }
     // -----------------------
     // Methods from set
     // -----------------------
@@ -78,7 +91,7 @@ class LinkedSet
         $items = $this->getLinkedItems();
         foreach ($items as $k => $v) {
             if (array_key_exists('link', $v)) {
-                if (Data2Html_Handler::parseLinkText($v['link'])['model'] === $linkModelName) {
+                if (Handler::parseLinkText($v['link'])['model'] === $linkModelName) {
                     return  $v;
                 }
             }
@@ -107,7 +120,7 @@ class LinkedSet
         if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
             return false;
         }
-        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $sqlObj = new SqlEdit($db, $this);
         $result = $db->execute($sqlObj->getInsert($values));
         $newId = $db->lastInsertId();
         
@@ -120,7 +133,7 @@ class LinkedSet
         if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
             return false;
         }
-        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $sqlObj = new SqlEdit($db, $this);
         $sqlObj->checkSingleRow($keys);
         $result = $db->execute($sqlObj->getUpdate($values));
         
@@ -133,7 +146,7 @@ class LinkedSet
         if ($this->callbackEvent('beforeDelete', $db, $values, $keys) === false) {
             return false;
         }
-        $sqlObj = new Data2Html_Controller_SqlEdit($db, $this);
+        $sqlObj = new SqlEdit($db, $this);
         $sqlObj->checkSingleRow($keys);
         $result = $db->execute($sqlObj->getDelete($values));
         
@@ -154,7 +167,7 @@ class LinkedSet
                         $response = $fn($set, $db, $values, $args[3]);
                         break;
                     default:
-                        throw new Exception(
+                        throw new \Exception(
                             "\"{$eventName}\" defined with incorrect number of arguments=" . count($args)
                         );  
                 }

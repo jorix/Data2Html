@@ -1,4 +1,4 @@
-<?p
+<?php
 namespace Data2Html;
 
 use Data2Html\DebugException;
@@ -10,11 +10,11 @@ use Data2Html\Data\Response;
 /**
  * Nomenclature
  *  * Variable name suffixes:
- *      * ..vDx: Definitions as a `Data2Html_Collection`.
+ *      * ..vDx: Definitions as a `Lot` instance.
  *      * ..Ds: Definitions as a array.
  */
  
-class Data2Html_Handler
+class Handler
 {
     //protected $db_params;
     protected static $modelObjects = array();
@@ -33,7 +33,7 @@ class Data2Html_Handler
             $model = self::getModel($payerNames['model']);
             $controller = new Controller($model);
             Response::json($controller->manage($request));
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             // Message to user
             // header('HTTP/1.1 409 Conflict');
             header('HTTP/1.1 500 Error');
@@ -49,18 +49,18 @@ class Data2Html_Handler
         try {
             $payerNames = self::parseRequest($request);
             $model = self::getModel($payerNames['model']);            
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
             exit();
         }
         $render = self::createRender();
-        if (array_key_exists('element', $payerNames)) {
-            $result = $render->renderElement($model, $payerNames['element'], $templateName);
+        if (array_key_exists('block', $payerNames)) {
+            $result = $render->renderElement($model, $payerNames['block'], $templateName);
         } elseif (array_key_exists('grid', $payerNames)) {
             $result = $render->renderGrid($model, $payerNames['grid'], $templateName);
         } else {
-            throw new Exception("no request object.");
+            throw new \Exception("No requested object name in parameter.");
         }
         return $result;
     }
@@ -69,7 +69,7 @@ class Data2Html_Handler
     {
         try {
             return new Render();
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
             exit();
@@ -83,12 +83,12 @@ class Data2Html_Handler
     public static function getModel($modelName)
     {
         if (!$modelName) {
-            throw new Exception("Don't use `getModel()` without modelName.");
+            throw new \Exception("Don't use `getModel()` without modelName.");
         }
         if (!array_key_exists($modelName, self::$modelObjects)) {
             try {
                 self::$modelObjects[$modelName] = new Model($modelName);
-            } catch(Exception $e) {
+            } catch(\Exception $e) {
                 // Is assumed is called from a view, so message on html        
                 echo DebugException::toHtml($e);
                 exit();
@@ -105,10 +105,10 @@ class Data2Html_Handler
                 $request
             );
         }
-        if (array_key_exists('element', $request)) {
-            // as ['model' => 'model_name', 'element' => 'form_name']
+        if (array_key_exists('block', $request)) {
+            // as ['model' => 'model_name', 'block' => 'form_name']
             $response = array('model' => $request['model']);
-            $response['element'] = $request['element'];
+            $response['block'] = $request['block'];
         } elseif (array_key_exists('grid', $request)) {
             // as ['model' => 'model_name', 'grid' => 'grid_name'}
             $response = array('model' => $request['model']);

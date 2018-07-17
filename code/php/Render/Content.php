@@ -5,11 +5,15 @@ use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
 
-class Templates
+class Content
 {
+    use \Data2Html\Debug;
+
     private static $renderCount = 0;
     
-    public static function apply($template, $replaces)
+    protected $content;
+    
+    public function __construct($template = null, $replaces = null)
     {
         $replaces['_renderCount'] = self::$renderCount++;
     
@@ -20,85 +24,125 @@ class Templates
             );
         }
         
-        // Apply if is callable
         if (is_callable($template)) {
-            return $template($replaces);
-        } 
-        
-        // Verify argument template
-        if (!is_array($template)) {
-            throw new DebugException("Argument \$template must be a array.",
+        // Apply if is callable
+            $this->content = $template($replaces);
+            if (!is_array($this->content)) {
+                throw new DebugException(
+                    "Function \$template must return a array.",
+                    ['function return' => $this->content]
+                );
+            }
+        } elseif (is_null($template)) {
+        // Set empty if is null
+            $this->content = [];
+        } elseif (!is_array($template)) {
+        // Verify template is an array
+            throw new DebugException(
+                "Argument \$template must be a array null or a function.",
                 ['$template' => $template]
             );
-        }
-        
-        // Get content
-        if (array_key_exists('html', $template)) {
-            $html = FileContents::getContent($template['html']);
         } else {
-            $html = '';
-        }
-        if (array_key_exists('js', $template)) {
-            $js = FileContents::getContent($template['js']);
-        } else {
-            $js = '';
-        }
-        
-        // Apply replaces
-        $finalJs = '';
-        $finalReplaces = [];
-        foreach($replaces as $k => $v) {
-            if (is_array($v) && array_key_exists('d2hToken_content', $v)) {
-                if (array_key_exists('html', $v)) {
-                    $html = self::renderHtml($html, [$k => $v['html']]);
-                } 
-                if (array_key_exists('js', $v)) {
-                    $finalJs .= $v['js'] . "\n";
+        // Apply replaces on a template as array ['html' => ..., 'js' => ...]
+            // Get content html+js
+            $requires = [];
+            if (array_key_exists('html', $template)) {
+                $html = self::extractRequires($template['html'], $requires);
+            } else {
+                $html = '';
+            }
+            if (array_key_exists('js', $template)) {
+                $js = self::extractRequires($template['js'], $requires);
+            } else {
+                list($js, $html) = self::extractScripts($html);
+            }
+            
+            
+            // Apply replaces
+            $finalJs = '';
+            $finalReplaces = [];
+            foreach ($replaces as $k => $v) {
+                if ($v instanceof self) {
+                    if (array_key_exists('html', $v->content)) {
+                        $html = self::renderHtml($html, [$k => $v->content['html']]);
+                    } 
+                    if (array_key_exists('js', $v->content)) {
+                        $finalJs .= "\n" . $v->content['js'] ;
+                    }
+                    if (array_key_exists('requires', $v->content)) {
+                        $requires += $v->content['requires'];
+                    }
+                } else {
+                    $finalReplaces[$k] = $v;
                 }
-            } else {
-                $finalReplaces[$k] = $v;
+            }
+            $this->content = [];
+            if ($html) {
+                $this->content['html'] = self::renderHtml($html, $finalReplaces);
+            }
+            if ($js) {
+                $js = self::renderJs($js, $finalReplaces, false);
+            }
+            if ($js || $finalJs) {
+                $this->content['js'] = $js . $finalJs;
+            }
+            if (count($requires) > 0) {
+                $this->content['requires'] = $requires;
             }
         }
-        $result = [];
-        if ($html) {
-            $result['html'] = self::renderHtml($html, $finalReplaces);
+        if (array_key_exists('id', $replaces)) {
+            $this->content['id'] = $replaces['id'];
         }
-        if ($js) {
-            $js = self::renderJs($js, $finalReplaces, false);
-        }
-        if ($js || $finalJs) {
-            $result['js'] = $js . $finalJs;
-        }
-        $result['d2hToken_content'] = true;
-        return $result;
     }
     
-    public static function concat(&$final, $item) {
-        if (!$final) {
-            $final = ['html' => ''];
+    public function add($template = null, $replaces = null) {
+        if ($template instanceof self) {
+            $item = $template;
+        } else {
+            $item = new Content($template, $replaces);
         }
-        foreach($item as $k => $v) {
-            if (array_key_exists($k, $final)) {
-                $final[$k] .= $item[$k];
-            } else {
-                $final[$k] = $item[$k];
+        foreach ($item->content as $k => $v) {
+            switch ($k) {
+                case 'html':
+                case 'js':
+                    if (array_key_exists($k, $this->content)) {
+                        $this->content[$k] .= $item->content[$k];
+                    } else {
+                        $this->content[$k] = $item->content[$k];
+                    }
+                    break;
+                case 'requires':
+                    if (array_key_exists($k, $this->content)) {
+                        $this->content[$k] = [];
+                    }
+                    $this->content[$k] += $item->content[$k];
+                    break;
             }
         }
-        $final['d2hToken_content'] = true;
-    }
- 
-    // TODO: Remove comments after solve parse a empty form filter!!!!!
-    // TODO: Remove this function
-    public static function renderEmpty()
-    {
-        return ['d2hToken_content' => true];
     }
     
+    public function get($key = null) {
+        if ($key === null) {
+            $response = Lot::getItem('html', $this->content, '');
+            $js = Lot::getItem('js', $this->content, '');
+            if ($js) {
+                $response .= "\n<script>\n{$js}\n</script>\n"; 
+            }
+            return $response;
+        } elseif ($key === 'requires') {
+            $req = array_keys(Lot::getItem($key, $this->content, []));
+            sort($req);
+            return $req;
+        } else {
+            return Lot::getItem($key, $this->content, '');
+        }
+    }
+   
     private static function renderHtml($html, $replaces)
     {
         // Conditional: $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]}
         $html = self::replaceConditional($replaces, $html);
-
+        
         // Html attribute: <elem attr-name="$${data-item}" ...
         $html = self::replaceContent( 
             '/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',
@@ -241,13 +285,47 @@ class Templates
             if (is_string($data)) {
                 $data = trim($data);
             }
-            if ($data === null || $data === '') {
+            if ($data === null || 
+                $data === '' || 
+                ($data instanceof self && count($data->content) === 0)
+            ) { // Is empty
                 $value = $matches[4][$i];
-            } else {
+            } else { // Has data
                 $value = $matches[2][$i];
             }
             $content = str_replace($matches[0][$i], $value, $content);
-            //$content .= '|' . $data;
+        }
+        return $content;
+    }
+    
+    private static function extractScripts($html)
+    {
+        $pattern = '/<script(.*?)>(.*?)<\/script>/i';
+        $matches = null;
+        $script = [];
+        preg_match_all($pattern, $html, $matches);
+        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            $script[] = $matches[2][$i];
+            $html = str_replace($matches[0][$i], '', $html);
+        }
+        return [implode("\n", $script), $html];
+    }
+       
+    private static function extractRequires($content, &$requires)
+    {
+        $pattern = '/\$\$\{requires?\s+([a-z][\w\-\s,]*?)}/i';
+        $matches = null;
+        $newRequires = [];
+        preg_match_all($pattern, $content, $matches);
+        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            $newRequires[] = strtolower($matches[1][$i]);
+            $content = str_replace($matches[0][$i], '', $content);
+        }
+        $final = array_map('trim', explode(',', implode(',', $newRequires)));
+        foreach ($final as $v) {
+            if ($v) {
+                $requires[$v] = true;
+            }
         }
         return $content;
     }

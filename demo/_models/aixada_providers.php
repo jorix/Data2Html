@@ -1,28 +1,24 @@
 <?php
-class aixada_providers extends Data2Html_Model {
-    
-    protected function definitions()
-    {
-        return array(
-            'table' => 'aixada_provider',
-            'items' => array(
-                'id' => array('integer', 'autoKey'),
-                'name' => array('title' => '$$Provider', 'string' => 255, 'required'),
-                'contact' => array('title' => '$$Provider_contact', 'string' => 255),
-                'address' => array('title' => '$$Provider_address', 'string' => 255),
-                'nif' => array('title' => '$$Nif', 'string' => 15),
-                'zip' => array('title' => '$$Zip', 'string' => 10),
-                
-                'email' => array('title' => '$$Provider_email', 'email' => 100, 'required'),
-                'text' => array(
-                    'sortBy' => null,
-                    'value' => '$${name} #$${id}'
-                ),
-                'active' => array(
-                    'type' => 'boolean'
-                ),
+return [
+    'table' => 'aixada_provider',
+    'items' => array(
+        'id' => array('integer', 'autoKey'),
+        'name' => array('title' => '$$Provider', 'string' => 255, 'required'),
+        'contact' => array('title' => '$$Provider_contact', 'string' => 255),
+        'address' => array('title' => '$$Provider_address', 'string' => 255),
+        'nif' => array('title' => '$$Nif', 'string' => 15),
+        'zip' => array('title' => '$$Zip', 'string' => 10),
+        
+        'email' => array('title' => '$$Provider_email', 'email' => 100, 'required'),
+        'text' => array(
+            'sortBy' => null,
+            'value' => '$${name} #$${id}'
+        ),
+        'active' => array(
+            'type' => 'boolean'
+        ),
 
-                'order_send_format' => array('title' => '$$Order_format', 'string' => 25, 'default' => 'default'),
+        'order_send_format' => array('title' => '$$Order_format', 'string' => 25, 'default' => 'default'),
 
                 
   // name	     	  	varchar(255) 	not null,
@@ -52,21 +48,19 @@ class aixada_providers extends Data2Html_Model {
                 
                 
                 
-            ),
-            'grids' => array(
-                'default' => array(
-                    'sort' => 'name',
-                    'filter' => array(
-                        'items' => array(
-                            'name' => 'LK',
-                            'active' => 'EQ'
-                        )
-                    )
+    ),
+    'grids' => array(
+        'default' => array(
+            'sort' => 'name',
+            'filter' => array(
+                'items' => array(
+                    'name' => 'LK',
+                    'active' => 'EQ'
                 )
-            ),
-            'elements' => array(
-                'default' => array()
             )
-        );
-    }
-}
+        )
+    ),
+    'elements' => array(
+        'default' => array()
+    )
+];

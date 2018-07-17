@@ -8,7 +8,7 @@ create table aixada_payment_method (
 ) 
 )
 */
-$return = array(
+return = [
     'table' => 'aixada_payment_method',
     'title' => 'Tipus Moviments',
     'items' => array(
@@ -24,4 +24,4 @@ $return = array(
             'required'
         )
     )
-);
+];

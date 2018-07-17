@@ -7,17 +7,14 @@
 <body>
     <div class="container">
 <?php
-    require_once("../../code/php/Autoload.php");
-    Data2Html_Autoload::start(__DIR__, '../_config/d2h_config.ini');
+    require_once '../_start.php';
 
     try {
-        Data2Html_Utils::dump(
-            'tree',
-            Data2Html_Render_fileContents::load($_REQUEST['templateName'])
-        );
-        Data2Html_Render_fileContents::dump();
+        $templates = new \Data2Html\Render\Branch($_REQUEST['templateName']);
+        $templates->dump();
+        \Data2Html\Render\FileContents::dump();
     } catch(Exception $e) {
-        echo Data2Html_Exception::toHtml($e, true);
+        echo \Data2Html\DebugException::toHtml($e);
     }
 ?>
     </div>

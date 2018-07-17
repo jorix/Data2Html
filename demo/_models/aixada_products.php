@@ -1,68 +1,63 @@
 <?php
-class aixada_products extends Data2Html_Model {
-    
-    protected function definitions()
-    {
-        #Set database table
-        return array(
-            'table' => 'aixada_product',
+return [
+    'table' => 'aixada_product',
+    'items' => array(
+        'id'            => array('integer', 'autoKey', 'required'),
+        'provider_id'           => array('link' => 'aixada_providers'),
+        'provider_name'         => array('base'=>'provider_id[name]'),
+        'provider_text'         => array('base'=>'provider_id[text]'),
+        'name'                  => array('string' => 255, 'required'),
+        'pr_name'   => '=$${name}#$${id}-$${responsible_uf_id[name]}',
+        'description'           => array('text'),
+        'barcode'               => array('string' => 50),
+        'custom_product_ref'    => array('string' => 100, 'required'),
+        'active'                => array('boolean', 'required', 'default' => true),
+        'responsible_uf_id'     => array('link' => 'aixada_ufs'),
+        'responsible_uf_id[name]',
+        'orderable_type_id'     => array('link' => 'aixada_orderable_types', 'default' => 2, 'required'),
+        'order_min_quantity'    => array(
+            'number' => array(10, 4),
+            'format' => 4,
+            'visualClass' => 'red:<0'
+        ),
+        'ts'                    => array('date', 'format' => 'dd-MM-yy HH:mm')// 'medium'
+    ),
+    'grids' => array(
+        'main' => array(
             'items' => array(
-                'id'            => array('integer', 'autoKey', 'required'),
-                'provider_id'           => array('link' => 'aixada_providers'),
-                'provider_name'         => array('base'=>'provider_id[name]'),
-                'provider_text'         => array('base'=>'provider_id[text]'),
-                'name'                  => array('string' => 255, 'required'),
-                'pr_name'   => '=$${name}#$${id}-$${responsible_uf_id[name]}',
-                'description'           => array('text'),
-                'barcode'               => array('string' => 50),
-                'custom_product_ref'    => array('string' => 100, 'required'),
-                'active'                => array('boolean', 'required', 'default' => true),
-                'responsible_uf_id'     => array('link' => 'aixada_ufs'),
+                'id',
+                'provider_id',
+                'provider_name',
+                'provider_text',
+               // 'name',
+                'pr_name',
+                'description',
+                'barcode',
+                'custom_product_ref',
+                'active',
+                'responsible_uf_id',
                 'responsible_uf_id[name]',
-                'orderable_type_id'     => array('link' => 'aixada_orderable_types', 'default' => 2, 'required'),
-                'order_min_quantity'    => array(
-                    'number' => array(10, 4),
-                    'format' => 4,
-                    'visualClass' => 'red:<0'
-                ),
-                'ts'                    => array('date', 'format' => 'dd-MM-yy HH:mm')// 'medium'
+                'orderable_type_id',
+                'order_min_quantity',
+                'ts'
             ),
-            'grids' => array(
-                'main' => array(
-                    'items' => array(
-                        'id',
-                        'provider_id',
-                        'provider_name',
-                        'provider_text',
-                       // 'name',
-                        'pr_name',
-                        'description',
-                        'barcode',
-                        'custom_product_ref',
-                        'active',
-                        'responsible_uf_id',
-                        'responsible_uf_id[name]',
-                        'orderable_type_id',
-                        'order_min_quantity',
-                        'ts'
-                    ),
-                    'filter' => array(
-                        'items' => array(
-                            'name' => array('check' => 'LK', 'no-required'),
-                            '%barcode',
-                            'active' => 'EQ',
-                            'pr_active' => array(
-                                'base' => 'provider_id[active]',
-                                'check' => 'EQ'
-                            )
-                        )
+            'filter' => array(
+                'items' => array(
+                    'name' => array('check' => 'LK', 'no-required'),
+                    '%barcode',
+                    'active' => 'EQ',
+                    'pr_active' => array(
+                        'base' => 'provider_id[active]',
+                        'check' => 'EQ'
                     )
                 )
-            ),
-            // 'constraints' => (
-                // array('uniqueKey' => array('custom_product_ref', 'provider_id'))
-            // )
-        );
+            )
+        )
+    ),
+    // 'constraints' => (
+        // array('uniqueKey' => array('custom_product_ref', 'provider_id'))
+    // )
+];
 /*
 
  create table aixada_product (
@@ -102,5 +97,3 @@ class aixada_products extends Data2Html_Model {
   unique  key (custom_product_ref, provider_id)
 )
 */
-    }
-}

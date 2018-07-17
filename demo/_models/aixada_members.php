@@ -24,7 +24,7 @@ aixada_member (
   foreign key (uf_id)  references aixada_uf(id)
 )
 */
-$return = [
+return [
     'table' => 'aixada_member',
     'title' => 'Membres',
     'sort' => 'name',
@@ -72,7 +72,7 @@ $return = [
             ]
         ],
         'uf_members' => [
-            'element-name' => 'main',
+            'block-name' => 'main',
             'items' => ['name', 'active' => ['sortBy' => null], 'phones'],
             'filter' => [
                 'items' => [
