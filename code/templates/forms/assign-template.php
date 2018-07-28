@@ -1,7 +1,7 @@
 <?php
 return [
     "assign-template" => function($render, $item) {
-        $itemDx = new \Data2Html\Lot($item);
+        $itemDx = new \Data2Html\Data\Lot($item);
         
         $layout = $itemDx->getString(
             'layout-template',

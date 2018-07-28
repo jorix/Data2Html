@@ -116,6 +116,9 @@ abstract class Set
         $defs,
         $baseSet = null
     ) { 
+        if (!is_array($defs)) {
+            throw new DebugException("Definitions must be a associative array.", $defs);
+        }
         $setTypeName = str_replace('Data2Html\\Model\\Set\\', '', get_class($this));
         $this->fNamePrefix = 'd2h_' . $setTypeName;
         if ($setName) {

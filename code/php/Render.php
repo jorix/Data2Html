@@ -28,9 +28,9 @@ class Render
     public function render($replaces, $templateName)
     {
         try {
-            $templateBranch = new Branch($templateNam);
+            $templateBranch = new Branch($templateName);
             return new Content(
-                $templateBranch->gtTemplate('template'),
+                $templateBranch->getTemplate('template'),
                 $replaces
             );        
         } catch(\Exception $e) {
@@ -57,7 +57,7 @@ class Render
             ];
             // Page
             $replaces['id-page'] = $gridId . '_page';
-            $replaces['page'] = $this->renderFormSet(
+            $replaces['page'] = $this->renderBlockSet(
                 $replaces['id-page'],
                 $templateBranch->getBranch('page', false),
                 null,
@@ -67,7 +67,7 @@ class Render
             $lkFilter = $lkGrid->getFilter();
             if ($lkFilter) {
                 $replaces['id-filter'] = $lkFilter->getId();
-                $replaces['filter'] = $this->renderFormSet(
+                $replaces['filter'] = $this->renderBlockSet(
                     $replaces['id-filter'],
                     $templateBranch->getBranch('filter', false),
                     $lkFilter->getLinkedItems(),
@@ -88,12 +88,12 @@ class Render
         }
     }
     
-    public function renderElement($model, $formName, $templateName, $itemReplaces = null)
+    public function renderBlock($model, $formName, $templateName, $itemReplaces = null)
     {
         try {
             $lkForm = $model->getLinkedBlock($formName);
             
-            return $this->renderFormSet(
+            return $this->renderBlockSet(
                 $lkForm->getId(),
                 new Branch($templateName),
                 $lkForm->getLinkedItems(),
@@ -162,7 +162,7 @@ class Render
         );
     }
 
-    protected function renderFormSet(
+    protected function renderBlockSet(
         $formId,
         Branch $templateBranch,
         $items,
@@ -196,17 +196,30 @@ class Render
     protected function renderFlatSet($items, Branch $template, $iReplaces = array())
     {
         $assignTemplate = $template->getItem(
-            "assign-template"
-            function() { return array('base', 'base', array()); }
+            "assign-template",
+            function() { return ['base', 'base', []]; }
         );
         $tLayouts = $template->getBranch(['layouts', 'templates']);
         $tContents = $template->getBranch(['contents', 'templates']);
         
-        return $this->renderFlatLevelSet(0, &$assignTemplate, $tContents, $tLayouts, &$items, $iReplaces)
+        return $this->renderFlatLevelSet(
+            0,
+            $items,
+            $tContents,
+            $tLayouts,
+            $assignTemplate,
+            $iReplaces
+        );
     }
 
-    protected function renderFlatLevelSet($currentLevel, &$items, $tContents, $tLayouts, &$assignTemplate, $iReplaces)
-    {
+    protected function renderFlatLevelSet(
+        $currentLevel,
+        &$items,
+        $tContents,
+        $tLayouts,
+        &$assignTemplate,
+        $iReplaces
+    ) {
         $body = new Content();
         
         // Current level
@@ -221,32 +234,38 @@ class Render
             $level = Lot::getItem('level', $v, 0);
             
             // Get down level and add to previous item
-            if ($level > $currentLevel) { 
+            if ($level > $currentLevel) {
                 // a level always is started with a item, therefore previous item exist and $itemReplaces is not null
-                list($nextLevelBody) = $this->renderFlatLevelSet($level, $items, $tContents, $tLayouts, $assignTemplate, $itemReplaces)
+                list($nextLevelBody) = $this->renderFlatLevelSet(
+                    $level,
+                    $items,
+                    $tContents,
+                    $tLayouts,
+                    $assignTemplate,
+                    $itemReplaces
+                );
                 $itemBody->add($nextLevelBody);
+                
                 // read next item and force current level
-                $v = current($items); // v$ is pending to verify if items are ended
-                $level = $currentLevel; // to force finish previous item ()
+                // v$ is pending to verify if items are ended
+                $v = next($items); 
+                $level = Lot::getItem('level', $v, 0);
             }
             
             // Apply the layout to finish previous item only if is started 
-            if ($level === $currentLevel && $itemReplaces) {
-                $itemReplaces['body'] = $itemBody;
-                $levelBody->add(
-                    $tLayouts->getTemplate($itemLayoutName),
-                    $itemReplaces
-                );
-                // verify if items are ended by a previous down level
-                if ($v === false) {
-                    break;
+            if ($level <= $currentLevel) {
+                if ($itemReplaces) {
+                    $itemReplaces['body'] = $itemBody;
+                    $levelBody->add(
+                        $tLayouts->getTemplate($itemLayoutName),
+                        $itemReplaces
+                    );
+                    $itemReplaces = null;
                 }
-                // set next item level
-                $level = Lot::getItem('level', $v, 0);
             }
 
-            // this level is ended
-            if ($level < $currentLevel) {
+            // verify if items are ended by a previous down level
+            if ($v === false || $level < $currentLevel) {
                 break;
             }
             
@@ -268,7 +287,9 @@ class Render
                 $contentTemplName,
                 $itemReplaces
             ) = $assignTemplate($this, $v);
-            $itemReplaces += $iReplaces + array(
+            $itemReplaces = array_merge( $iReplaces, $itemReplaces , [
+                '_level-0' => ($level === 0),
+                '_level' => $level,
                 'id' => 'd2h_item_' . ++self::$idRenderCount,
                 'debug-name' => key($items),
                 'name' => key($items),
@@ -280,9 +301,8 @@ class Render
                 'visualClassLayout' => $vDx->getString('visualClassLayout'),
                 'visualClassBody' => $vDx->getString('visualClassBody'),
                 'action' => $vDx->getString('action'),
-                'validations' => implode(' ', 
-                    $vDx->getArray('validations', array())
-                )
+                'validations' => implode(' ', $vDx->getArray('validations', []))
+                ]
             );
             ++$renderCount;
             $itemBody = new Content(
@@ -299,16 +319,16 @@ class Render
                 $itemReplaces
             );
         }
-        return [$levelBody, $renderCount]
-    };
+        return [$levelBody, $renderCount];
+    }
     
     protected function parseIncludeItems(
         $setName,
         Branch $templateBranch,
         $alternativeItem = null
     ) {
-        $items = $templateBranch->getItem($setName);
-        if (count($items) === 0) {
+        $items = $templateBranch->getTemplate($setName, false);
+        if (!$items) {
             return [];
         } else {
             $tempModel = new SetIncludes(null, $setName, $items, $alternativeItem);

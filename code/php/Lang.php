@@ -37,10 +37,11 @@ class Lang
     }
 
     public function __debugInfo()
+    {
         return [
             'languages-priority' => $this->languages,
             'literals' => $this->literals,
-            'fromFiles' => $this->fromFiles,
+            'fromFiles' => $this->fromFiles
         ];
     }
     
@@ -84,7 +85,7 @@ class Lang
         return $this->literals;
     }
     
-    public function responseJs($lang)
+    public static function responseJs($lang)
     {
         Data2Html\Data\Response::js(self::jsCode($lang));
     }

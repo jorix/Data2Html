@@ -56,7 +56,7 @@ class Handler
         }
         $render = self::createRender();
         if (array_key_exists('block', $payerNames)) {
-            $result = $render->renderElement($model, $payerNames['block'], $templateName);
+            $result = $render->renderBlock($model, $payerNames['block'], $templateName);
         } elseif (array_key_exists('grid', $payerNames)) {
             $result = $render->renderGrid($model, $payerNames['grid'], $templateName);
         } else {
@@ -100,7 +100,7 @@ class Handler
     public static function parseRequest($request) 
     {
         if (!array_key_exists('model', $request)) {
-            throw new DebugExecption(
+            throw new DebugException(
                 'The URL parameter `?model=` is not set.',
                 $request
             );

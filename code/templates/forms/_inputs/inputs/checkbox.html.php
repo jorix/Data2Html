@@ -1,10 +1,9 @@
 <?php die("It's uncooked!"); ?>
-<div data-d2h-message="#$${id}"></div>
+<span data-d2h-message="#$${id}"></span>
 <input type="checkbox"
-    placeholder="$${description}"
+    title="$${description}"
     name="$${name}"
     id="$${id}"
     data-d2h-from-id="$${from-id}"
     value="1"
-    $${validations}
 >

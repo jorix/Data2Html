@@ -68,7 +68,7 @@ class DebugException extends \Exception
                 str_replace(
                     "<!--",
                     '</!--',
-                    To::json($exData['exception'], Config::debug())
+                    To::php($exData['exception'])
                 ) .
                 '</pre></div>';
         }

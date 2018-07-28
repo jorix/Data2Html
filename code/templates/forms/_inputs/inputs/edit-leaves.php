@@ -1,7 +1,14 @@
 <?php
 return function($replaces) {
+    $urlParts = explode('?', \Data2Html\Data\Lot::getItem('url', $replaces));
+    if (count($urlParts) <= 1) {
+        throw new \Data2Html\DebugException(
+            'The url arguments is required and must has a query.',
+            $replaces
+        );
+    }
     $urlRequest = null;
-    parse_str(explode('?', \Data2Html\Data\Lot::getItem('url', $replaces))[1], $urlRequest);
+    parse_str($urlParts[1], $urlRequest);
     
     $modelNames = \Data2Html\Handler::parseRequest($urlRequest);
     $rx = new \Data2Html\Data\Lot($modelNames, true); // Required
@@ -33,7 +40,7 @@ return function($replaces) {
         
     // Block of edit form
     $resultBlock = $render->renderBlock($model, $blockName, $templateFormName, $itemReplaces);
-    $idForm = $resultBlock['id'];
+    $idForm = $resultBlock->get('id');
     $result->add($resultBlock);
     
     $displayOptions = [
@@ -48,7 +55,7 @@ return function($replaces) {
     if (array_key_exists('branch', $replaces)) {
         $branch = $replaces['branch'];
         $itemToLink = $model
-            ->getLinkedBlock($branch['element'])
+            ->getLinkedBlock($branch['block'])
             ->searchItemByLink($branch['model']);
         $itemDbToLink = \Data2Html\Data\Lot::getItem('db', $itemToLink);
         
@@ -64,7 +71,7 @@ return function($replaces) {
     // end
     return new \Data2Html\Render\Content(
         [
-            'html' => "<div class=\"container\">{$body}</div>",
+            'html' => '<div class="container">$${body}</div>',
             'js' => "
                 (function() {
                     d2h_display(" . 

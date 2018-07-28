@@ -13,26 +13,29 @@ class Content
     
     protected $content;
     
-    public function __construct($template = null, $replaces = null)
+    public function __construct($template = null, $replaces = [])
     {
-        $replaces['_renderCount'] = self::$renderCount++;
-    
         // Verify argument replaces
         if (!is_array($replaces)) {
             throw new DebugException("Argument \$replaces must be a array.",
                 ['$replaces' => $replaces]
             );
         }
+        $replaces['_renderCount'] = self::$renderCount++;
         
         if (is_callable($template)) {
         // Apply if is callable
-            $this->content = $template($replaces);
-            if (!is_array($this->content)) {
+            $response = $template($replaces);
+            if (!$response instanceof Content) {
                 throw new DebugException(
-                    "Function \$template must return a array.",
-                    ['function return' => $this->content]
+                    "Template as function must return a \\Data2Html\\Render\\Content.",
+                    [
+                        'returned' => $this->content,
+                        'replaces' => $replaces
+                    ]
                 );
             }
+            $this->content = $response->content;
         } elseif (is_null($template)) {
         // Set empty if is null
             $this->content = [];
@@ -47,12 +50,12 @@ class Content
             // Get content html+js
             $requires = [];
             if (array_key_exists('html', $template)) {
-                $html = self::extractRequires($template['html'], $requires);
+                $html = self::extractRequire($template['html'], $requires);
             } else {
                 $html = '';
             }
             if (array_key_exists('js', $template)) {
-                $js = self::extractRequires($template['js'], $requires);
+                $js = self::extractRequire($template['js'], $requires);
             } else {
                 list($js, $html) = self::extractScripts($html);
             }
@@ -61,16 +64,24 @@ class Content
             // Apply replaces
             $finalJs = '';
             $finalReplaces = [];
+            $internalReplaces = [];
+            foreach ($replaces as $k => $v) {
+                if (substr($k, 0, 1) === '_') {
+                    $internalReplaces[$k] = $v;
+                }
+            }
             foreach ($replaces as $k => $v) {
                 if ($v instanceof self) {
                     if (array_key_exists('html', $v->content)) {
-                        $html = self::renderHtml($html, [$k => $v->content['html']]);
+                        $html = self::renderHtml($html, 
+                            $internalReplaces + [$k => $v->content['html']]
+                        );
                     } 
                     if (array_key_exists('js', $v->content)) {
                         $finalJs .= "\n" . $v->content['js'] ;
                     }
-                    if (array_key_exists('requires', $v->content)) {
-                        $requires += $v->content['requires'];
+                    if (array_key_exists('require', $v->content)) {
+                        $requires += $v->content['require'];
                     }
                 } else {
                     $finalReplaces[$k] = $v;
@@ -87,7 +98,7 @@ class Content
                 $this->content['js'] = $js . $finalJs;
             }
             if (count($requires) > 0) {
-                $this->content['requires'] = $requires;
+                $this->content['require'] = $requires;
             }
         }
         if (array_key_exists('id', $replaces)) {
@@ -111,7 +122,7 @@ class Content
                         $this->content[$k] = $item->content[$k];
                     }
                     break;
-                case 'requires':
+                case 'require':
                     if (array_key_exists($k, $this->content)) {
                         $this->content[$k] = [];
                     }
@@ -121,7 +132,8 @@ class Content
         }
     }
     
-    public function get($key = null) {
+    public function get($key = null)
+    {
         if ($key === null) {
             $response = Lot::getItem('html', $this->content, '');
             $js = Lot::getItem('js', $this->content, '');
@@ -129,7 +141,7 @@ class Content
                 $response .= "\n<script>\n{$js}\n</script>\n"; 
             }
             return $response;
-        } elseif ($key === 'requires') {
+        } elseif ($key === 'require') {
             $req = array_keys(Lot::getItem($key, $this->content, []));
             sort($req);
             return $req;
@@ -138,6 +150,11 @@ class Content
         }
     }
    
+    public function getRequire($key = null)
+    {
+        return implode(', ', $this->get('require'));
+    }
+    
     private static function renderHtml($html, $replaces)
     {
         // Conditional: $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]}
@@ -145,7 +162,7 @@ class Content
         
         // Html attribute: <elem attr-name="$${data-item}" ...
         $html = self::replaceContent( 
-            '/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',
+            '/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}\"/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
                 if ($value) {
@@ -169,7 +186,7 @@ class Content
         
         // Html: $${data-item}
         $html = self::replaceContent( 
-            '/\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}/i', $replaces,
+            '/\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}/i', $replaces,
             function($matchItem, $format, $value) { // $encodeFn
                 return $value;
             },
@@ -190,7 +207,7 @@ class Content
 
         // Start string of css id: "#$${data-item | format}...
         $js = self::replaceContent(
-            '/["\']#\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}/i',
+            '/["\']#\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
                 if (!is_array($value)) {
@@ -211,7 +228,7 @@ class Content
 
         // Start string: "$${data-item | format}...
         $js = self::replaceContent(
-            '/["\']\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}/i',
+            '/["\']\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
                 if (!is_array($value)) {
@@ -232,7 +249,7 @@ class Content
         );
         // Others: $${data-item | format}...
         $js = self::replaceContent(
-            '/\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}/i',
+            '/\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
                 if (is_array($value) && count($value) === 0) {
@@ -276,9 +293,9 @@ class Content
     
     private static function replaceConditional($replaces, $content)
     {
-        $pattern = '/\$\$\{([a-z][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
+        $pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
         $matches = null;
-        preg_match_all($pattern, $content, $matches);
+        preg_match_all($pattern, str_replace("\n", "{_n_}", $content), $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             $k = $matches[1][$i];
             $data = Lot::getItem($k, $replaces);
@@ -286,14 +303,15 @@ class Content
                 $data = trim($data);
             }
             if ($data === null || 
-                $data === '' || 
+                $data === '' ||
+                $data === false || 
                 ($data instanceof self && count($data->content) === 0)
             ) { // Is empty
-                $value = $matches[4][$i];
+                $value = str_replace("{_n_}", "\n", $matches[4][$i]);
             } else { // Has data
-                $value = $matches[2][$i];
+                $value = str_replace("{_n_}", "\n", $matches[2][$i]);
             }
-            $content = str_replace($matches[0][$i], $value, $content);
+            $content = str_replace(str_replace("{_n_}", "\n", $matches[0][$i]), $value, $content);
         }
         return $content;
     }
@@ -311,12 +329,21 @@ class Content
         return [implode("\n", $script), $html];
     }
        
-    private static function extractRequires($content, &$requires)
+    private static function extractRequire($content, &$requires)
     {
         $pattern = '/\$\$\{requires?\s+([a-z][\w\-\s,]*?)}/i';
+        $patternUse = '/\$\$\{use\s+([a-z][\w\-\s,]*?)}/i';
         $matches = null;
         $newRequires = [];
+        
+        // Require[s]
         preg_match_all($pattern, $content, $matches);
+        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            $newRequires[] = strtolower($matches[1][$i]);
+            $content = str_replace($matches[0][$i], '', $content);
+        }
+        // Use
+        preg_match_all($patternUse, $content, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             $newRequires[] = strtolower($matches[1][$i]);
             $content = str_replace($matches[0][$i], '', $content);

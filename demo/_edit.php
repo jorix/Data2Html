@@ -3,14 +3,18 @@
     require_once '_start.php';
 
     $render = Data2Html\Handler::createRender();
-    $result = $render->render($_REQUEST, 'edit');
+    $result = $render->render(  
+        $_REQUEST + ['url' => '?' . $_SERVER['QUERY_STRING']],
+        'edit'
+    );
+    $lang= 'ca';
 ?>
-<html lang="ca">
+<html lang="<?=$lang?>">
 <head>
 	<meta charset="UTF-8">
 	<title>_edit</title>
 
-    <script><?php echo \Data2Html\Lang::jsCode('ca'); ?></script>
+    <script src="lang.js.php?lang=<?=$lang?>"></script>
     <?php echo $result->getRequire();?>
 </head>
 <body>

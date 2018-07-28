@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-<div data-d2h-message="#$${id}"></div>
+<span data-d2h-message="#$${id}"></span>
 <input type="text" class="form-control"
     placeholder="$${description}"
     id="$${id}"

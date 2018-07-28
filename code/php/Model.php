@@ -43,13 +43,18 @@ class Model
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             trigger_error('At least PHP 5.3 is required to run Data2Html', E_USER_ERROR);
         }
-
-        $this->modelName = $modelName;
         
         $this->id = 'd2h_' . ++self::$idModelCount;
-        $this->definitions = InfoFile::readPhp(
-            Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
-        );
+        
+        if ($modelName) {
+            $this->modelName = $modelName;
+            $this->definitions = InfoFile::readPhp(
+                Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
+            );
+        } else {
+            $this->modelName = '[empty]';
+            $this->definitions = [];
+        }
         $this->baseSet = new SetBase(
             $this, null, $this->definitions
         );

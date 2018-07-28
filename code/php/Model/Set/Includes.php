@@ -1,6 +1,8 @@
 <?php
 namespace Data2Html\Model\Set;
 
+use Data2Html\Model;
+
 class Includes extends \Data2Html\Model\Set
 {
     protected $keywords = array(
@@ -16,7 +18,7 @@ class Includes extends \Data2Html\Model\Set
         $alternativeItem = null
     ) {
         $this->alternativeItem = $alternativeItem;
-        parent::__construct($model, $setName, $defs);
+        parent::__construct(new Model(''), $setName, $defs);
     }
     
     protected function beforeParseItem(&$key, &$field)

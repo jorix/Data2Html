@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-$${level_0?[[
+$${_level-0?[[
 <th class="$${class}">$${body}</th>
 ]]:[[
 <span>$${body}</span>

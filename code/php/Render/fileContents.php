@@ -8,13 +8,14 @@ use Data2Html\Config;
 class FileContents
 {
     use \Data2Html\DebugStatic;
+    
     // 0 => file-info, 1 => file content, 2 => resolved content, "xx" => translated to "xx"
     protected static $templateContents = [];
     
     // Configured template folders
     protected static $folders = null;
 
-    public static function __debugInfo()
+    public static function __debugStaticInfo()
     {
         $response = [];
         foreach(self::$templateContents as $k => $v) {
@@ -90,13 +91,13 @@ class FileContents
                 $paths = array_map('trim', explode(',', substr($v, 2)));
                 $response[$k] = self::loadTemplateTree(
                     $folder, 
-                    [$k => ['includeFolder' => $paths]]
+                    ['includeFolder' => $paths]
                 );
             } elseif (is_string($v) && substr($v, 0, 1) === '@') {
                 $paths = array_map('trim', explode(',', substr($v, 1)));
                 if (is_integer($k)) {
                     // short-cut to include file without keyword: '@path_to_file_1, path_to_file_2, ...'
-                    $response = self::loadTemplateTree(
+                    $response += self::loadTemplateTree(
                         $folder,
                         ['include' => $paths]
                     );
@@ -111,6 +112,10 @@ class FileContents
                 switch ($k) {
                     // Declarative words
                     case 'folder':
+                        break;
+                    case 'require':
+                    case 'use':
+                        $response[$k] = $v;
                         break;
                     case 'startItems':
                     case 'endItems':

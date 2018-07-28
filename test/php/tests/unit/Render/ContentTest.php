@@ -5,10 +5,8 @@ use Codeception\Scenario;
 
 class ContentTest extends \Codeception\Test\Unit
 {
-    use \Codeception\Specify;
-    
-    // Tests
-    public function test_object()
+     // Tests
+    public function testObject()
     {
         $contentEmpty = new Content();
         $this->assertEquals('', $contentEmpty->get(), 'Empty content');
@@ -58,11 +56,11 @@ class ContentTest extends \Codeception\Test\Unit
         );
         $this->assertEquals(
             ['a', 'js', 'void-ok', 'x'], 
-            $contentContent->get('requires'), 'Nested requires replace'
+            $contentContent->get('require'), 'Nested requires replace'
         );
     }
     
-    public function test_renderHtml()
+    public function testRenderHtml()
     {
         $ref = new \ReflectionClass('\\Data2Html\\Render\\Content');
         //test renderHtml
@@ -92,10 +90,23 @@ class ContentTest extends \Codeception\Test\Unit
         $this->assertEquals('-<no>-', 
             $renderHtml->invoke(null, '-$${a?[[<span>$${a}</span>]]:[[<no>]]}-', ['a' => null]),
             'Conditional with null replacement on html uses else content'
+        ); 
+        $htmlLf = '$${_level-0?[[
+            <td class="class">body</td>
+        ]]:[[
+            <span>body</span>
+        ]]}';
+        $this->assertEquals('<td class="class">body</td>', 
+            trim($renderHtml->invoke(null, $htmlLf, ['_level-0' => true])),
+            'Conditional html whith line feed whith true'
+        );
+        $this->assertEquals('<span>body</span>', 
+            trim($renderHtml->invoke(null, $htmlLf, ['_level-0' => false])),
+            'Conditional html whith line feed whith false'
         );
     }
     
-    public function test_renderJs()
+    public function testRenderJs()
     {
         $ref = new \ReflectionClass('\\Data2Html\\Render\\Content');
         //test renderJs
@@ -132,16 +143,16 @@ class ContentTest extends \Codeception\Test\Unit
         );
     }
     
-    public function test_extractRequires()
+    public function testExtractRequire()
     {
         $ref = new \ReflectionClass('\\Data2Html\\Render\\Content');
         //test renderJs
-        $extractRequires = $ref->getMethod('extractRequires');
-        $extractRequires->setAccessible(true);
+        $extractRequire = $ref->getMethod('extractRequire');
+        $extractRequire->setAccessible(true);
         
         $requires = ['omega' => true];
         $this->assertEquals(' $${a}  $${b}  $${c} ', 
-            $extractRequires->invokeArgs(null, [
+            $extractRequire->invokeArgs(null, [
                 ' $${a} $${require Alpha} $${b} $${requires epsilon, alpha, beta} $${c} ',
                 &$requires
             ]),
@@ -154,7 +165,7 @@ class ContentTest extends \Codeception\Test\Unit
         );
     }
     
-    public function test_extractScripts()
+    public function testExtractScripts()
     {
         $ref = new \ReflectionClass('\\Data2Html\\Render\\Content');
         //test renderJs

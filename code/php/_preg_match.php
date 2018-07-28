@@ -20,9 +20,9 @@ $langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
 // test($matchTemplate_n, $matchTemplate_v);
 // test($langTemplate, $langTemplate_v);
 
-$pattern = '/\$\$\{([a-z][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
+$pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
 $text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
-//test($pattern, $text);
+test($pattern, $text);
 
 //test('/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',' style="$${a-r}" stole = "$${b-s|f}" stule="$${c2-s | 5 f(rq5)+24}"');
 
@@ -30,8 +30,15 @@ $text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
 
 //test('/["\']#\$\$\{([a-z][\w\-]*)(|.*?)\}/i',' style="#$${a-r}" stole = "$${b-s}" stule="$${c2-s | 5 f(rq5)+24}"');
 
-test('/<script(.*?)>(.*?)<\/script>/i','<script >if (a<b) if (a>b)</script>');
-test('/\$\$\{require\s+([a-z][\w\-\s,]*?)}/i','<script >$${require plurti, proti}</script>');
+//test('/<script(.*?)>(.*?)<\/script>/i','<script >if (a<b) if (a>b)</script>');
+//test('/\$\$\{require\s+([a-z][\w\-\s,]*?)}/i','<script >$${require plurti, proti}</script>');
+
+$html = '$${_level-0?[[
+<td class="$${class}">$${body}</td>]]:[[<span>$${body}</span>]]}';
+$html = str_replace("\n","{_n_}", $html);
+ test('/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i',
+    $html
+                 );
  
 function test($pattern, $value) {
     $matches = null;

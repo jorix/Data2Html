@@ -4,7 +4,7 @@
     Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
 
 // Grid
-    $result = Data2Html_Handler::render($_REQUEST, 'grid-paged');
+    $result = Data2Html_Handler::render($_REQUEST, 'grid');
     $idGrid = $result['id'];
     $jsCode = $result['js'];
     $htmlCode = $result['html'];

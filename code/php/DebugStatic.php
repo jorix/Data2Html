@@ -11,7 +11,7 @@ trait DebugStatic {
         }
         if ($value === '{$self}') {
             echo "<h2>Dump static class: " . get_class() . "</h2>\n<pre>";
-            echo To::php(self::__debugInfo());
+            echo To::php(self::__debugStaticInfo());
         } else {
             echo "<h2>Dump value on: " . 
                 get_class() . "</h2>\n<pre>";
@@ -20,7 +20,7 @@ trait DebugStatic {
         echo "</pre><hr>\n";
     }
     
-    public static function __debugInfo()
+    public static function __debugStaticInfo()
     {
         return self;
     }

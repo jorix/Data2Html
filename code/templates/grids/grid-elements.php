@@ -6,7 +6,7 @@ return [
             
             $layout = 'base';
             $content = $itemDx->getString('content-template', 'title');
-            if ($itemDx->getItem('sortBy')) {
+            if ($itemDx->get('sortBy')) {
                 $content = 'title-sortable';
             }
             return [$layout, $content, []];

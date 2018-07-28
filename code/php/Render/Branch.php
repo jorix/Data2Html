@@ -39,10 +39,9 @@ class Branch
         if (!is_array($keys)) {
             $keys = [$keys];
         }
-        $finalKeys = array_merge($this->keys, $keys); 
         $tree = Lot::getItem($keys, $this->tree);
         if ($tree) {
-            $result = new self($tree, $finalKeys);
+            $result = new self($tree, array_merge($this->keys, $keys));
         } else {
             if ($required) {
                 throw new DebugException(
@@ -60,12 +59,12 @@ class Branch
         return Lot::getItem($keys, $this->tree, $default);
     }
     
-    public function getTemplate($keys, $default = null)
+    public function getTemplate($keys, $required = true)
     {
-        $item = Lot::getItem($keys, $this->tree, $default);
-        if (!is_string($item)) {
-            return $item;
-        } else {
+        $item = Lot::getItem($keys, $this->tree);
+        if (is_string($item)) {
+            return FileContents::getContent($item);
+        } elseif (is_array($item)) {
             $final = [];
             if (array_key_exists('html', $item)) {
                 $final['html'] = FileContents::getContent($item['html']);
@@ -74,6 +73,20 @@ class Branch
                 $final['js'] = FileContents::getContent($item['js']);
             }
             return $final;
+        } elseif (is_null($item)) {
+            if (!$required) {
+                return null;
+            } else {
+                throw new DebugException(
+                    "Keys ['" . implode("', '", (array)$keys) . "'] must be exists on tree.",
+                    $this->__debugInfo()
+                );
+            }
+        } else {
+            throw new DebugException(
+                "Keys ['" . implode("', '", (array)$keys) . "'] must be a array or string.",
+                $this->__debugInfo()
+            );
         }
     }
 }

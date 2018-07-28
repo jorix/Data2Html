@@ -1,7 +1,7 @@
 <?php 
 return [
     'grid' => [
-        'template' => 'grids/grid-paged.html.php',
+        'template' => 'grids/grid.html.php',
         'startItems' => 'grids/edit-buttons.php',
         'include' => 'grids/grid-elements.php'
     ],

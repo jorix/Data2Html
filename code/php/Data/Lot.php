@@ -33,7 +33,7 @@ class Lot
     protected $values = null;
     protected $strict = false;
     protected $required = false;
-    public function __construct(&$values = array(), $required = false)
+    public function __construct(&$values = [], $required = false)
     {
         $this->set($values);
         $this->required = $required;
