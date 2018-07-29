@@ -58,6 +58,11 @@ class Branch
     {
         return Lot::getItem($keys, $this->tree, $default);
     }
+            
+    public function getItemsKeys()
+    {
+        return array_keys($this->tree) ;
+    }
     
     public function getTemplate($keys, $required = true)
     {

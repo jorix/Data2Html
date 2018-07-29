@@ -7,6 +7,7 @@
     modelFolder =       ../_models
     templateFolder[] =  ../../code/templates
     templateFolder[] =  ../custom/templates
+    templateSourceName = _source
     languages[ca] = ca,es,en
     languages[es] = es,en
 [db]

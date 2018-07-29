@@ -60,5 +60,11 @@ return [
         'html' => '
             <script src="$${base}/code/js/d2h_values.js"></script>
             '
+    ],
+    'd2h_utils' => [
+        'require' => 'jquery',
+        'html' => '
+            <script src="$${base}/code/js/d2h_utild.js"></script>
+            '
     ]
 ];

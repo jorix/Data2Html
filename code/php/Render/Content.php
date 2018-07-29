@@ -4,6 +4,7 @@ namespace Data2Html\Render;
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
+use Data2Html\Render\Dependencies;
 
 class Content
 {
@@ -13,7 +14,7 @@ class Content
     
     protected $content;
     
-    public function __construct($template = null, $replaces = [])
+    public function __construct($template = null, $replaces = [], $extractJs = true)
     {
         // Verify argument replaces
         if (!is_array($replaces)) {
@@ -59,8 +60,12 @@ class Content
             if (array_key_exists('js', $template)) {
                 $js = self::extractSource('require', $template['js'], $requires);
                 $js = self::extractSource('include', $template['js'], $includes);
-            } else {
-                list($js, $html) = self::extractScripts($html);
+            } else{
+                if ($extractJs) {
+                    list($js, $html) = self::extractScripts($html);
+                } else {
+                    $js = '';
+                }
             }
             
             
@@ -115,11 +120,11 @@ class Content
         }
     }
     
-    public function add($template = null, $replaces = null) {
+    public function add($template = null, $replaces = null, $extractJs = true) {
         if ($template instanceof self) {
             $item = $template;
         } else {
-            $item = new Content($template, $replaces);
+            $item = new Content($template, $replaces, $extractJs);
         }
         foreach ($item->content as $k => $v) {
             switch ($k) {
@@ -160,11 +165,10 @@ class Content
         }
     }
    
-    public function getSource($key = null)
+    public function getSource()
     {
-        return 
-            'require: ' . implode(', ', $this->get('require')) . ' | ' . 
-            'include: ' . implode(', ', $this->get('include'));
+        $dependencies = new Dependencies();
+        return $dependencies->getSource($this);
     }
     
     private static function renderHtml($html, $replaces)
