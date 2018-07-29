@@ -1,4 +1,5 @@
 <?php die("It's uncooked!"); ?>
+$${include d2h_server}
 <button class="btn $${visualClassBody}"
     title="$${title}"
     aria-label="$${title}"

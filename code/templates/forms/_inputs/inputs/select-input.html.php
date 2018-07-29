@@ -1,4 +1,5 @@
 <?php die("It's uncooked!"); ?>
+$${include d2h_server, d2h_messages}
 <span data-d2h-message="#$${id}"></span>
 <select class="form-control" style="padding:0;"
     id="$${id}"

@@ -48,14 +48,17 @@ class Content
         } else {
         // Apply replaces on a template as array ['html' => ..., 'js' => ...]
             // Get content html+js
-            $requires = [];
+            $requires = self::getTemplateSource('require', $template);
+            $includes = self::getTemplateSource('include', $template);
             if (array_key_exists('html', $template)) {
-                $html = self::extractRequire($template['html'], $requires);
+                $html = self::extractSource('require', $template['html'], $requires);
+                $html = self::extractSource('include', $template['html'], $includes);
             } else {
                 $html = '';
             }
             if (array_key_exists('js', $template)) {
-                $js = self::extractRequire($template['js'], $requires);
+                $js = self::extractSource('require', $template['js'], $requires);
+                $js = self::extractSource('include', $template['js'], $includes);
             } else {
                 list($js, $html) = self::extractScripts($html);
             }
@@ -83,6 +86,9 @@ class Content
                     if (array_key_exists('require', $v->content)) {
                         $requires += $v->content['require'];
                     }
+                    if (array_key_exists('include', $v->content)) {
+                        $includes += $v->content['include'];
+                    }
                 } else {
                     $finalReplaces[$k] = $v;
                 }
@@ -99,6 +105,9 @@ class Content
             }
             if (count($requires) > 0) {
                 $this->content['require'] = $requires;
+            }
+            if (count($includes) > 0) {
+                $this->content['include'] = $includes;
             }
         }
         if (array_key_exists('id', $replaces)) {
@@ -123,7 +132,8 @@ class Content
                     }
                     break;
                 case 'require':
-                    if (array_key_exists($k, $this->content)) {
+                case 'include':
+                    if (!array_key_exists($k, $this->content)) {
                         $this->content[$k] = [];
                     }
                     $this->content[$k] += $item->content[$k];
@@ -134,25 +144,27 @@ class Content
     
     public function get($key = null)
     {
-        if ($key === null) {
-            $response = Lot::getItem('html', $this->content, '');
-            $js = Lot::getItem('js', $this->content, '');
-            if ($js) {
-                $response .= "\n<script>\n{$js}\n</script>\n"; 
-            }
-            return $response;
-        } elseif ($key === 'require') {
-            $req = array_keys(Lot::getItem($key, $this->content, []));
-            sort($req);
-            return $req;
-        } else {
-            return Lot::getItem($key, $this->content, '');
+        switch ($key) {
+            case null:
+                $response = Lot::getItem('html', $this->content, '');
+                $js = Lot::getItem('js', $this->content, '');
+                if ($js) {
+                    $response .= "\n<script>\n{$js}\n</script>\n"; 
+                }
+                return $response;
+            case 'require':
+            case 'include':
+                return array_keys(Lot::getItem($key, $this->content, []));
+            default:
+                return Lot::getItem($key, $this->content, '');
         }
     }
    
-    public function getRequire($key = null)
+    public function getSource($key = null)
     {
-        return implode(', ', $this->get('require'));
+        return 
+            'require: ' . implode(', ', $this->get('require')) . ' | ' . 
+            'include: ' . implode(', ', $this->get('include'));
     }
     
     private static function renderHtml($html, $replaces)
@@ -329,31 +341,42 @@ class Content
         return [implode("\n", $script), $html];
     }
        
-    private static function extractRequire($content, &$requires)
+    private static function extractSource($sourceName, $content, &$sources)
     {
-        $pattern = '/\$\$\{requires?\s+([a-z][\w\-\s,]*?)}/i';
-        $patternUse = '/\$\$\{use\s+([a-z][\w\-\s,]*?)}/i';
+        $pattern = '/\$\$\{' . $sourceName . '\s+([a-z][\w\-\s,]*?)}/i';
         $matches = null;
-        $newRequires = [];
-        
-        // Require[s]
+        $newSources = [];
         preg_match_all($pattern, $content, $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $newRequires[] = strtolower($matches[1][$i]);
+            $newSources[] = strtolower($matches[1][$i]);
             $content = str_replace($matches[0][$i], '', $content);
         }
-        // Use
-        preg_match_all($patternUse, $content, $matches);
-        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $newRequires[] = strtolower($matches[1][$i]);
-            $content = str_replace($matches[0][$i], '', $content);
-        }
-        $final = array_map('trim', explode(',', implode(',', $newRequires)));
+
+        $final = array_map('trim', explode(',', implode(',', $newSources)));
         foreach ($final as $v) {
-            if ($v) {
-                $requires[$v] = true;
+            if ($v) { // to ignore ''
+                $sources[$v] = true;
             }
         }
         return $content;
+    }
+    private static function getTemplateSource($sourceName, $template)
+    {
+        $response = [];
+        if (array_key_exists($sourceName, $template)) {
+            $source = (array)$template[$sourceName];
+            foreach ($source as $k => $v) {
+                if (is_integer($k)) {
+                    if ($v) {
+                        $response[$v] = true;
+                    }
+                } else {
+                    if ($k) {
+                        $response[$k] = true;
+                    }
+                }
+            }
+        }
+        return $response;
     }
 }

@@ -97,7 +97,7 @@ class Config
         // Includes
         foreach ($config as $v) {
             foreach ($v as $kk => $vv) {
-                if($kk === 'include' || $kk === 'includes') {
+                if($kk === 'include') {
                     foreach ((array)$vv as $vvv) {
                         self::loadFile(self::$configFolder . $vvv);
                     }

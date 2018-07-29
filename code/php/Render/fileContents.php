@@ -55,8 +55,8 @@ class FileContents
             $tree = self::getContentFile($filePath);
             if (is_string($tree) && substr($tree, 0, 1) === '@') {
                 $paths = array_map('trim', explode(',', substr($v, 1)));
-                // short-cut to include file: '@path_to_file_1, path_to_file_2, ...'
-                $tree = ['include' => $paths];
+                // short-cut to file: '@path_to_file_1, path_to_file_2, ...'
+                $tree = ['file' => $paths];
             }
             if (is_array($tree)) {
                 self::$templateContents[$filePath][2] = 
@@ -96,16 +96,16 @@ class FileContents
             } elseif (is_string($v) && substr($v, 0, 1) === '@') {
                 $paths = array_map('trim', explode(',', substr($v, 1)));
                 if (is_integer($k)) {
-                    // short-cut to include file without keyword: '@path_to_file_1, path_to_file_2, ...'
+                    // short-cut to file without keyword: '@path_to_file_1, path_to_file_2, ...'
                     $response += self::loadTemplateTree(
                         $folder,
-                        ['include' => $paths]
+                        ['file' => $paths]
                     );
                 } else {
-                    // short-cut to include file into keyword: 'keyword' => '@path_to_file_1, path_to_file_2, ...'
+                    // short-cut to file into keyword: 'keyword' => '@path_to_file_1, path_to_file_2, ...'
                     $response[$k] = self::loadTemplateTree(
                         $folder, 
-                        ['include' => $paths]
+                        ['file' => $paths]
                     );
                 }
             } else {
@@ -114,7 +114,7 @@ class FileContents
                     case 'folder':
                         break;
                     case 'require':
-                    case 'use':
+                    case 'include':
                         $response[$k] = $v;
                         break;
                     case 'startItems':
@@ -135,8 +135,7 @@ class FileContents
                     case 'includeFolder': // short-cut @@
                         $response += self::readFolderTemplates($folder, $v);
                         break;
-                    case 'include': // short-cut @
-                    case 'includes':
+                    case 'file': // short-cut @
                         foreach((array)$v as $vv) {
                             $vvv = self::readTemplateFile($folder . $vv);
                             if (is_callable($vvv)) {

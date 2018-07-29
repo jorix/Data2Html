@@ -1,4 +1,5 @@
 <?php die("It's uncooked!"); ?>
+$${include datetimepicker, d2h_server, d2h_messages}
 <span data-d2h-message="#$${id}"></span>
 <div class="input-group date" id="$${id}_div">
     <input type="text" class="form-control"
