@@ -19,7 +19,7 @@ class Dependencies
         $this->templateSource = new Branch(Config::get('templateSourceName'));
     }
     
-    public function getSource(Content $sources)
+    public function getSource(Content $sources, $replaces = [])
     {
         $items = array_merge(
             $sources->get('include'),
@@ -36,14 +36,14 @@ class Dependencies
             }
             $finalHtml->add(
                 $this->templateSource->getItem($v),
-                ['base' => 'vise'],
+                $replaces,
                 false
             );
         }
         if (Config::debug()) {
             $finalHtml->add([
                 'html' => "\n<!-- end of sources -->\n"
-            ], []);
+            ], $replaces);
         }
         return $finalHtml->get('html');
     }
@@ -59,8 +59,8 @@ class Dependencies
     }
     
     protected function addItem($name)
-    {    
-        if (!array_key_exists($name, $this->usedSources)) {
+    {   $isNew = !array_key_exists($name, $this->usedSources);
+        if ($isNew) {
             $this->usedSources[$name] = true;
             $item = $this->templateSource->getItem($name);
             if (!$item) {
@@ -74,6 +74,9 @@ class Dependencies
                     $this->addItem($v);
                 }
             }
+        }
+        $this->finaSources[$name] = true; 
+        if ($isNew) {
             if (array_key_exists('include', $item)) {
                 $includes = (array)$item['include'];
                 foreach($includes as $v) {
@@ -81,6 +84,5 @@ class Dependencies
                 }
             }
         }
-        $this->finaSources[$name] = true; 
     }
 }

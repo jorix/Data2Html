@@ -15,7 +15,7 @@
 	<title>_edit</title>
 
     <script src="lang.js.php?lang=<?=$lang?>"></script>
-    <?php echo $result->getSource();?>
+    <?php echo $result->getSource(['base' => '..', 'lang' => $lang]);?>
 </head>
 <body>
     <?php echo $result->get('html'); ?>

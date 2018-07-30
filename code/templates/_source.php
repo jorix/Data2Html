@@ -64,7 +64,7 @@ return [
     'd2h_utils' => [
         'require' => 'jquery',
         'html' => '
-            <script src="$${base}/code/js/d2h_utild.js"></script>
+            <script src="$${base}/code/js/d2h_utils.js"></script>
             '
     ]
 ];

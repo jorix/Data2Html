@@ -165,10 +165,10 @@ class Content
         }
     }
    
-    public function getSource()
+    public function getSource($replaces)
     {
         $dependencies = new Dependencies();
-        return $dependencies->getSource($this);
+        return $dependencies->getSource($this, $replaces);
     }
     
     private static function renderHtml($html, $replaces)
