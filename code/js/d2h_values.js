@@ -1,6 +1,4 @@
 // Static
-moment.locale('ca');
-
 var d2h_values = (function ($) {
 
     // private methods

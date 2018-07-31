@@ -2,9 +2,10 @@
 namespace Data2Html;
 
 use Data2Html\Config;
+use Data2Html\Autoload;
 use Data2Html\Data\To;
 use Data2Html\Data\InfoFile;
-use Data2Html\Lang;
+use Data2Html\Data\Response;
 
 class Lang
 {
@@ -29,9 +30,9 @@ class Lang
         
         foreach($folders as $k => $v) {
             if (is_integer($k)) {
-                $this->load('', Data2Html\Autoload::getCodeFolder() . $v);
+                $this->load('', Autoload::getCodeFolder() . $v);
             } else {
-                $this->load($k, Data2Html\Autoload::getCodeFolder() . $v);
+                $this->load($k, Autoload::getCodeFolder() . $v);
             }
         }
     }
@@ -87,7 +88,7 @@ class Lang
     
     public static function responseJs($lang)
     {
-        Data2Html\Data\Response::js(self::jsCode($lang));
+        Response::js(self::jsCode($lang));
     }
     
     protected static function jsCode($lang)
@@ -115,11 +116,11 @@ class Lang
     private function loadOne($lang, $name, $folder)
     {
         
-        $rDir = new RecursiveDirectoryIterator($folder);
-        $regex = new RegexIterator(
-            new RecursiveIteratorIterator($rDir), 
+        $rDir = new \RecursiveDirectoryIterator($folder);
+        $regex = new \RegexIterator(
+            new \RecursiveIteratorIterator($rDir), 
             '/^.+' . $lang . '\.php$/i',
-            RegexIterator::GET_MATCH 
+            \RegexIterator::GET_MATCH 
         );
         // The deeper folders are applied last.
         $regexKeys = [];
@@ -161,7 +162,7 @@ class Lang
                 }
             };
             $content = InfoFile::readPhp($k);
-            $itr2 = new RecursiveArrayIterator($content);
+            $itr2 = new \RecursiveArrayIterator($content);
             iterator_apply($itr2, $flatten, array($itr2, $base));
             $literals = array_replace($literals, $flatContent);
             $files = array_replace($files, $flatFiles);

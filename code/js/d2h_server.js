@@ -38,6 +38,13 @@ var d2h_server = (function ($) {
         }
     };
     var _wait = new waitHandler();
+    
+    var _on = function(elem, eventName, handlerFn) {
+        $(elem).on(
+            'd2h_srv_' + eventName,
+            handlerFn
+        );
+    };
 
     // ----------------
     // Data handler
@@ -125,20 +132,26 @@ var d2h_server = (function ($) {
         },
         
         on: function(eventName, handlerFn) {
-            var _this = this;
             if (!this._events[eventName]) {
                 this._events[eventName] = 0;
             }
             this._events[eventName]++;
-            $(this.objElem).on(
-                'd2h_srv_' + eventName,
-                function() {
-                    var args = [];
-                    Array.prototype.push.apply(args, arguments);
-                    args.shift();
-                    return handlerFn.apply(_this, args);
-                }
-            );
+            var _this = this;
+            _on(this.objElem, eventName, function() {
+                var args = [];
+                Array.prototype.push.apply(args, arguments);
+                args.shift();
+                return handlerFn.apply(_this, args);
+            });
+            // $(this.objElem).on(
+                // 'd2h_srv_' + eventName,
+                // function() {
+                    // var args = [];
+                    // Array.prototype.push.apply(args, arguments);
+                    // args.shift();
+                    // return handlerFn.apply(_this, args);
+                // }
+            // );
             return this;
         },
         
@@ -329,7 +342,6 @@ var d2h_server = (function ($) {
     function dataGrid(objElem, container, options) {
         this._init(objElem, container, options);
     }
-
     $.extend(dataGrid.prototype, dataHtml.prototype, {
         events: ["beforeLoadGrid", "errorLoadGrid", "afterLoadGrid"],
         defaults: {
@@ -441,6 +453,8 @@ var d2h_server = (function ($) {
                     this[autoCall].call(this, this.settings);
                 }
             });
+            
+            this.trigger('created');
         },
         
         _initComponent: function(compomentName, selector) {
@@ -722,6 +736,8 @@ var d2h_server = (function ($) {
                 //  - clearForm after sub element promises are done.
                 this.clearForm();
             });
+            
+            this.trigger('created');
         },
         
         loadElement: function(options) {
@@ -865,15 +881,24 @@ var d2h_server = (function ($) {
     });
     
     /**
-     * Public
+     * Public d2h_server
+     * @parameter elemSelector
+     * @parameter _options: 
+     *      * object to use to start server.
+     *      * false: to start server only when options are in a data-d2h attribute else returns null without error.
+     *
      */
-    return function(elemSelector, _options) {
+    var d2h_server = function(elemSelector, _options) {
         var $elem = $(elemSelector);
-        if ($elem.length == 0) {
+        if ($elem.length === 0) {
             $.error(
                 "d2h_server: Can not find a DOM object with the selector!"
             );
-            return;
+        }
+        if ($elem.length !== 1 && _options === false) {
+            $.error(
+                "d2h_server: Can not find only a DOM object with the selector when options are =false!"
+            );
         }
         var _response = [];
         $elem.each(function() {
@@ -881,8 +906,12 @@ var d2h_server = (function ($) {
                 // Create a data for "Data2Html_data"
                 var optionsEle = d2h_utils.getJsData(this, 'd2h');
                 if ((!optionsEle && !_options) || typeof optionsEle === 'string') {
+                    if (_options === false) {
+                        _response = [null];
+                        return;
+                    }
                     $.error(
-                        "d2h_server: Can not initialize, attribute 'data-d2h' or js options are required for " + 
+                        "d2h_server can not initialize: attribute 'data-d2h' or js options are required for " + 
                         d2h_utils.getElementPath(this)
                     );
                 }
@@ -898,12 +927,17 @@ var d2h_server = (function ($) {
             }
             _response.push($.data(this, "Data2Html_data"));
         });
-        if (_response.length === 0) {
-            return null;
-        } else if (_response.length === 1) {
+        if (_response.length === 1) {
             return _response[0];
         } else {
             return _response;
         }
     };
+    
+// static
+    d2h_server.whenCreated = function(elemSelector, callBack) {
+        _on(elemSelector, 'created', callBack);
+    };
+    
+    return d2h_server;
 })(jQuery);

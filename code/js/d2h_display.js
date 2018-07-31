@@ -121,7 +121,7 @@ var d2h_display = (function($) {
         getSelector: function(name) {
             if (!name in this._selectors) {
                 $.error(
-                    "[d2h_display].getServer(): Name " + name + 
+                    '[d2h_display].getSelector(): Name "' + name + 
                     '" not exist on items. Add it firts!'
                 );
             }
@@ -132,16 +132,34 @@ var d2h_display = (function($) {
             return d2h_server(d2h_utils.getSingleElement(this.getSelector(name)));
         },
         
+        /**
+         * Loads and show grid on a d2h_server associated with d2h_display object.
+         * 
+         * NOTE: Load grid is asynchronous called when d2h_server is not yet 
+         *      created, then wait to server creation (since it is possible that
+         *      exist js code pending to execute)
+         */
         loadGrid: function() {
-            this.getServer('grid').loadGrid();
-            this.show('grid');
+            var _elem = d2h_utils.getSingleElement(this.getSelector('grid'));
+            var server = d2h_server(_elem, false);
+            if (server === null) {
+                var _this = this;
+                d2h_server.whenCreated(_elem, function() {
+                    var server =  d2h_server(_elem);
+                    server.loadGrid();
+                    _this.show('grid');
+                });
+            } else {
+                server.loadGrid();
+                this.show('grid');
+            }
         },
         
         show: function(name) {
             var iName,
                 sels = this._selectors,
                 serverSelector = this.getSelector(name);
-                serverObj = this.getServer(name);
+           //     serverObj = this.getServer(name);
             switch (name) {
                 case 'element':
                     _trigger(serverSelector, 'applyBranchKeys');
@@ -158,7 +176,8 @@ var d2h_display = (function($) {
                 }
             }
             this._currentName = name;
-            return serverObj;
+            return serverSelector;
+          //  return serverObj;
         },
         
         hide: function() {
