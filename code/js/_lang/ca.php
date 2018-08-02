@@ -13,5 +13,8 @@ return [
         'required' =>          "Cal omplir aquest camp",
         'email' =>     "ERROR: No s'ha pogut guardar!",
         'emails' =>     "ERROR: No s'ha pogut guardar!",
+    ],
+    'messages' => [
+        'close' =>          "amagar l'avis"
     ]
 ];

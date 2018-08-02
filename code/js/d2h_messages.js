@@ -71,6 +71,7 @@ var d2h_messages = (function ($) {
             if ($elemRef.length === 0)  {
                 return; // EXIT
             }
+            var elemPopper = $elemRef[0];
             
             // Get element container, e.g.: 
             //      '#myId div' show messages refereed to first div on #myId and
@@ -84,15 +85,18 @@ var d2h_messages = (function ($) {
             }
             $(this).hide().html(
                     '<span></span>' +
-                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                    '<a href="#" class="close" aria-label="' + __('messages/close') + '">&times;</a>' +
                     '<div class="popper__arrow" x-arrow></div>'
                 )
                 .addClass('popper alert alert-dismissible');
+            $('.close', this).on('click', function() {
+                _clear(elemMessages);
+            });
             pos = pos ? pos : 'top-start';
             infoMessages.poppers.push(
-                new Popper($elemRef[0], this, {
+                new Popper(elemPopper, this, {
                     placement: pos,
-                    boundariesElement: $elemRef[0].parentNode
+                    boundariesElement: elemPopper.parentNode
                 })
             );
         });

@@ -37,9 +37,7 @@ class DebugException extends \Exception
             $exeptionData['fileLine'] = $exception->getFile().
                 ' [ line: '.$exception->getLine().' ]';
             $exeptionData['trace'] = explode("\n", $exception->getTraceAsString());
-            if ($exception instanceof \DebugException || 
-                $exception instanceof self
-            ) {
+            if ($exception instanceof self) {
                 $debugData = $exception->getData();
                 // Error code non numeric from debug-data
                 if (isset($debugData['error_code'])) {

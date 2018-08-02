@@ -38,11 +38,16 @@ return [
             <script src="$${base}/code/js/d2h_display.js"></script>'
         ],
     'd2h_messages' => [
-        'require' => 'jquery',
+        'require' => ['jquery', 'popper'],
         'include' => ['d2h_values', 'd2h_utils'],
         'html' => '
             <link  href="$${base}/code/css/d2h_messages.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_messages.js"></script>'
+    ],
+    'popper' => [
+        'html' => '
+            <link  href="$${base}/external/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
+            <script src="$${base}/external/js/popper.js-1.14.3/dist/umd/popper.js"></script>'
     ],
     'd2h_sort' => [
         'require' => 'jquery',

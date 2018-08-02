@@ -1,6 +1,7 @@
 <?php
 namespace Data2Html\Data;
 
+use Data2Html\DebugException;
 use Data2Html\ExeptionData;
 use Data2Html\Data\Parse;
 use Data2Html\Data\Lot;
