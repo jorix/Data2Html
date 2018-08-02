@@ -81,7 +81,7 @@ return [
             ]
         ]
     ],
-    'elements' => [
+    'blocks' => [
         'main' => [
             'items' => [
                 'name' => ['items' => ['ts', 'active']],

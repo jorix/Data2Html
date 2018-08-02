@@ -1,6 +1,7 @@
 <?php
 namespace Data2Html;
 
+use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Render\Branch;
 use Data2Html\Render\Content;
@@ -99,9 +100,9 @@ class Render
                 $lkForm->getLinkedItems(),
                 [
                     'title' => $lkForm->getAttributeUp('title'),
-                    'debug-name' => "{$model->getModelName()}@element={$formName}",
+                    'debug-name' => "{$model->getModelName()}@block={$formName}",
                     'url' => $this->getControllerUrl() .
-                         "model={$model->getModelName()}&element={$formName}&"
+                         "model={$model->getModelName()}&block={$formName}&"
                 ],
                 $itemReplaces
             );
@@ -246,9 +247,9 @@ class Render
                 );
                 $itemBody->add($nextLevelBody);
                 
-                // read next item and force current level
+                // read actual item after end level and force his level
                 // v$ is pending to verify if items are ended
-                $v = next($items); 
+                $v = current($items); 
                 $level = Lot::getItem('level', $v, 0);
             }
             

@@ -2,7 +2,7 @@
 return [
     'table' => 'aixada_uf',
     'title' => 'Unitats familiars',
-    'sort' => 'uf_name',
+    'sort' => 'name',
     'items' => [
         'id'        => ['key', 'integer', 'default' => null],
         'name'      => [
@@ -52,7 +52,7 @@ return [
             ]
         ]
     ],
-    'elements' => [
+    'blocks' => [
         'main' => [
             'items' => [
                 'name',

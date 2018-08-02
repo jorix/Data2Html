@@ -66,8 +66,8 @@ class Controller
         switch ($oper) {
             case '':
             case 'read':
-                if (isset($playerNames['element'])) {
-                    $lkForm = $model->getLinkedBlock($playerNames['element']);
+                if (isset($playerNames['block'])) {
+                    $lkForm = $model->getLinkedBlock($playerNames['block']);
                     return $this->opReadForm($lkForm, $r->get('d2h_keys'));
                 } elseif (isset($playerNames['grid'])) {
                     $lkGrid = $model->getLinkedGrid($playerNames['grid']);
@@ -94,7 +94,7 @@ class Controller
                 }
             case 'insert':
                 $val = new Validate('ca');
-                $lkElem = $model->getLinkedBlock($playerNames['element']);
+                $lkElem = $model->getLinkedBlock($playerNames['block']);
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $validation = $val->validateData(
                     $postValues,
@@ -125,7 +125,7 @@ class Controller
 
             case 'update':
                 $val = new Validate('ca');
-                $lkElem = $model->getLinkedBlock($playerNames['element']);
+                $lkElem = $model->getLinkedBlock($playerNames['block']);
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $keys = Lot::getItem('[keys]', $postValues);
                 $validation = $val->validateData(
@@ -143,7 +143,7 @@ class Controller
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $keys = Lot::getItem('[keys]', $postValues);
                 unset($postValues['[keys]']);
-                $this->opDelete($model->getLinkedBlock($playerNames['element']), $postValues, $keys);
+                $this->opDelete($model->getLinkedBlock($playerNames['block']), $postValues, $keys);
                 break;
 
             default:
@@ -159,7 +159,6 @@ class Controller
      */
     protected function opReadForm($lkForm, $keys)
     {
-        // Prepare sql
         $sqlObj = new SqlSelect($this->db, $lkForm);
         $sqlObj->addFilterByKeys($keys);
         

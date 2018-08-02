@@ -5,7 +5,7 @@ class Base extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
         'grids' => false,
-        'elements' => false,
+        'blocks' => false,
         'table' => 'attribute',
         'sort' => 'attribute',
         'beforeInsert' => 'attribute',

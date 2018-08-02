@@ -30,7 +30,7 @@ var d2h_display = (function($) {
                     this.loadGrid();
                     break;
                 case 'showDetail':
-                    this.show('element');
+                    this.show('block');
                     break;
                 case 'showGrid':
                 default:
@@ -94,7 +94,7 @@ var d2h_display = (function($) {
                                 }
                             );
                             break;
-                        case 'element':
+                        case 'block':
                             _on(selector,
                                 'applyBranchKeys', 
                                 function() {
@@ -161,7 +161,7 @@ var d2h_display = (function($) {
                 serverSelector = this.getSelector(name);
            //     serverObj = this.getServer(name);
             switch (name) {
-                case 'element':
+                case 'block':
                     _trigger(serverSelector, 'applyBranchKeys');
                     break;
                 case 'grid':
@@ -247,6 +247,7 @@ var d2h_display = (function($) {
     };
         
     var _trigger = function(onSelector, eventName, args) {
+        console.log(onSelector + ': d2h_display[ ' +  eventName + ' ]', args);
         return $(onSelector).triggerHandler('d2h_dsp_' + eventName, args);
     };
     
@@ -258,7 +259,7 @@ var d2h_display = (function($) {
 
     d2h_display.goGridAction = function(server, action) {
         var _displayObj = _get(server),
-            servElem = _displayObj.getServer('element');
+            servElem = _displayObj.getServer('block');
         switch (action) {
             case 'read-previous':
             //TODO
@@ -349,20 +350,20 @@ var d2h_display = (function($) {
 
     d2h_display.goFormAction = function(server, action, _keys, _options) {
         var _displayObj = _get(server),
-            formSelector = _displayObj.getSelector('element'),
-            servElem = _displayObj.getServer('element'),
+            formSelector = _displayObj.getSelector('block'),
+            servElem = _displayObj.getServer('block'),
             formElem = servElem.getElem();
         _options = _options ? _options : {};
         switch (action) {
             case 'show-edit':
-                servElem.loadElement({
+                servElem.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_delete,.d2h_insert', formElem).hide();
                         $('.d2h_update,.d2h_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('element'));
+                        d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -370,14 +371,14 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-delete':
-                servElem.loadElement({
+                servElem.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_update,.d2h_insert', formElem).hide();
                         $('.d2h_delete,.d2h_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('element'));
+                        d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -385,14 +386,14 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-copy':
-                servElem.loadElement({
+                servElem.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
                         servElem.clearForm({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeaves');
                         $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                         $('.d2h_insert', formElem).show();
-                        d2h_messages.clear(_displayObj.show('element'));
+                        d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -404,7 +405,7 @@ var d2h_display = (function($) {
                 _trigger(formSelector, 'hideLeaves');
                 $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
                 $('.d2h_insert', formElem).show();
-                d2h_messages.clear(_displayObj.show('element'));
+                d2h_messages.clear(_displayObj.show('block'));
                 if (_options.after) {
                     _options.after.call(this);
                 }

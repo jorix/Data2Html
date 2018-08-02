@@ -8,6 +8,7 @@
 namespace Data2Html;
 
 use Data2Html\Config;
+use Data2Html\DebugException;
 use Data2Html\Data\InfoFile;
 use Data2Html\Model\Set\Base as SetBase;
 use Data2Html\Model\Set\Block as SetBlock;
@@ -31,7 +32,7 @@ class Model
     private $baseSet = null;
     private $grids = [];
     private $unlinkedGrids = [];
-    private $elements = [];
+    private $blocks = [];
     
     /**
      * Class constructor, initializes basic properties.
@@ -117,17 +118,17 @@ class Model
         if (!$elementName) {
             $elementName = 'main';
         }
-        if (!array_key_exists($elementName, $this->elements)) {
-            $this->elements[$elementName] = new LinkedSet(
+        if (!array_key_exists($elementName, $this->blocks)) {
+            $this->blocks[$elementName] = new LinkedSet(
                 new SetBlock(
                     $this,
                     $elementName, 
-                    $this->getSetDefs($elementName, 'elements'),
+                    $this->getSetDefs($elementName, 'blocks'),
                     $this->baseSet
                 )
             );
         }    
-        return $this->elements[$elementName];
+        return $this->blocks[$elementName];
     }
     
     protected function getSetDefs($name, $setName)

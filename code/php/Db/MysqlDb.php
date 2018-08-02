@@ -1,30 +1,33 @@
 <?php
 /**
- * The recommended PDO driver for jqGridPHP.
+ * mysqli
  */
 namespace Data2Html\Db;
 
+use Data2Html\DebugException;
+
 class MysqlDb extends \Data2Html\Db
 {
-    public function __construct($parameters, $options = array())
+    protected $dbType = 'Mysql';
+    
+    public function __construct($parameters, $options = [])
     {
         parent::__construct($parameters, $options);
-        $dsn = $parameters['dsn'];
-        $this->db_type = substr($dsn, 0, strpos($dsn, ':') + 1);
     }
 
     protected function link($parameters)
     {
         // Open link
         try {
-            $link = new PDO(
-                $parameters['dsn'],
+            $link = new \mysqli(
+                $parameters['host'],
                 $parameters['user'],
                 $parameters['pass'],
-                (isset($parameters['options']) ? $parameters['options'] : array())
+                $parameters['dbname'],
             );
-            $link->setAttribute(PDO::ATTR_ERRMODE, 2);
-        } catch (PDOException $e) {
+            if (mysqli_connect_errno())
+                throw new \Exception('Unable to connect to database. ' . mysqli_connect_error());
+        } catch (\Exception $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
         $this->link = $link;

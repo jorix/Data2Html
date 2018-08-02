@@ -1,5 +1,6 @@
 d2h_server('#$${id}', {
     url: '$${url}',
+    type: 'grid',
     repeat: 'table tbody tr',
     selectedClass: 'info',
     visual: $${visual},

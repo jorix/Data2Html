@@ -1,6 +1,6 @@
 d2h_server('#$${id}', {
     url:    '$${url}',
-    type:   'element',
+    type:   'block',
     actions: {
         'read-previous': function() {
             d2h_display.goGridAction(this, 'read-previous');

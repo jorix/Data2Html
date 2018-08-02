@@ -60,7 +60,7 @@ return [
             )
         )
     ),
-    'elements' => array(
+    'blocks' => array(
         'default' => array()
     )
 ];

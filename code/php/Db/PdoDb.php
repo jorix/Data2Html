@@ -1,30 +1,35 @@
 <?php
 /**
- * The recommended PDO driver for jqGridPHP.
+ * PDO
  */
 namespace Data2Html\Db;
 
+use Data2Html\DebugException;
+use Data2Html\Data\Parse;
+
 class PdoDb extends \Data2Html\Db
 {
+    use \Data2Html\Debug;
+    
     public function __construct($parameters, $options = array())
     {
         parent::__construct($parameters, $options);
         $dsn = $parameters['dsn'];
-        $this->db_type = substr($dsn, 0, strpos($dsn, ':') + 1);
+        $this->dbType = substr($dsn, 0, strpos($dsn, ':') + 1);
     }
 
     protected function link($parameters)
     {
         // Open link
         try {
-            $link = new PDO(
+            $link = new \PDO(
                 $parameters['dsn'],
                 $parameters['user'],
                 $parameters['pass'],
                 (isset($parameters['options']) ? $parameters['options'] : array())
             );
-            $link->setAttribute(PDO::ATTR_ERRMODE, 2);
-        } catch (PDOException $e) {
+            $link->setAttribute(\PDO::ATTR_ERRMODE, 2);
+        } catch (\PDOException $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
         $this->link = $link;
@@ -34,12 +39,10 @@ class PdoDb extends \Data2Html\Db
     {
         try {
             return $this->link->query($sql);
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             throw new DebugException(
                 $e->getMessage(),
-                array(
-                    'sql' => explode("\n", $sql)
-                ),
+                ['sql' => explode("\n", $sql)],
                 $e->getCode()
             );
         };
@@ -60,7 +63,7 @@ class PdoDb extends \Data2Html\Db
     
     public function fetch($result)
     {
-        return $result->fetch(PDO::FETCH_ASSOC);
+        return $result->fetch(\PDO::FETCH_ASSOC);
     }
 
     public function closeQuery($rs) 
@@ -74,7 +77,7 @@ class PdoDb extends \Data2Html\Db
         try {
             $result = $this->query($sql);
             return $result->rowCount();
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
             throw new DebugException(
                 $e->getMessage(),
                 array(

@@ -1,8 +1,8 @@
 <?php
 namespace Data2Html;
 
-use Data2Html\Data\Parse;
 use Data2Html\DebugException;
+use Data2Html\Data\Parse;
 
 abstract class Db
 {
@@ -10,7 +10,7 @@ abstract class Db
         
     /**  */
     protected $link;
-    protected $db_type = 'abstract_Db';
+    protected $dbType = 'abstract_Db';
     protected $init_query = array();
 
     /**
@@ -187,15 +187,15 @@ abstract class Db
         switch ($type) {
             case 'number':
             case 'currency':
-                return Parse:number($result);
+                return Parse::number($result);
             case 'integer':
-                return Parse:integer($result);
+                return Parse::integer($result);
             case 'boolean':
-                return Parse:boolean($result);
+                return Parse::boolean($result);
             case 'string':
-                return Parse:string($result);
+                return Parse::string($result);
             case 'date':
-                return Parse:date($result);
+                return Parse::date($result);
             default:
                 throw new \Exception("`{$type}` is not defined.");
         }

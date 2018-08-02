@@ -1,12 +1,12 @@
 <?php
 /**
- * PostgreSQL driver
+ * PostgreSQL
  */
 namespace Data2Html\Db;
 
 class PgDb extends \Data2Html\Db
 {
-    protected $db_type = 'postgresql';
+    protected $dbType = 'postgresql';
 
     protected function link($parameters)
     {

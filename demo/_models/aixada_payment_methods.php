@@ -8,7 +8,7 @@ create table aixada_payment_method (
 ) 
 )
 */
-return = [
+return [
     'table' => 'aixada_payment_method',
     'title' => 'Tipus Moviments',
     'items' => array(

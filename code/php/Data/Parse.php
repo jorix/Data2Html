@@ -105,7 +105,7 @@ class Parse
             }
             return self::date($default, null, $input_format, $strict);
         }
-        $date = new DateTime();
+        $date = new \DateTime();
         $date->setDate($d['year'], $d['month'], $d['day']);
         $date->setTime($d['hour'], $d['minute'], $d['second']);
         return $date;

@@ -160,6 +160,7 @@ var d2h_server = (function ($) {
         },
         
         trigger: function(eventName, args) {
+            console.log('#' + this.objElem.id + ': d2h_server[ ' +  eventName + ' ]', args);
             return $(this.objElem).triggerHandler('d2h_srv_' + eventName, args);
         },
         
@@ -705,7 +706,7 @@ var d2h_server = (function ($) {
             'beforeLoadElement', 'afterLoadElement','errorLoadElement'
         ],
         defaults: {
-            type: 'element'
+            type: 'block'
         },
         _init: function(objElem, container, options) {
             dataHtml.prototype._init.apply(this, [objElem, container, options]);
@@ -740,7 +741,7 @@ var d2h_server = (function ($) {
             this.trigger('created');
         },
         
-        loadElement: function(options) {
+        loadBlock: function(options) {
             if (!options || !options.keys) {
                 $.error("d2h_server: Can't load form data without 'keys' option.");
             }
@@ -917,7 +918,7 @@ var d2h_server = (function ($) {
                 }
                 var opData = $.extend(optionsEle, _options);
                 switch (opData.type) {
-                    case 'element':
+                    case 'block':
                         new dataElement(this, null, opData);
                         break;
                     default: // create a grid

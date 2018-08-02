@@ -114,7 +114,7 @@
             branch: '#<?=$idUfGrid?>',
             items: {
                 grid: {selector: '#<?=$idMemberGrid?>', leafKeys: ['uf_id_eq']},
-                element: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
+                block: {selector: '#<?=$idMemberEdit?>', leafKeys: ['uf_id']}
             }
         });
         
@@ -122,7 +122,7 @@
             auto: 'loadGrid',
             items: {
                 grid: '#<?=$idUfGrid?>',
-                element: '#<?=$idUfEdit?>'
+                block: '#<?=$idUfEdit?>'
             }
         });
     </script>

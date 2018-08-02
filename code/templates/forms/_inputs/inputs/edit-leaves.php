@@ -47,7 +47,7 @@ return function($replaces) {
         'auto' => 'loadGrid',
         'items' => [
             'grid' => ['selector' => '#' . $idGrid],
-            'element' => ['selector' => '#' . $idForm]
+            'block' => ['selector' => '#' . $idForm]
         ]
     ];
     
@@ -65,7 +65,7 @@ return function($replaces) {
 
         $displayOptions['branch'] = '#' . $branchModel->getLinkedGrid($branch['grid'])->getId();
         $displayOptions['items']['grid']['leafKeys'] = $filterItemNames;
-        $displayOptions['items']['element']['leafKeys'] = $formItemNames;
+        $displayOptions['items']['block']['leafKeys'] = $formItemNames;
     }
     
     // end

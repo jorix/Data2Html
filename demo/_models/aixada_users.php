@@ -59,7 +59,8 @@ return [
             )
         )
     ),
-    'elements' => array(
+    
+    'blocks' => array(
         'main' => array(
             'items' => array(
                 'login',
