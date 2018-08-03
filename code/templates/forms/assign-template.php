@@ -20,7 +20,7 @@ return [
             $content = 'select-input';
             $url = $render->getControllerUrl() . "model={$link}&";
         } elseif ($leaves) {
-            $layout = 'bare';
+            $layout = 'no_label';
             $content = 'edit-leaves';
             $url = $render->getControllerUrl() . "model={$leaves}&";
         } elseif ($type) {

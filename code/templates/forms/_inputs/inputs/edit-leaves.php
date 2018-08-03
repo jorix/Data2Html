@@ -72,7 +72,7 @@ return function($replaces) {
     return new \Data2Html\Render\Content(
         [
             'include' => ['d2h_server', 'd2h_display'],
-            'html' => '<div class="container">$${body}</div>',
+            'html' => '$${body}',
             'js' => "
                 (function() {
                     d2h_display(" . 

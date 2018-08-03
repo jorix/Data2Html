@@ -18,7 +18,9 @@
     <?php echo $result->getSource(['base' => '..', 'lang' => $lang]);?>
 </head>
 <body>
-    <?php echo $result->get('html'); ?>
+    <div class="container">
+        <?php echo $result->get('html'); ?>
+    </div>
     <div class="d2h_waiting"></div>
     <script>
         <?php echo $result->get('js'); ?>
