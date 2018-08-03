@@ -53,13 +53,13 @@ class Content
             $includes = self::getTemplateSource('include', $template);
             if (array_key_exists('html', $template)) {
                 $html = self::extractSource('require', $template['html'], $requires);
-                $html = self::extractSource('include', $template['html'], $includes);
+                $html = self::extractSource('include', $html, $includes);
             } else {
                 $html = '';
             }
             if (array_key_exists('js', $template)) {
                 $js = self::extractSource('require', $template['js'], $requires);
-                $js = self::extractSource('include', $template['js'], $includes);
+                $js = self::extractSource('include', $js, $includes);
             } else{
                 if ($extractJs) {
                     list($js, $html) = self::extractScripts($html);
@@ -71,19 +71,10 @@ class Content
             
             // Apply replaces
             $finalJs = '';
-            $finalReplaces = [];
-            $internalReplaces = [];
-            foreach ($replaces as $k => $v) {
-                if (substr($k, 0, 1) === '_') {
-                    $internalReplaces[$k] = $v;
-                }
-            }
             foreach ($replaces as $k => $v) {
                 if ($v instanceof self) {
                     if (array_key_exists('html', $v->content)) {
-                        $html = self::renderHtml($html, 
-                            $internalReplaces + [$k => $v->content['html']]
-                        );
+                        $replaces[$k] = $v->content['html'];
                     } 
                     if (array_key_exists('js', $v->content)) {
                         $finalJs .= "\n" . $v->content['js'] ;
@@ -94,16 +85,14 @@ class Content
                     if (array_key_exists('include', $v->content)) {
                         $includes += $v->content['include'];
                     }
-                } else {
-                    $finalReplaces[$k] = $v;
                 }
             }
             $this->content = [];
             if ($html) {
-                $this->content['html'] = self::renderHtml($html, $finalReplaces);
+                $this->content['html'] = self::renderHtml($html, $replaces);
             }
             if ($js) {
-                $js = self::renderJs($js, $finalReplaces, false);
+                $js = self::renderJs($js, $replaces, false);
             }
             if ($js || $finalJs) {
                 $this->content['js'] = $js . $finalJs;

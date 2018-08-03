@@ -164,7 +164,7 @@ class Render
     }
 
     protected function renderBlockSet(
-        $formId,
+        $blockId,
         Branch $templateBranch,
         $items,
         $bodyReplaces,
@@ -176,7 +176,7 @@ class Render
             $this->parseIncludeItems('endItems', $templateBranch)
         );
         $itemReplaces = $itemReplaces ? $itemReplaces : [];
-        $itemReplaces['from-id'] = $formId;
+        $itemReplaces['from-id'] = $blockId;
         list($body) = $this->renderFlatSet(
             $items,
             $templateBranch,
@@ -184,14 +184,13 @@ class Render
         );
         
         $bodyReplaces['visual'] = Set::getVisualItems($items);
-        $form = new Content(
+        return new Content(
             $templateBranch->getTemplate('template'),
             array_merge($bodyReplaces, [
-                'id' => $formId,
+                'id' => $blockId,
                 'body' => $body
             ])
         );
-        return $form;
     }
     
     protected function renderFlatSet($items, Branch $template, $iReplaces = array())

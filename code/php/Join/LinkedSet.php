@@ -30,7 +30,7 @@ class LinkedSet
     public function __debugInfo()
     {
         return [
-            'attributes' => $this->getLinkedFrom(),
+            'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
             'setItems' => $this->getLinkedItems()
         ];
