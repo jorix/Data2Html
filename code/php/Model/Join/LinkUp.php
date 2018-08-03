@@ -1,5 +1,5 @@
 <?php
-namespace Data2Html\Join;
+namespace Data2Html\Model\Join;
 
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;

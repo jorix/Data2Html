@@ -13,9 +13,9 @@ use Data2Html\Data\InfoFile;
 use Data2Html\Model\Set\Base as SetBase;
 use Data2Html\Model\Set\Block as SetBlock;
 use Data2Html\Model\Set\Grid as SetGrid;
-use Data2Html\Join\LinkedSet;
-use Data2Html\Join\LinkedGrid;
-use Data2Html\Join\LinkedBlock;
+use Data2Html\Model\Join\LinkedSet;
+use Data2Html\Model\Join\LinkedGrid;
+use Data2Html\Model\Join\LinkedBlock;
 
 class Model
 {
