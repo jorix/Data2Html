@@ -361,8 +361,8 @@ var d2h_display = (function($) {
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
-                        $('.d2h_delete,.d2h_insert', formElem).hide();
-                        $('.d2h_update,.d2h_move', formElem).show();
+                        $('.d2h_dsp_delete,.d2h_dsp_insert', formElem).hide();
+                        $('.d2h_dsp_update,.d2h_dsp_move', formElem).show();
                         d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -376,8 +376,8 @@ var d2h_display = (function($) {
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
-                        $('.d2h_update,.d2h_insert', formElem).hide();
-                        $('.d2h_delete,.d2h_move', formElem).show();
+                        $('.d2h_dsp_update,.d2h_dsp_insert', formElem).hide();
+                        $('.d2h_dsp_delete,.d2h_dsp_move', formElem).show();
                         d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -391,8 +391,8 @@ var d2h_display = (function($) {
                     afterLoadElement: function() {
                         servElem.clearForm({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeaves');
-                        $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
-                        $('.d2h_insert', formElem).show();
+                        $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
+                        $('.d2h_dsp_insert', formElem).show();
                         d2h_messages.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -403,8 +403,8 @@ var d2h_display = (function($) {
             case 'show-create':
                 servElem.clearForm();
                 _trigger(formSelector, 'hideLeaves');
-                $('.d2h_update,.d2h_delete,.d2h_move', formElem).hide();
-                $('.d2h_insert', formElem).show();
+                $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
+                $('.d2h_dsp_insert', formElem).show();
                 d2h_messages.clear(_displayObj.show('block'));
                 if (_options.after) {
                     _options.after.call(this);

@@ -64,14 +64,14 @@ class LinkedGrid
         return $this->columns;
     }
 
-    public function getAttributeUp($attrName, $default = null)
+    public function getAttributeUp($attributeKeys, $default = null)
     {
-        return $this->columns->getAttributeUp($attrName, $default);
+        return $this->columns->getAttributeUp($attributeKeys, $default);
     }
     
-    public function getAttribute($attrName, $default = null)
+    public function getAttribute($attributeKeys, $default = null)
     {
-        return $this->columns->getAttribute($attrName, $default);
+        return $this->columns->getAttribute($attributeKeys, $default);
     }
 
     public function getFilter()

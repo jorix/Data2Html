@@ -1,11 +1,12 @@
 <?php die("It's uncooked!"); ?>
 $${_level-0?[[
 <div class="form-group">
-    <label for="$${id}" class="col-sm-2 control-label">$${title}</label>
+    <label for="$${id}" class="col-sm-2 control-label $${visualClassLayout}">$${title}</label>
     <div class="col-sm-10">$${body}</div>
 </div>
 ]]:[[
 <div class="form-group">
-<label for="$${id}" class="col-sm-2 control-label">$${title}</label>$${body}
+<label for="$${id}"
+    class="col-sm-2 control-label $${visualClassLayout}">$${title}</label>$${body}
 </div>
 ]]}

@@ -109,6 +109,11 @@ class Content
         }
     }
     
+    public function __debugInfo()
+    {
+        return $this->content;
+    }
+    
     public function add($template = null, $replaces = null, $extractJs = true) {
         if ($template instanceof self) {
             $item = $template;

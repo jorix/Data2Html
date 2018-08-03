@@ -73,6 +73,7 @@ return [
         ],
         'uf_members' => [
             'block-name' => 'main',
+            'options' => ['page' => false],
             'items' => ['name', 'active' => ['sortBy' => null], 'phones'],
             'filter' => [
                 'items' => [

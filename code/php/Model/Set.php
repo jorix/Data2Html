@@ -40,6 +40,7 @@ abstract class Set
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     private $baseAttributeNames = [
         'title' => 'attribute',
+        'options' => 'attribute',
         'items' => 'items',
     ];
     private $baseWordsAlias = [
@@ -183,23 +184,32 @@ abstract class Set
             return $this->baseSet->getAttribute('table');
         }
     }
-    
+
     public function getBase()
     {
         return $this->baseSet;
     }
-    
-    public function getAttributeUp($attrName, $default = null)
+
+    public function getAttributeUp($attributeKeys, $default = null)
     {
-        $attr = $this->getAttribute($attrName, $default);
-        if (!$attr && $this->baseSet) {
-            $attr = $this->baseSet->getAttribute($attrName, $default);
+        $attr = $this->getAttribute($attributeKeys);
+        if ($attr === null) {
+            if ($this->baseSet) {
+                $attr = $this->baseSet->getAttribute($attributeKeys, $default);
+            } else {
+                $attr = $default;
+            }
         }
         return $attr;
     }
     
-    public function getAttribute($attrName, $default = null)
+    public function getAttribute($attributeKeys, $default = null)
     {
+        if (is_array($attributeKeys)) {
+            $attrName = $attributeKeys[0];
+        } else {
+            $attrName = $attributeKeys;
+        }
         if (!isset($this->attributeNames[$attrName])) {
             throw new DebugException("Attribute \"{$attrName}\" is not supported.");
         } elseif ($this->attributeNames[$attrName] === false) {
@@ -207,7 +217,7 @@ abstract class Set
                 "Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
             );
         }
-        return Lot::getItem($attrName, $this->attributes, $default);
+        return Lot::getItem($attributeKeys, $this->attributes, $default);
     }
     
     public function getSort()

@@ -57,13 +57,17 @@ class Render
                 'sort' => $lkGrid->getAttributeUp('sort')
             ];
             // Page
-            $replaces['id-page'] = $gridId . '_page';
-            $replaces['page'] = $this->renderBlockSet(
-                $replaces['id-page'],
-                $templateBranch->getBranch('page', false),
-                null,
-                []
-            );
+            
+            if ($lkGrid->getAttribute(['options', 'page'], true)) {
+                $replaces['id-page'] = $gridId . '_page';
+                $replaces['page'] = $this->renderBlockSet(
+                    $replaces['id-page'],
+                    $templateBranch->getBranch('page', false),
+                    null,
+                    []
+                );
+            }
+            
             // Filter
             $lkFilter = $lkGrid->getFilter();
             if ($lkFilter) {

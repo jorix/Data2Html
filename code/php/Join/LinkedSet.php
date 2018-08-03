@@ -30,6 +30,7 @@ class LinkedSet
     public function __debugInfo()
     {
         return [
+            'attributes' => $this->set->__debugInfo()['attributes'],
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
             'setItems' => $this->getLinkedItems()
@@ -53,14 +54,14 @@ class LinkedSet
         return $this->set->getSort();
     }
     
-    public function getAttributeUp($attrName, $default = null)
+    public function getAttributeUp($attributeKeys, $default = null)
     {
-        return $this->set->getAttributeUp($attrName, $default);
+        return $this->set->getAttributeUp($attributeKeys, $default);
     }
     
-    public function getAttribute($attrName, $default = null)
+    public function getAttribute($attributeKeys, $default = null)
     {
-        return $this->set->getAttribute($attrName, $default);
+        return $this->set->getAttribute($attributeKeys, $default);
     }
 
     // -----------------------

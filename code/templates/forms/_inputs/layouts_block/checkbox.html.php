@@ -2,7 +2,7 @@
 <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
         <div class="checkbox">
-            <label>$${body} $${title}</label>
+            $${body} <label for="$${id}" class="$${visualClassLayout}">$${title}</label>
         </div>
     </div>
 </div>

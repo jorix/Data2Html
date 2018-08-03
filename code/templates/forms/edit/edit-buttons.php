@@ -19,7 +19,7 @@ return [
                     'content-template' => 'button',
                     'icon' => 'step-backward',
                     'visualClassBody' => 'btn-link',
-                    'visualClassLayout' => 'd2h_move',
+                    'visualClassLayout' => 'd2h_dsp_move',
                     'description' => null,
                     'action' => 'read-previous'
                 ],
@@ -28,7 +28,7 @@ return [
                     'content-template' => 'button',
                     'icon' => 'step-forward',
                     'visualClassBody' => 'btn-link',
-                    'visualClassLayout' => 'd2h_move',
+                    'visualClassLayout' => 'd2h_dsp_move',
                     'description' => null,
                     'action' => 'read-next'
                 ],
@@ -36,7 +36,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-danger',
-                    'visualClassLayout' => 'd2h_delete',
+                    'visualClassLayout' => 'd2h_dsp_delete',
                     'icon' => 'remove',
                     'title' => '$Delete',
                     'action' => 'delete'
@@ -45,7 +45,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
-                    'visualClassLayout' => 'd2h_update',
+                    'visualClassLayout' => 'd2h_dsp_update',
                     'icon' => 'ok',
                     'title' => '$Save',
                     'action' => 'save'
@@ -54,7 +54,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
-                    'visualClassLayout' => 'd2h_insert',
+                    'visualClassLayout' => 'd2h_dsp_insert',
                     'icon' => 'ok',
                     'title' => '$Create',
                     'action' => 'create'
