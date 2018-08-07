@@ -1,7 +1,5 @@
 {
     "require-dev": {
-        "codeception/codeception": "^2.4",
-        "codeception/specify": "^0.4.6",
-        "codeception/aspect-mock": "*"
+        "codeception/codeception": "^2.4"
     }
 }

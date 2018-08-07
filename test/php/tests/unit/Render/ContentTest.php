@@ -38,7 +38,7 @@ class ContentTest extends \Codeception\Test\Unit
         $this->assertEquals($jsExpected, $contentMix->get('js'), 'Get only js from mix');
         
         $contentContent = new Content([
-                'html' => '$${requires a}<b>$${test-body}-html</b>',
+                'html' => '$${require a}<b>$${test-body}-html</b>',
                 'js' => '// \'$${A}\'$${require void-ok}'
             ], [
                 'A' => 'Alpha',
@@ -54,9 +54,12 @@ class ContentTest extends \Codeception\Test\Unit
             "<b><span>Text</span>-html</b>\n<script>\n// 'Alpha'\n// \"Omega\"\n</script>\n", 
             $contentContent->get(), 'Nested html+js replace'
         );
+        $req = $contentContent->get('require');
+        sort($req);
         $this->assertEquals(
             ['a', 'js', 'void-ok', 'x'], 
-            $contentContent->get('require'), 'Nested requires replace'
+            $req, 
+            'Nested requires replace'
         );
     }
     
@@ -147,13 +150,14 @@ class ContentTest extends \Codeception\Test\Unit
     {
         $ref = new \ReflectionClass('\\Data2Html\\Render\\Content');
         //test renderJs
-        $extractRequire = $ref->getMethod('extractRequire');
-        $extractRequire->setAccessible(true);
+        $extractSource = $ref->getMethod('extractSource');
+        $extractSource->setAccessible(true);
         
         $requires = ['omega' => true];
         $this->assertEquals(' $${a}  $${b}  $${c} ', 
-            $extractRequire->invokeArgs(null, [
-                ' $${a} $${require Alpha} $${b} $${requires epsilon, alpha, beta} $${c} ',
+            $extractSource->invokeArgs(null, [
+                'require',
+                ' $${a} $${require Alpha} $${b} $${require epsilon, alpha, beta} $${c} ',
                 &$requires
             ]),
             'Correct requires are obtained'
