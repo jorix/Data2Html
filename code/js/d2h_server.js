@@ -90,7 +90,7 @@ var d2h_server = (function ($) {
                 this._visualData = settings.visual;
                 delete settings.visual;
             } else {
-                this._visualData = d2h_utils.getJsData(objElem, 'd2h-visual');;
+                this._visualData = d2h_utils.getJsData(objElem, 'd2h-visual');
             }
             if (settings.actions) {
                 this.listen(objElem, settings.actions);

@@ -15,7 +15,7 @@ return [
     'moment' => [
         'html' => '
             <script src="$${base}/external/js-date_time/moment-2.18.1/min/moment-with-locales.js" ></script>
-            <script src="$${base}/external/js-date_time/moment-timezone-0.5.13/builds/moment-timezone-with-data.min.js" ></script>
+            <!-- script src="$${base}/external/js-date_time/moment-timezone-0.5.13/builds/moment-timezone-with-data.min.js" ></script -->
             <script>moment.locale("$${lang}");</script>'
     ],
     'datetimepicker' => [
@@ -45,6 +45,7 @@ return [
             <script src="$${base}/code/js/d2h_messages.js"></script>'
     ],
     'popper' => [
+        'require' => 'bootstrap'    ,
         'html' => '
             <link  href="$${base}/external/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
             <script src="$${base}/external/js/popper.js-1.14.3/dist/umd/popper.js"></script>'

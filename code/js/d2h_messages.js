@@ -91,6 +91,7 @@ var d2h_messages = (function ($) {
                 .addClass('popper alert alert-dismissible');
             $('.close', this).on('click', function() {
                 _clear(elemMessages);
+                return false;
             });
             pos = pos ? pos : 'top-start';
             infoMessages.poppers.push(

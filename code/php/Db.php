@@ -11,7 +11,7 @@ abstract class Db
     /**  */
     protected $link;
     protected $dbType = 'abstract_Db';
-    protected $init_query = array();
+    protected $init_query = [];
 
     /**
      * Establish connection to database and set it into $this->link
@@ -87,8 +87,10 @@ abstract class Db
     public function __construct($parameters)
     {
         $this->link($parameters);
-        $this->executeArray($this->init_query);
-        if (isset($parameters['init_query'])) {
+        if (count($this->init_query)) {
+            $this->executeArray($this->init_query);
+        }
+        if (array_key_exists('init_query', $parameters)) {
             $this->executeArray($parameters['init_query']);
         }
     }
@@ -116,6 +118,7 @@ abstract class Db
                 $r = $this->stringToSql(Parse::string($value));
                 break;
             case 'date':
+            // $d->setTimezone(new DateTimeZone("UTC"));
                 $date = Parse::date($value, null, 'Y-m-d\TH:i:sP');
                 if ($date) {
                     $r = $this->dateToSql($date);
@@ -128,6 +131,7 @@ abstract class Db
         }
         return $r;
     }
+    
     public function toValue($v, $type)
     {
         if (is_null($v)) {
@@ -146,8 +150,7 @@ abstract class Db
                 $r = $v;
                 break;
             case 'date':
-                // Convert date to a string as "2015-04-15T08:39:19+01:00"
-                $r = $this->toDate($v)->format('Y-m-d\TH:i:sP');
+                $r = $this->toDate($v);
                 break;
             default:
                 throw new \Exception("`{$type}` is not defined.");
@@ -204,7 +207,7 @@ abstract class Db
     public function executeArray($sqlArray)
     {
         $results = array();
-        foreach ($sqlArray as $q) {
+        foreach ((array)$sqlArray as $q) {
             $results[] = $this->execute($q);
         }
         return $results;

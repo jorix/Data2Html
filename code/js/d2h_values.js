@@ -176,6 +176,7 @@ var d2h_values = (function ($) {
         getData: function(server, visualData) {
             var _data = {};
             if (visualData) {
+                // Get inputs described in visualData
                 var iName;
                 for (iName in visualData) {
                     var visualEle = visualData[iName];
@@ -188,6 +189,7 @@ var d2h_values = (function ($) {
                     }
                 }
             } else {
+                // Get all input with name
                 server.$('[name]').each(function() {
                     var val = _get($(this), null);
                     if (val !== undefined) {

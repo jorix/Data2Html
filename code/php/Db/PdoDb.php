@@ -5,6 +5,7 @@
 namespace Data2Html\Db;
 
 use Data2Html\DebugException;
+use Data2Html\Data\Lot;
 use Data2Html\Data\Parse;
 
 class PdoDb extends \Data2Html\Db
@@ -21,14 +22,16 @@ class PdoDb extends \Data2Html\Db
     protected function link($parameters)
     {
         // Open link
+        $pDx = new Lot($parameters);
         try {
             $link = new \PDO(
-                $parameters['dsn'],
-                $parameters['user'],
-                $parameters['pass'],
-                (isset($parameters['options']) ? $parameters['options'] : array())
+                $pDx->getString('dsn'),
+                $pDx->getString('user'),
+                $pDx->getString('password'),
+                $pDx->get('options', [])
             );
-            $link->setAttribute(\PDO::ATTR_ERRMODE, 2);
+            $link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $link->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
