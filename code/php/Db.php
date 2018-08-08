@@ -2,6 +2,7 @@
 namespace Data2Html;
 
 use Data2Html\DebugException;
+use Data2Html\Data\Lot;
 use Data2Html\Data\Parse;
 
 abstract class Db
@@ -81,17 +82,35 @@ abstract class Db
     abstract public function dateToSql($value);
     abstract public function toDate($value);
 
+    public static function create($dbConfig) {
+        if (!$dbConfig || !is_array($dbConfig)) {
+            throw new DebugException(
+                'Db config not present or not valid associative array.',
+                $dbConfig
+            );
+        }
+        $dbClass = Lot::getItem('class', $dbConfig);
+        if (!$dbClass || !is_string($dbClass)) {
+            throw new DebugException(
+                '"class" config parameter is not present on database configuration.',
+                $dbConfig
+            );
+        }
+        $dbClass = '\\Data2Html\\Db\\' . $dbClass;
+        return new $dbClass($dbConfig);
+    }
+    
     /**
      * @param
      */
     public function __construct($parameters)
     {
-        $this->link($parameters);
+        $this->link = $this->link($parameters);
         if (count($this->init_query)) {
-            $this->executeArray($this->init_query);
+            $this->execute($this->init_query);
         }
         if (array_key_exists('init_query', $parameters)) {
-            $this->executeArray($parameters['init_query']);
+            $this->execute($parameters['init_query']);
         }
     }
     
@@ -166,7 +185,7 @@ abstract class Db
     public function getRow($query, $not_found = null)
     {
         $rs = $this->query($query);
-        $row = $rs->fetch();
+        $row = $this->fetch($rs);
         if (!$row) {
             return $not_found;
         }
@@ -206,10 +225,8 @@ abstract class Db
     
     public function executeArray($sqlArray)
     {
-        $results = array();
         foreach ((array)$sqlArray as $q) {
-            $results[] = $this->execute($q);
+            $this->execute($q);
         }
-        return $results;
     }
 }

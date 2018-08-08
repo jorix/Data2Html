@@ -1,43 +1,48 @@
 <?php
 /**
- * mysqli
+ * PDO
  */
 namespace Data2Html\Db;
 
 use Data2Html\DebugException;
+use Data2Html\Data\Lot;
+use Data2Html\Data\Parse;
 
-class MysqlDb extends \Data2Html\Db
+class Pdo extends \Data2Html\Db
 {
-    protected $dbType = 'Mysql';
+    use \Data2Html\Debug;
     
     public function __construct($parameters, $options = [])
     {
         parent::__construct($parameters, $options);
+        $dsn = $parameters['dsn'];
+        $this->dbType = substr($dsn, 0, strpos($dsn, ':') + 1);
     }
 
     protected function link($parameters)
     {
         // Open link
+        $pDx = new Lot($parameters);
         try {
-            $link = new \mysqli(
-                $parameters['host'],
-                $parameters['user'],
-                $parameters['pass'],
-                $parameters['dbname'],
+            $link = new \PDO(
+                $pDx->getString('dsn'),
+                $pDx->getString('user'),
+                $pDx->getString('password'),
+                $pDx->get('options', [])
             );
-            if (mysqli_connect_errno())
-                throw new \Exception('Unable to connect to database. ' . mysqli_connect_error());
-        } catch (\Exception $e) {
+            $link->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $link->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
             throw new \Exception($e->getMessage(), $e->getCode());
         }
-        $this->link = $link;
+        return $link;
     }
 
     public function query($sql)
     {
         try {
             return $this->link->query($sql);
-        } catch (\Exception $e) {
+        } catch (\PDOException $e) {
             throw new DebugException(
                 $e->getMessage(),
                 ['sql' => explode("\n", $sql)],
@@ -61,54 +66,55 @@ class MysqlDb extends \Data2Html\Db
     
     public function fetch($result)
     {
-        return $result->fetch(PDO::FETCH_ASSOC);
+        return $result->fetch(\PDO::FETCH_ASSOC);
     }
 
-    public function closeQuery($rs) 
+    public function closeQuery($result) 
     {
-        $rs->closeCursor();
+        $result->closeCursor();
     }
     
     // Execute    
     public function execute($sql)
     {
-        try {
-            $result = $this->query($sql);
-            return $result->rowCount();
-        } catch (\Exception $e) {
-            throw new DebugException(
-                $e->getMessage(),
-                ['sql' => explode("\n", $sql)],
-                $e->getCode()
-            );
-        };
+        foreach ((array)$sql as $q) {
+            $this->query($q);
+        }
+    }
+
+    public function lastInsertId()
+    {
+        return $this->link->lastInsertId();
     }
     
     public function startTransaction()
     {
-        $this->execute("START TRANSACTION;");
+        $this->link->beginTransaction();
     }
 
     public function commit()
     {
-        $this->execute("COMMIT;");
+        $this->link->commit();
     }
 
     public function rollback()
     {
-        $this->execute("ROLLBACK;");
-    }
-
-    public function lastInsertId();
-        return $this->link->lastInsertId();
+        $this->link->rollback();
     }
 
     // Utils
     public function stringToSql($val)
     {
-        if (is_null($val)) {
-            return 'null';
-        }
         return $this->link->quote($val);
+    }
+    
+    public function dateToSql($date)
+    {
+        return "'" . $date->format('Y-m-d H:i:s') . "'";
+    }
+    
+    public function toDate($val)
+    {
+        return Parse::date($val, null, 'Y-m-d H:i:s');
     }
 }

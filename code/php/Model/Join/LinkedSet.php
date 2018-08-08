@@ -122,11 +122,11 @@ class LinkedSet
             return false;
         }
         $sqlObj = new SqlEdit($db, $this);
-        $result = $db->execute($sqlObj->getInsert($values));
+        $db->execute($sqlObj->getInsert($values));
         $newId = $db->lastInsertId();
         
         $this->callbackEvent('afterInsert', $db, $values, $newId);
-        return $result;
+        return true;
     }
     
     public function dbUpdate($db, &$values, $keys)
@@ -136,10 +136,10 @@ class LinkedSet
         }
         $sqlObj = new SqlEdit($db, $this);
         $sqlObj->checkSingleRow($keys);
-        $result = $db->execute($sqlObj->getUpdate($values));
+        $db->execute($sqlObj->getUpdate($values));
         
         $this->callbackEvent('afterUpdate', $db, $values, $keys);
-        return $result;
+        return true;
     }
 
     public function dbDelete($db, &$values, $keys)
@@ -149,10 +149,10 @@ class LinkedSet
         }
         $sqlObj = new SqlEdit($db, $this);
         $sqlObj->checkSingleRow($keys);
-        $result = $db->execute($sqlObj->getDelete($values));
+        $db->execute($sqlObj->getDelete($values));
         
         $this->callbackEvent('afterDelete', $db, $values, $keys);
-        return $result;
+        return true;
     }
     
     protected function callbackEvent($eventName, $db, &$values) // arguments may be 3 or 4, depends of the event

@@ -20,9 +20,7 @@ class Controller
     public function __construct($model)
     {
         // Data base
-        $dbConfig = Config::getSection('db');
-        $db_class = '\\Data2Html\\Db\\' . $dbConfig['db_class'];
-        $this->db = new $db_class($dbConfig);
+        $this->db = Db::create(Config::getSection('db'));
 
         $this->model = $model;
     }
@@ -335,8 +333,6 @@ class Controller
             return false;
         }
         $this->db->commit();
-
-        return $result;
     }
     
     protected function opDelete($lkSet, &$values, $keys)
@@ -355,7 +351,5 @@ class Controller
             return false;
         }
         $this->db->commit();
-
-        return $result;
     }
 }

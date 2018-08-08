@@ -1,7 +1,8 @@
 ;<?php die('nothing;'); ?>
 [db]
-    db_class = PdoDb
-    dsn =  'mysql:dbname=lacistella2;host=127.0.0.1'
+    class = Mysqli
+    host = localhost
     user = xavier
     password = xavier
+    database =  lacistella2
     init_query = "SET SESSION SQL_MODE = '';"
