@@ -19,8 +19,14 @@ var d2h_values = (function ($) {
             return null;
         }
         switch (dataType) {
-            case 'date':
+            case 'datetime':
                 var date = moment(val, 'L LT', true);
+                if (!date.isValid()) {
+                    throw "tipus no ??????";
+                }
+                return date.format();
+            case 'date':
+                var date = moment(val, 'L', true);
                 if (!date.isValid()) {
                     throw "tipus no ??????";
                 }
@@ -64,6 +70,7 @@ var d2h_values = (function ($) {
                     break;
                     
                 case 'date':
+                case 'datetime':
                     finalVal = val;
                     break;
                     var date = moment(val, 'L LT', true);
@@ -163,11 +170,16 @@ var d2h_values = (function ($) {
         
         toHtml: function(val, dataType) {
             switch (dataType) {
-                case 'date':
+                case 'datetime':
                     if (val === null || val === '[now]') {
                         return '';
                     }
                     return moment(val).format('L LT');
+                case 'date':
+                    if (val === null || val === '[now]') {
+                        return '';
+                    }
+                    return moment(val).format('L');
                 default:
                     return val;
             }

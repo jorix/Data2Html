@@ -89,7 +89,10 @@ class Content
             }
             $this->content = [];
             if ($html) {
-                $this->content['html'] = self::renderHtml($html, $replaces);
+                $html = self::renderHtml($html, $replaces);
+                $values = [];
+                $html = self::extractValues($html, $values);
+                $this->content['html'] = $html;
             }
             if ($js) {
                 $js = self::renderJs($js, $replaces, false);
@@ -325,14 +328,27 @@ class Content
         }
         return $content;
     }
-    
+    private static function extractValues($html, &$values)
+    {
+        $pattern = '/\$\$\{([a-z_][\w\-]*)\s*\=\s*(\w+)\w*\}/i';
+        $matches = null;
+        preg_match_all($pattern, $html, $matches);
+        for ($i = 0, $count = count($matches[0]); $i < $count; $i++)
+        {
+            $values[$matches[1][$i]] = $matches[2][$i];
+            $html = str_replace($matches[0][$i], '', $html);
+        }
+        return $html;
+    }
+           
     private static function extractScripts($html)
     {
         $pattern = '/<script(.*?)>(.*?)<\/script>/i';
         $matches = null;
         $script = [];
         preg_match_all($pattern, $html, $matches);
-        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+        for ($i = 0, $count = count($matches[0]); $i < $count; $i++)
+        {
             $script[] = $matches[2][$i];
             $html = str_replace($matches[0][$i], '', $html);
         }
@@ -345,7 +361,7 @@ class Content
         $matches = null;
         $newSources = [];
         preg_match_all($pattern, $content, $matches);
-        for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+        for ($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             $newSources[] = strtolower($matches[1][$i]);
             $content = str_replace($matches[0][$i], '', $content);
         }

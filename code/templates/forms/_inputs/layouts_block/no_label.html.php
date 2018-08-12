@@ -1,8 +1,10 @@
 <?php die("It's uncooked!"); ?>
 $${_level-0?[[
-<div class="form-group">
-    <div class="$${visualClassLayout} col-sm-offset-2 col-sm-10">$${body}</div>
-</div>
+    $${label-width = 2}
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-$${visual-width} ">$${body}</div>
+    </div>
 ]]:[[
-<span class="$${visualClassLayout}">$${body}</span>
+    $${label-width = 0}
+    <div class="col-sm-$${visual-width} ">$${body}</div>
 ]]}

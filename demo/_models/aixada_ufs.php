@@ -16,7 +16,7 @@ return [
             'sortBy' => 'name'
         ],
         'active'    => ['boolean', 'required', 'default' => true],
-        'created'   => ['date', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
+        'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => ['link' => 'aixada_ufs:list'],
         'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
@@ -47,7 +47,11 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    '%name', '=active', '=mentor_uf'
+                    'name' => [
+                        'check' => 'LK',
+                        'validations' => ['required' => false]
+                    ],
+                    '=active', '=mentor_uf'
                 ]
             ]
         ]

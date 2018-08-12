@@ -137,6 +137,7 @@ abstract class Db
                 $r = $this->stringToSql(Parse::string($value));
                 break;
             case 'date':
+            case 'datetime':
             // $d->setTimezone(new DateTimeZone("UTC"));
                 $date = Parse::date($value, null, 'Y-m-d\TH:i:sP');
                 if ($date) {
@@ -169,6 +170,7 @@ abstract class Db
                 $r = $v;
                 break;
             case 'date':
+            case 'datetime':
                 $r = $this->toDate($v);
                 break;
             default:
@@ -182,26 +184,26 @@ abstract class Db
         return $fieldName . ' ' . $alias;
     }
     
-    public function getRow($query, $not_found = null)
+    public function getRow($query, $notFound = null)
     {
         $rs = $this->query($query);
         $row = $this->fetch($rs);
         if (!$row) {
-            return $not_found;
+            return $notFound;
         }
         $this->closeQuery($rs);
         return $row;
     }
 
-    public function getValue($query, $type, $not_found = null)
+    public function getValue($query, $type, $notFound = null)
     {
-        $row = $this->getRow($query, $not_found);
+        $row = $this->getRow($query, $notFound);
         if (is_array($row)) {
             if (count($row) > 0) {
                 $k = array_keys($row);
                 $result = $row[$k[0]];
             } else {
-                $result = $not_found;
+                $result = $notFound;
             }
         } else {
             $result = $row;
@@ -217,6 +219,7 @@ abstract class Db
             case 'string':
                 return Parse::string($result);
             case 'date':
+            case 'datetime':
                 return Parse::date($result);
             default:
                 throw new \Exception("`{$type}` is not defined.");

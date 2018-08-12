@@ -22,7 +22,7 @@ $langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
 
 $pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
 $text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
-test($pattern, $text);
+// test($pattern, $text);
 
 //test('/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',' style="$${a-r}" stole = "$${b-s|f}" stule="$${c2-s | 5 f(rq5)+24}"');
 
@@ -33,12 +33,18 @@ test($pattern, $text);
 //test('/<script(.*?)>(.*?)<\/script>/i','<script >if (a<b) if (a>b)</script>');
 //test('/\$\$\{require\s+([a-z][\w\-\s,]*?)}/i','<script >$${require plurti, proti}</script>');
 
-$html = '$${_level-0?[[
-<td class="$${class}">$${body}</td>]]:[[<span>$${body}</span>]]}';
-$html = str_replace("\n","{_n_}", $html);
- test('/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i',
-    $html
-                 );
+// $html = '$${_level-0?[[
+// <td class="$${class}">$${body}</td>]]:[[<span>$${body}</span>]]}';
+// $html = str_replace("\n","{_n_}", $html);
+// test(
+    // '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i',
+    // $html
+// );
+
+test(
+    '/\$\$\{([a-z_][\w\-]*)\s*\=\s*(\w+)\w*\}/i',
+    '  $${label-width = 034} '
+);
  
 function test($pattern, $value) {
     $matches = null;

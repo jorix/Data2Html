@@ -291,7 +291,7 @@ class Render
                 $contentTemplName,
                 $itemReplaces
             ) = $assignTemplate($this, $v);
-            $itemReplaces = array_merge( $iReplaces, $itemReplaces , [
+            $itemReplaces = array_merge($iReplaces, $itemReplaces , [
                 '_level-0' => ($level === 0),
                 '_level' => $level,
                 'id' => 'd2h_item_' . ++self::$idRenderCount,

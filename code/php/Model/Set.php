@@ -47,6 +47,7 @@ abstract class Set
         'autoKey' =>    ['type' => 'integer', 'key' => 'autoKey'],
         'boolean' =>    ['type' => 'boolean'],
         'date' =>       ['type' => 'date'],
+        'datetime' =>   ['type' => 'datetime'],
         'email' =>      ['type' => 'string', 'size' => '{}', 'validations' => ['email' => true]],
         'emails' =>     ['type' => 'string', 'size' => '{}', 'validations' => ['emails' => true]],
         'float' =>      ['type' => 'float'],
@@ -83,12 +84,13 @@ abstract class Set
         'icon' => 'string',
         'visualClassLayout' => 'string',
         'visualClassBody' => 'string',
+        'visual-size' => 'integer',
         'action' => 'string',
          
         'title' => 'string',
         'type' => [
             'options' => [
-                'boolean', 'date', 'float', 'integer', 'number', 'string', 'text'
+                'boolean', 'date', 'datetime', 'float', 'integer', 'number', 'string', 'text'
             ]
         ],
         'validations' => [

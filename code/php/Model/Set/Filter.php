@@ -21,7 +21,8 @@ class Filter extends \Data2Html\Model\Set
         };
         if (is_string($field)) {
             if (is_string($key)) {
-                $field = array('base' => $key, 'check' => $field);
+                $field = ['base' => $key, 'check' => $field];
+                $key = $key . '_' . $field;
             } else {
                 foreach ($this->startToChk as $k => $v) {
                     if ($startsWith($field, $k)) {
@@ -38,13 +39,18 @@ class Filter extends \Data2Html\Model\Set
                     );
                 }
             }
-        } elseif (is_array($field) && array_key_exists('base', $field)) {
-            $base = $field['base'];
-            foreach ($this->startToChk as $k => $v) {
-                if ($startsWith($base, $k)) {
-                    $field['base'] = substr($base, strlen($k));
-                    $field['check'] = $v;
-                    break;
+        } elseif (is_array($field)) {
+            if (!array_key_exists('base', $field) && is_string($key)) {
+                $field['base'] = $key;
+            }
+            if (array_key_exists('base', $field)) {
+                $base = $field['base'];
+                foreach ($this->startToChk as $k => $v) {
+                    if ($startsWith($base, $k)) {
+                        $field['base'] = substr($base, strlen($k));
+                        $field['check'] = $v;
+                        break;
+                    }
                 }
             }
         }

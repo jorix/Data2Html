@@ -323,7 +323,7 @@ class FileContents
                 $content = InfoFile::readWrappedFile($fileName, get_called_class());
                 if (Config::debug()) {
                     $content = 
-                        "\n<!-- debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[ -->\n" .
+                        "\n<!-- debug-name=\"\$\${debug-name}\" level=\"\$\${_level}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[ -->\n" .
                         $content .
                         "\n<!-- ]] #\$\${_renderCount}# -->\n";
                 }
@@ -332,7 +332,7 @@ class FileContents
                 $content = InfoFile::readWrappedFile($fileName, get_called_class());
                 if (Config::debug()) {
                     $content = 
-                        "\n// debug-name=\"\$\${debug-name}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[\n" .
+                        "\n// debug-name=\"\$\${debug-name}\" level=\"\$\${_level}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[\n" .
                         $content .
                         "\n// ]] #\$\${_renderCount}#\n";
                 }

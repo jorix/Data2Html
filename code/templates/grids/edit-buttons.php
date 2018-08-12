@@ -14,7 +14,7 @@ return [
                     ]
                 ]
             ],
-            'content-template' => 'empty',
+            'content-template' => 'html-empty',
             'items' => [
                 [
                     'content-template' => 'button',

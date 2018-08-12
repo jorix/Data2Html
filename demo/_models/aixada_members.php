@@ -43,10 +43,11 @@ return [
         'name' => [
             'title' => 'Usuari',
             'string' => 255,
+            'visual-size' => 50,
             'required'
         ],
         'address' => ['email' => 255, 'required'],
-        'nif' => ['string' => 255],
+        'nif' => ['string' => 15],
         'zip' => ['string' => 10],
         'city' => ['string' => 255, 'required'],
         'phone1' => ['string' => 50, 'required'],
@@ -85,7 +86,10 @@ return [
     'blocks' => [
         'main' => [
             'items' => [
-                'name' => ['items' => ['ts', 'active']],
+                [
+                    'layout-template' => 'bare',
+                    'items' => ['name', 'ts', 'active']
+                ],
                 'uf_id',
                 'nif',
                 'address',

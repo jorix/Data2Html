@@ -3,10 +3,10 @@ return [
     'items' => [
         [
             'layout-template' => 'no_label',
-            'content-template' => 'empty',
+            'content-template' => 'html-empty',
             'items' => [    
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'arrow-left',
                     'visualClassBody' => 'btn-warning',
@@ -15,7 +15,7 @@ return [
                     'action' => 'show-grid'
                 ],
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-backward',
                     'visualClassBody' => 'btn-link',
@@ -24,7 +24,7 @@ return [
                     'action' => 'read-previous'
                 ],
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-forward',
                     'visualClassBody' => 'btn-link',
@@ -33,7 +33,7 @@ return [
                     'action' => 'read-next'
                 ],
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-danger',
                     'visualClassLayout' => 'd2h_dsp_delete',
@@ -42,7 +42,7 @@ return [
                     'action' => 'delete'
                 ],
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
                     'visualClassLayout' => 'd2h_dsp_update',
@@ -51,7 +51,7 @@ return [
                     'action' => 'save'
                 ],
                 [
-                    'layout-template' => 'no_label',
+                    'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success',
                     'visualClassLayout' => 'd2h_dsp_insert',

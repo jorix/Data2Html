@@ -57,6 +57,7 @@ class Validate
                         // break;
                         
                     // case 'date':
+                    // case 'datetime':
                         // $finalVal = $value;
                         // break;
                          // date = moment($value, 'L LT', true);

@@ -1,6 +1,6 @@
 <?php die("It's uncooked!"); ?>
 $${_level-0?[[
-<td class="$${class}">$${body}</td>
+<td class="$${visualClassLayout}">$${body}</td>
 ]]:[[
-<span>$${body}</span>
+<span class="$${visualClassLayout}">$${body}</span>
 ]]}
