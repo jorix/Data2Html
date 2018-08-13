@@ -19,7 +19,6 @@
             } else {
                 $obj = $model->getLinkedGrid($payerNames['grid']);
             }
-            // $obj->dump();
             $obj->dump();
         } catch(Exception $e) {
             echo \Data2Html\DebugException::toHtml($e, true);

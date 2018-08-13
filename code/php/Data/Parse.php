@@ -48,6 +48,25 @@ class Parse
         return $value + 0;
     }
     
+    public static function integerArray($value, $default = null, $strict = false)
+    {
+        if (is_string($value)) {
+            $value = array_map('trim', explode(',', $value));
+        } elseif (!is_array($value)) {
+            $value = [$value];
+        }
+        $response = [];
+        foreach ($value as $v) {
+            $vv = self::integer($v, null, $strict);
+            if ($vv === null) {
+                $response =  $default;
+                break;
+            }
+            $response[] = $vv;
+        }
+        return $response;
+    }
+    
     public static function integer($value, $default = null, $strict = false)
     {
         if (!is_numeric($value) || !is_int($value+0)) {

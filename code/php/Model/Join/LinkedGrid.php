@@ -50,7 +50,7 @@ class LinkedGrid
         if ($this->filter) {
             $response['filter'] = $this->filter->__debugInfo();
         }
-        // $response['base'] = $this->columns->getBase()->__debugInfo();
+        $response['base'] = $this->model->getBase()->__debugInfo();
         return $response;
     }
     

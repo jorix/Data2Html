@@ -18,8 +18,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-backward',
-                    'visualClassBody' => 'btn-link',
-                    'visualClassLayout' => 'd2h_dsp_move',
+                    'visualClassBody' => 'btn-link d2h_dsp_move',
                     'description' => null,
                     'action' => 'read-previous'
                 ],
@@ -27,16 +26,14 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'icon' => 'step-forward',
-                    'visualClassBody' => 'btn-link',
-                    'visualClassLayout' => 'd2h_dsp_move',
+                    'visualClassBody' => 'btn-link d2h_dsp_move',
                     'description' => null,
                     'action' => 'read-next'
                 ],
                 [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
-                    'visualClassBody' => 'btn-danger',
-                    'visualClassLayout' => 'd2h_dsp_delete',
+                    'visualClassBody' => 'btn-danger d2h_dsp_delete',
                     'icon' => 'remove',
                     'title' => '$Delete',
                     'action' => 'delete'
@@ -44,8 +41,7 @@ return [
                 [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
-                    'visualClassBody' => 'btn-success',
-                    'visualClassLayout' => 'd2h_dsp_update',
+                    'visualClassBody' => 'btn-success d2h_dsp_update',
                     'icon' => 'ok',
                     'title' => '$Save',
                     'action' => 'save'
@@ -53,8 +49,7 @@ return [
                 [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
-                    'visualClassBody' => 'btn-success',
-                    'visualClassLayout' => 'd2h_dsp_insert',
+                    'visualClassBody' => 'btn-success d2h_dsp_insert',
                     'icon' => 'ok',
                     'title' => '$Create',
                     'action' => 'create'

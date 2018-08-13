@@ -5,6 +5,7 @@ namespace Data2Html\Model;
 use Data2Html\DebugException;
 use Data2Html\Data\InfoFile;
 use Data2Html\Data\Lot;
+use Data2Html\Data\Parse;
 use Data2Html\Data\To;
 
 use Data2Html\Model;
@@ -44,20 +45,20 @@ abstract class Set
         'items' => 'items',
     ];
     private $baseWordsAlias = [
-        'autoKey' =>    ['type' => 'integer', 'key' => 'autoKey'],
+        'autoKey' =>    ['type' => 'integer', 'size' => '$${}|9', 'key' => 'autoKey'],
         'boolean' =>    ['type' => 'boolean'],
         'date' =>       ['type' => 'date'],
         'datetime' =>   ['type' => 'datetime'],
-        'email' =>      ['type' => 'string', 'size' => '{}', 'validations' => ['email' => true]],
-        'emails' =>     ['type' => 'string', 'size' => '{}', 'validations' => ['emails' => true]],
+        'email' =>      ['type' => 'string', 'size' => '$${}|100', 'validations' => ['email' => true]],
+        'emails' =>     ['type' => 'string', 'size' => '$${}|100', 'validations' => ['emails' => true]],
         'float' =>      ['type' => 'float'],
         'hidden' =>     ['display' => 'none'],
-        'integer' =>    ['type' => 'integer'],
+        'integer' =>    ['type' => 'integer', 'size' => '$${}|9'],
         'key' =>        ['key' => 'key'],
-        'number' =>     ['type' => 'number', 'size' => '{}'],
-        'currency' =>   ['type' => 'number', 'size' => '{}'],
-        'required' =>   ['validations' => ['required' => true]],
-        'string' =>     ['type' => 'string', 'size' => '{}'],
+        'number' =>     ['type' => 'number', 'size' => '$${}|9'],
+        'currency' =>   ['type' => 'number', 'size' => '$${}|13,2'],
+        'required' =>   ['validations' => ['required' => true]], // TODO: '$${}|true']],
+        'string' =>     ['type' => 'string', 'size' => '$${}|100'],
         'text' =>       ['type' => 'text'],
         'url' =>        ['type' => 'string', 'validations' => ['url' => true]]
     ];
@@ -76,7 +77,7 @@ abstract class Set
         'linkedTo'  => 'array',
         'items'     => 'array',
         'name'      => 'string',
-        'size'      => 'array(integer)',
+        'size'      => '[integer]',
         
         // from form
         'layout-template' => 'string',
@@ -363,15 +364,10 @@ abstract class Set
         // Create a empty parsed sort
         $sortByNew = ['linkedTo' => [], 'items' => []];
         
-        $startsWith = function($haystack, $needle) {
-            return (
-                substr($haystack, 0, strlen($needle)) === $needle
-            );
-        };
         foreach ($sortBy as $item) {
             $order = 1;
             foreach ($this->sortByStartToOrder as $k => $v) {
-                if ($startsWith($item, $k)) {
+                if (self::startsWith($item, $k)) {
                     $item = substr($item, strlen($k));
                     $order = $v;
                     break;
@@ -398,6 +394,13 @@ abstract class Set
             unset($sortByNew['linkedTo']);
         }
         return $sortByNew;
+    }
+    
+    protected static function startsWith($haystack, $needle)
+    {
+        return (
+            substr($haystack, 0, strlen($needle)) === $needle
+        );
     }
     
     // -----------------------
@@ -475,7 +478,7 @@ abstract class Set
                 if (is_array($vv)) {
                     throw new DebugException("Field \"{$fieldName}\" is an array.", $field);
                 } elseif (array_key_exists($vv, $alias)) {
-                    $this->applyAlias($field, $fieldName, $pField, $vv, $alias[$vv]);
+                    $this->applyAlias($field, $fieldName, $pField, null, $alias[$vv]);
                 } else {
                     throw new DebugException(
                         "Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
@@ -484,7 +487,7 @@ abstract class Set
             } else {
                 if ($kk === $this->subItemsKey) { continue; }
                 if (array_key_exists($kk, $alias) && !array_key_exists($kk, $words)) {
-                    $this->applyAlias($field, $fieldName,$pField, $vv, $alias[$kk]);
+                    $this->applyAlias($field, $fieldName, $pField, $vv, $alias[$kk]);
                 } else {
                     $this->applyWord($field, $fieldName, $pField, $kk, $vv);
                 }
@@ -545,8 +548,24 @@ abstract class Set
     private function applyAlias($iField, $fieldName, &$pField, $aliasValue, $toWord)
     {
         foreach ($toWord as $k => $v) {
-            if ($v === '{}') {
-                $v = $aliasValue;
+            if (is_string($v) && self::startsWith($v, '$${}')) {
+                if ($aliasValue) {
+                    $v = $aliasValue;
+                } elseif (self::startsWith($v, '$${}|')) {
+                    $v = substr($v, 5);
+                }
+                $keywordType = $this->keywords[$k];
+                switch ($keywordType) {
+                    case '[integer]':
+                        $v = Parse::integerArray($v);
+                        break;
+                    case 'integer':
+                        $v = Parse::integer($v);
+                        break;
+                    case 'boolean':
+                        $v = Parse::integer($v);
+                        break;
+                }        
             }
             $this->applyWord($iField, $fieldName, $pField, $k, $v);
         }
@@ -633,7 +652,7 @@ abstract class Set
                         );
                     }
                     break;
-                case 'array(integer)':
+                case '[integer]':
                     $word = (array)$word;
                     foreach ($word as $vvv) {
                         if (!is_int($vvv)) {

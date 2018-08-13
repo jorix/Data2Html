@@ -8,6 +8,7 @@ return [
         'name'      => [
             'title' => 'Nom UF',
             'string'=> 255,
+            'visual-size' => 50,
             'required'
         ],
         'uf_name'   => [
@@ -47,10 +48,7 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    'name' => [
-                        'check' => 'LK',
-                        'validations' => ['required' => false]
-                    ],
+                    '%name' => ['validations' => ['required' => false]],
                     '=active', '=mentor_uf'
                 ]
             ]
@@ -59,10 +57,15 @@ return [
     'blocks' => [
         'main' => [
             'items' => [
-                'name',
-                'id', 
-                'created',
-                'active',
+               // 'id', // TODO => ['content-template' => 'html-span'], 
+                [
+                    'layout-template' => 'bare',
+                    'items' => [
+                        'name',
+                        'active',
+                        'created',
+                    ]
+                ],
                 'mentor_uf',
                 'members'
             ]

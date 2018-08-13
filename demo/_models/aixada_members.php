@@ -90,7 +90,7 @@ return [
                     'layout-template' => 'bare',
                     'items' => ['name', 'ts', 'active']
                 ],
-                'uf_id',
+                'uf_id', // TODO: => ['content-template' => 'hidden-input'],
                 'nif',
                 'address',
                 'zip', 'city', 

@@ -9,23 +9,19 @@ class Filter extends \Data2Html\Model\Set
         '<=' => 'EQ',
         '>=' => 'EQ',
         '=' => 'EQ',
+        '_%' => 'SK',
         '%' => 'LK'
     );
     
     protected function beforeParseItem(&$key, &$field)
     {
-        $startsWith = function($haystack, $needle) {
-            return (
-                substr($haystack, 0, strlen($needle)) === $needle
-            );
-        };
         if (is_string($field)) {
             if (is_string($key)) {
                 $field = ['base' => $key, 'check' => $field];
                 $key = $key . '_' . $field;
             } else {
                 foreach ($this->startToChk as $k => $v) {
-                    if ($startsWith($field, $k)) {
+                    if (self::startsWith($field, $k)) {
                         $field = array(
                             'base' => substr($field, strlen($k)),
                             'check' => $v
@@ -46,9 +42,10 @@ class Filter extends \Data2Html\Model\Set
             if (array_key_exists('base', $field)) {
                 $base = $field['base'];
                 foreach ($this->startToChk as $k => $v) {
-                    if ($startsWith($base, $k)) {
+                    if (self::startsWith($base, $k)) {
                         $field['base'] = substr($base, strlen($k));
                         $field['check'] = $v;
+                        $key = $field['base'] . '_' . $v;
                         break;
                     }
                 }

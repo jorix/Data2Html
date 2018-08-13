@@ -173,10 +173,16 @@ class SqlSelect
                 case 'EQ':
                     $dbCheck = '=';
                     break;
-                case 'LK':
+                case 'LK': // like contains
                     $dbCheck = 'like';
                     if (strpos($v, '%') === false) {
                         $v = '%' . $v . '%';
+                    }
+                    break;
+                case 'SK': // like start
+                    $dbCheck = 'like';
+                    if (strpos($v, '%') === false) {
+                        $v = $v . '%';
                     }
                     break;
                 default:
