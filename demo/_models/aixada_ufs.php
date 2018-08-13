@@ -48,8 +48,7 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    '%name' => ['validations' => ['required' => false]],
-                    '=active', '=mentor_uf'
+                    '%name', '=active', '=mentor_uf'
                 ]
             ]
         ]

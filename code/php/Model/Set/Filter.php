@@ -61,6 +61,15 @@ class Filter extends \Data2Html\Model\Set
         return true;
     }
     
+    protected function beforeApplyBase(&$baseField, &$field)
+    {
+        if (array_key_exists('validations', $baseField) &&
+            array_key_exists('required', $baseField['validations'])
+        ) {
+            $baseField['validations']['required'] = false;
+        } 
+    }
+    
     protected function beforeAddItem(&$key, &$field)
     {
         if (

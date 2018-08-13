@@ -1,29 +1,4 @@
 <?php
-/*
-aixada_member (
-  id 	       		int				not null auto_increment,
-  custom_member_ref	varchar(100)	default null,
-  uf_id      		int,
-  name	     		varchar(255) 	not null,
-  address			varchar(255) 	not null,
-  nif 				varchar(15) 	default null,
-  zip				varchar(10)		default null,
-  city				varchar(255) 	not null,
-  phone1    		varchar(50) 	default null,
-  phone2			varchar(50) 	default null,
-  web				varchar(255) 	default null,
-  bank_name 		varchar(255) 	default null, 
-  bank_account 		varchar(40) 	default null,
-  picture           varchar(255)    default null,
-  notes  	 		text 			default null,
-  active     	  	tinyint			default 1, 
-  participant		bool 			default true,
-  adult		        bool			default true, 
-  ts			  	timestamp not null default current_timestamp,
-  primary key (id),
-  foreign key (uf_id)  references aixada_uf(id)
-)
-*/
 return [
     'table' => 'aixada_member',
     'title' => 'Membres',
@@ -41,7 +16,7 @@ return [
             'base'=>'uf_id[uf_name]'
         ],
         'name' => [
-            'title' => 'Usuari',
+            'title' => 'Membre',
             'string' => 255,
             'visual-size' => 50,
             'required'
@@ -54,7 +29,8 @@ return [
         'phone2' => ['string' => 50],
         'phones' => ['value' => '$${phone1} / $${phone2}', 'sortBy' => 'phone1'],
         'web' => ['string' => 255],
-        'active' => ['boolean', 'required', 'default' => 1],
+        'active' => ['integer' => 1, 'default' => 1, 'content-template' => 'checkbox'],
+        'participant' => ['boolean' => 1, 'default' => true],
         'ts' => [
             'title' => 'Created',
             'date',
@@ -88,7 +64,7 @@ return [
             'items' => [
                 [
                     'layout-template' => 'bare',
-                    'items' => ['name', 'ts', 'active']
+                    'items' => ['name', 'active', 'ts']
                 ],
                 'uf_id', // TODO: => ['content-template' => 'hidden-input'],
                 'nif',

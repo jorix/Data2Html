@@ -4,7 +4,7 @@ return [
         $itemDx = new \Data2Html\Data\Lot($item);
         
         $layout = $itemDx->getString('layout-template', 'base');
-        $content = $itemDx->getString('content-template', 'html-span');
+        $content = $itemDx->getString('content-template');
         
         $type = $itemDx->getString('type');
         $link = $itemDx->getString('link');
@@ -26,10 +26,8 @@ return [
             $content = 'edit-leaves';
             $url = $render->getControllerUrl() . "model={$leaves}&";
         } elseif ($type) {
-            $content = 'text-input';
             switch ($type) {
                 case 'boolean':
-                    $layout = 'checkbox';
                     $content = 'checkbox';
                     break;
                 case 'date':
@@ -49,7 +47,12 @@ return [
                 default:
                     $visualWidth = $visualWidth ? $visualWidth : 60;
             }
+            $content = $content ? $content : 'text-input';
         }
+        if ($content === 'checkbox') {
+            $layout = 'checkbox';
+        }
+        $content = $content ? $content : 'html-span';
         
         $replaces = [];
         $replaces['url'] = $url;

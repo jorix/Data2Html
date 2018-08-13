@@ -268,7 +268,7 @@ abstract class Set
                     if ($v['db'] === null) {
                         unset($v['db']);
                     }
-                    $v = array_replace_recursive([], $baseItems[$base], $v);
+                    $v = $this->applyBase($baseItems[$base], $v);
                 }
             }
             
@@ -336,10 +336,20 @@ abstract class Set
         }
     }
     
+    private function applyBase($baseField, $field)
+    {
+        $this->beforeApplyBase($baseField, $field);
+        return array_replace_recursive([], $baseField, $field);
+    }
+    
     // -----------------------
     // To overwrite in the subclasses
     // -----------------------
     protected function beforeParseItem(&$fieldName, &$field)
+    {
+        return true;
+    }
+    protected function beforeApplyBase(&$baseField, &$field)
     {
         return true;
     }

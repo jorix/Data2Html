@@ -87,7 +87,7 @@ var d2h_values = (function ($) {
                     if (decSep.length !== 1) {
                         decSep = '.';
                     }
-                    var valList = val.split(decSep);
+                    var valList = (val + '').split(decSep);
                     switch (decSep) {
                         case ',':
                             valList[0] = valList[0].replace(/\./g, '');
