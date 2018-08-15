@@ -97,12 +97,20 @@ class Model
         return $this->unlinkedGrids[$gridName];
     }
     
-    public function getLinkedGrid($gridName = '')
+    public function getLinkedGrid($gridName = '', $doLink = true)
     {
         if (!$gridName) {
             $gridName = 'main';
         }
         if (!array_key_exists($gridName, $this->grids)) {
+            if (!$doLink) { // Only to test or debug use
+                return new \Data2Html\Model\Set\Grid(
+                    $this,
+                    $gridName,
+                    $this->getSetDefs($gridName, 'grids'),
+                    $this->baseSet
+                );
+            }
             $this->grids[$gridName] = new LinkedGrid(
                 $this,
                 $gridName,
@@ -113,25 +121,27 @@ class Model
         return $this->grids[$gridName];
     }
     
-    public function getLinkedBlock($elementName = '')
+    public function getLinkedBlock($blockName = '', $doLink = true)
     {
-        if (!$elementName) {
-            $elementName = 'main';
+        if (!$blockName) {
+            $blockName = 'main';
         }
-        if (!array_key_exists($elementName, $this->blocks)) {
-            $this->blocks[$elementName] = new LinkedSet(
-                new SetBlock(
-                    $this,
-                    $elementName, 
-                    $this->getSetDefs($elementName, 'blocks'),
-                    $this->baseSet
-                )
+        if (!array_key_exists($blockName, $this->blocks)) {
+            $block = new SetBlock(
+                $this,
+                $blockName, 
+                $this->getSetDefs($blockName, 'blocks'),
+                $this->baseSet
             );
+            if (!$doLink) { // Only to test or debug use
+                return $block;
+            }
+            $this->blocks[$blockName] = new LinkedSet($block);
         }    
-        return $this->blocks[$elementName];
+        return $this->blocks[$blockName];
     }
     
-    protected function getSetDefs($name, $setName)
+    public function getSetDefs($name, $setName)
     {
         if (array_key_exists($setName, $this->definitions)) {
             $df = $this->definitions[$setName];
@@ -142,7 +152,7 @@ class Model
             $objDf = $df[$name];
         } else {
             if ($name === 'main') {
-                $objDf = array();
+                $objDf = [];
             } else {
                 throw new DebugException(
                     "\"{$name}\" not exist on \"{$setName}\" definitions.",

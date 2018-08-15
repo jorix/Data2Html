@@ -175,6 +175,7 @@ class LinkUp
         
     protected function linkItem($groupName, $newRef, $item) {
         $tableAlias = $item['tableAlias'];
+        $tableAliasInit = $tableAlias; // TODO: not use $tableAliasInit
         
         //Check if item already exist
         $ref = $this->getRefByItem($groupName, $tableAlias, $item);
@@ -189,20 +190,41 @@ class LinkUp
         if (array_key_exists('linkedTo', $item)) {
             $itemBase = Lot::getItem('base', $item);
             foreach ($item['linkedTo'] as $k => &$v) {
+                // $this->dump([$tableAlias, $v]);
                 $lkItem = $this->getLinkItemByLinkTo($tableAlias, $v);
                 $lkAlias = $lkItem['tableAlias'];
                 if (count($item['linkedTo']) === 1) {
                     if(!array_key_exists('teplateItems', $item)) { // Merge fields
                         unset($item['linkedTo']);
+                // $this->dump([$item, $lkItem]);
                         unset($item['base']);
                         if (array_key_exists('sortBy', $item) &&
                             array_key_exists('sortBy', $lkItem)
                         ) {
                             unset($lkItem['sortBy']);
                         }
+                        // elseif (array_key_exists('sortBy', $lkItem)) {
+                        // TODO: .....move all linkTo to LinkUp
+                            // $item['sortBy'] = [
+                                // 'linkedTo' => [ 
+                                    // 'member_id[name]' => [ 
+                                        // 'link' => 'member_id', 
+                                        // 'base' => 'name', 
+                                        // 'linkedWith' => 'aixada_members:list'
+                                    // ]
+                                // ], 
+                                // 'items' => [ 
+                                    // 'member_id[name]' => [ 
+                                        // 'base' => 'member_id[name]', 
+                                        // 'order' => 1
+                                    // ]
+                                // ]
+                            // ];
+                        // }
                         $item = array_replace_recursive(array(), $lkItem, $item);
+                // $this->dump([$item, $lkItem]);
                         $item['tableAlias'] = $lkAlias;
-                        $tableAlias = $lkAlias; // Refesh table alias
+                        $tableAlias = $lkAlias; // TODO: not Refesh table alias
                     } else { // linked with a virtual item
                         $v['ref'] = $this->linkVirtualItem('linkItem()-linkedTo-1', $groupName, $lkAlias, $v['base'], $lkItem);
                     }
@@ -212,6 +234,7 @@ class LinkUp
             }
             unset($v);
         }
+        
         if (array_key_exists('db', $item)) {
             $db = $item['db'];
             if (preg_match('/^\w+$/', $db)) {
@@ -264,8 +287,8 @@ class LinkUp
         if (array_key_exists('sortBy', $item) && $item['sortBy']) {
             $sortBy = &$item['sortBy'];
             if (array_key_exists('linkedTo', $sortBy)) {
-                foreach ($sortBy['linkedTo'] as $k => &$v) {
-                    $lkItem = $this->getLinkItemByLinkTo($tableAlias, $v);
+                foreach ($sortBy['linkedTo'] as &$v) {
+                    $lkItem = $this->getLinkItemByLinkTo($tableAliasInit, $v);
                     $lkAlias = $lkItem['tableAlias'];
                     $v['ref'] = $this->linkVirtualItem(
                         'linkItem()-sortBy-linkedTo', $groupName, $lkAlias, $v['base'], $lkItem
@@ -305,10 +328,22 @@ class LinkUp
                     unset($sortBy['linkedTo']);
                 }
                 $ref = $v['ref'];
+                if (!array_key_exists($ref, $this->items[$groupName])) {
+                    throw new DebugException(
+                        "SortBy base \"{$baseName}\" and ref \"{$ref}\" not found on '{$groupName}'.",
+                        [
+                            'sortBy-items' => $sortBy['items'],
+                            $groupName => $this->items[$groupName]
+                        ]
+                    );
+                }
                 if (!array_key_exists('db', $this->items[$groupName][$ref])) {
                     throw new DebugException(
-                        "SortBy base \"{$baseName}\" to ref \"{$ref}\" without db attribute (on \"{$newRef}\").",
-                        $item
+                        "SortBy base \"{$baseName}\" and ref \"{$ref}\" without db attribute on '{$groupName}'.",
+                        [
+                            'sortBy-items' => $sortBy['items'],
+                            $groupName => $this->items[$groupName]
+                        ]
                     );
                 }
                 $v['refDb'] = $this->items[$groupName][$ref]['refDb'];
@@ -361,8 +396,9 @@ class LinkUp
             $lkItem = $l['base'][$baseName];
         }
         if (!$lkItem) {
-            throw new \Exception(
-                "Base \"{$baseName}\" from \"{$fromAlias}\" on grid \"{$linkedWith}\" not found."
+            throw new debugException(
+                "Item \"{$baseName}\" not found on 'items' and 'base'.",
+                $l
             );
         }
         $lkItem['tableAlias'] = $l['alias'];

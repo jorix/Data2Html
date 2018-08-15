@@ -1,8 +1,8 @@
 <?php
 namespace Data2Html\Model\Join;
 
-use Data2Html\Model\Set\Filter as SetFilter;
-use Data2Html\Model\Set\Grid as SetGrid;
+use Data2Html\Model\Set\Filter;
+use Data2Html\Model\Set\Grid;
 
 class LinkedGrid
 {
@@ -22,7 +22,7 @@ class LinkedGrid
       
         // Set fields
         $this->columns = new LinkedSet(
-            new SetGrid(
+            new Grid(
                 $model,
                 $gridName,
                 $defs,
@@ -32,7 +32,7 @@ class LinkedGrid
         
         if (array_key_exists('filter', $defs)) {
             $this->filter = new LinkedSet(
-                new SetFilter(
+                new Filter(
                     $model,
                     $gridName,
                     $defs['filter'],

@@ -30,6 +30,8 @@ class LinkedSet
     public function __debugInfo()
     {
         return [
+            'linkName' => $this->linkName,
+            'set-info' => $this->set->__debugInfo()['set-info'],
             'attributes' => $this->set->__debugInfo()['attributes'],
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
@@ -97,7 +99,12 @@ class LinkedSet
                 }
             }
         }
-        return false;
+        throw new \Data2Html\DebugException(
+            "Link to model '{$linkModelName}' not found in set.",
+            [
+                $this->__debugInfo()
+            ]
+        );
     }
     
     public function searchItemNameByDb($dbIntemName)

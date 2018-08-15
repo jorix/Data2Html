@@ -66,7 +66,7 @@ return [
                     'layout-template' => 'bare',
                     'items' => ['name', 'active', 'ts']
                 ],
-                'uf_id', // TODO: => ['content-template' => 'hidden-input'],
+                'uf_id' => ['content-template' => 'hidden-input'],
                 'nif',
                 'address',
                 'zip', 'city', 

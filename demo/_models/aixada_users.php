@@ -16,58 +16,49 @@
   foreign key (uf_id) references aixada_uf(id),
   foreign key (member_id) references aixada_member(id),
   foreign key (provider_id) references aixada_provider(id)  
-)
 */
 return [
     'table' => 'aixada_user',
     'title' => 'Users',
-    'items' => array(
-        'id' => array('autoKey', 'hidden'),
-        'login' => array(
-            'string' => 50,
-            'required'
-        ),
-        'password' => array(
-            'string' => 255,
-            'required'
-        ),
-        'email' => array(
-            'email' => 100,
-            'required'
-        ),
-        'member_id' => array('link' => 'aixada_members:list'),
-        'member_name' => array('base' => 'member_id[name]'),
-        'created_on' => array(
+    'items' => [
+        'id' => ['autoKey', 'hidden'],
+        'login' => ['string' => 50, 'required'],
+        'password' => ['string' => 255, 'required'],
+        'email' => ['email' => 100, 'required'],
+        'member_id' => ['link' => 'aixada_members:list'],
+        'member_name' => ['base' => 'member_id[name]'],
+        // 'provider_id' => ['link' => 'aixada_providers:list'],
+        'language' => ['string' => 5],
+        'gui_theme' => ['string' => 50],
+        'last_login_attempt' => ['datetime'],
+        'last_successful_login' => ['datetime'],
+        'created_on' => [
             'title' => 'Created',
-            'date',
-            'format' => 'dd-MM-yyyy',
-            'default' => '[now]'
-        ),
-    ),
-    'grids' => array(
-        //'list' => array('sort' => 'member_name', 'items' => array('member_name')),
-        'main' => array(
+            'datetime'
+        ],
+    ],
+    'grids' => [
+        'main' => [
             'sort' => 'login',
-            'items' => array(
+            'items' => [
                 'login',
-                // 'member_name'
-            ),
-            'filter' => array(
-                'items' => array(
+                'member_name'
+            ],
+            'filter' => [
+                'items' => [
                     '%login'
-                )
-            )
-        )
-    ),
-    
-    'blocks' => array(
-        'main' => array(
-            'items' => array(
+                ]
+            ]
+        ]
+    ],    
+    'blocks' => [
+        'main' => [
+            'items' => [
                 'login',
                 'password',
                 'email',
                 'member_id'
-            ),
-        )
-    )
+            ]
+        ]
+    ]
 ];

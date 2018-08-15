@@ -172,6 +172,11 @@ abstract class Set
     public function __debugInfo()
     {
         return [
+            'set-info' => [
+                'tableName' => $this->getTableName(),
+                'setId' => $this->getId(),
+                'setClass' => get_class($this)
+            ],
             'attributes' => $this->attributes,
             'keys' => $this->keys,
             'setItems' => $this->setItems
@@ -179,7 +184,7 @@ abstract class Set
     }
     
     // -----------------------
-    // Obtaining
+    // Obtaining info
     // -----------------------
     public function getTableName()
     {
@@ -237,111 +242,7 @@ abstract class Set
     {
         return $this->keys;
     }
-    
-    // -----------------------
-    // Protected
-    // -----------------------
-    protected function parseItems($items)
-    {
-        $this->parseSetItems(0, '', $items);
 
-        // Extend fields width a base field
-        if ($this->baseSet) {
-            $baseItems = $this->baseSet->getItems();
-        } else {
-            $baseItems = $this->setItems;
-        }
-        
-        $keys = [];
-        foreach ($this->setItems as $k => &$v) {
-            if (array_key_exists('base', $v)) {
-                $base = $v['base'];
-                $linkedTo = $this->parseLinkedTo($base, $baseItems);
-                if (count($linkedTo)) {
-                    $v['linkedTo'] = $linkedTo;                    
-                } else {
-                    if (!array_key_exists($base, $baseItems)) {
-                        throw new DebugException(
-                            "Defining field \"{$k}\", `base` \"{$base}\" was not found."
-                        );
-                    }
-                    if ($v['db'] === null) {
-                        unset($v['db']);
-                    }
-                    $v = $this->applyBase($baseItems[$base], $v);
-                }
-            }
-            
-            if (array_key_exists('sortBy', $v) && $v['sortBy']) {              
-                $sortByNew = $this->parseSortBy($v['sortBy'], $baseItems);
-                if ($sortByNew) {
-                    $v['sortBy'] = $sortByNew;
-                } else {
-                    unset($v['sortBy']);
-                }
-            }
-            
-            // Matches values
-            if (array_key_exists('teplateItems', $v)) {
-                $linkedTo = $this->parseLinkedTo($v['value'], $baseItems);
-                if (count($linkedTo)) {
-                    $v['linkedTo'] = $linkedTo;
-                }
-                foreach ($v['teplateItems'] as $kk => $vv) {
-                    $base = $vv['base'];
-                    if (!array_key_exists($base, $this->setItems) &&
-                        !array_key_exists($base, $baseItems) &&
-                        !array_key_exists($base, $linkedTo)
-                    ) {
-                        throw new DebugException(
-                            "On template \"{$kk}\", the \"{$base}\" is not a base or link.",
-                            $this->setItems
-                        );
-                    }
-                }
-            }
-            if (array_key_exists('key', $v)) {
-                $keys[$k] = [];
-            }
-        }
-        if (count($keys) === 0 && $this->baseSet) {
-            $keys = $this->baseSet->getKeys();
-        }
-        $this->keys = $keys;
-    }
-
-    // -----------------------
-    // Internal
-    // -----------------------
-    private function parseSetItems($level, $prefix, $items)
-    {
-        foreach ($items as $k => $v) {
-            $fieldName = is_int($k) ? $k : $prefix . $k;
-            
-            // Parse item
-            if ($this->beforeParseItem($fieldName, $v)) {
-                list($pName, $pField) = $this->parseItem($level, $fieldName, $v);
-                if ($this->beforeAddItem($pName, $pField)) {
-                    $this->setItems[$pName] = $pField; // Add the ITEM!
-                }
-            }
-            // Parse sub-items
-            if (is_array($v) && array_key_exists($this->subItemsKey, $v)) {
-                $this->parseSetItems(
-                    $level + 1,
-                    Lot::getItem('prefix', $v, ''),
-                    $v[$this->subItemsKey]
-                );
-            }
-        }
-    }
-    
-    private function applyBase($baseField, $field)
-    {
-        $this->beforeApplyBase($baseField, $field);
-        return array_replace_recursive([], $baseField, $field);
-    }
-    
     // -----------------------
     // To overwrite in the subclasses
     // -----------------------
@@ -405,17 +306,112 @@ abstract class Set
         }
         return $sortByNew;
     }
-    
-    protected static function startsWith($haystack, $needle)
+
+    // -----------------------
+    // Internal
+    // -----------------------
+    protected function parseItems($items)
     {
-        return (
-            substr($haystack, 0, strlen($needle)) === $needle
-        );
+        $this->parseSetItems(0, '', $items);
+
+        // Extend fields width a base field
+        if ($this->baseSet) {
+            $baseItems = $this->baseSet->getItems();
+        } else {
+            $baseItems = $this->setItems;
+        }
+        
+        $keys = [];
+        foreach ($this->setItems as $k => &$v) {
+            if (array_key_exists('base', $v)) {
+                $base = $v['base'];
+                $linkedTo = $this->parseLinkedTo($base, $baseItems);
+                if (count($linkedTo)) {
+                    $v['linkedTo'] = $linkedTo;
+                    unset($v['db']);
+                    if (!array_key_exists('sortBy', $v) && count($linkedTo) === 1) {
+                        $v['sortBy'] = $base; // default sort by self
+                    }
+                } else {
+                    if (!array_key_exists($base, $baseItems)) {
+                        throw new DebugException(
+                            "Defining field \"{$k}\", `base` \"{$base}\" was not found."
+                        );
+                    }
+                    if ($v['db'] === null) {
+                        unset($v['db']);
+                    }
+                    $v = $this->applyBase($baseItems[$base], $v);
+                }
+            }
+            
+            if (array_key_exists('sortBy', $v) && $v['sortBy']) {              
+                $sortByNew = $this->parseSortBy($v['sortBy'], $baseItems);
+                if ($sortByNew) {
+                    $v['sortBy'] = $sortByNew;
+                } else {
+                    unset($v['sortBy']);
+                }
+            }
+            
+            // Matches values
+            if (array_key_exists('teplateItems', $v)) {
+                $linkedTo = $this->parseLinkedTo($v['value'], $baseItems);
+                if (count($linkedTo)) {
+                    $v['linkedTo'] = $linkedTo;
+                }
+                foreach ($v['teplateItems'] as $kk => $vv) {
+                    $base = $vv['base'];
+                    if (!array_key_exists($base, $this->setItems) &&
+                        !array_key_exists($base, $baseItems) &&
+                        !array_key_exists($base, $linkedTo)
+                    ) {
+                        throw new DebugException(
+                            "On template \"{$kk}\", the \"{$base}\" is not a base or link.",
+                            $this->setItems
+                        );
+                    }
+                }
+            }
+            if (array_key_exists('key', $v)) {
+                $keys[$k] = [];
+            }
+        }
+        if (count($keys) === 0 && $this->baseSet) {
+            $keys = $this->baseSet->getKeys();
+        }
+        $this->keys = $keys;
     }
     
-    // -----------------------
-    // Private functions
-    // -----------------------
+    private function parseSetItems($level, $prefix, $items)
+    {
+        foreach ($items as $k => $v) {
+            $fieldName = is_int($k) ? $k : $prefix . $k;
+            
+            // Parse item
+            if ($this->beforeParseItem($fieldName, $v)) {
+                list($pName, $pField) = $this->parseItem($level, $fieldName, $v);
+                if ($this->beforeAddItem($pName, $pField)) {
+                    $this->setItems[$pName] = $pField; // Add the ITEM!
+                }
+            }
+            // Parse sub-items
+            if (is_array($v) && array_key_exists($this->subItemsKey, $v)) {
+                $this->parseSetItems(
+                    $level + 1,
+                    Lot::getItem('prefix', $v, ''),
+                    $v[$this->subItemsKey]
+                );
+            }
+        }
+    }
+    
+    private function applyBase($baseField, $field)
+    {
+        $this->beforeApplyBase($baseField, $field);
+        return array_replace_recursive([], $baseField, $field);
+    }
+
     private function parseLinkedTo($base, $baseItems)
     {
         $matches = null;
@@ -449,7 +445,6 @@ abstract class Set
     
     private function parseItem($level, $fieldName, $field)
     {
-        
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
                 $field = ['value' => substr($field, 1)];
@@ -464,6 +459,12 @@ abstract class Set
                     $field = ['db' => $field];
                 }
             }
+        } elseif(is_array($field) && 
+            $this->baseSet &&
+            is_string($fieldName) &&
+            !array_key_exists('base', $field)
+        ) {
+            $field['base'] = $fieldName;
         }
 
         $name = is_int($fieldName) ? null : $fieldName;
@@ -678,8 +679,11 @@ abstract class Set
         $pField[$wordName] = $word;
     }
     
-    
-    public static function getVisualItems($lkItems) {
+    // -----------------------
+    // Static functions
+    // -----------------------
+    public static function getVisualItems($lkItems)
+    {
         $visualItems = array();
         foreach ($lkItems as $k => $v) {
             if (!Lot::getItem('virtual', $v)) {
@@ -698,7 +702,18 @@ abstract class Set
         return $visualItems;
     }
     
-    protected static function toCleanName($str, $delimiter = '-') {
+    // -----------------------
+    // Internal Static functions
+    // -----------------------    
+    protected static function startsWith($haystack, $needle)
+    {
+        return (
+            substr($haystack, 0, strlen($needle)) === $needle
+        );
+    }
+    
+    protected static function toCleanName($str, $delimiter = '-')
+    {
         //test: echo InfoFile::toCleanName('Xús_i[ sin("lint CC") ]+3');
         $str = strtolower(trim($str, " '\"_|+-,.[]()"));
         $str = str_replace("'", '"', $str); // To protect apostrophes to not 

@@ -16,7 +16,7 @@ return [
         $url = '';
         if ($content === 'hidden-input') {
             $layout = 'bare';
-        } elseif ($link) {
+        } elseif ($link && !$content) {
             $visualWidth = 40;
             $content = 'select-input';
             $url = $render->getControllerUrl() . "model={$link}&";
