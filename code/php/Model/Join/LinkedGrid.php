@@ -51,6 +51,7 @@ class LinkedGrid
             $response['filter'] = $this->filter->__debugInfo();
         }
         $response['base'] = $this->model->getBase()->__debugInfo();
+        $response['linkUp'] = $this->columns->getLink()->__debugInfo();
         return $response;
     }
     

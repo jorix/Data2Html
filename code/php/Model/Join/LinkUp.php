@@ -43,10 +43,9 @@ class LinkUp
     public function __debugInfo()
     {
         return [
-            'from' => $this->getFrom(),
+            'getFrom()' => $this->getFrom(),
             'getKeys()' => $this->getKeys(),
             'refItems' => $this->refItems,
-            'tableSources' => $this->tableSources,
             'items' => $this->items,
         ];
     }
@@ -83,23 +82,19 @@ class LinkUp
         $tableAlias = $this->links['T0']['alias'];
         $baseItems = $this->links['T0']['base'];
         
-        $items = array();
+        $items = [];
         $this->items[$groupName] = &$items;
         foreach ($fromItems as $key => $item) {
             $refItem = $this->getRefByItem($groupName, $tableAlias, $item);
+            // Prepare a real item to added
             if (!$refItem) {
                 $item['tableAlias'] = $tableAlias;
             } else {
+                // If is previous added as virtual remove it to add in real position.
                 if(array_key_exists('virtual', $items[$refItem])) {
                     $item = $items[$refItem];
                     unset($item['virtual']);
-                    $baseName = null;
-                    if (array_key_exists('base', $item)) {
-                        $baseName = $item['base'];
-                    } elseif (array_key_exists('db', $item)) {
-                        $baseName = $item['db'];
-                    }
-                    unset($this->refItems[$groupName][$tableAlias][$baseName]);
+                    unset($this->refItems[$groupName][$tableAlias][$this->getRefBase($item)]);
                     unset($items[$refItem]);
                 }
             }
@@ -115,8 +110,7 @@ class LinkUp
             foreach ($fromTable['keys'] as $baseName => &$v) {
                 $ref = $this->getRef($groupName, $tableAlias, $baseName);
                 if (!$ref) {
-                    $lkItem = $this->getLinkItemByBase($tableAlias, $baseName);
-                    $ref = $this->linkVirtualItem('linkKeys()', $groupName, $tableAlias, $baseName, $lkItem);
+                    $ref = $this->linkVirtualItemByBaseName($groupName, $tableAlias, $baseName);
                 }    
                 $refDb = Lot::getItem([$groupName, $ref, 'refDb'], $this->items);
                 if (!$refDb) {
@@ -137,10 +131,10 @@ class LinkUp
         return $this->getRef($groupName, $tableAlias, $this->getRefBase($item));
     }
     
-    protected function addRefByItem($groupName, $tableAlias, $item, $ref) {
-        $this->refItems[$groupName][$tableAlias][$this->getRefBase($item)] = $ref;
-        return $ref;
+    protected function getRef($groupName, $tableAlias, $baseName) {
+        return Lot::getItem([$groupName, $tableAlias, $baseName], $this->refItems);
     }
+
     protected function getRefBase($item) {
         $baseName = null;
         if (array_key_exists('base', $item)) {
@@ -153,11 +147,14 @@ class LinkUp
         return $baseName;
     }
     
-    protected function getRef($groupName, $tableAlias, $baseName) {
-        return Lot::getItem([$groupName, $tableAlias, $baseName], $this->refItems);
+    protected function linkVirtualItemByBaseName($groupName, $fromAlias, $baseName)
+    {
+        $linkId = Lot::getItem([$fromAlias, 'from'], $this->tableSources);
+        $lkItem = $this->getLinkItemById($linkId, $baseName);
+        return $this->linkVirtualItem($groupName, $fromAlias, $baseName, $lkItem);
     }
-        
-    protected function linkVirtualItem($debugOrigin, $groupName, $tableAlias, $base, $item) {
+    
+    protected function linkVirtualItem($groupName, $tableAlias, $base, $item) {
         $item['tableAlias'] = $tableAlias;
         $newRef = $tableAlias . '_' . $base;
         if (array_key_exists($newRef, $this->items[$groupName])) {
@@ -166,16 +163,14 @@ class LinkUp
             $tableAlias === 'T0' &&
             !array_key_exists($base, $this->items[$groupName])
         ) {
-            $newRef = $base; // remove T0 if not exist as virtual
+            $newRef = $base; // remove prefix T0_ for virtual items on T0.
         }
         $item['virtual'] = true;
-        $item['_debugOrigin'] = $debugOrigin;
         return $this->linkItem($groupName, $newRef, $item);
     }
         
     protected function linkItem($groupName, $newRef, $item) {
         $tableAlias = $item['tableAlias'];
-        $tableAliasInit = $tableAlias; // TODO: not use $tableAliasInit
         
         //Check if item already exist
         $ref = $this->getRefByItem($groupName, $tableAlias, $item);
@@ -185,8 +180,9 @@ class LinkUp
         
         // New item
         $this->items[$groupName][$newRef] = &$item;
-        $this->addRefByItem($groupName, $tableAlias, $item, $newRef);
+        $this->refItems[$groupName][$tableAlias][$this->getRefBase($item)] = $newRef;
         
+        $tableAliasInit = $tableAlias; // TODO: not use $tableAliasInit
         if (array_key_exists('linkedTo', $item)) {
             $itemBase = Lot::getItem('base', $item);
             foreach ($item['linkedTo'] as $k => &$v) {
@@ -203,39 +199,21 @@ class LinkUp
                         ) {
                             unset($lkItem['sortBy']);
                         }
-                        // elseif (array_key_exists('sortBy', $lkItem)) {
-                        // TODO: .....move all linkTo to LinkUp
-                            // $item['sortBy'] = [
-                                // 'linkedTo' => [ 
-                                    // 'member_id[name]' => [ 
-                                        // 'link' => 'member_id', 
-                                        // 'base' => 'name', 
-                                        // 'linkedWith' => 'aixada_members:list'
-                                    // ]
-                                // ], 
-                                // 'items' => [ 
-                                    // 'member_id[name]' => [ 
-                                        // 'base' => 'member_id[name]', 
-                                        // 'order' => 1
-                                    // ]
-                                // ]
-                            // ];
-                        // }
                         $item = array_replace_recursive(array(), $lkItem, $item);
                 // $this->dump([$item, $lkItem]);
                         $item['tableAlias'] = $lkAlias;
-                        $tableAlias = $lkAlias; // TODO: not Refesh table alias
                     } else { // linked with a virtual item
-                        $v['ref'] = $this->linkVirtualItem('linkItem()-linkedTo-1', $groupName, $lkAlias, $v['base'], $lkItem);
+                        $v['ref'] = $this->linkVirtualItem($groupName, $lkAlias, $v['base'], $lkItem);
                     }
                 } else {
-                    $v['ref'] = $this->linkVirtualItem('linkItem()-linkedTo-2', $groupName, $lkAlias, $v['base'], $lkItem);
+                    $v['ref'] = $this->linkVirtualItem($groupName, $lkAlias, $v['base'], $lkItem);
                 }
             }
             unset($v);
         }
         
         if (array_key_exists('db', $item)) {
+            $tableAlias = $item['tableAlias'];
             $db = $item['db'];
             if (preg_match('/^\w+$/', $db)) {
                 $item['refDb'] = $tableAlias . '.' . $db;
@@ -251,8 +229,8 @@ class LinkUp
         }
         
         // Add reference
-        
         if (array_key_exists('teplateItems', $item)) {
+            $tableAlias = $item['tableAlias'];
             foreach ($item['teplateItems'] as $k => &$v) {
                 $refKey = Lot::getItem(['linkedTo', $v['base'] , 'ref'], $item);
                 $baseName = $v['base'];
@@ -264,11 +242,9 @@ class LinkUp
                     $lkAlias = $this->tableSources[$tableAlias]['alias'];
                     $lk = $this->links[$form];
                     if (array_key_exists($baseName, $lk['items'])) {
-                        $v['ref'] = $this->linkVirtualItem(
-                            'linkItem()-teplateItems-1', $groupName, $lkAlias, $baseName, $lk['items'][$baseName]);
+                        $v['ref'] = $this->linkVirtualItem($groupName, $lkAlias, $baseName, $lk['items'][$baseName]);
                     } elseif (array_key_exists($baseName, $lk['base'])) {
-                        $v['ref'] = $this->linkVirtualItem(
-                            'linkItem()-teplateItems-2', $groupName, $lkAlias, $baseName, $lk['base'][$baseName]);
+                        $v['ref'] = $this->linkVirtualItem($groupName, $lkAlias, $baseName, $lk['base'][$baseName]);
                     } else {
                         throw new DebugException(
                             "Base \"{$baseName}\" not fount (on \"{$newRef}\").",
@@ -289,13 +265,14 @@ class LinkUp
             if (array_key_exists('linkedTo', $sortBy)) {
                 foreach ($sortBy['linkedTo'] as &$v) {
                     $lkItem = $this->getLinkItemByLinkTo($tableAliasInit, $v);
-                    $lkAlias = $lkItem['tableAlias'];
                     $v['ref'] = $this->linkVirtualItem(
-                        'linkItem()-sortBy-linkedTo', $groupName, $lkAlias, $v['base'], $lkItem
+                        $groupName, $lkItem['tableAlias'], $v['base'], $lkItem
                     );
                 }
                 unset($v);
             }
+            
+            $tableAlias = $item['tableAlias'];
             foreach ($sortBy['items'] as $k => &$v) {
                 $refKey = Lot::getItem(['linkedTo', $v['base'] , 'ref'], $sortBy);
                 $baseName = $v['base'];
@@ -312,8 +289,7 @@ class LinkUp
                         if (array_key_exists($baseName, $lk['items'])) {
                             $v['ref'] = $baseName   ;
                         } elseif (array_key_exists($baseName, $lk['base'])) {
-                            $v['ref'] = $this->linkVirtualItem(
-                                'linkItem()-sortBy-base', $groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
+                            $v['ref'] = $this->linkVirtualItem($groupName, $tableAlias, $baseName, $lk['base'][$baseName]);
                         } else {
                             throw new DebugException(
                                 "Base sortBy \"{$baseName}\" not fount (on \"{$newRef}\").",
@@ -361,11 +337,6 @@ class LinkUp
             $linkId .= '|' . $v['link'];
         }
         return $this->getLinkItemById($linkId, $v['base'], $v['linkedWith']);
-    }
-        
-    protected function getLinkItemByBase($fromAlias, $baseName) {
-        $linkId = Lot::getItem([$fromAlias, 'from'], $this->tableSources);
-        return $this->getLinkItemById($linkId, $baseName);
     }
     
     protected function getLinkItemById($linkId, $baseName, $linkedWith = null) {
@@ -433,8 +404,7 @@ class LinkUp
             $lkBaseName = $fromId[1];
             $ref = $this->getRef($groupName, $lkAlias, $lkBaseName);
             if (!$ref) {
-                $lkItem = $this->getLinkItemByBase($lkAlias, $lkBaseName);
-                $ref = $this->linkVirtualItem('addTable()', $groupName, $lkAlias, $lkBaseName, $lkItem);
+                $ref = $this->linkVirtualItemByBaseName($groupName, $lkAlias, $lkBaseName);
             }
             $this->tableSources[$tableAlias]['fromField'] = 
                 Lot::getItem([$groupName, $ref, 'refDb'], $this->items);
