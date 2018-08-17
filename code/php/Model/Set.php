@@ -35,9 +35,9 @@ abstract class Set
     private $linkName = '';
     
     // To parse
-    private $matchLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]|(\b[a-z]\w*\b(?![\[\(]))/i';
+    private static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]/i';
         // fields as: link_name[field_name]
-    private $matchTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
+    private static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     private $baseAttributeNames = [
         'title' => 'attribute',
@@ -74,7 +74,6 @@ abstract class Set
         'level'     => 'integer',
         'link'      => 'string|null',
         'leaves'    => 'string',
-        'linkedTo'  => 'array',
         'items'     => 'array',
         'name'      => 'string',
         'size'      => '[integer]',
@@ -169,6 +168,17 @@ abstract class Set
         return $this->id;
     }    
   
+    public static function getPatternLinked()
+    {
+        return self::$patternLinked;
+    }
+    
+    public static function getPatternValueTemplate()
+    {
+        return self::$patternValueTemplate;
+    }
+    
+    
     public function __debugInfo()
     {
         return [
@@ -250,7 +260,7 @@ abstract class Set
     {
         return true;
     }
-    protected function beforeApplyBase(&$baseField, &$field)
+    protected function beforeApplyBase($baseField, &$field)
     {
         return true;
     }
@@ -275,29 +285,26 @@ abstract class Set
         // Create a empty parsed sort
         $sortByNew = ['linkedTo' => [], 'items' => []];
         
-        foreach ($sortBy as $item) {
+        foreach ($sortBy as $baseName) {
             $order = 1;
             foreach ($this->sortByStartToOrder as $k => $v) {
-                if (self::startsWith($item, $k)) {
-                    $item = substr($item, strlen($k));
+                if (self::startsWith($baseName, $k)) {
+                    $baseName = substr($baseName, strlen($k));
                     $order = $v;
                     break;
                 }
             }
-            $linkedTo = $this->parseLinkedTo($item, $baseItems);
-            if (count($linkedTo)) {
-                $sortByNew['linkedTo'] =
-                    array_replace($sortByNew['linkedTo'], $linkedTo);
-            } else {
-                if (!array_key_exists($item, $this->setItems) && !array_key_exists($item, $baseItems)) {
-                    throw new DebugException(
-                        "Defining sortBy \"{$item}\", item and base was not found.",
-                        $sortBy
-                    );
-                }
+            if (!$this->useLinkedTo($baseName) &&
+                !array_key_exists($baseName, $this->setItems) &&
+                !array_key_exists($baseName, $baseItems)
+            ) {
+                throw new DebugException(
+                    "Defining sortBy \"{$baseName}\", item and base was not found.",
+                    $sortBy
+                );
             }
-            $sortByNew['items'][$item] = [
-                'base' => $item,
+            $sortByNew['items'][$baseName] = [
+                'base' => $baseName,
                 'order' => $order
             ];
         }
@@ -325,23 +332,14 @@ abstract class Set
         foreach ($this->setItems as $k => &$v) {
             if (array_key_exists('base', $v)) {
                 $base = $v['base'];
-                $linkedTo = $this->parseLinkedTo($base, $baseItems);
-                if (count($linkedTo)) {
-                    $v['linkedTo'] = $linkedTo;
-                    unset($v['db']);
-                    if (!array_key_exists('sortBy', $v) && count($linkedTo) === 1) {
-                        $v['sortBy'] = $base; // default sort by self
-                    }
-                } else {
+                unset($v['db']);
+                if (!$this->useLinkedTo($base)) {
                     if (!array_key_exists($base, $baseItems)) {
                         throw new DebugException(
                             "Defining field \"{$k}\", `base` \"{$base}\" was not found."
                         );
                     }
-                    if ($v['db'] === null) {
-                        unset($v['db']);
-                    }
-                    $v = $this->applyBase($baseItems[$base], $v);
+                    $this->applyBase($baseItems[$base], $v);
                 }
             }
             
@@ -355,12 +353,8 @@ abstract class Set
             }
             
             // Matches values
-            if (array_key_exists('teplateItems', $v)) {
-                $linkedTo = $this->parseLinkedTo($v['value'], $baseItems);
-                if (count($linkedTo)) {
-                    $v['linkedTo'] = $linkedTo;
-                }
-                foreach ($v['teplateItems'] as $kk => $vv) {
+            if (array_key_exists('value-patterns', $v)) {
+                foreach ($v['value-patterns'] as $kk => $vv) {
                     $base = $vv['base'];
                     if (!array_key_exists($base, $this->setItems) &&
                         !array_key_exists($base, $baseItems) &&
@@ -377,6 +371,7 @@ abstract class Set
                 $keys[$k] = [];
             }
         }
+        unset($v);
         if (count($keys) === 0 && $this->baseSet) {
             $keys = $this->baseSet->getKeys();
         }
@@ -406,58 +401,32 @@ abstract class Set
         }
     }
     
-    private function applyBase($baseField, $field)
+    private function applyBase($baseField, &$field)
     {
+        if (array_key_exists('base', $baseField) &&
+            array_key_exists('base', $field)
+        ) {
+            unset($field['base']);
+        }
         $this->beforeApplyBase($baseField, $field);
-        return array_replace_recursive([], $baseField, $field);
+        $field = array_replace_recursive([], $baseField, $field);
     }
-
-    private function parseLinkedTo($base, $baseItems)
+    
+    private function useLinkedTo($baseName)
     {
         $matches = null;
-        preg_match_all($this->matchLinked, $base, $matches);
-        
-        $linkedTo = [];
-        for ($i = 0; $i < count($matches[0]); $i++) {
-            if ($matches[1][$i] && $matches[2][$i]) {
-                $baseLink = $matches[1][$i];
-                $match = $matches[0][$i];
-                $linkedTo[$match] = [
-                    'link' => $baseLink,
-                    'base' => $matches[2][$i]
-                ];
-                if (!array_key_exists($baseLink, $baseItems)) {
-                    throw new DebugException(
-                        "Defining \"{$base}\", the link \"{$baseLink}\" was not found.",
-                        $baseItems
-                    );
-                }
-                if (!array_key_exists('link', $baseItems[$baseLink])) {
-                    throw new DebugException(
-                        "Defining \"{$base}\", the \"{$baseLink}\" is not a link."
-                    );
-                }
-                $linkedTo[$match]['linkedWith'] = $baseItems[$baseLink]['link'];
-            }
-        }
-        return $linkedTo;
+        preg_match_all(self::$patternLinked, $baseName, $matches);
+        return (count($matches[0]) > 0);
     }
     
     private function parseItem($level, $fieldName, $field)
     {
+        
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
                 $field = ['value' => substr($field, 1)];
             } elseif ($this->baseSet) {
                 $field = ['base' => $field];
-            } else {
-                $matches = null;
-                preg_match_all($this->matchLinked, $field, $matches);
-                if (count($matches[0]) > 0) {
-                    $field = ['base' => $field];
-                } else {
-                    $field = ['db' => $field];
-                }
             }
         } elseif(is_array($field) && 
             $this->baseSet &&
@@ -466,17 +435,18 @@ abstract class Set
         ) {
             $field['base'] = $fieldName;
         }
-
-        $name = is_int($fieldName) ? null : $fieldName;
+        
+        // Set db
         $db = null;
         if (isset($field['db'])) {
             $db = $field['db'];
-        } elseif ($name && 
+        } elseif (!is_int($fieldName) && 
             !array_key_exists('value', $field) && 
             !array_key_exists('base', $field) &&
             !array_key_exists('leaves', $field) &&
-            !array_key_exists('db', $field)) {
-            $db = $name;
+            !array_key_exists('db', $field)
+        ) {
+            $db = $fieldName;
         }
         
         $alias = $this->wordsAlias;
@@ -505,38 +475,16 @@ abstract class Set
             }
         }
 
-        // Final words: level, db, value and teplateItems
+        // Final words: level, db, value and valuePatterns
         if (!array_key_exists('level', $pField)) {
             $pField['level'] = $level;
         }
         $pField['db'] = $db ? $db : null;
-        if (!array_key_exists('base', $pField)) {
-            if (!array_key_exists('title', $pField) && $name) {
-                $pField['title'] = $name;
-            }
-            if (!array_key_exists('description', $pField) &&
-                array_key_exists('title', $pField)) {
-                $pField['description'] = $pField['title'];
-            }
-        }
         if (array_key_exists('value', $pField)) {
             if (isset($field['db'])) {
                 throw new DebugException(
                     "Field \"{$fieldName}\": `db` and `value` can not be used simultaneously."
                 );
-            }
-            $matches = null;
-            // $${name} | $${link[name]}
-            preg_match_all($this->matchTemplate, $pField['value'], $matches);
-            if (count($matches[0]) > 0) {
-                if (!array_key_exists('type', $pField)) {
-                    $pField['type'] = 'string';
-                }
-                $tItems = [];
-                for ($i = 0; $i < count($matches[0]); $i++) {
-                    $tItems[$matches[0][$i]] = ['base' => $matches[1][$i]];
-                }
-                $pField['teplateItems'] = $tItems;
             }
         }
         

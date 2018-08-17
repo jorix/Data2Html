@@ -72,7 +72,7 @@ class SqlSelect
     {
         $textFields = array();
         foreach ($lkFields as $k => $v) {
-            $refDb = Lot::getItem('refDb', $v);
+            $refDb = Lot::getItem('final-db', $v);
             if ($refDb) {
                 array_push($textFields,  $this->db->putAlias($k, $refDb));
             }
@@ -93,7 +93,7 @@ class SqlSelect
                 $onKeys = array();
                 for ($i = 0; $i < count($keyBases); $i++) {
                     // TODO 'fromField' as multi key
-                    array_push($onKeys, "{$v['fromField']} = {$keys[$keyBases[$i]]['refDb']}");
+                    array_push($onKeys, "{$v['fromField']} = {$keys[$keyBases[$i]]['final-db']}");
                 }
                 $from .= "\n   on " . implode("\n   and ", $onKeys);
             }
@@ -119,7 +119,7 @@ class SqlSelect
         $c = array();
         foreach ($request as $v) {
             $baseName = $baseKeys[$ix];
-            $refDb = $keys[$baseName]['refDb'];
+            $refDb = $keys[$baseName]['final-db'];
             if ($v === '' || $v === null) {
                 array_push($c, "{$refDb} is null");
             } else {
@@ -159,7 +159,7 @@ class SqlSelect
                 );
             }
             $itemDx->set($filterItems[$k]);
-            $refDb = $itemDx->getString('refDb');
+            $refDb = $itemDx->getString('final-db');
             $check = $itemDx->getString('check');
             $type = $itemDx->getString('type', 'string');
             if (
@@ -225,7 +225,7 @@ class SqlSelect
         }
         $c = array();
         foreach ($sortBy as $v) {
-            $item = $v['refDb'];
+            $item = $v['final-db'];
             if ($v['order'] * $order < 0) {
                 $item .= ' desc';
             }

@@ -181,19 +181,19 @@ class Controller
         $resTypes = array();
         $dbTypes = array();
         $values = array();
-        $teplateItems = array();
+        $valuePatterns = array();
         $addValue = function($depth, $keyItem, $lkItem)
-                    use(&$addValue, $lkColumns, &$values, &$teplateItems) {
+                    use(&$addValue, $lkColumns, &$values, &$valuePatterns) {
             if ($depth > 10) {
                 throw new DebugException(
-                    "Possible circular reference in \"{$keyItem}\" teplateItems.",
+                    "Possible circular reference in \"{$keyItem}\" valuePatterns.",
                     $lkItem
                 );
             }
-            $matches = Lot::getItem('teplateItems', $lkItem);
-            if ($matches) {
-                foreach ($matches as $v) {
-                    $ref = $v['ref'];
+            $patterns = Lot::getItem('value-patterns', $lkItem);
+            if ($patterns) {
+                foreach ($patterns as $v) {
+                    $ref = $v['final-base'];
                     $matchItem = $lkColumns[$ref];
                     if (array_key_exists('value', $matchItem) && 
                         !array_key_exists($ref, $values)
@@ -201,7 +201,7 @@ class Controller
                         $addValue($depth+1, $ref, $matchItem);
                     }
                 }
-                $teplateItems[$keyItem] = $matches;
+                $valuePatterns[$keyItem] = $patterns;
             }
             $values[$keyItem] = $lkItem['value'];
         };
@@ -232,10 +232,10 @@ class Controller
             $valueRow = array();
             foreach ($values as $k => $v) {
                 $valueRow[$k] = $values[$k];
-                if (array_key_exists($k, $teplateItems)) {
+                if (array_key_exists($k, $valuePatterns)) {
                     $allIsNull = true;
-                    foreach ($teplateItems[$k] as $kk => $vv) {
-                        $ref = $vv['ref'];
+                    foreach ($valuePatterns[$k] as $kk => $vv) {
+                        $ref = $vv['final-base'];
                         if (array_key_exists($ref, $dbRow)) {
                             $value = $dbRow[$ref];
                         } elseif (array_key_exists($ref, $valueRow)) {
@@ -277,7 +277,7 @@ class Controller
                 'sql' => explode("\n", $query),
                 'keys' => $lkSet->getLinkedKeys(),
                 'values' => $values,
-                'teplateItems' => $teplateItems
+                'value-patterns' => $valuePatterns
             );
         }
         $response += array(
