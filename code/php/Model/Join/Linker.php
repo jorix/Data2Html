@@ -7,39 +7,18 @@ use Data2Html\Handler;
 use Data2Html\Model\Set;
 use Data2Html\Data\Lot;
 
-class LinkUp
+class Linker
 {
     use \Data2Html\Debug;
- 
-    protected $originSet = null;
     
-    protected $tableSources = array();
-    protected $links = array();
     protected $linkDone = false;
-    protected $items = array();
-    protected $refItems = array();
+    protected $tableSources = [];
+    protected $links = [];
+    protected $items = [];
+    protected $refItems = [];
 
-    
-    public function __construct($set)
+    public function __construct()
     {
-        $this->originSet = $set;
-        $this->addTable(null, $set);
-        $this->add('main', $set->getItems());
-        
-        // Check default sort
-        $dafaultSort = $this->originSet->getSort();
-        if ($dafaultSort) {
-            if (substr($dafaultSort, 0, 1) === '!') {
-                $dafaultSort = substr($dafaultSort, 1);
-            }
-            $sortBy = Lot::getItem([$dafaultSort, 'sortBy'], $this->items['main']);
-            if (!$sortBy) {
-                throw new DebugException(
-                    "Default sort '{$dafaultSort}' not found or don't have sortBy .",
-                    $this->items['main']
-                );
-            }
-        }
     }
 
     public function __debugInfo()
@@ -73,14 +52,23 @@ class LinkUp
         return $this->tableSources['T0']['keys'];
     }
     
-    public function add($groupName, $fromItems)
+    public function linkUp($groupName, Set $set)
     {
         if ($this->linkDone) {
             throw new DebugException(
-                "Link is done, It is not possible to add more sets.",
+                "Link is done, It is not possible to link up more sets.",
                 $this->items[$groupName]
             );
         }
+        
+        $dafaultSort = null;
+        if ($groupName === 'main') {
+            $this->addTable(null, $set);
+            $dafaultSort = $set->getSort();
+        }
+        
+        // LinkUp
+        $fromItems = $set->getItems();
         $tableAlias = $this->links['T0']['alias'];
         $baseItems = $this->links['T0']['base'];
         
@@ -92,7 +80,7 @@ class LinkUp
             if (!$refItem) {
                 $item['tableAlias'] = $tableAlias;
             } else {
-                // If is previous added as virtual remove it to add in real position.
+                // If is previous added as virtual remove it to link up in real position.
                 if(array_key_exists('virtual', $items[$refItem])) {
                     $item = $items[$refItem];
                     unset($item['virtual']);
@@ -102,19 +90,32 @@ class LinkUp
             }
             $this->linkItem($groupName, $key, $item);
         }
+        
+        // Check default sort
+        if ($dafaultSort) {
+            if (substr($dafaultSort, 0, 1) === '!') {
+                $dafaultSort = substr($dafaultSort, 1);
+            }
+            $sortBy = Lot::getItem([$dafaultSort, 'sortBy'], $this->items['main']);
+            if (!$sortBy) {
+                throw new DebugException(
+                    "Default sort '{$dafaultSort}' not found or don't have sortBy .",
+                    $this->items['main']
+                );
+            }
+        }
     }
     
     protected function linkKeys()
     {
-        $groupName = 'main';
         foreach ($this->tableSources as &$fromTable) {
             $tableAlias = $fromTable['alias'];
             foreach ($fromTable['keys'] as $baseName => &$v) {
-                $finalBase = $this->getRef($groupName, $tableAlias, $baseName);
+                $finalBase = $this->getRef('main', $tableAlias, $baseName);
                 if (!$finalBase) {
-                    $finalBase = $this->linkVirtualItemByBaseName($groupName, $tableAlias, $baseName);
+                    $finalBase = $this->linkVirtualItemByBaseName('main', $tableAlias, $baseName);
                 }    
-                $refDb = Lot::getItem([$groupName, $finalBase, 'final-db'], $this->items);
+                $refDb = Lot::getItem(['main', $finalBase, 'final-db'], $this->items);
                 if (!$refDb) {
                     throw new DebugException(
                         "Key base \"{$baseName}\" of \"{$tableAlias}\" without 'final-db'.",

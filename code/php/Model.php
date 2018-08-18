@@ -10,12 +10,13 @@ namespace Data2Html;
 use Data2Html\Config;
 use Data2Html\DebugException;
 use Data2Html\Data\InfoFile;
-use Data2Html\Model\Set\Base as SetBase;
-use Data2Html\Model\Set\Block as SetBlock;
-use Data2Html\Model\Set\Grid as SetGrid;
+use Data2Html\Model\Set\Base;
+use Data2Html\Model\Set\Block;
+use Data2Html\Model\Set\Grid;
+use Data2Html\Model\Set\Filter;
+use Data2Html\Model\Join\Linker;
 use Data2Html\Model\Join\LinkedSet;
 use Data2Html\Model\Join\LinkedGrid;
-use Data2Html\Model\Join\LinkedBlock;
 
 class Model
 {
@@ -56,7 +57,7 @@ class Model
             $this->modelName = '[empty]';
             $this->definitions = [];
         }
-        $this->baseSet = new SetBase(
+        $this->baseSet = new Base(
             $this, null, $this->definitions
         );
     }
@@ -87,10 +88,10 @@ class Model
     public function getGridColumns($gridName)
     {
         if (!array_key_exists($gridName, $this->unlinkedGrids)) {
-            $this->unlinkedGrids[$gridName] = new SetGrid(
+            $this->unlinkedGrids[$gridName] = new Grid(
                 $this,
                 $gridName,
-                $this->getSetDefs($gridName, 'grids'),
+                $this->getSetDefs('grids', $gridName),
                 $this->getBase()
             );
         }    
@@ -102,21 +103,18 @@ class Model
         if (!$gridName) {
             $gridName = 'main';
         }
+        $gridDef = $this->getSetDefs('grids', $gridName);
         if (!array_key_exists($gridName, $this->grids)) {
-            if (!$doLink) { // Only to test or debug use
-                return new \Data2Html\Model\Set\Grid(
-                    $this,
-                    $gridName,
-                    $this->getSetDefs($gridName, 'grids'),
-                    $this->baseSet
-                );
+            $grid = new Grid($this, $gridName, $gridDef, $this->baseSet);
+            $filter = null;
+            if (array_key_exists('filter', $gridDef)) {
+                $filter = new Filter($this, $gridName, $gridDef['filter'], $this->baseSet);
             }
-            $this->grids[$gridName] = new LinkedGrid(
-                $this,
-                $gridName,
-                $this->getSetDefs($gridName, 'grids'),
-                ['linked' => true]
-            );
+            if (!$doLink) { // Only to test or debug use
+                return $grid;
+            }
+            $linker = new Linker();
+            $this->grids[$gridName] = new LinkedGrid($linker, $grid, $filter);
         }    
         return $this->grids[$gridName];
     }
@@ -127,42 +125,42 @@ class Model
             $blockName = 'main';
         }
         if (!array_key_exists($blockName, $this->blocks)) {
-            $block = new SetBlock(
+            $block = new Block(
                 $this,
                 $blockName, 
-                $this->getSetDefs($blockName, 'blocks'),
+                $this->getSetDefs('blocks', $blockName),
                 $this->baseSet
             );
             if (!$doLink) { // Only to test or debug use
                 return $block;
             }
-            $this->blocks[$blockName] = new LinkedSet($block);
+            $this->blocks[$blockName] = new LinkedSet(new Linker(), $block);
         }    
         return $this->blocks[$blockName];
     }
     
-    public function getSetDefs($name, $setName)
+    protected function getSetDefs($setName, $itemName)
     {
         if (array_key_exists($setName, $this->definitions)) {
             $df = $this->definitions[$setName];
         } else {
-            $df = array();
+            $df = [];
         }
-        if (array_key_exists($name, $df)) {
-            $objDf = $df[$name];
+        if (array_key_exists($itemName, $df)) {
+            $objDf = $df[$itemName];
         } else {
-            if ($name === 'main') {
+            if ($itemName === 'main') {
                 $objDf = [];
             } else {
                 throw new DebugException(
-                    "\"{$name}\" not exist on \"{$setName}\" definitions.",
+                    "\"{$itemName}\" not exist on \"{$setName}\" definitions.",
                     $this->definitions
                 );
             }
         }
         if ($objDf === null) {
             throw new DebugException(
-                "\"{$name}\" not be used as \"{$setName}\" definition, is null.",
+                "\"{$itemName}\" not be used as \"{$setName}\" definition, is null.",
                 $this->definitions
             );
         }

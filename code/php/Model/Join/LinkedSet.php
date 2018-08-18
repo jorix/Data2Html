@@ -2,6 +2,7 @@
 namespace Data2Html\Model\Join;
 
 use Data2Html\Handler;
+use Data2Html\Model\Set;
 use Data2Html\Controller\SqlEdit;
 
 class LinkedSet
@@ -10,21 +11,18 @@ class LinkedSet
    
     // Internal use
     private $linkName;
-    private $link;
+    private $linker;
     private $set;
     
-    public function __construct($set, $linkName = '', $link = null)
+    public function __construct(Linker $linker, Set $set, $linkName = '')
     {
-        if (!$link) {
+        if (!$linkName) {
             $linkName = 'main';
-            $this->link = new LinkUp($set);
-        } else {
-            $link->add($linkName, $set->getItems());
-            $this->link = $link;
-        }
-        $this->linkName = $linkName;
-        
+        } 
+        $this->linker = $linker;
         $this->set = $set;
+        $this->linkName = $linkName;
+        $linker->LinkUp($linkName, $set);
     }
 
     public function __debugInfo()
@@ -67,26 +65,21 @@ class LinkedSet
     }
 
     // -----------------------
-    // Linking
+    // Linked info
     // -----------------------
-    public function getLink()
-    {
-        return $this->link;
-    }
-    
     public function getLinkedFrom()
     {
-        return $this->link->getFrom();
+        return $this->linker->getFrom();
     }
     
     public function getLinkedItems()
     {
-        return $this->link->getItems($this->linkName);
+        return $this->linker->getItems($this->linkName);
     }
 
     public function getLinkedKeys()
     {
-        return $this->link->getKeys();
+        return $this->linker->getKeys();
     }
     
     public function searchItemByLink($linkModelName)
