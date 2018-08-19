@@ -106,15 +106,16 @@ class Model
         $gridDef = $this->getSetDefs('grids', $gridName);
         if (!array_key_exists($gridName, $this->grids)) {
             $grid = new Grid($this, $gridName, $gridDef, $this->baseSet);
-            $filter = null;
-            if (array_key_exists('filter', $gridDef)) {
-                $filter = new Filter($this, $gridName, $gridDef['filter'], $this->baseSet);
-            }
             if (!$doLink) { // Only to test or debug use
                 return $grid;
             }
-            $linker = new Linker();
-            $this->grids[$gridName] = new LinkedGrid($linker, $grid, $filter);
+            $linkedGrid = new LinkedGrid(new Linker(), $grid);
+            if (array_key_exists('filter', $gridDef)) {
+                $linkedGrid->addFilter(
+                    new Filter($this, $gridName, $gridDef['filter'], $this->baseSet)
+                );
+            }
+            $this->grids[$gridName] = $linkedGrid;
         }    
         return $this->grids[$gridName];
     }

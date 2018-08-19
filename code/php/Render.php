@@ -83,7 +83,7 @@ class Render
             return $this->renderGridSet(
                 $gridId,
                 $templateBranch->getBranch('grid'),
-                $lkGrid->getColumnsSet()->getLinkedItems(),
+                $lkGrid->getColumns()->getLinkedItems(),
                 $replaces
             );
         } catch(\Exception $e) {

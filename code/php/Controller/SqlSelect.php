@@ -3,6 +3,8 @@ namespace Data2Html\Controller;
 
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;
+use Data2Html\Db;
+use Data2Html\Model\Join\LinkedSet;
 
 class SqlSelect
 {
@@ -12,7 +14,7 @@ class SqlSelect
     protected $linkedSet;
     protected $result = array();
 
-    public function __construct($db, $linkedSet) {
+    public function __construct(Db $db, LinkedSet $linkedSet) {
         $this->db = $db;
         $this->linkedSet = $linkedSet;
         
@@ -26,7 +28,7 @@ class SqlSelect
             $this->getFrom($linkedSet->getLinkedFrom());
     }
     
-    public function addFilter($filter, $filterReq = null)
+    public function addFilter(LinkedSet $filter, $filterReq = null)
     {
         if ($filter) {
             $this->result['where'] = $this->getWhere($filter->getLinkedItems(), $filterReq);

@@ -73,7 +73,7 @@ class Controller
                     // Prepare sql
                     $sqlObj = new SqlSelect(
                         $this->db,
-                        $lkGrid->getColumnsSet()
+                        $lkGrid->getColumns()
                     );
                     $sqlObj->addFilter(
                         $lkGrid->getFilter(),
@@ -85,7 +85,7 @@ class Controller
                     $page = $r->getLot('d2h_page', array());
                     return $this->opRead(
                         $sqlObj->getSelect(),
-                        $lkGrid->getColumnsSet(),
+                        $lkGrid->getColumns(),
                         $page->getInteger('pageStart', 1),
                         $page->getInteger('pageSize', 0)
                     );

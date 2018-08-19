@@ -10,16 +10,15 @@ class LinkedGrid
 {
     use \Data2Html\Debug;
 
+    protected $linker = null;
     protected $columns = null;
     protected $filter = null;
     
-    public function __construct(Linker $linker, Grid $grid, $filter)
+    public function __construct(Linker $linker, Grid $grid)
     {
-        // Set fields
+        $this->linker = $linker;
         $this->columns = new LinkedSet($linker, $grid);
-        if ($filter) {
-            $this->filter = new LinkedSet($linker, $filter, 'filter');
-        }
+        
     }
     
     public function __debugInfo()
@@ -30,6 +29,11 @@ class LinkedGrid
         }
         $response['linkUp'] = $this->columns->getLink()->__debugInfo();
         return $response;
+    }
+    
+    public function addFilter(Filter $filter)
+    {
+        $this->filter = new LinkedSet($this->linker, $filter, 'filter');
     }
     
     public function getId()
@@ -47,7 +51,7 @@ class LinkedGrid
         return $this->columns->getAttribute($attributeKeys, $default);
     }
 
-    public function getColumnsSet()
+    public function getColumns()
     {
         return $this->columns;
     }
