@@ -27,7 +27,6 @@ class LinkedGrid
         if ($this->filter) {
             $response['filter'] = $this->filter->__debugInfo();
         }
-        $response['linkUp'] = $this->columns->getLink()->__debugInfo();
         return $response;
     }
     

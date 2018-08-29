@@ -110,7 +110,7 @@ class Model
                 return $grid;
             }
             $linkedGrid = new LinkedGrid(new Linker(), $grid);
-            if (array_key_exists('filter', $gridDef)) {
+            if (isset($gridDef['filter'])) {
                 $linkedGrid->addFilter(
                     new Filter($this, $gridName, $gridDef['filter'], $this->baseSet)
                 );

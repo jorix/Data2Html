@@ -38,6 +38,9 @@ return [
         ],
     ],
     'grids' => [
+        'list' => [
+            'items' => ['login']
+        ],
         'main' => [
             'sort' => 'login',
             'items' => [

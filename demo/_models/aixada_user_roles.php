@@ -7,6 +7,17 @@
   foreign key (user_id)	references aixada_user(id)
 
 */
+
+$list = [
+    'Econo-Legal Commission' => 'Econo-Legal Commission#',
+    'Consumer Commission' => 'Consumer Commission#',
+    'Logistic Commission' => 'Logistic Commission#',
+    'Hacker Commission' => 'Hacker Commission#',
+    'Fifth Column Commission' => 'Fifth Column Commission#',
+    'Producer' => 'Producer#',
+    'Checkout' => 'Checkout#',
+    'Consumer' => 'Consumer#'
+];
 return [
     'table' => 'aixada_user_role',
     'title' => 'User roles',
@@ -16,9 +27,18 @@ return [
             'link' => 'aixada_users:list',
             'required'
         ],
+        'user_login' => ['base' => 'user_id[login]'],
         'role' => [
+            'key',
             'string' => 100,
-            'required'
+            'required',
+            'list' => $list
+        ],
+        'role_desc' => ['base' => 'role[1]']
+    ],
+    'grids' => [
+        'main' => [
+            'items' => ['user_login', 'role_desc']
         ]
     ]
 ];

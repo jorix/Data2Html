@@ -13,9 +13,9 @@ class Linker
     
     protected $linkDone = false;
     protected $tableSources = [];
-    protected $links = [];
-    protected $items = [];
     protected $refItems = [];
+    protected $items = [];
+    protected $origins = [];
 
     public function __construct()
     {
@@ -28,6 +28,7 @@ class Linker
             'getKeys()' => $this->getKeys(),
             'refItems' => $this->refItems,
             'items' => $this->items,
+            'origins' => $this->origins,
         ];
     }
            
@@ -69,8 +70,8 @@ class Linker
         
         // LinkUp
         $fromItems = $set->getItems();
-        $tableAlias = $this->links['T0']['alias'];
-        $baseItems = $this->links['T0']['base'];
+        $tableAlias = $this->origins['T0']['alias'];
+        $baseItems = $this->origins['T0']['base'];
         
         $items = [];
         $this->items[$groupName] = &$items;
@@ -111,11 +112,11 @@ class Linker
         foreach ($this->tableSources as &$fromTable) {
             $tableAlias = $fromTable['alias'];
             foreach ($fromTable['keys'] as $baseName => &$v) {
-                $finalBase = $this->getRef('main', $tableAlias, $baseName);
-                if (!$finalBase) {
-                    $finalBase = $this->linkVirtualItemByBaseName('main', $tableAlias, $baseName);
+                $finalBaseName = $this->getRef('main', $tableAlias, $baseName);
+                if (!$finalBaseName) {
+                    $finalBaseName = $this->linkVirtualItemByBaseName('main', $tableAlias, $baseName);
                 }    
-                $refDb = Lot::getItem(['main', $finalBase, 'final-db'], $this->items);
+                $refDb = Lot::getItem(['main', $finalBaseName, 'final-db'], $this->items);
                 if (!$refDb) {
                     throw new DebugException(
                         "Key base \"{$baseName}\" of \"{$tableAlias}\" without 'final-db'.",
@@ -153,7 +154,7 @@ class Linker
     protected function linkVirtualItemByBaseName($groupName, $fromAlias, $baseName)
     {
         $linkId = Lot::getItem([$fromAlias, 'from'], $this->tableSources);
-        $lkItem = $this->getLinkItemById($linkId, $baseName);
+        $lkItem = $this->getLinkItemById($groupName, $linkId, $baseName);
         return $this->linkVirtualItem($groupName, $fromAlias, $baseName, $lkItem);
     }
     
@@ -176,9 +177,9 @@ class Linker
         $tableAlias = $item['tableAlias'];
         
         //Check if item already exist
-        $finalBase = $this->getRefByItem($groupName, $tableAlias, $item);
-        if ($finalBase) {
-            return $finalBase;
+        $finalBaseName = $this->getRefByItem($groupName, $tableAlias, $item);
+        if ($finalBaseName) {
+            return $finalBaseName;
         }
         
         // Add new item
@@ -190,7 +191,7 @@ class Linker
         $linkedTo = $this->parseLinkedTo(Lot::getItem('base', $item), $tableAlias);
         if (count($linkedTo) > 0) {
             foreach ($linkedTo as $v) {
-                $lkItem = $this->getLinkItemByLinkedTo($tableAlias, $v);
+                $lkItem = $this->getLinkItemByLinkedTo($groupName, $tableAlias, $v);
                 $lkAlias = $lkItem['tableAlias'];
                 if (count($linkedTo) === 1) {
                     if(!array_key_exists('value-patterns', $item)) { // Merge fields
@@ -201,7 +202,7 @@ class Linker
                             $tableAliasSortBy = $lkAlias;
                         }
                         unset($item['base']);
-                        $item = array_replace_recursive([], $lkItem, $item);
+                        self::applyAttibutes($lkItem, $item);
                         $item['tableAlias'] = $lkAlias;
                     } else { // linked with a virtual item
                         $this->linkVirtualItem($groupName, $lkAlias, $v['base'], $lkItem);
@@ -298,19 +299,19 @@ class Linker
 
         return $newRef;
     }
-        
+      
     protected function linkVirtualBases($groupName, $tableAlias, &$bases, &$linkedTo)
     { 
         // Do links
         foreach ($linkedTo as $k => &$v) {
-            $lkItem = $this->getLinkItemByLinkedTo($tableAlias, $v);
-            $finalBase = $this->linkVirtualItem(
+            $lkItem = $this->getLinkItemByLinkedTo($groupName, $tableAlias, $v);
+            $finalBaseName = $this->linkVirtualItem(
                 $groupName,
                 $lkItem['tableAlias'],
                 $v['base'],
                 $lkItem
             );
-            $v['final-base'] = $finalBase;
+            $v['final-base'] = $finalBaseName;
         }
         unset($v);
 
@@ -318,18 +319,18 @@ class Linker
             // Add virtual items used
         foreach ($bases as $k => &$v) {
             $baseName = $v['base'];
-            $finalBase = Lot::getItem([$v['base'] , 'final-base'], $linkedTo);
-            if (!$finalBase) {
+            $finalBaseName = Lot::getItem([$v['base'] , 'final-base'], $linkedTo);
+            if (!$finalBaseName) {
                 // Final base is not added, then search item by baseName
                 $from = $this->tableSources[$tableAlias]['from'];
                 $lkAlias = $this->tableSources[$tableAlias]['alias'];
-                $lk = $this->links[$from];
+                $lk = $this->origins[$from];
                 if (array_key_exists($baseName, $lk['items'])) {
-                    $finalBase = $this->linkVirtualItem(
+                    $finalBaseName = $this->linkVirtualItem(
                         $groupName, $lkAlias, $baseName, $lk['items'][$baseName]
                     );
                 } elseif (array_key_exists($baseName, $lk['base'])) {
-                    $finalBase = $this->linkVirtualItem(
+                    $finalBaseName = $this->linkVirtualItem(
                         $groupName, $lkAlias, $baseName, $lk['base'][$baseName]
                     );
                 } else {
@@ -339,10 +340,10 @@ class Linker
                     );
                 }
             }
-            $v['final-base'] = $finalBase;
-            if (!array_key_exists($finalBase, $this->items[$groupName])) {
+            $v['final-base'] = $finalBaseName;
+            if (!array_key_exists($finalBaseName, $this->items[$groupName])) {
                 throw new DebugException(
-                    "Final base \"{$finalBase}\" not found on '{$groupName}'.",
+                    "Final base \"{$finalBaseName}\" not found on '{$groupName}'.",
                     [
                         'base-items' => $bases,
                         'final-bases' => $this->refItems,
@@ -350,12 +351,12 @@ class Linker
                     ]
                 );
             }
-            $fItem = $this->items[$groupName][$finalBase];
+            $fItem = $this->items[$groupName][$finalBaseName];
             if (!array_key_exists('db', $fItem) &&
                 !array_key_exists('value', $fItem)
             ) {
                 throw new DebugException(
-                    "Final base \"{$finalBase}\" without 'db' and 'value' attributes on '{$groupName}'.",
+                    "Final base \"{$finalBaseName}\" without 'db' and 'value' attributes on '{$groupName}'.",
                     [
                         'base-items' => $sortBy['items'],
                         'final-bases' => $this->refItems,
@@ -363,7 +364,7 @@ class Linker
                     ]
                 );
             } elseif (array_key_exists('db', $fItem)) {
-                $v['final-db'] = $this->items[$groupName][$finalBase]['final-db'];
+                $v['final-db'] = $this->items[$groupName][$finalBaseName]['final-db'];
             }
         }
         unset($v);
@@ -378,7 +379,7 @@ class Linker
         }
         
         $linkedTo = [];
-        $baseItems = $this->links[$tableAlias]['base'];
+        $baseItems = $this->origins[$tableAlias]['base'];
         for ($i = 0; $i < count($matches[0]); $i++) {
             if ($matches[1][$i] && $matches[2][$i]) {
                 $baseLink = $matches[1][$i];
@@ -393,56 +394,73 @@ class Linker
                         $baseItems
                     );
                 }
-                if (!array_key_exists('link', $baseItems[$baseLink])) {
+                $isLinked = false;
+                if (array_key_exists('link', $baseItems[$baseLink])) {
+                    $linkedWith = $baseItems[$baseLink]['link'];
+                    $playerNames = Handler::parseLinkText($linkedWith);
+                    if (!array_key_exists('grid', $playerNames)) {
+                        throw new \Exception(
+                            "Link \"{$linkedWith}\" without a grid name."
+                        );
+                    }
+                    $linkedTo[$match] += [
+                        'linkedWith-model' => $playerNames['model'],
+                        'linkedWith-grid' => $playerNames['grid']
+                    ];
+                    $isLinked = true;
+                } 
+                if (array_key_exists('list', $baseItems[$baseLink])) {
+                    $linkedTo[$match] += ['linkedWith-list' => true];
+                    $isLinked = true;
+                }
+                if (!$isLinked) {
                     throw new DebugException(
-                        "Defining \"{$base}\", the \"{$baseLink}\" is not a link."
+                        "Defining \"{$base}\", the \"{$baseLink}\" is not a link or a list."
                     );
                 }
-                $linkedWith = $baseItems[$baseLink]['link'];
-                $playerNames = Handler::parseLinkText($linkedWith);
-                if (!array_key_exists('grid', $playerNames)) {
-                    throw new \Exception(
-                        "Link \"{$linkedWith}\" without a grid name."
-                    );
-                }
-                $linkedTo[$match] += [
-                    'linkedWith-model' => $playerNames['model'],
-                    'linkedWith-grid' => $playerNames['grid']
-                ];
             }
         }
         return $linkedTo;
     }
     
-    protected function getLinkItemByLinkedTo($fromAlias, $linkedToInfo)
+    protected function getLinkItemByLinkedTo($groupName, $fromAlias, $linkedToInfo)
     {
         $linkId = $fromAlias;
         if ($linkedToInfo['baseItemLink']) {
             $linkId .= '|' . $linkedToInfo['baseItemLink'];
         }
-        return $this->getLinkItemById($linkId, $linkedToInfo['baseItemName'], $linkedToInfo);
+        return $this->getLinkItemById($groupName, $linkId, $linkedToInfo['baseItemName'], $linkedToInfo);
     }
     
-    protected function getLinkItemById($linkId, $baseName, $linkedToInfo = null)
+    protected function getLinkItemById($groupName, $linkId, $baseName, $linkedToInfo = null)
     {
-        if (!array_key_exists($linkId, $this->links)) {
+        if (!array_key_exists($linkId, $this->origins)) {
             if (!$linkedToInfo) {
                 throw new DebugException(
                     "LinkId \"{$linkId}\" not exist.",
                     $this->tableSources
                 );
             }
-            $model = Handler::getModel($linkedToInfo['linkedWith-model']);
-            $grid = $model->getGridColumns($linkedToInfo['linkedWith-grid']);
-            $this->addTable($linkId, $grid);
+            $modelName = Lot::getItem('linkedWith-model', $linkedToInfo);
+            if ($modelName) {
+                $model = Handler::getModel($modelName);
+                $grid = $model->getGridColumns($linkedToInfo['linkedWith-grid']);
+                $this->addTable($linkId, $grid);
+            }
+            if (array_key_exists('linkedWith-list', $linkedToInfo)) {
+                $this->addListItem($groupName, $linkId);
+            }
         }
         // Get item
-        $l = $this->links[$linkId];
+        $l = $this->origins[$linkId];
         $lkItem = null;
         if (array_key_exists($baseName, $l['items'])) {
             $lkItem = $l['items'][$baseName];
         } elseif (array_key_exists($baseName, $l['base'])) {
             $lkItem = $l['base'][$baseName];
+        } elseif (array_key_exists('[list]', $l['items'])) {
+            $baseName = '[list]';
+            $lkItem = $l['items'][$baseName];
         }
         if (!$lkItem) {
             throw new debugException(
@@ -461,7 +479,7 @@ class Linker
         $tableAlias = 'T' . count($this->tableSources);
         $linkId = $linkId ? $linkId : $tableAlias;
         
-        $this->links[$linkId] = array(
+        $this->origins[$linkId] = array(
             'alias' => $tableAlias,
             'items' => $set->getItems(),
             'base' => $set->getBase()->getItems()
@@ -480,13 +498,68 @@ class Linker
         } else {
             $lkAlias = $fromId[0];
             $lkBaseName = $fromId[1];
-            $finalBase = $this->getRef($groupName, $lkAlias, $lkBaseName);
-            if (!$finalBase) {
-                $finalBase = $this->linkVirtualItemByBaseName($groupName, $lkAlias, $lkBaseName);
+            // TODO: multi key on $finalBaseName
+            $finalBaseName = $this->getRef($groupName, $lkAlias, $lkBaseName);
+            if (!$finalBaseName) {
+                $finalBaseName = $this->linkVirtualItemByBaseName($groupName, $lkAlias, $lkBaseName);
             }
+            // Get attributes from origin keys for link field
+            foreach (array_keys($keys) as $keyName) {
+                self::applyAttibutes(
+                    $this->origins[$linkId]['base'][$keyName],
+                    $this->items[$groupName][$finalBaseName],
+                    ['key']
+                );
+            }
+
             $this->tableSources[$tableAlias]['fromField'] = 
-                Lot::getItem([$groupName, $finalBase, 'final-db'], $this->items);
+                Lot::getItem([$groupName, $finalBaseName, 'final-db'], $this->items);
         }
         return $tableAlias;
+    }
+    
+    protected function addListItem($groupName, $linkId) {
+        $fromId = explode('|', $linkId);
+        $lkAlias = $fromId[0];
+        $lkBaseName = $fromId[1];
+        $finalBaseName = $this->getRef($groupName, $lkAlias, $lkBaseName);
+        if (!$finalBaseName) {
+            if (!isset($this->origins[$linkId])) {
+                $this->origins[$linkId] = [
+                    'alias' => $lkAlias,
+                    'items' => [],
+                    'base' => []
+                ];
+            }
+            $finalBaseName = $this->linkVirtualItemByBaseName($groupName, $lkAlias, $lkBaseName);
+        }
+        $origin = $this->items[$groupName][$finalBaseName];
+              
+        // New item
+        $listItem = [
+            'tableAlias' => $lkAlias,
+            'type' => 'string',
+            'final-list' => $finalBaseName
+        ];
+        if (array_key_exists('title', $origin)) {
+            $listItem['title'] = $origin['title'];
+        }
+        if (!array_key_exists('description', $origin)) {
+            $listItem['description'] = $origin['description'];
+        }
+        $this->origins[$linkId] = [
+            'alias' => $lkAlias,
+            'items' => ['[list]' => $listItem],
+            'base' => []
+        ];
+    }
+    
+    protected static function applyAttibutes($fromItem, &$toItem, $except = null) {
+        if ($except) {
+            foreach((array)$except as $v) {
+                unset($fromItem[$v]);
+            }
+        }
+        $toItem = array_replace_recursive([], $fromItem, $toItem);
     }
 }

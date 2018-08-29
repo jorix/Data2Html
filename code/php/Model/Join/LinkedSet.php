@@ -33,7 +33,8 @@ class LinkedSet
             'attributes' => $this->set->__debugInfo()['attributes'],
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
-            'setItems' => $this->getLinkedItems()
+            'setItems' => $this->getLinkedItems(),
+            'linker[origins]' => $this->linker->__debugInfo()['origins']
         ];
     }
     // -----------------------

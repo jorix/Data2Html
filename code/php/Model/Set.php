@@ -72,8 +72,9 @@ abstract class Set
         'format'    => 'string',
         'key'       => ['options' => ['autoKey', 'key']],
         'level'     => 'integer',
-        'link'      => 'string|null',
         'leaves'    => 'string',
+        'link'      => 'string|null',
+        'list'      => 'assocArray',
         'items'     => 'array',
         'name'      => 'string',
         'size'      => '[integer]',
@@ -110,7 +111,7 @@ abstract class Set
     ];
     
     private static $visualWords = array(
-        'display', 'format', 'size', 'title', 'type', 'validations', 'default', 'db'
+        'display', 'format', 'list', 'size', 'title', 'type', 'validations', 'default', 'db'
     );
     
     public function __construct(
@@ -294,7 +295,7 @@ abstract class Set
                     break;
                 }
             }
-            if (!$this->useLinkedTo($baseName) &&
+            if (!self::is_linkedTo($baseName) &&
                 !array_key_exists($baseName, $this->setItems) &&
                 !array_key_exists($baseName, $baseItems)
             ) {
@@ -333,7 +334,7 @@ abstract class Set
             if (array_key_exists('base', $v)) {
                 $base = $v['base'];
                 unset($v['db']);
-                if (!$this->useLinkedTo($base)) {
+                if (!self::is_linkedTo($base)) {
                     if (!array_key_exists($base, $baseItems)) {
                         throw new DebugException(
                             "Defining field \"{$k}\", `base` \"{$base}\" was not found."
@@ -412,7 +413,7 @@ abstract class Set
         $field = array_replace_recursive([], $baseField, $field);
     }
     
-    private function useLinkedTo($baseName)
+    private static function is_linkedTo($baseName)
     {
         $matches = null;
         preg_match_all(self::$patternLinked, $baseName, $matches);
@@ -425,8 +426,12 @@ abstract class Set
         if (is_string($field)) {
             if (substr($field, 0, 1) === '=') {
                 $field = ['value' => substr($field, 1)];
-            } elseif ($this->baseSet) {
+            } elseif ($this->baseSet || self::is_linkedTo($field)) {
                 $field = ['base' => $field];
+            } else {
+                throw new DebugException(
+                    "Invalid \"{$field}\" on field \"{$fieldName}\"."
+                );
             }
         } elseif(is_array($field) && 
             $this->baseSet &&
@@ -611,6 +616,14 @@ abstract class Set
                         );
                     }
                     break;
+                case 'assocArray':
+                    if (!self::is_assocArray($word)) {
+                        throw new DebugException(
+                            "Keyword \"{$wordName}\" on field \"{$fieldName}\" must be a 'associative array'.",
+                            $pField
+                        );
+                    }
+                    break;
                 case '[integer]':
                     $word = (array)$word;
                     foreach ($word as $vvv) {
@@ -632,11 +645,11 @@ abstract class Set
     // -----------------------
     public static function getVisualItems($lkItems)
     {
-        $visualItems = array();
+        $visualItems = [];
         foreach ($lkItems as $k => $v) {
             if (!Lot::getItem('virtual', $v)) {
                 if (!is_int($k)) {
-                    $item = array();
+                    $item = [];
                     $visualItems[$k] = &$item;
                     foreach (self::$visualWords as $w) {
                         if (array_key_exists($w, $v)) {
@@ -670,5 +683,14 @@ abstract class Set
         $str = preg_replace("/[^ \"\_|+-,\.\[\]\(\)a-zA-Z0-9]/", '', $str);
         $str = preg_replace("/[ \"\_|+-,\.\[\]\(\)]+/", $delimiter, $str);
         return $str;
+    }
+    
+    protected static function is_assocArray($arr)
+    {
+        if ([] === $arr) {
+            return true;
+        } else {
+            return array_keys($arr) !== range(0, count($arr) - 1);
+        }
     }
 }

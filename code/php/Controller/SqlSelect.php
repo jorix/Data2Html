@@ -28,7 +28,7 @@ class SqlSelect
             $this->getFrom($linkedSet->getLinkedFrom());
     }
     
-    public function addFilter(LinkedSet $filter, $filterReq = null)
+    public function addFilter($filter, $filterReq = null)
     {
         if ($filter) {
             $this->result['where'] = $this->getWhere($filter->getLinkedItems(), $filterReq);
