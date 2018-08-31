@@ -24,8 +24,7 @@ class SqlSelect
         if ($this->result['select'] === '') {
             throw new \Exception("No data base fields defined.");
         }
-        $this->result['from'] =
-            $this->getFrom($linkedSet->getLinkedFrom());
+        $this->result['from'] = $this->getFrom($linkedSet->getLinkedFrom());
     }
     
     public function addFilter($filter, $filterReq = null)
@@ -82,22 +81,26 @@ class SqlSelect
         return implode(', ', $textFields);
     }
 
-    protected function getFrom($joins)
+    protected function getFrom($tableSources)
     {
         $from = '';
-        foreach ($joins as $v) {
-            if($v['from'] === 'T0') {
-                $from .= $this->db->putAlias($v['alias'], $v['table']);
+        foreach ($tableSources as $k => $v) {
+            if($k === 'T0') {
+                $from .= $this->db->putAlias($k, $v['table']);
             } else {
-                $from .= "\n left join " . $this->db->putAlias($v['alias'], $v['table']);
                 $keys = $v['keys'];
-                $keyBases = array_keys($keys);
-                $onKeys = array();
-                for ($i = 0; $i < count($keyBases); $i++) {
-                    // TODO 'fromField' as multi key
-                    array_push($onKeys, "{$v['fromField']} = {$keys[$keyBases[$i]]['final-db']}");
+                if ($keys) {
+                    $fromFinalDb = $v['from-final-db'];
+                    $i = 0;
+                    $onKeys = [];
+                    foreach ($keys as $vv) {
+                        $onKeys[] = $fromFinalDb[$i] . " = " . $vv['final-db'];
+                        $i++;
+                    }
+                    $from .= 
+                        "\n left join " . $this->db->putAlias($k, $v['table']) . 
+                        "\n   on " . implode("\n   and ", $onKeys);
                 }
-                $from .= "\n   on " . implode("\n   and ", $onKeys);
             }
         }
         return $from;

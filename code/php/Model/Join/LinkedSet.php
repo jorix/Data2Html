@@ -22,7 +22,7 @@ class LinkedSet
         $this->linker = $linker;
         $this->set = $set;
         $this->linkName = $linkName;
-        $linker->LinkUp($linkName, $set);
+        $linker->linkUp($linkName, $set);
     }
 
     public function __debugInfo()
@@ -34,7 +34,7 @@ class LinkedSet
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
             'setItems' => $this->getLinkedItems(),
-            'linker[origins]' => $this->linker->__debugInfo()['origins']
+            'linker' => $this->linker->__debugInfo()
         ];
     }
     // -----------------------
