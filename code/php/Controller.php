@@ -27,7 +27,7 @@ class Controller
     
     public function manage($request)
     {
-        $postData = array();
+        $postData = [];
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
             case 'GET':
@@ -60,7 +60,7 @@ class Controller
         $r = new Lot($postData);
         $oper = $r->getString('d2h_oper', '');
         $playerNames = Handler::parseRequest($request);
-        $response = array();
+        $response = [];
         switch ($oper) {
             case '':
             case 'read':
@@ -82,7 +82,7 @@ class Controller
                     $sqlObj->addSort($r->getString('d2h_sort'));
                     
                     // Response
-                    $page = $r->getLot('d2h_page', array());
+                    $page = $r->getLot('d2h_page', []);
                     return $this->opRead(
                         $sqlObj->getSelect(),
                         $lkGrid->getColumns(),
@@ -178,10 +178,11 @@ class Controller
         };
         $itemDx = new Lot();
         $lkColumns = $lkSet->getLinkedItems();
-        $resTypes = array();
-        $dbTypes = array();
-        $values = array();
-        $valuePatterns = array();
+        $resTypes = [];
+        $dbTypes = [];
+        $values = [];
+        $valuePatterns = [];
+        $useList = [];
         $addValue = function($depth, $keyItem, $lkItem)
                     use(&$addValue, $lkColumns, &$values, &$valuePatterns) {
             if ($depth > 10) {
@@ -215,13 +216,20 @@ class Controller
             if ($itemDx->getString('db')) {
                 $dbTypes[$k] = $type;
             }
+            $finalList = $itemDx->getString('final-list');
+            if ($finalList) {
+                $useList[$k] = [
+                    'base' => $finalList,
+                    'list' => Lot::getItem([$finalList, 'list'], $lkColumns)
+                ];
+            }
             if (array_key_exists('value', $v)) {
                 $addValue(0, $k, $v);
             }
         }
         // Read rs
         $keyNames = array_keys($lkSet->getLinkedKeys());
-        $rows = array();
+        $rows = [];
         $result = $this->db->queryPage($query, $pageStart, $pageSize);
         while ($dbRow = $this->db->fetch($result)) {
             foreach ($dbRow as $k => &$v) {
@@ -229,7 +237,7 @@ class Controller
             }
             unset($v);
             
-            $valueRow = array();
+            $valueRow = [];
             foreach ($values as $k => $v) {
                 $valueRow[$k] = $values[$k];
                 if (array_key_exists($k, $valuePatterns)) {
@@ -254,15 +262,22 @@ class Controller
                     }
                 }
             }
-            $resRow = array();
+            $resRow = [];
             foreach ($resTypes as $k => $v) {
                 if (array_key_exists($k, $dbTypes)) {
                     $resRow[$k] = $dbRow[$k];
                 } elseif (array_key_exists($k, $valueRow)) {
                     $resRow[$k] = $valueRow[$k];
+                } elseif (array_key_exists($k, $useList)) {
+                    $useListItem = &$useList[$k];
+                    $resRow[$k] = Lot::getItem(
+                        $dbRow[$useListItem['base']],
+                        $useListItem['list']
+                    );
+                    unset($useListItem);
                 }
             }
-            $dataKeys = array();
+            $dataKeys = [];
             foreach ($keyNames as $k) {
                 $dataKeys[] = $dbRow[$k];
             }
@@ -271,7 +286,7 @@ class Controller
         }
         $this->db->closeQuery($result);
         
-        $response = array();
+        $response = [];
         if (Config::debug()) {
             $response['debug'] = array(
                 'sql' => explode("\n", $query),
