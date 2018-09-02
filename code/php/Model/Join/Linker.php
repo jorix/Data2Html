@@ -161,7 +161,7 @@ class Linker
                 $lkItem = $this->obtainItemByLinkedTo($groupName, $tableAlias, $v);
                 $lkAlias = $lkItem['tableAlias'];
                 if (count($linkedTo) === 1) {
-                    if(!array_key_exists('value-patterns', $item)) { // Merge fields
+                    if (!array_key_exists('value-patterns', $item)) { // Merge fields
                         if (!array_key_exists('value', $item)) {
                             $tableAliasValue = $lkAlias;
                         }
@@ -171,6 +171,10 @@ class Linker
                         unset($item['base']);
                         self::applyAttibutes($lkItem, $item);
                         $item['tableAlias'] = $lkAlias;
+                        if (Lot::getItem('linkedWith-list', $v)) {
+                            $item['link-list'] =
+                                $this->tableSources[$lkAlias]['from-list'];
+                        }
                     } else { // linked with a virtual item
                         $this->makeVitualItem($groupName, $lkAlias, $v['base'], $lkItem);
                     }
@@ -346,7 +350,7 @@ class Linker
         $linkedTo = [];
         $baseItems = $this->sources[$tableAlias]['_base'];
         for ($i = 0; $i < count($matches[0]); $i++) {
-            if ($matches[1][$i] && $matches[2][$i]) {
+            if ($matches[1][$i]) {
                 $baseLink = $matches[1][$i];
                 $match = $matches[0][$i];
                 $linkedTo[$match] = [
@@ -403,7 +407,8 @@ class Linker
                 $toAlias = $this->addListItem($groupName, $fromAlias, $fromBaseLinkName);
             }
         }
-        return $this->getOriginItem($toAlias, $linkedToInfo['toBaseItemName']);
+        $item = $this->getOriginItem($toAlias, $linkedToInfo['toBaseItemName']);
+        return $item;
     }
     
     protected function getOriginItem($tableAlias, $baseName)
@@ -439,7 +444,6 @@ class Linker
         $this->tableCount++;
         
         $tableSource = [
-            'fromAlias' => $fromAlias,
             'from-final-db'=> null,
             'table' =>  $set->getTableName(),
             'keys' => null
@@ -462,6 +466,7 @@ class Linker
                     $tableSource
                 );
             }
+            
             $v['final-db'] = $refDb;
         }
         unset($v);
@@ -497,17 +502,18 @@ class Linker
     protected function addListItem($groupName, $fromAlias, $fromBaseLinkName) {
       //  $finalBaseName = $this->getRef($groupName, $fromAlias, $fromBaseLinkName);
         $toAlias = $this->getRefAlias($fromAlias, $fromBaseLinkName);
+        $isNew = false;
         if ($toAlias) {
             // Alias already exist e.g. by addTable
             $tableSource = &$this->tableSources[$toAlias];
             $source = &$this->sources[$toAlias];
         } else {
             // Create new alias
+            $isNew = true;
             $toAlias = 'T' . $this->tableCount;
             $this->tableCount++;
             
             $tableSource = [
-                'fromAlias' => $fromAlias,
                 'from-final-db'=> null,
                 'table' =>  null,
                 'keys' => null
@@ -524,19 +530,22 @@ class Linker
         // Add origin list as item
         $finalBaseName =
             $this->makeVitualItemByBase($groupName, $fromAlias, $fromBaseLinkName);
-        $listItem = [
-            'tableAlias' => $toAlias,
-            'type' => 'string',
-            'final-list' => $finalBaseName
-        ];
+        $tableSource['from-list'] = $finalBaseName;
         $origin = $this->items[$groupName][$finalBaseName];
-        if (array_key_exists('title', $origin)) {
-            $listItem['title'] = $origin['title'];
+        if ($isNew) {
+            $listItem = [
+                'tableAlias' => $toAlias,
+                'type' => 'string'
+            ];
+            if (array_key_exists('title', $origin)) {
+                $listItem['title'] = $origin['title'];
+            }
+            if (!array_key_exists('description', $origin)) {
+                $listItem['description'] = $origin['description'];
+            }
+            $source['_items']['[list]'] = $listItem;
         }
-        if (!array_key_exists('description', $origin)) {
-            $listItem['description'] = $origin['description'];
-        }
-        $source['_items']['[list]'] = $listItem;
+        
         return $toAlias;
     }
     

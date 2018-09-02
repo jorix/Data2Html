@@ -34,7 +34,7 @@ return [
             'required',
             'list' => $list
         ],
-        'role_desc' => ['base' => 'role[1]']
+        'role_desc' => ['base' => 'role[]']
     ],
     'grids' => [
         'main' => [

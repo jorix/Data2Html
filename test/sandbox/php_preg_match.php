@@ -20,8 +20,8 @@ $langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
 // test($matchTemplate_n, $matchTemplate_v);
 // test($langTemplate, $langTemplate_v);
 
-$pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
-$text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
+// $pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
+// $text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
 // test($pattern, $text);
 
 //test('/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z][\w\-]*)(|\s*\|\s*.*?)\}\"/i',' style="$${a-r}" stole = "$${b-s|f}" stule="$${c2-s | 5 f(rq5)+24}"');
@@ -41,9 +41,14 @@ $text = ' $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]} ';
     // $html
 // );
 
+// test(
+    // '/\$\$\{([a-z_][\w\-]*)\s*\=\s*(\w+)\w*\}/i',
+    // '  $${label-width = 034} '
+// );
+ 
 test(
-    '/\$\$\{([a-z_][\w\-]*)\s*\=\s*(\w+)\w*\}/i',
-    '  $${label-width = 034} '
+    '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i',
+    '  pecos[] '
 );
  
 function test($pattern, $value) {

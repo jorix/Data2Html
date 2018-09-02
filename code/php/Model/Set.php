@@ -35,7 +35,7 @@ abstract class Set
     private $linkName = '';
     
     // To parse
-    private static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w+)\s*\]/i';
+    private static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i';
         // fields as: link_name[field_name]
     private static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}

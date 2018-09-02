@@ -10,10 +10,14 @@ return [
             'string' => 100,
             'required'
         ],
-        'uf_id' => ['title' => 'UF', 'link' => 'aixada_ufs:list', 'required'],
+        'uf_id' => [
+            'title' => 'UF',
+            'link' => 'aixada_ufs:list',
+            'required'
+        ],
         'uf_name' =>  [
             'title' => 'UF',
-            'base'=>'uf_id[uf_name]'
+            'base' => 'uf_id[uf_name]'
         ],
         'name' => [
             'title' => 'Membre',
@@ -41,7 +45,11 @@ return [
     'grids' => [
         'list' => ['sort' => 'name', 'items' => ['name']],
         'main' => [
-            'items' => ['id', 'name', 'active' => ['sortBy' => null], 'uf_name', 'phones'],
+            'items' => [
+                'id', 'name', 
+                'active' => ['sortBy' => null],
+                'uf_name', 'phones'
+            ],
             'filter' => [
                 'items' => [
                     '%name', '=active', '=uf_id'

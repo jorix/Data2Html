@@ -216,7 +216,7 @@ class Controller
             if ($itemDx->getString('db')) {
                 $dbTypes[$k] = $type;
             }
-            $finalList = $itemDx->getString('final-list');
+            $finalList = $itemDx->getString('link-list');
             if ($finalList) {
                 $useList[$k] = [
                     'base' => $finalList,
@@ -268,12 +268,11 @@ class Controller
                     $resRow[$k] = $dbRow[$k];
                 } elseif (array_key_exists($k, $valueRow)) {
                     $resRow[$k] = $valueRow[$k];
-                } elseif (array_key_exists($k, $useList)) {
+                } 
+                if (array_key_exists($k, $useList) && !isset($resRow[$k])) {
                     $useListItem = &$useList[$k];
-                    $resRow[$k] = Lot::getItem(
-                        $dbRow[$useListItem['base']],
-                        $useListItem['list']
-                    );
+                    $val = $dbRow[$useListItem['base']];
+                    $resRow[$k] = Lot::getItem($val, $useListItem['list'], $val);
                     unset($useListItem);
                 }
             }
