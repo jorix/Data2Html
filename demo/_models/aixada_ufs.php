@@ -19,10 +19,12 @@ return [
         'active'    => ['boolean', 'required', 'default' => true],
         'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => ['link' => 'aixada_ufs:list'],
+        // link with values of not found in 'aixada_ufs:list'
+            'mentor_uf2' => ['base' => 'mentor_uf', 'list' => []], 
         'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
             'title' => 'UF mentora',
-            'base' => 'mentor_uf[uf_name]'
+            'base' => 'mentor_uf2[uf_name]'
         ],
     ],
     'beforeInsert' => function ($set, $db, &$values) {
@@ -48,7 +50,9 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    '%name', '=active', '=mentor_uf'
+                    '%name', '=active', '=mentor_uf' => [
+                        'list' => [-1 => '* is negative', 0 => '* is zero']
+                    ]
                 ]
             ]
         ]

@@ -144,6 +144,20 @@ class Content
         }
     }
     
+        
+    public function repeat($valueLlist)
+    {
+        foreach ($this->content as $k => &$v) {
+            switch ($k) {
+                case 'html':
+                case 'js':
+                    $v = self::repeatContent($v, $valueLlist);
+                    break;
+            }
+        }
+        unset($v);
+    }
+    
     public function get($key = null)
     {
         switch ($key) {
@@ -304,6 +318,10 @@ class Content
         return $content;
     }
     
+    /**
+     * Replace conditional, possible patterns are:  
+     *      $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]}
+     */
     private static function replaceConditional($replaces, $content)
     {
         $pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
@@ -328,6 +346,12 @@ class Content
         }
         return $content;
     }
+    
+    /**
+     * Extract values to &$values from a html text and return html without-it,
+     * pattern are as:  
+     *      $${value_name=value}
+     */
     private static function extractValues($html, &$values)
     {
         $pattern = '/\$\$\{([a-z_][\w\-]*)\s*\=\s*(\w+)\w*\}/i';
@@ -354,7 +378,43 @@ class Content
         }
         return [implode("\n", $script), $html];
     }
-       
+    
+ 
+    /**
+     * Repeat content replacing with name as $contentName to &$subContent from a content
+     * and return without-it, pattern are as:  
+     *      $${repeat[[<option value="${[keys]}">${0}</option>]]}
+     * Where ${[keys]} are replaced by keys of $valueList ans ${0} by item
+     */
+    private static function repeatContent($content, $valueList)
+    {
+        $pattern = '/\$\$\{repeat\[\[(.*?)\]\]}/i';
+        $matches = null;
+        $newSources = [];
+        preg_match_all($pattern, $content, $matches);
+        for ($i = 0, $count = count($matches[0]); $i < $count; $i++) {
+            // Replace al repeat
+            $subContent = $matches[1][$i];
+            $final = '';
+            if ($valueList) {
+                foreach ($valueList as $k => $v) {
+                    $final .= str_replace(
+                        ['${[keys]}', '${0}'],
+                        [$k, $v],
+                        $subContent
+                    );
+                }
+            }
+            $content = str_replace($matches[0][$i], $final, $content);
+        }
+        return $content;
+    }
+    
+    /**
+     * Add sources with name as $sorceName to &$sources from a content and return without-it,
+     * return without-it, pattern are as:  
+     *      $${source_name name} or $${source_name name1, neme2, ...}
+     */
     private static function extractSource($sourceName, $content, &$sources)
     {
         $pattern = '/\$\$\{' . $sourceName . '\s+([a-z][\w\-\s,]*?)}/i';
@@ -374,6 +434,7 @@ class Content
         }
         return $content;
     }
+    
     private static function getTemplateSource($sourceName, $template)
     {
         $response = [];

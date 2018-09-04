@@ -8,5 +8,6 @@ $${include d2h_server, d2h_messages}
     data-d2h="{url:'$${url}'}"
 >
 <option value="">( . . . )</option>
+$${repeat[[<option value="${[keys]}">${0}</option>]]}
 <option class="d2h_repeat" value="${[keys] | }">${0}</option>
 </select>

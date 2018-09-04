@@ -313,6 +313,7 @@ class Render
                 $tContents->getTemplate($contentTemplName),
                 $itemReplaces
             );
+            $itemBody->repeat($vDx->get('list'));
             $v = next($items);
         }
         // Finalize previous item
