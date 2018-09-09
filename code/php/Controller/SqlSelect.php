@@ -174,9 +174,22 @@ class SqlSelect
             ) {
                 continue;
             }
+            $dbCheckEnd = '';
             switch ($check) {
+                case 'LE':
+                    $dbCheck = '<=';
+                    break;
+                case 'GE':
+                    $dbCheck = '>=';
+                    break;
                 case 'EQ':
                     $dbCheck = '=';
+                    break;
+                case 'SK': // like start
+                    $dbCheck = 'like';
+                    if (strpos($v, '%') === false) {
+                        $v = $v . '%';
+                    }
                     break;
                 case 'LK': // like contains
                     $dbCheck = 'like';
@@ -184,11 +197,9 @@ class SqlSelect
                         $v = '%' . $v . '%';
                     }
                     break;
-                case 'SK': // like start
-                    $dbCheck = 'like';
-                    if (strpos($v, '%') === false) {
-                        $v = $v . '%';
-                    }
+                case 'IN':
+                    $dbCheck = 'in(';
+                    $dbCheckEnd = ')';
                     break;
                 default:
                 throw new DebugException("Check '{$check}' on '{$k}' not supported.",
@@ -199,7 +210,7 @@ class SqlSelect
                 );    
             }
             $r = $this->db->toSql($v, $type);
-            array_push($c, "{$refDb} {$dbCheck} {$r}");
+            array_push($c, "{$refDb} {$dbCheck} {$r} {$dbCheckEnd}");
         }
         return implode(' and ', $c);
     }

@@ -8,6 +8,7 @@ return [
         
         $type = $itemDx->getString('type');
         $link = $itemDx->getString('link');
+        $list = $itemDx->get('list');
         
         $visualWidth = $itemDx->get('size', [999])[0];
         $visualWidth = $itemDx->get('visual-size', $visualWidth);
@@ -19,12 +20,15 @@ return [
         } elseif ($link && !$content) {
             $visualWidth = 40;
             $content = 'select-input';
-            $url = $render->getControllerUrl() . "model={$link}&";
+            $url = $render->getControllerUrl() . "model={$link}";
+        } elseif ($list && !$content) {
+            $visualWidth = 40;
+            $content = 'select-input'; 
         } elseif ($leaves) {
             $visualWidth = 999;
             $layout = 'no_label';
             $content = 'edit-leaves';
-            $url = $render->getControllerUrl() . "model={$leaves}&";
+            $url = $render->getControllerUrl() . "model={$leaves}";
         } elseif ($type) {
             switch ($type) {
                 case 'boolean':

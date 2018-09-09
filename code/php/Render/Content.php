@@ -324,7 +324,7 @@ class Content
      */
     private static function replaceConditional($replaces, $content)
     {
-        $pattern = '/\$\$\{([a-z_][\w\-]*)\?\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
+        $pattern = '/\$\$\{([a-z_][\w\-]*)\s*\?\s*\[\[(.*?)\]\](|:\[\[(.*?)\]\])\}/i';
         $matches = null;
         preg_match_all($pattern, str_replace("\n", "{_n_}", $content), $matches);
         for($i = 0, $count = count($matches[0]); $i < $count; $i++) {
@@ -388,7 +388,7 @@ class Content
      */
     private static function repeatContent($content, $valueList)
     {
-        $pattern = '/\$\$\{repeat\[\[(.*?)\]\]}/i';
+        $pattern = '/\$\$\{repeat\s*\[\[(.*?)\]\]}/i';
         $matches = null;
         $newSources = [];
         preg_match_all($pattern, $content, $matches);

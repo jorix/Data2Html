@@ -5,9 +5,9 @@ $${include d2h_server, d2h_messages}
     id="$${id}"
     name="$${name}"
     data-d2h-from-id="$${from-id}"
-    data-d2h="{url:'$${url}'}"
+    $${url ? [[data-d2h="{url:'$${url}'}"]]}
 >
 <option value="">( . . . )</option>
-$${repeat[[<option value="${[keys]}">${0}</option>]]}
-<option class="d2h_repeat" value="${[keys] | }">${0}</option>
+$${repeat [[<option value="${[keys]}">${0}</option>]]}
+$${url ?  [[<option class="d2h_repeat" value="${[keys] | }">${0}</option>]]}
 </select>

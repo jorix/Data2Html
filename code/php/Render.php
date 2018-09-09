@@ -53,7 +53,7 @@ class Render
                 'debug-name' => "{$model->getModelName()}@grid={$gridName}",
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
-                    "model={$model->getModelName()}:{$gridName}&",
+                    "model={$model->getModelName()}:{$gridName}",
                 'sort' => $lkGrid->getAttributeUp('sort')
             ];
             // Page

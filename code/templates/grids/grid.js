@@ -19,14 +19,14 @@ d2h_server('#$${id}', {
             d2h_display.goFormAction(this, 'show-create');
         }
     },
-    $${filter?[[
+    $${filter ? [[
         filter:['#$${id-filter}', {
             actions: {
                 'read-page': function() {this.loadGrid();}
             }
         }],
     ]]}
-    $${page?[[
+    $${page ? [[
         page: ['#$${id-page}', {
             actions: {
                 'read-page': function() {this.loadGrid();},

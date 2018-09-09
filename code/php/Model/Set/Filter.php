@@ -6,11 +6,13 @@ class Filter extends \Data2Html\Model\Set
     protected $keywords = array('check' => 'string');
     
     protected $startToChk = array(
-        '<=' => 'EQ',
-        '>=' => 'EQ',
-        '=' => 'EQ',
+        '<=' => 'LE',
+        '>=' => 'GE',
+        '=' =>  'EQ',
         '_%' => 'SK',
-        '%' => 'LK'
+        '%' =>  'LK',
+        '[]' => 'IN',
+        '?' =>  'WR'
     );
     
     protected function beforeParseItem(&$key, &$field)

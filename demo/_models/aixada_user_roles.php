@@ -38,6 +38,7 @@ return [
     ],
     'grids' => [
         'main' => [
+            'filter' => ['items' => ['[]role']],
             'items' => ['user_login', 'role_desc']
         ]
     ]
