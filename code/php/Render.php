@@ -54,7 +54,7 @@ class Render
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}",
-                'sort' => $lkGrid->getAttributeUp('sort')
+                'sort' => $lkGrid->getSort()
             ];
             // Page
             

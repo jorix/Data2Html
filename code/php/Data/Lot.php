@@ -90,6 +90,7 @@ class Lot
         }
         return !!$val;
     }
+    
     public function getString($itemKey, $default = null)
     {
         $val = $this->get($itemKey, $default);

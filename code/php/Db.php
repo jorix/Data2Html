@@ -208,22 +208,7 @@ abstract class Db
         } else {
             $result = $row;
         }
-        switch ($type) {
-            case 'number':
-            case 'currency':
-                return Parse::number($result);
-            case 'integer':
-                return Parse::integer($result);
-            case 'boolean':
-                return Parse::boolean($result);
-            case 'string':
-                return Parse::string($result);
-            case 'date':
-            case 'datetime':
-                return Parse::date($result);
-            default:
-                throw new \Exception("`{$type}` is not defined.");
-        }
+        return Parse::value($result, $type);
     }
     
     public function executeArray($sqlArray)

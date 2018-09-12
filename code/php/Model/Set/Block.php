@@ -4,13 +4,13 @@ namespace Data2Html\Model\Set;
 class Block extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
-        'template' => 'attribute',
-        'beforeInsert' => 'attribute',
-        'afterInsert' => 'attribute',
-        'beforeUpdate' => 'attribute',
-        'afterUpdate' => 'attribute',
-        'beforeDelete' => 'attribute',
-        'afterDelete' => 'attribute'
+        'template' => 'string',
+        'beforeInsert' => 'function',
+        'afterInsert' => 'function',
+        'beforeUpdate' => 'function',
+        'afterUpdate' => 'function',
+        'beforeDelete' => 'function',
+        'afterDelete' => 'function'
     );
 
     protected $keywords = array(

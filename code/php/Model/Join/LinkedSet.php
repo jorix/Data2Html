@@ -55,14 +55,14 @@ class LinkedSet
         return $this->set->getSort();
     }
     
-    public function getAttributeUp($attributeKeys, $default = null)
+    public function getAttributeUp($attributeKeys, $default = null, $verifyName = true)
     {
-        return $this->set->getAttributeUp($attributeKeys, $default);
+        return $this->set->getAttributeUp($attributeKeys, $default, $verifyName);
     }
     
-    public function getAttribute($attributeKeys, $default = null)
+    public function getAttribute($attributeKeys, $default = null, $verifyName = true)
     {
-        return $this->set->getAttribute($attributeKeys, $default);
+        return $this->set->getAttribute($attributeKeys, $default, $verifyName);
     }
 
     // -----------------------

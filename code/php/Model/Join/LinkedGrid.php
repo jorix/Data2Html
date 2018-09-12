@@ -55,6 +55,11 @@ class LinkedGrid
         return $this->columns;
     }
 
+    public function getSort()
+    {
+        return $this->columns->getSort();
+    }
+
     public function getFilter()
     {
         return $this->filter;

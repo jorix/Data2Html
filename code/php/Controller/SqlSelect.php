@@ -24,6 +24,9 @@ class SqlSelect
         if ($this->result['select'] === '') {
             throw new \Exception("No data base fields defined.");
         }
+        if ($linkedSet->getAttribute('summary', null, false)) {
+            $this->result['group-by'] = $this->getGroupByItems($lkColumns);
+        }
         $this->result['from'] = $this->getFrom($linkedSet->getLinkedFrom());
     }
     
@@ -63,6 +66,9 @@ class SqlSelect
         if (isset($this->result['where']) && $this->result['where'] !== '') {
             $query .= "\n where {$this->result['where']}";
         }
+        if (isset($this->result['group-by']) && $this->result['group-by'] !== '') {
+            $query .= "\n group by {$this->result['group-by']}";
+        }
         if (isset($this->result['order_by']) && $this->result['order_by'] !== '') {
             $query .= "\n order by {$this->result['order_by']}";
         }
@@ -76,6 +82,19 @@ class SqlSelect
             $refDb = Lot::getItem('final-db', $v);
             if ($refDb) {
                 array_push($textFields,  $this->db->putAlias($k, $refDb));
+            }
+        }
+        return implode(', ', $textFields);
+    }
+
+        
+    protected function getGroupByItems($lkFields)
+    {
+        $textFields = array();
+        foreach ($lkFields as $k => $v) {
+            $refDb = Lot::getItem('final-db', $v);
+            if ($refDb) {
+                array_push($textFields,  $refDb);
             }
         }
         return implode(', ', $textFields);

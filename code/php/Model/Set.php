@@ -25,24 +25,20 @@ abstract class Set
     private $fNamePrefix = '';
     private $fNameCount = 0;
     
-    private $tableName = null;
     private $attributes = null;
     private $baseSet = null;
     private $keys = null;
-    
-    // Link
-    private $link = null;
-    private $linkName = '';
-    
+
     // To parse
     private static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i';
         // fields as: link_name[field_name]
     private static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     private $baseAttributeNames = [
-        'title' => 'attribute',
-        'options' => 'attribute',
-        'items' => 'items',
+        'title' => 'string',
+        'options' => 'array',
+        'items' => '[items]',
+        'keys' => '[string]',
     ];
     private $baseWordsAlias = [
         'autoKey' =>    ['type' => 'integer', 'size' => '$${}|9', 'key' => 'autoKey'],
@@ -153,12 +149,14 @@ abstract class Set
                 throw new DebugException("Attribute \"{$k}\" is not supported.", $defs);
             }
             switch ($attributeType) {
-                case 'attribute':
-                    $this->attributes[$k] = $v;
-                    break;
-                case 'items':
+                case '[items]':
                     $this->setItems = [];
                     $this->parseItems($v);
+                    break;
+                case false:
+                    break;
+                default:
+                    $this->attributes[$k] = Parse::value($v, $attributeType);
                     break;
             }
         }
@@ -209,32 +207,38 @@ abstract class Set
         return $this->baseSet;
     }
 
-    public function getAttributeUp($attributeKeys, $default = null)
+    public function getAttributeUp($attributeKeys, $default = null, $verifyName = true)
     {
-        $attr = $this->getAttribute($attributeKeys);
+        $attr = $this->getAttribute($attributeKeys, null, $verifyName);
         if ($attr === null) {
             if ($this->baseSet) {
-                $attr = $this->baseSet->getAttribute($attributeKeys, $default);
+                $attr = $this->baseSet->getAttribute($attributeKeys, $default, $verifyName);
             } else {
                 $attr = $default;
             }
         }
         return $attr;
     }
-    
-    public function getAttribute($attributeKeys, $default = null)
+
+    public function getAttribute($attributeKeys, $default = null, $verifyName = true)
     {
         if (is_array($attributeKeys)) {
             $attrName = $attributeKeys[0];
         } else {
             $attrName = $attributeKeys;
         }
-        if (!isset($this->attributeNames[$attrName])) {
-            throw new DebugException("Attribute \"{$attrName}\" is not supported.");
-        } elseif ($this->attributeNames[$attrName] === false) {
-            throw new DebugException(
-                "Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
-            );
+        if ($verifyName) {
+            if (!isset($this->attributeNames[$attrName])) {
+                throw new DebugException("Attribute \"{$attrName}\" is not supported.");
+            } elseif ($this->attributeNames[$attrName] === false) {
+                throw new DebugException(
+                    "Attribute \"{$attrName}\" is internal, can't be obtained by getAttribute()."
+                );
+            } elseif ($this->attributeNames[$attrName] === '[items]') {
+                throw new DebugException(
+                    "Attribute \"{$attrName}\" are items of set, can't be obtained by getAttribute()."
+                );
+            }
         }
         return Lot::getItem($attributeKeys, $this->attributes, $default);
     }
@@ -373,8 +377,13 @@ abstract class Set
             }
         }
         unset($v);
-        if (count($keys) === 0 && $this->baseSet) {
-            $keys = $this->baseSet->getKeys();
+        $keySelf = $this->getAttributeUp('keys');
+        if ($keySelf) {
+            $keys = $keySelf;
+        } else {
+            if (count($keys) === 0 && $this->baseSet) {
+                $keys = $this->baseSet->getKeys();
+            }
         }
         $this->keys = $keys;
     }

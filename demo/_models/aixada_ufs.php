@@ -2,7 +2,7 @@
 return [
     'table' => 'aixada_uf',
     'title' => 'Unitats familiars',
-    'sort' => 'name',
+    'sort' => 'uf_name',
     'items' => [
         'id'        => ['key', 'integer', 'default' => null],
         'name'      => [
@@ -36,6 +36,12 @@ return [
             'items' => ['uf_name'],
             'filter' => ['items' => ['=active']]
         ],
+        'mentors' => [
+          //  'sort' => 'mentor_name',
+            'summary' => true,
+            'items' => ['mentor_name', 'mentor_uf' => ['key']],
+            'filter' => ['items' => ['=active']],
+        ],
         'account' => [
             'items' => [
                 'value' => ['key', 'db' => '1000 + id'],
@@ -51,7 +57,8 @@ return [
             'filter' => [
                 'items' => [
                     '%name', '=active', '=mentor_uf' => [
-                        'list' => [-1 => '* is negative', 0 => '* is zero']
+                        'list' => [-1 => '* is negative', 0 => '* is zero'],
+                        'link' => 'aixada_ufs:mentors',
                     ]
                 ]
             ]

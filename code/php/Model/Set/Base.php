@@ -6,14 +6,14 @@ class Base extends \Data2Html\Model\Set
     protected $attributeNames = array(
         'grids' => false,
         'blocks' => false,
-        'table' => 'attribute',
-        'sort' => 'attribute',
-        'beforeInsert' => 'attribute',
-        'afterInsert' => 'attribute',
-        'beforeUpdate' => 'attribute',
-        'afterUpdate' => 'attribute',
-        'beforeDelete' => 'attribute',
-        'afterDelete' => 'attribute'
+        'table' => 'string',
+        'sort' => 'string',
+        'beforeInsert' => 'function',
+        'afterInsert' => 'function',
+        'beforeUpdate' => 'function',
+        'afterUpdate' => 'function',
+        'beforeDelete' => 'function',
+        'afterDelete' => 'function'
     );
     protected $keywords = array(
         'sortBy' => null

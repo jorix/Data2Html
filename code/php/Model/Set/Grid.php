@@ -4,10 +4,12 @@ namespace Data2Html\Model\Set;
 class Grid extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
-        'block-name' => 'attribute',
+        'block-name' => 'string',
         'filter' => false,
-        'sort' => 'attribute',
-        'template' => 'attribute',
+        'sort' => 'string',
+        'template' => 'string',
+        'summary' => 'boolean',
+        'keys' => '[string]',
     );
     
     protected $keywords = array(
@@ -30,6 +32,13 @@ class Grid extends \Data2Html\Model\Set
     }
     
     public function getSort() {
-        return $this->getAttributeUp('sort');
+        $sort = $this->getAttribute('sort');
+        if (!$sort) {
+            $sortUp = $this->getAttributeUp('sort');
+            if ($sortUp && array_key_exists($sortUp, $this->setItems)) {
+                $sort = $sortUp;
+            }
+        }
+        return $sort;
     }
 }
