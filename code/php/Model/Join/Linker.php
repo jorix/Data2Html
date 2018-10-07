@@ -445,6 +445,15 @@ class Linker
             if ($modelName) {
                 $model = Handler::getModel($modelName);
                 $grid = $model->getGridColumns($linkedToInfo['linkedWith-grid']);
+                if ($grid->getAttribute('summary')) {
+                    throw new DebugException(
+                        "Is not possible link with a summary grid",
+                        [
+                            $groupName, $fromAlias, $linkedToInfo,
+                            $modelName . ':' . $linkedToInfo['linkedWith-grid']
+                        ]
+                    );
+                }
                 $toAlias = $this->addTable($fromAlias, $fromBaseLinkName, $grid);
             }
             if (array_key_exists('linkedWith-list', $linkedToInfo)) {

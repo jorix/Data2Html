@@ -2,7 +2,7 @@
 return [
     'grid' => [
         'template' => 'grids/grid.html.php',
-        'startItems' => 'grids/edit-buttons.php',
+        'endItems' => 'grids/edit-buttons.php',
         'file' => 'grids/grid-elements.php'
     ],
     'filter' => '@ forms/filter/filter-auto.php',

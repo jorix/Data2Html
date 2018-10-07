@@ -18,13 +18,14 @@ return [
         ],
         'active'    => ['boolean', 'required', 'default' => true],
         'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
-        'mentor_uf' => ['link' => 'aixada_ufs:list'],
-        // link with values of not found in 'aixada_ufs:list'
-        'mentor_uf2' => ['base' => 'mentor_uf', 'list' => []], 
+        'mentor_uf' => [
+            'link' => 'aixada_ufs:list', 
+            'list' => [] // with values not found
+        ],
         'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
             'title' => 'UF mentora',
-            'base' => 'mentor_uf2[uf_name]',
+            'base' => 'mentor_uf[uf_name]',
             'sortBy' => ['mentor_uf[name]', 'mentor_uf']
         ],
     ],
@@ -38,7 +39,7 @@ return [
             'filter' => ['items' => ['=active']]
         ],
         'mentors' => [
-          //  'sort' => 'mentor_name',
+            'sort' => 'mentor_name',
             'summary' => true,
             'items' => ['mentor_name', 'mentor_uf' => ['key']],
             'filter' => ['items' => ['=active']],
@@ -57,10 +58,8 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    '%name', '=active', '=mentor_uf' => [
-                        'list' => [-1 => '* is negative', 0 => '* is zero'],
-                        'link' => 'aixada_ufs:mentors',
-                    ]
+                    '%name', '=active', 
+                    '=mentor_uf' => ['link' => 'aixada_ufs:mentors']
                 ]
             ]
         ]
