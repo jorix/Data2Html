@@ -14,17 +14,18 @@ return [
         'uf_name'   => [
             'title' => 'Nom UF',
             'value' => '$${name}#$${id}',
-            'sortBy' => 'name'
+            'sortBy' => ['name', 'id']
         ],
         'active'    => ['boolean', 'required', 'default' => true],
         'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => ['link' => 'aixada_ufs:list'],
         // link with values of not found in 'aixada_ufs:list'
-            'mentor_uf2' => ['base' => 'mentor_uf', 'list' => []], 
+        'mentor_uf2' => ['base' => 'mentor_uf', 'list' => []], 
         'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
             'title' => 'UF mentora',
-            'base' => 'mentor_uf2[uf_name]'
+            'base' => 'mentor_uf2[uf_name]',
+            'sortBy' => ['mentor_uf[name]', 'mentor_uf']
         ],
     ],
     'beforeInsert' => function ($set, $db, &$values) {

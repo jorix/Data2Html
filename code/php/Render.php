@@ -277,7 +277,7 @@ class Render
             $vDx->set($v);
             $itemLayoutName = null;
             $itemReplaces = null;
-            if ($vDx->getBoolean('virtual')) {
+            if ($vDx->getBoolean('_instrumental')) {
                 $v = next($items);
                 continue;
             }

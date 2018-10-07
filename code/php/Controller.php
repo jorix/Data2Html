@@ -210,7 +210,7 @@ class Controller
             $itemDx->set($v);
             $type = $itemDx->getString('type', 'string');
             $types[$k] = $type;
-            if (!$itemDx->getString('virtual')) {
+            if (!$itemDx->getBoolean('_instrumental')) {
                 $resTypes[$k] = $type;
             }
             if ($itemDx->getString('db')) {
@@ -248,7 +248,7 @@ class Controller
                             $value = $dbRow[$ref];
                         } elseif (array_key_exists($ref, $valueRow)) {
                             $value = $valueRow[$ref];
-                        } else {
+                        } elseif (!$itemDx->getBoolean('_virtual', false)) {
                             throw new DebugException("Reference \"{$ref}\" is neither db field nor value.", [
                                 'dbRow' => $dbRow,
                                 'valueRow' => $valueRow

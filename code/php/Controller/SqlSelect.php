@@ -80,7 +80,7 @@ class SqlSelect
         $textFields = array();
         foreach ($lkFields as $k => $v) {
             $refDb = Lot::getItem('final-db', $v);
-            if ($refDb) {
+            if ($refDb && !Lot::getItem('_virtual', $v, false)) {
                 array_push($textFields,  $this->db->putAlias($k, $refDb));
             }
         }
@@ -93,7 +93,7 @@ class SqlSelect
         $textFields = array();
         foreach ($lkFields as $k => $v) {
             $refDb = Lot::getItem('final-db', $v);
-            if ($refDb) {
+            if ($refDb && !Lot::getItem('_virtual', $v, false)) {
                 array_push($textFields,  $refDb);
             }
         }

@@ -656,7 +656,7 @@ abstract class Set
     {
         $visualItems = [];
         foreach ($lkItems as $k => $v) {
-            if (!Lot::getItem('virtual', $v)) {
+            if (!Lot::getItem('_instrumental', $v)) {
                 if (!is_int($k)) {
                     $item = [];
                     $visualItems[$k] = &$item;

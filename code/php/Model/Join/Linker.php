@@ -69,14 +69,15 @@ class Linker
                 $item['tableAlias'] = $tableAlias;
             } else {
                 // If is previous added as virtual remove it to link up in real position.
-                if(array_key_exists('virtual', $items[$refItem])) {
+                if(array_key_exists('_instrumental', $items[$refItem])) {
                     $item = $items[$refItem];
-                    unset($item['virtual']);
+                    unset($item['_instrumental']);
+                    unset($item['_virtual']);
                     unset($this->refItems[$groupName][$tableAlias][$this->getRefBase($item)]);
                     unset($items[$refItem]);
                 }
             }
-            $this->makeItem($groupName, $tableAlias,    $key, $item);
+            $this->makeItem($groupName, $tableAlias, $key, $item);
         }
         
         // Check default sort
@@ -112,23 +113,40 @@ class Linker
         return $baseName;
     }
     
-    protected function makeVitualItemByBase($groupName, $fromAlias, $baseName)
+    protected function makeInstrumentalItemByBase($groupName, $fromAlias, $baseName)
     {
         $finalBaseName = $this->getRef($groupName, $fromAlias, $baseName);
         if (!$finalBaseName) {
-            $finalBaseName = $this->makeVitualItem(
+            $finalBaseName = $this->makeInstrumentalItem(
                 $groupName, 
                 $fromAlias, 
                 $baseName,
                 $this->getOriginItem($fromAlias, $baseName)
             );
         }
+        $this->items[$groupName][$finalBaseName]['_virtual'] = false;
+        return $finalBaseName;
+    }
+       
+    protected function makeVirtualItemByBase($groupName, $fromAlias, $baseName)
+    {
+        $finalBaseName = $this->getRef($groupName, $fromAlias, $baseName);
+        if (!$finalBaseName) {
+            $finalBaseName = $this->makeInstrumentalItem(
+                $groupName, 
+                $fromAlias, 
+                $baseName,
+                $this->getOriginItem($fromAlias, $baseName)
+            );
+            $this->items[$groupName][$finalBaseName]['_virtual'] = true;
+        }
         return $finalBaseName;
     }
     
-    protected function makeVitualItem($groupName, $tableAlias, $base, $item) {
+    protected function makeInstrumentalItem($groupName, $tableAlias, $base, $item) {
         $newRef = $tableAlias . '_' . $base;
         if (array_key_exists($newRef, $this->items[$groupName])) {
+            $this->items[$groupName][$newRef]['_virtual'] = false;
             return $newRef;
         } elseif ($tableAlias === 'T0') {
             // remove prefix T0_ for virtual items on T0 if is new.
@@ -136,7 +154,8 @@ class Linker
                 $newRef = $base; 
             }
         }
-        $item['virtual'] = true;
+        $item['_instrumental'] = true;
+        $item['_virtual'] = false;
         return $this->makeItem($groupName, $tableAlias, $newRef, $item);
     }
         
@@ -176,10 +195,10 @@ class Linker
                                 $this->tableSources[$lkAlias]['from-list'];
                         }
                     } else { // linked with a virtual item
-                        $this->makeVitualItem($groupName, $lkAlias, $v['base'], $lkItem);
+                        $this->makeInstrumentalItem($groupName, $lkAlias, $v['base'], $lkItem);
                     }
                 } else {
-                    $this->makeVitualItem($groupName, $lkAlias, $v['base'], $lkItem);
+                    $this->makeInstrumentalItem($groupName, $lkAlias, $v['base'], $lkItem);
                 }
             }
             if (Config::debug()) {
@@ -203,17 +222,16 @@ class Linker
         ) {
             $item['description'] = $item['title'];
         }
-        
         if (array_key_exists('db', $item)) {
-            $tableAlias = $item['tableAlias'];
+            $tableAliasDb = $item['tableAlias'];
             $db = $item['db'];
             if (preg_match('/^\w+$/', $db)) { // is a name
-                $item['final-db'] = $tableAlias . '.' . $db;
+                $item['final-db'] = $tableAliasDb  . '.' . $db;
             } else {
                 $item['final-db'] = preg_replace_callback(
                     '/(\b[a-z]\w*\b\s*(?![\(]))/i', // TODO: funtionName + space + ( eg: '1000 + id + sin (e)'
-                    function ($matches) use ($tableAlias) {
-                        return $tableAlias . '.' . $matches[0];
+                    function ($matches) use ($tableAliasDb) {
+                        return $tableAliasDb . '.' . $matches[0];
                     },
                     $db
                 );
@@ -222,7 +240,7 @@ class Linker
                 }
             }
         }
-        
+                    
         if (array_key_exists('value', $item)) {
             // Parse patterns as: $${name} | $${link[name]}
             $matches = null;
@@ -253,21 +271,32 @@ class Linker
             foreach ($sortBy as $k => $v) {
                 $linkedToItem = $this->parseLinkedTo($v['base'], $tableAliasSortBy);
                 if (count($linkedToItem) > 0) {
-                    $linkedTo[$k] = $linkedToItem;
+                    $linkedTo += $linkedToItem;
                 }
             }
-            // do virtual for list bases
+            // Apply base
             $this->applyFinalBases(
                 $groupName,
                 $tableAliasSortBy,
                 $sortBy,
                 $linkedTo
             );
+            // Change key if it is a linkedTo
+            $fSortBy = [];
+            foreach ($sortBy as $k => $v) {
+                if (array_key_exists($v['base'], $linkedTo)) {
+                    $linkedToVal = $linkedTo[$v['base']];
+                    $fSortBy[$linkedToVal['final-base']] = $v;
+                } else {
+                    $fSortBy[$k] = $v;
+                }
+            }
+            $item['sortBy']['items'] = $fSortBy;
+
             if (Config::debug() && count($linkedTo) > 0) {
                 $item['sortBy']['debug-linkedTo'] = $linkedTo;
             }
         }
-
         return $newRef;
     }
       
@@ -276,18 +305,24 @@ class Linker
         // Do links
         foreach ($linkedTo as $k => &$v) {
             $lkItem = $this->obtainItemByLinkedTo($groupName, $tableAlias, $v);
-            $finalBaseName = $this->makeVitualItem(
+            $itemBase = self::getRefBase($lkItem);
+            if (!$itemBase || preg_match('/^\w$/', $itemBase)) {
+                throw new DebugException(
+                    "Internal error",
+                    [$groupName, $tableAlias, $k, $v, $itemBase, $lkItem]
+                );
+            }
+            $finalBaseName = $this->makeInstrumentalItem(
                 $groupName,
                 $lkItem['tableAlias'],
-                $v['base'],
+                $itemBase,
                 $lkItem
             );
             $v['final-base'] = $finalBaseName;
         }
         unset($v);
 
-
-            // Add virtual items used
+        // Add virtual items used
         $lk = $this->sources[$tableAlias];
         foreach ($bases as $k => &$v) {
             $baseName = $v['base'];
@@ -295,11 +330,11 @@ class Linker
             if (!$finalBaseName) {
                 // Final base is not added, then search item by baseName
                 if (array_key_exists($baseName, $lk['_items'])) {
-                    $finalBaseName = $this->makeVitualItem(
+                    $finalBaseName = $this->makeInstrumentalItem(
                         $groupName, $tableAlias, $baseName, $lk['_items'][$baseName]
                     );
                 } elseif (array_key_exists($baseName, $lk['_base'])) {
-                    $finalBaseName = $this->makeVitualItem(
+                    $finalBaseName = $this->makeInstrumentalItem(
                         $groupName, $tableAlias, $baseName, $lk['_base'][$baseName]
                     );
                 } else {
@@ -332,8 +367,11 @@ class Linker
                         $groupName => $this->items[$groupName]
                     ]
                 );
-            } elseif (array_key_exists('db', $fItem)) {
-                $v['final-db'] = $this->items[$groupName][$finalBaseName]['final-db'];
+            } elseif (isset($fItem['db'])) {
+                if (!isset($fItem['final-db'])) {
+                    throw new DebugException("Internal error", [$bases, $fItem, $v]);
+                }
+                $v['final-db'] = $fItem['final-db'];
             }
         }
         unset($v);
@@ -394,6 +432,12 @@ class Linker
     
     protected function obtainItemByLinkedTo($groupName, $fromAlias, $linkedToInfo)
     {
+        if (!isset($linkedToInfo['fromBaseLinkName'])) {
+            throw new DebugException(
+                "Internal error",
+                [$groupName, $fromAlias, $linkedToInfo]
+            );
+        }
         $fromBaseLinkName = $linkedToInfo['fromBaseLinkName'];
         $toAlias = $this->getRefAlias($fromAlias, $fromBaseLinkName);
         if (!$toAlias) {
@@ -458,7 +502,11 @@ class Linker
         // Apply final-db on keys
         $keys = $set->getKeys();
         foreach ($keys as $k => &$v) {
-            $finalName = $this->makeVitualItemByBase('main', $toAlias, $k);
+            if ($toAlias === 'T0') {
+                $finalName = $this->makeInstrumentalItemByBase('main', $toAlias, $k);
+            } else {
+                $finalName = $this->makeVirtualItemByBase('main', $toAlias, $k);
+            }
             $refDb = Lot::getItem(['main', $finalName, 'final-db'], $this->items);
             if (!$refDb) {
                 throw new DebugException(
@@ -466,7 +514,6 @@ class Linker
                     $tableSource
                 );
             }
-            
             $v['final-db'] = $refDb;
         }
         unset($v);
@@ -481,7 +528,7 @@ class Linker
             
             $finalBaseNames = [];
             foreach($baseLinkNames as $v) {
-                $finalBaseNames[] = $this->makeVitualItemByBase($groupName, $fromAlias, $v);
+                $finalBaseNames[] = $this->makeVirtualItemByBase($groupName, $fromAlias, $v);
             }
             
             // Get attributes from origin keys for link field
@@ -529,7 +576,7 @@ class Linker
         
         // Add origin list as item
         $finalBaseName =
-            $this->makeVitualItemByBase($groupName, $fromAlias, $fromBaseLinkName);
+            $this->makeInstrumentalItemByBase($groupName, $fromAlias, $fromBaseLinkName);
         $tableSource['from-list'] = $finalBaseName;
         $origin = $this->items[$groupName][$finalBaseName];
         if ($isNew) {
@@ -550,6 +597,12 @@ class Linker
     }
     
     protected static function applyAttibutes($fromItem, &$toItem, $except = null) {
+        $origin = ['sortBy', 'value', 'value-patterns', 'size'];
+        foreach($origin as $v) {
+            if (array_key_exists($v, $toItem)) {
+                unset($fromItem[$v]);
+            }
+        }
         if ($except) {
             foreach((array)$except as $v) {
                 unset($fromItem[$v]);
