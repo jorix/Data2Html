@@ -649,9 +649,14 @@ var d2h_server = (function ($) {
                         val;
                     if (iName === '[keys]') {
                         val = row['[keys]'];
+                        // for (var iii = 0, lll = val.length; iii < lll; iii++) {
+                            // if (val[iii] === null) {
+                                // val[iii] = '{null}';
+                            // }
+                        // }
                         if (replItem.repl.indexOf('|') > 0 && val.length === 1) {
                             // When pattern ${[keys] | } force scalar if is possible
-                            rowKeys = val[0];
+                            rowKeys = val[0]; // (val[0] === null ? '{null}' : val[0]);
                         } else {
                             rowKeys = JSON.stringify(val);
                         }
@@ -814,7 +819,7 @@ var d2h_server = (function ($) {
             return this;
         },
         'delete': function(options) {
-            var data = d2h_values.getData(this, this._visualData);
+            var data = d2h_values.getData(this);
             data['[keys]'] = JSON.parse($(this.objElem).data('d2h-keys'));
             this.server({
                 ajaxType: 'POST',	
@@ -845,38 +850,11 @@ var d2h_server = (function ($) {
             if (options) {
                 allElements = !options.onlyWithDefault;
             }
-            var tagName,
-                visualData = this._visualData;
-            for (tagName in visualData) {
-                var val = "",
-                    hasDefault = false,
-                    visualEle = visualData[tagName];
-                if (visualEle['default'] !== undefined) {
-                    hasDefault = true;
-                    val = visualEle['default'];
-                };
-                if (allElements || hasDefault) {
-                    try {
-                        d2h_values.put(
-                            this.$('[name=' + tagName + ']'), 
-                            val,
-                            visualEle.type
-                        );
-                    } catch(e) {}
-                }
-            }
-            $(this.objElem).data('d2h-keys', '');
+            d2h_values.putData(this, allElements);
             return this;
         },
         showFormData: function(row) {
-            var tagName,
-                visualData = this._visualData;
-            for (tagName in visualData) {
-                var val = row[tagName] !== undefined ? row[tagName] : "",
-                    visualEle = visualData[tagName];
-                d2h_values.put(this.$('[name=' + tagName + ']'), val, visualEle.type);
-            }
-            $(this.objElem).data('d2h-keys', JSON.stringify(row['[keys]']));
+            d2h_values.putData(this, row);
             return this;
         }
     });

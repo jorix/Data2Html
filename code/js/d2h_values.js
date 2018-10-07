@@ -10,6 +10,33 @@ var d2h_values = (function ($) {
             return _toValue($elem.val(), dataType);
         }
     };
+
+    _put = function($elem, val, dataType) {
+        var elemType = $elem.attr('type');
+        if (elemType && elemType === 'checkbox') {
+            return $elem.prop('checked', val);
+        } else {
+            return $elem.val(_toHtml(val, dataType));
+        }
+    };
+    
+    _toHtml = function(val, dataType) {
+        switch (dataType) {
+            case 'datetime':
+                if (val === null || val === '[now]') {
+                    return '';
+                }
+                return moment(val).format('L LT');
+            case 'date':
+                if (val === null || val === '[now]') {
+                    return '';
+                }
+                return moment(val).format('L');
+            default:
+                return val; //(val === null ? '{null}' : val);
+        }
+    };
+
     var _toValue = function(val, dataType) {
         if (val === undefined || val === null) {
             return null;
@@ -135,58 +162,49 @@ var d2h_values = (function ($) {
         }
         return response;
     };
-
-    var _validateData = function(inputData, visualData) {
-        var outputData = {},
-            errors = {};
-        if (visualData) {
-            var iName;
-            for (iName in inputData) {
-                if (iName === '[keys]') {
-                    outputData[iName] = inputData[iName];
-                } else {
-                    var valItem = _validateValue(inputData[iName], visualData[iName])
-                    outputData[iName] = valItem['value'];
-                    if (valItem['errors']) {
-                        errors[iName] = valItem['errors'];
-                    }
-                }
-            }
-        }
-        return {data: outputData, errors: errors};
-    };
-    
     
     // Public static methods
     return {
-        put: function($elem, val, dataType) {
-            var elemType = $elem.attr('type');
-            if (elemType && elemType === 'checkbox') {
-                return $elem.prop('checked', val);
+        toHtml: _toHtml,
+
+        putData: function(server, row) {
+            var tagName,
+                hasData = $.isPlainObject(row),
+                allElements = (!hasData && row === true),
+                visualData = server.getVisual();
+            if (hasData) {
+                $(server.getElem()).data('d2h-keys', JSON.stringify(row['[keys]']));
             } else {
-                return $elem.val(this.toHtml(val, dataType));
+                $(server.getElem()).data('d2h-keys', '');
             }
-        },
-        
-        toHtml: function(val, dataType) {
-            switch (dataType) {
-                case 'datetime':
-                    if (val === null || val === '[now]') {
-                        return '';
+            for (tagName in visualData) {
+                var visualEle = visualData[tagName];
+                if (hasData) {
+                    var val = row[tagName] !== undefined ? row[tagName] : "";
+                    _put(server.$('[name=' + tagName + ']'), val, visualEle.type);
+                } else {
+                    var val = "",
+                        hasDefault = false;
+                    if (visualEle['default'] !== undefined) {
+                        hasDefault = true;
+                        val = visualEle['default'];
+                    };
+                    if (allElements || hasDefault) {
+                        try {
+                            _put(
+                                server.$('[name=' + tagName + ']'), 
+                                val,
+                                visualEle.type
+                            );
+                        } catch(e) {}
                     }
-                    return moment(val).format('L LT');
-                case 'date':
-                    if (val === null || val === '[now]') {
-                        return '';
-                    }
-                    return moment(val).format('L');
-                default:
-                    return val;
+                }
             }
         },
         
         getData: function(server, visualData) {
-            var _data = {};
+            var _data = {},
+                visualData = server.getVisual();
             if (visualData) {
                 // Get inputs described in visualData
                 var iName;
@@ -213,19 +231,31 @@ var d2h_values = (function ($) {
         },
                 
         validateServer: function(server, bypass) {
+            var inputData = d2h_values.getData(server);
             if (bypass) {
-                return {data: d2h_values.getData(server, visual), errors: []};
+                return inputData;
             }
-            var visual = server.getVisual(),
-                data = d2h_values.getData(server, visual),
-                iName,
-                validation = _validateData(data, visual);
-            if (d2h_display.showErrors(server, validation.errors)){
+            var visualData = server.getVisual(),
+                outputData = {},
+                errors = {},
+                iName;
+            for (iName in inputData) {
+                if (iName === '[keys]') {
+                    outputData[iName] = inputData[iName];
+                } else {
+                    var valItem = _validateValue(inputData[iName], visualData[iName])
+                    outputData[iName] = valItem['value'];
+                    if (valItem['errors']) {
+                        errors[iName] = valItem['errors'];
+                    }
+                }
+            }
+            if (d2h_display.showErrors(server, errors)){
                 return false;
             } else {
-                return validation.data;
+                return outputData;
             }
         }
-        
+
     };
 })(jQuery);

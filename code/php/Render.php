@@ -45,12 +45,16 @@ class Render
     {
         try {
             $templateBranch = new Branch($templateName);
+            if (!$gridName) {
+                $gridName = 'main';
+            }
             $lkGrid = $model->getLinkedGrid($gridName);
             $gridId = $lkGrid->getId();
            
             $replaces = [
-                'title' => $lkGrid->getAttributeUp('title'),
                 'debug-name' => "{$model->getModelName()}@grid={$gridName}",
+                '_level' => -1,
+                'title' => $lkGrid->getAttributeUp('title'),
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
                     "model={$model->getModelName()}:{$gridName}",
@@ -64,7 +68,10 @@ class Render
                     $replaces['id-page'],
                     $templateBranch->getBranch('page', false),
                     null,
-                    []
+                    [
+                        'debug-name' => "{$model->getModelName()}@grid-page={$gridName}",
+                        '_level' => -1
+                    ]
                 );
             }
             
@@ -76,7 +83,11 @@ class Render
                     $replaces['id-filter'],
                     $templateBranch->getBranch('filter', false),
                     $lkFilter->getLinkedItems(),
-                    ['title' => $lkFilter->getAttributeUp('title')]
+                    [
+                        'debug-name' => "{$model->getModelName()}@grid-filter={$gridName}",
+                        '_level' => -1,
+                        'title' => $lkFilter->getAttributeUp('title')
+                    ]
                 );
             }
 
@@ -103,8 +114,9 @@ class Render
                 new Branch($templateName),
                 $lkForm->getLinkedItems(),
                 [
-                    'title' => $lkForm->getAttributeUp('title'),
                     'debug-name' => "{$model->getModelName()}@block={$formName}",
+                    '_level' => -1,
+                    'title' => $lkForm->getAttributeUp('title'),
                     'url' => $this->getControllerUrl() .
                          "model={$model->getModelName()}&block={$formName}&"
                 ],
@@ -292,10 +304,10 @@ class Render
                 $itemReplaces
             ) = $assignTemplate($this, $v);
             $itemReplaces = array_merge($iReplaces, $itemReplaces , [
-                '_level-0' => ($level === 0),
-                '_level' => $level,
-                'id' => 'd2h_item_' . ++self::$idRenderCount,
                 'debug-name' => key($items),
+                '_level' => $level,
+                '_level-0' => ($level === 0),
+                'id' => 'd2h_item_' . ++self::$idRenderCount,
                 'name' => key($items),
                 'title' => $vDx->getString('title'),
                 'description' => $vDx->getString('description'),

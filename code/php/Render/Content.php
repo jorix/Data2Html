@@ -192,7 +192,7 @@ class Content
             '/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}\"/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
-                if ($value) {
+                if ($value !== '') {
                     $posEq = strpos($matchItem, '=');
                     if (is_array($value)) {
                         $value = str_replace('"', "'", To::json($value));
