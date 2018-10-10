@@ -131,6 +131,15 @@ var d2h_server = (function ($) {
                 .filter('[data-d2h-from-id=' + this.objElem.id + ']');
         },
         
+        dataKeys: function(keys) {
+            if (arguments.length > 0) {
+                $(this.objElem).data('d2h-keys', JSON.stringify(keys));
+                return keys;
+            } else {
+                var sKeys = $(this.objElem).data('d2h-keys');
+                return (sKeys ? JSON.parse(sKeys) : '');
+            }
+        },
         on: function(eventName, handlerFn) {
             if (!this._events[eventName]) {
                 this._events[eventName] = 0;
@@ -599,95 +608,40 @@ var d2h_server = (function ($) {
             this.clearGrid();
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
-                lastItem = null;
+                $lastItem = null;
             if ($parentContainer.length === 0) {
                 $parentContainer = $(this.objElem);
             }
             if (this._repeatStart > 0) {
-                lastItem = $(
+                $lastItem = $(
                     $parentContainer.children()[this._repeatStart - 1]
                 );
             }
-            var patt = /\$\{(\[keys\]\s*\|?\s*|[\w\d]+|[\w\d]+\s*\|[\s\w\d,;:\(\)\.\|\-+'"]+)\}/g,
-                repl,
-                replaces = [];
-            while (repl = patt.exec(this._repeatHtml)) {
-                var formatIndex = repl[1].indexOf('|'),
-                    name,
-                    format = '';
-                if (formatIndex >= 0) {
-                    name = repl[1].substr(0, formatIndex -1).trim();
-                    format = repl[1].substr(formatIndex +1).trim();
-                } else {
-                    name = repl[1];
-                }
-                replaces.push({
-                    repl: repl[0],
-                    name: name,
-                    format: format
-                });
-            }
-            // loop rows           
+            
+            // repeat html
+            var repManager = new d2h_values.repeatHtml(this._repeatHtml, this._visualData);
             var _settings = this.settings,
                 rows = this._rows,
-                visualData = this._visualData,
-                selectedKeys = JSON.stringify(this.selectedKeys()),
-                cols = [];
-            for (var i = 0, l = rows.length; i < l; i++){
-                var html = this._repeatHtml,
-                    row = rows[i],
-                    xName,
-                    rowKeys = null;
-                if (i === 0) {
-                    for (xName in row) {
-                        cols.push(xName);
-                    }
-                }
-                for (var ii = 0, ll = replaces.length; ii < ll; ii++) {
-                    var replItem = replaces[ii],
-                        iName = replItem.name.replace(' ', ''),
-                        val;
-                    if (iName === '[keys]') {
-                        val = row['[keys]'];
-                        // for (var iii = 0, lll = val.length; iii < lll; iii++) {
-                            // if (val[iii] === null) {
-                                // val[iii] = '{null}';
-                            // }
-                        // }
-                        if (replItem.repl.indexOf('|') > 0 && val.length === 1) {
-                            // When pattern ${[keys] | } force scalar if is possible
-                            rowKeys = val[0]; // (val[0] === null ? '{null}' : val[0]);
-                        } else {
-                            rowKeys = JSON.stringify(val);
-                        }
-                        html = html.replace(replItem.repl, rowKeys);
-                    } else {
-                        var visualEle = visualData ? visualData[iName] : null,
-                            dataType =  visualEle ? visualEle.type : null;
-                        if ($.isNumeric(iName)) {
-                            val = row[cols[iName]];
-                        } else {
-                            val = row[iName];
-                        }
-                        html = html.replace(replItem.repl, d2h_values.toHtml(val, dataType));
-                    }
-                }
-                if (lastItem) {
-                    lastItem.after(html);
+                selectedKeys = JSON.stringify(this.selectedKeys());
+            for (var i = 0, l = rows.length; i < l; i++) {
+                var row = rows[i],
+                    rowKeys = JSON.stringify(row['[keys]']);
+                if ($lastItem) {
+                    $lastItem.after(repManager.apply(row));
                 } else {
-                    $parentContainer.prepend(html);
+                    $parentContainer.prepend(repManager.apply(row));
                 }
-                lastItem = $(
+                $lastItem = $(
                     this._selectorRepeat + ':last',
                     $parentContainer
                 );
                 if (_settings.actions) {
-                    this.listen(lastItem, _settings.actions);
+                    this.listen($lastItem, _settings.actions);
                 }
-                if (selectedKeys === rowKeys && this.settings.selectedClass) {
-                    lastItem.addClass(this.settings.selectedClass);
+                if (selectedKeys === rowKeys && _settings.selectedClass) {
+                    $lastItem.addClass(_settings.selectedClass);
                 }
-                _settings.afterShowGridRow.call(this, i, lastItem);
+                _settings.afterShowGridRow.call(this, i, $lastItem);
             }
             return this;
         }
