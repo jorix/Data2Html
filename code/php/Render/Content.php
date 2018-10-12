@@ -400,7 +400,10 @@ class Content
                 foreach ($valueList as $k => $v) {
                     $final .= str_replace(
                         ['${[keys]}', '${0}'],
-                        [$k, $v],
+                        [
+                            htmlspecialchars($k, ENT_SUBSTITUTE, 'UTF-8'),
+                            htmlspecialchars($v, ENT_SUBSTITUTE, 'UTF-8')
+                        ],
                         $subContent
                     );
                 }

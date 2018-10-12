@@ -131,15 +131,6 @@ var d2h_server = (function ($) {
                 .filter('[data-d2h-from-id=' + this.objElem.id + ']');
         },
         
-        dataKeys: function(keys) {
-            if (arguments.length > 0) {
-                $(this.objElem).data('d2h-keys', JSON.stringify(keys));
-                return keys;
-            } else {
-                var sKeys = $(this.objElem).data('d2h-keys');
-                return (sKeys ? JSON.parse(sKeys) : '');
-            }
-        },
         on: function(eventName, handlerFn) {
             if (!this._events[eventName]) {
                 this._events[eventName] = 0;
@@ -734,15 +725,26 @@ var d2h_server = (function ($) {
             });
             return this;
         },
+        
+        blockKeys: function(keys) {
+            if (arguments.length > 0) {
+                $(this.objElem).data('d2h-keys', JSON.stringify(keys));
+                return keys;
+            } else {
+                var sKeys = $(this.objElem).data('d2h-keys');
+                return (sKeys ? JSON.parse(sKeys) : '');
+            }
+        },
+        
         save: function(options) {
             var data = d2h_values.validateServer(this);
             if (data === false) {
                 return this;
             }
             var d2h_oper,
-                d2hKeys = $(this.objElem).data('d2h-keys');
+                d2hKeys = this.blockKeys();
             if (d2hKeys) {
-                data['[keys]'] = JSON.parse(d2hKeys);
+                data['[keys]'] = d2hKeys;
                 d2h_oper = 'update';
             } else {
                 d2h_oper = 'insert';
@@ -774,7 +776,7 @@ var d2h_server = (function ($) {
         },
         'delete': function(options) {
             var data = d2h_values.getData(this);
-            data['[keys]'] = JSON.parse($(this.objElem).data('d2h-keys'));
+            data['[keys]'] = this.blockKeys();
             this.server({
                 ajaxType: 'POST',	
                 data: {

@@ -2,25 +2,36 @@
 var d2h_values = (function ($) {
 
     // private methods
-    var _get = function($elem, dataType) {
+    var _getDataItem = function($elem, dataType) {
         var elemType = $elem.attr('type');
         if (elemType && elemType === 'checkbox') {
             return $elem.prop('checked') ? 1 : 0;
         } else {
-            return _toValue($elem.val(), dataType);
+            return _toData($elem.val(), dataType);
         }
     };
 
-    _put = function($elem, val, dataType) {
+    var _putDataItem = function($elem, val, dataType) {
         var elemType = $elem.attr('type');
         if (elemType && elemType === 'checkbox') {
             return $elem.prop('checked', val);
         } else {
-            return $elem.val(_toHtml(val, dataType));
+            return $elem.val(_toVal(val, dataType));
         }
     };
     
-    _toHtml = function(val, dataType) {
+    var _toHtml = function(val, dataType) {
+        if (val === null) {
+            return '&amp;{null}';
+        } else {
+            return ('' + _toVal(val, dataType))
+                .split('&').join('&amp;')
+                .split('"').join('&quot;')
+                .split("'").join('&#39;'); //(val === null ? '{null}' : val);
+        }
+    };
+
+    var _toVal = function(val, dataType) {
         switch (dataType) {
             case 'datetime':
                 if (val === null || val === '[now]') {
@@ -33,11 +44,12 @@ var d2h_values = (function ($) {
                 }
                 return moment(val).format('L');
             default:
-                return val; //(val === null ? '{null}' : val);
+                return val;
         }
     };
 
-    var _toValue = function(val, dataType) {
+    
+    var _toData = function(val, dataType) {
         if (val === undefined || val === null) {
             return null;
         } else if (typeof val !== 'string') {
@@ -165,8 +177,6 @@ var d2h_values = (function ($) {
     
     // Public static methods
     return {
-        toHtml: _toHtml,
-
         repeatHtml: function(html, visualData) {
             this.html = html;
             this.visualData = visualData;
@@ -215,7 +225,7 @@ var d2h_values = (function ($) {
                         } else {
                             rowKeys = JSON.stringify(val);
                         }
-                        html = html.replace(replItem.repl, rowKeys);
+                        html = html.replace(replItem.repl, _toHtml(rowKeys, 'string'));
                     } else {
                         var visualEle = visualData ? visualData[iName] : null,
                             dataType =  visualEle ? visualEle.type : null;
@@ -237,15 +247,15 @@ var d2h_values = (function ($) {
                 allElements = (!hasData && row === true),
                 visualData = server.getVisual();
             if (hasData) {
-                $(server.getElem()).data('d2h-keys', JSON.stringify(row['[keys]']));
+                server.blockKeys(row['[keys]']);
             } else {
-                $(server.getElem()).data('d2h-keys', '');
+                server.blockKeys('');
             }
             for (tagName in visualData) {
                 var visualEle = visualData[tagName];
                 if (hasData) {
                     var val = row[tagName] !== undefined ? row[tagName] : "";
-                    _put(server.$('[name=' + tagName + ']'), val, visualEle.type);
+                    _putDataItem(server.$('[name=' + tagName + ']'), val, visualEle.type);
                 } else {
                     var val = "",
                         hasDefault = false;
@@ -255,7 +265,7 @@ var d2h_values = (function ($) {
                     };
                     if (allElements || hasDefault) {
                         try {
-                            _put(
+                            _putDataItem(
                                 server.$('[name=' + tagName + ']'), 
                                 val,
                                 visualEle.type
@@ -274,7 +284,7 @@ var d2h_values = (function ($) {
                 var iName;
                 for (iName in visualData) {
                     var visualEle = visualData[iName];
-                    var val = _get(
+                    var val = _getDataItem(
                         server.$('[name=' + iName + ']'),
                         visualEle ? visualEle.type : null
                     );
@@ -285,7 +295,7 @@ var d2h_values = (function ($) {
             } else {
                 // Get all input with name
                 server.$('[name]').each(function() {
-                    var val = _get($(this), null);
+                    var val = _getDataItem($(this), null);
                     if (val !== undefined) {
                         _data[this.name] = val;
                     }
