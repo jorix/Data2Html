@@ -20,7 +20,7 @@ return [
         'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => [
             'link' => 'aixada_ufs:list', 
-            'list' => [] // with values not found
+            'list' => [2 => 'dewswi', 3 => 'trisdewswi'] // with values not found
         ],
         'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [

@@ -46,10 +46,17 @@ $langTemplate_v = 'all text __{tow-word},__{OneWord},__{casa/word}';
     // '  $${label-width = 034} '
 // );
  
+// test(
+    // '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i',
+    // '  pecos[] '
+// );
+ 
 test(
-    '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i',
-    '  pecos[] '
-);
+    '/(\$\$\{repeat\s*\[\[(.*?)\|(.*?)\]\]})|(\$\$\{repeat\s*\[\[(.*?)\]\]})/i',
+    '  $${repeat [[<option value="${[keys]}">${0}</option>]]} 
+      $${repeat [[<option value="${[keys]}">${0}</option>| <!-->]]} 
+    '
+); 
  
 function test($pattern, $value) {
     $matches = null;

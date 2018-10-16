@@ -24,6 +24,40 @@ return [
             <link  href="$${base}/external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
             <script src="$${base}/external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>'
     ],
+    'font-awesome' => [
+        'html' => '
+            <link href="$${base}/external/js/font-awesome_v4.2.0/css/font-awesome.min.css" rel="stylesheet">
+        '
+    ],
+    'selectivity' => [
+        'require' => ['jquery', 'bootstrap', 'font-awesome'],
+        'html' => '
+            <link  href="$${base}/external/js/selectivity-3.1.0/selectivity-jquery.css" rel="stylesheet">
+            <script src="$${base}/external/js/selectivity-3.1.0/selectivity-jquery.js" ></script>
+            <script>
+            var Selectivity_Locale = {
+                loading: "Loading...",
+                loadMore: "Load more...",
+                noResults: "No results found",
+                ajaxError: function(term) {
+                    if (term) {
+                        return "Failed to fetch results for <b>" + escape(term) + "</b>";
+                    } else {
+                        return "Failed to fetch results";
+                    }
+                },
+
+                needMoreCharacters: function(numCharacters) {
+                    return "Enter " + numCharacters + " more characters to search";
+                },
+
+                noResultsForTerm: function(term) {
+                    return "No results forzzzz <b>" + escape(term) + "</b>";
+                }
+            };
+            $.extend($.Selectivity.Locale, Selectivity_Locale);
+            </script>'
+    ],
     'd2h_server' => [
         'require' => ['jquery'],
         'include' => ['d2h_values', 'd2h_utils'],

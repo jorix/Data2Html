@@ -89,13 +89,13 @@ class Content
             }
             $this->content = [];
             if ($html) {
-                $html = self::renderHtml($html, $replaces);
+                $html = self::renderHtml($replaces, $html);
                 $values = [];
                 $html = self::extractValues($html, $values);
                 $this->content['html'] = $html;
             }
             if ($js) {
-                $js = self::renderJs($js, $replaces, false);
+                $js = self::renderJs($replaces, $js);
             }
             if ($js || $finalJs) {
                 $this->content['js'] = $js . $finalJs;
@@ -150,8 +150,10 @@ class Content
         foreach ($this->content as $k => &$v) {
             switch ($k) {
                 case 'html':
+                    $v = self::repeatContent('renderHtml', $v, $valueLlist);
+                    break;
                 case 'js':
-                    $v = self::repeatContent($v, $valueLlist);
+                    $v = self::repeatContent('renderJs', $v, $valueLlist);
                     break;
             }
         }
@@ -182,7 +184,7 @@ class Content
         return $dependencies->getSource($this, $replaces);
     }
     
-    private static function renderHtml($html, $replaces)
+    private static function renderHtml($replaces, $html)
     {
         // Conditional: $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]}
         $html = self::replaceConditional($replaces, $html);
@@ -227,7 +229,7 @@ class Content
         return $html;
     }
 
-    private static function renderJs($js, $replaces)
+    private static function renderJs($replaces, $js)
     {
         // Conditional: $${data-item?[[yes]]:[[no]]} or $${data-item?[[only-yes]]}
         $js = self::replaceConditional($replaces, $js);
@@ -386,29 +388,40 @@ class Content
      *      $${repeat[[<option value="${[keys]}">${0}</option>]]}
      * Where ${[keys]} are replaced by keys of $valueList ans ${0} by item
      */
-    private static function repeatContent($content, $valueList)
+    private static function repeatContent($render, $content, $valueList)
     {
-        $pattern = '/\$\$\{repeat\s*\[\[(.*?)\]\]}/i';
+        $pattern = '/(\$\$\{repeat\s*\[\[(.*?)\|(.*?)\]\]})|(\$\$\{repeat\s*\[\[(.*?)\]\]})/i';
         $matches = null;
         $newSources = [];
         preg_match_all($pattern, $content, $matches);
         for ($i = 0, $count = count($matches[0]); $i < $count; $i++) {
             // Replace al repeat
-            $subContent = $matches[1][$i];
-            $final = '';
+            if ($matches[2][$i]) {
+                $subContent = $matches[2][$i];
+                $glueContent = $matches[3][$i];
+            } else {
+                $subContent = $matches[5][$i];
+                $glueContent = '';
+            }
+            $subContent = str_replace(
+                ['${[keys]}', '${0}'],
+                ['$${keys_}', '$${text_}'],
+                $subContent
+            );
+            $final = [];
             if ($valueList) {
                 foreach ($valueList as $k => $v) {
-                    $final .= str_replace(
-                        ['${[keys]}', '${0}'],
-                        [
-                            htmlspecialchars($k, ENT_SUBSTITUTE, 'UTF-8'),
-                            htmlspecialchars($v, ENT_SUBSTITUTE, 'UTF-8')
-                        ],
+                    $final[] = self::$render(
+                        ['keys_' => $k, 'text_' => $v],
                         $subContent
                     );
                 }
             }
-            $content = str_replace($matches[0][$i], $final, $content);
+            $content = str_replace(
+                $matches[0][$i],
+                implode($glueContent, $final),
+                $content
+            );
         }
         return $content;
     }
