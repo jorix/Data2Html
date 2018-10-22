@@ -1,0 +1,46 @@
+{
+    "name": "crushedmix/data2html",
+    "description": "eoreou rur",
+    "license": ["MIT"],
+    
+    "prefer-stable": true,
+    "require": {
+        "php": "^5.4 || ^7.0",
+        
+        "oomphinc/composer-installers-extender": "^1.1",
+        
+        "npm-asset/jquery": "3.*",
+        "npm-asset/bootstrap": "4.*",
+        "npm-asset/font-awesome": "4.7.*",
+        "js/selectivity": "^3.1",
+        "npm-asset/popper.js": "^1.14",
+        "npm-asset/tempusdominus-bootstrap-4": "^5.1"
+    },
+    
+    "extra": {
+        "installer-types": ["bower-asset", "npm-asset"],
+        "installer-paths": {
+            "vendor/js/{$name}/": ["type:bower-asset", "type:npm-asset"]
+        }
+    },
+    
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        },
+        
+        {
+            "type": "package",
+            "package": {
+            "name": "js/selectivity",
+            "type": "component",
+                "version": "3.1.0",
+                "dist": {
+                    "url": "https://github.com/arendjr/selectivity/releases/download/3.1.0/selectivity-3.1.0.tar.gz",
+                    "type": "tar"
+                }
+            }
+        }
+    ]
+}

@@ -2,38 +2,39 @@
 return [
     'jquery' => [
         'html' => '
-            <script src="$${base}/external/js/jquery-2.1.0/jquery.js" ></script>
+            <script src="$${base}/vendor/js/jquery/dist/jquery.min.js" ></script>
             '
     ],
     'bootstrap' => [
         'require' => 'jquery',
         'html' => '
-            <script src="$${base}/external/js/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
-            <link  href="$${base}/external/js/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
+            <script src="$${base}/vendor/js/bootstrap/dist/js/bootstrap.min.js" ></script>
+            <link  href="$${base}/vendor/js/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
             '
         ],
     'moment' => [
         'html' => '
-            <script src="$${base}/external/js-date_time/moment-2.18.1/min/moment-with-locales.js" ></script>
-            <!-- script src="$${base}/external/js-date_time/moment-timezone-0.5.13/builds/moment-timezone-with-data.min.js" ></script -->
+            <script src="$${base}/vendor/js/moment/min/moment-with-locales.js" ></script>
             <script>moment.locale("$${lang}");</script>'
     ],
     'datetimepicker' => [
         'require' => ['moment', 'bootstrap'],
         'html' => '
-            <link  href="$${base}/external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
-            <script src="$${base}/external/js-date_time/eonasdan/bootstrap-datetimepicker-4.17.47/build/js/bootstrap-datetimepicker.min.js"></script>'
+            <link  href="$${base}/vendor/js/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet">
+            <script src="$${base}/vendor/js/tempusdominus-bootstrap-4/build/js/bootstrap-datetimepicker.min.js"></script>'
     ],
     'font-awesome' => [
         'html' => '
-            <link href="$${base}/external/js/font-awesome_v4.2.0/css/font-awesome.min.css" rel="stylesheet">
+            <link href="$${base}/vendor/js/font-awesome/css/font-awesome.min.css" rel="stylesheet">
         '
     ],
     'selectivity' => [
-        'require' => ['jquery', 'bootstrap', 'font-awesome'],
+        'require' => ['jquery', 'bootstrap', 'font-awesome', 'd2h_server'],
         'html' => '
-            <link  href="$${base}/external/js/selectivity-3.1.0/selectivity-jquery.css" rel="stylesheet">
-            <script src="$${base}/external/js/selectivity-3.1.0/selectivity-jquery.js" ></script>
+            <link  href="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
+            <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.js" ></script>
+            <link  href="$${base}/code/css/selectivityWrapper.css" rel="stylesheet">
+            <script src="$${base}/code/js/selectivityWrapper.js">
             <script>
             var Selectivity_Locale = {
                 loading: "Loading...",
@@ -81,8 +82,8 @@ return [
     'popper' => [
         'require' => 'bootstrap'    ,
         'html' => '
-            <link  href="$${base}/external/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
-            <script src="$${base}/external/js/popper.js-1.14.3/dist/umd/popper.js"></script>'
+            <link  href="$${base}/vendor/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
+            <script src="$${base}/vendor/js/popper.js-1.14.3/dist/umd/popper.js"></script>'
     ],
     'd2h_sort' => [
         'require' => 'jquery',

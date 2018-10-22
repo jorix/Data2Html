@@ -1,5 +1,5 @@
-_
-/code/external
+*.lock
+/vendor
 /examples/d2h_config_db.ini
 *.zip
 /nppp.xml

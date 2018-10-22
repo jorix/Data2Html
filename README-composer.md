@@ -1,0 +1,1 @@
+https://asset-packagist.org/
