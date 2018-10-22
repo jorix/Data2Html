@@ -1,0 +1,54 @@
+.selectivity-input {
+    width: 100%;
+}
+xxx.selectivity-placeholder {
+    min-height: 24px;
+    padding: -4px 0;
+}
+.selectivity-single-select {
+    min-height: 22px;
+    border-radius: 3px;
+    padding: 3px 5px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+}
+.selectivity-caret,
+.selectivity-single-result-container {
+    top: 6px;
+}
+input.selectivity-single-select-input {
+    box-sizing: content-box; 
+    height: 22px;
+    padding: 0;
+    border-width: 0;
+}
+
+.selectivity-multiple-input-container {
+    min-height: 18px;
+    border-radius: 3px;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+}
+.selectivity-multiple-selected-item {
+    background: #ddd;
+    color: #555;
+    margin: 1px 2px;
+    padding: 0 2px;
+    line-height: 26px;
+}
+
+.selectivity-single-selected-item-remove,
+.selectivity-multiple-selected-item-remove {
+    color: #888;
+    padding: 4px 5px;
+}
+.selectivity-multiple-result-container {
+    top: 6px;
+}
+input[type='text'].selectivity-multiple-input {
+    box-sizing: content-box; 
+    height: 22px;
+    padding: 3px 0;
+    border-width: 0;
+}

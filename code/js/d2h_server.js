@@ -59,6 +59,7 @@ var d2h_server = (function ($) {
         defaults: {
             url: '',
             ajaxType: 'GET',
+            singleRequest: false,
             auto: null
         },
         
@@ -256,23 +257,28 @@ var d2h_server = (function ($) {
                     d2h_utils.getElementPath(this.objElem)
                 );
             };
-            this.promise = $.when(this.getPromise(), $.ajax({
+            if (!_options) {
+                _options = {};
+            }
+            var ajaxOptions = {
                 dataType: "json",
                 type: _options.ajaxType,
-                url: _settings.url,
+                url: _options.url ? _options.url :  _settings.url,
                 data: _options.ajaxType === 'GET' ? _options.data : JSON.stringify(_options.data),
                 beforeSend: function(jqXHR, settings) {
                     var response = true
                         beforeArray = _options.before;
-                    for (var i = 0, l = beforeArray.length; i < l; i++) {
-                        var before = beforeArray[i];
-                        if (before) {
-                            if (typeof before === "string") {
-                                response = _this.trigger(before, [jqXHR, settings]);
-                            } else {
-                                response = before.apply(_this, [jqXHR, settings]);
+                    if (beforeArray) {
+                        for (var i = 0, l = beforeArray.length; i < l; i++) {
+                            var before = beforeArray[i];
+                            if (before) {
+                                if (typeof before === "string") {
+                                    response = _this.trigger(before, [jqXHR, settings]);
+                                } else {
+                                    response = before.apply(_this, [jqXHR, settings]);
+                                }
+                                if (response === false) { return false; }
                             }
-                            if (response === false) { return false; }
                         }
                     }
                     _wait.show();
@@ -298,15 +304,17 @@ var d2h_server = (function ($) {
                             return false;
                         }
                     }
-                    for (var i = 0, l = errorArray.length; i < l; i++) {
-                        var error_ = errorArray[i];
-                        if (error_) {
-                            if (typeof error_ === "string") {
-                                response = _this.trigger(error_, [errorMessage, jsonError]);
-                            } else {
-                                response = error_.apply(_this, [errorMessage, jsonError]);
+                    if (errorArray) {
+                        for (var i = 0, l = errorArray.length; i < l; i++) {
+                            var error_ = errorArray[i];
+                            if (error_) {
+                                if (typeof error_ === "string") {
+                                    response = _this.trigger(error_, [errorMessage, jsonError]);
+                                } else {
+                                    response = error_.apply(_this, [errorMessage, jsonError]);
+                                }
+                                if (response === false) { return false; }
                             }
-                            if (response === false) { return false; }
                         }
                     }
                     alert(errorMessage); // Notify the user since everything has failed
@@ -314,15 +322,17 @@ var d2h_server = (function ($) {
                 success: function(jsonData) {
                     var response = true
                         afterArray = _options.after;
-                    for (var i = 0, l = afterArray.length; i < l; i++) {
-                        var after = afterArray[i];
-                        if (after) {
-                            if (typeof after === "string") {
-                                response = _this.trigger(after, [jsonData]);
-                            } else {
-                                response = after.apply(_this, [jsonData]);
+                    if (afterArray) {
+                        for (var i = 0, l = afterArray.length; i < l; i++) {
+                            var after = afterArray[i];
+                            if (after) {
+                                if (typeof after === "string") {
+                                    response = _this.trigger(after, [jsonData]);
+                                } else {
+                                    response = after.apply(_this, [jsonData]);
+                                }
+                                if (response === false) { return false; }
                             }
-                            if (response === false) { return false; }
                         }
                     }
                 },
@@ -332,8 +342,15 @@ var d2h_server = (function ($) {
                         _options.complete.call(_this)
                     }
                 }
-            }));
-            return this;
+            };
+            if (_settings.singleRequest) {
+                var ajaxPromise = $.ajax(ajaxOptions);
+                this.promise = $.when(this.getPromise(), ajaxPromise);
+                return ajaxPromise;
+            } else {
+                this.promise = $.when(this.getPromise(), $.ajax(ajaxOptions));
+                return this.promise;
+            }
         }
     };
     
@@ -868,6 +885,9 @@ var d2h_server = (function ($) {
             return _response;
         }
     };
+    
+// Access to base class
+    d2h_server.server = dataHtml;
     
 // static
     d2h_server.whenCreated = function(elemSelector, callBack) {

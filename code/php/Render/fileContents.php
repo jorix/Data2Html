@@ -229,7 +229,7 @@ class FileContents
         $response = [];
         switch ($fileType) {
             case '.html':
-                $response['html'] = $filePath;
+                $response['@html'] = $filePath;
                 $jsFilePath = preg_replace(
                     ['/\.html$/i',  '/\.html\.php$/i'],
                     '.js',
@@ -241,7 +241,7 @@ class FileContents
                 }
                 break;
             case '.js':
-                $response['js'] = $filePath;
+                $response['@js'] = $filePath;
                 break;
             case '.php':
                 $response = $filePath;

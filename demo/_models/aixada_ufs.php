@@ -36,7 +36,7 @@ return [
     'grids' => [
         'list' => [
             'items' => ['uf_name'],
-            'filter' => ['items' => ['=active']]
+            'filter' => ['items' => ['%name', '=active']]
         ],
         'mentors' => [
             'sort' => 'mentor_name',

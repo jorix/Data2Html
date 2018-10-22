@@ -1,96 +1,19 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
+<?php
+    require_once '_start-dev.php';
+
+    $render = Data2Html\Handler::createRender();
+    $result = $render->render([], ['html' => '$${require selectivity}']);
+    $lang= 'ca';
+?>
 <html lang="ca">
 <head>
 	<meta charset="UTF-8">
 	<title>sBox-selectivity</title>
-   
-    <script src="../../external/js/jquery-2.1.0/jquery.js" ></script>
-    <link  href="../../external/js/bootstrap-3.3.6-dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../../external/js/bootstrap-3.3.6-dist/js/bootstrap.min.js" ></script>
-
-    <link  href="../../external/js/selectivity-3.1.0/selectivity-jquery.css" rel="stylesheet">
-    <link  href="../../external/js/font-awesome_v4.2.0/css/font-awesome.min.css" rel="stylesheet">
-    <script src="../../external/js/selectivity-3.1.0/selectivity-jquery.js" ></script>
-    <script>
-    // $.Selectivity.Locale.noResults =  'No results fouuuuund';
-    // $.Selectivity.Locale.noResultsForTerm = function(term) {
-        // return 'No resultttttts for <b>' + escape(term) + '</b>';
-    // };
-    var Selectivity_Locale = {
-        loading: 'Loading...',
-        loadMore: 'Load more...',
-        noResults: 'No results found',
-        ajaxError: function(term) {
-            if (term) {
-                return 'Failed to fetch results for <b>' + escape(term) + '</b>';
-            } else {
-                return 'Failed to fetch results';
-            }
-        },
-
-        needMoreCharacters: function(numCharacters) {
-            return 'Enter ' + numCharacters + ' more characters to search';
-        },
-
-        noResultsForTerm: function(term) {
-            return 'No results forzzzz <b>' + escape(term) + '</b>';
-        }
-    };
-    $.extend($.Selectivity.Locale, Selectivity_Locale);
     
-    </script>
-    <style>
-    .selectivity-input {
-        width: 100%;
-    }
-    .selectivity-single-select {
-        min-height: 20px;
-        border-radius: 3px;
-        padding: 6px 5px;
-        border: 1px solid #ccc;
-        background: #f9f9f9;
-    }
-    .selectivity-caret,
-    .selectivity-single-result-container {
-        top: 6px;
-    }
-    input.selectivity-single-select-input {
-        box-sizing: content-box; 
-        height: 20px;
-        padding: 0;
-        border-width: 0;
-    }
-    
-    .selectivity-multiple-input-container {
-        min-height: 18px;
-        border-radius: 3px;
-        padding: 2px 5px;
-        border: 1px solid #ccc;
-        background: #f9f9f9;
-    }
-    .selectivity-multiple-selected-item {
-        background: #ddd;
-        color: #555;
-        margin: 1px 2px;
-        padding: 0 2px;
-        line-height: 26px;
-    }
-    
-    .selectivity-single-selected-item-remove,
-    .selectivity-multiple-selected-item-remove {
-        color: #888;
-        padding: 4px 5px;
-    }
-    .selectivity-multiple-result-container {
-        top: 6px;
-    }
-    input[type='text'].selectivity-multiple-input {
-        box-sizing: content-box; 
-        height: 22px;
-        padding: 3px 0;
-        border-width: 0;
-    }
-    </style>
+    <script src="../../demo/lang.js.php?lang=<?=$lang?>"></script>
+    <?php echo $result->getSource(['base' => '../..', 'lang' => $lang]);?>
+
 </head>
 <body>
     <br>
@@ -215,6 +138,23 @@
                     }
                 }
             });
+            </script>
+        </div>
+		<div class="row"><hr>
+        d2h_Ajax:
+            <span id="to_example-7"></span><br>
+            <div id="example-7" class="selectivity-input"></div>
+            <script>
+            
+            var selW = new selectivityWrapper($('#example-7'), {
+                url: '/Aixada/Data2Html/demo/_controller/_controller.php?model=aixada_ufs:list',
+                filterName: 'name_lk',
+                textName: 'uf_name'
+            });
+            // var aaa = selW.server().then(function(data) {
+                // var b = data.rows;
+            // });
+            
             </script>
         </div>
 	</div>
