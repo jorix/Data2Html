@@ -237,7 +237,7 @@ class FileContents
                 );
                 $jsFilePath = self::loadContent($jsFilePath, false);
                 if ($jsFilePath) {
-                    $response['js'] = $jsFilePath;
+                    $response['@js'] = $jsFilePath;
                 }
                 break;
             case '.js':

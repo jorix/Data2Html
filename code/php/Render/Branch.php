@@ -35,6 +35,7 @@ class Branch
             );
         }
         $this->tree = $tree;
+        $this->keys = [];
     }
     
     public function __debugInfo()
@@ -53,7 +54,7 @@ class Branch
         $tree = Lot::getItem($keys, $this->tree);
         if ($tree) {
             $result = new self($tree); 
-            $result->keys = array_merge($this->keys, $keys);
+            $result->keys = array_merge($this->keys, (array)$keys);
         } else {
             if ($required) {
                 throw new DebugException(

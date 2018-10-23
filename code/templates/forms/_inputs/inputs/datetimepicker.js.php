@@ -1,7 +1,8 @@
 <?php die("It's uncooked!"); ?>
 $(function () {
-    var $dp = $('#$${id}_div').datetimepicker();
-    $('input', $dp).click(function() {
-        $dp.data('DateTimePicker').toggle();
+    $('#$${id}_div').datetimepicker();
+    $('#$${id}_div input').click(function() {
+        $(this).datetimepicker('toggle');
+        return false;
     });
 });

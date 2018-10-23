@@ -19,9 +19,10 @@ return [
     ],
     'datetimepicker' => [
         'require' => ['moment', 'bootstrap'],
+        'include' => ['font-awesome'],
         'html' => '
             <link  href="$${base}/vendor/js/tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet">
-            <script src="$${base}/vendor/js/tempusdominus-bootstrap-4/build/js/bootstrap-datetimepicker.min.js"></script>'
+            <script src="$${base}/vendor/js/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.min.js"></script>'
     ],
     'font-awesome' => [
         'html' => '
@@ -29,7 +30,8 @@ return [
         '
     ],
     'selectivity' => [
-        'require' => ['jquery', 'bootstrap', 'font-awesome', 'd2h_server'],
+        'require' => ['jquery', 'bootstrap', 'd2h_server'],
+        'include' => ['font-awesome'],
         'html' => '
             <link  href="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
             <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.js" ></script>
@@ -76,19 +78,18 @@ return [
         'require' => ['jquery', 'popper'],
         'include' => ['d2h_values', 'd2h_utils'],
         'html' => '
-            <link  href="$${base}/code/css/d2h_messages.css" rel="stylesheet">
+            <xxxlink  href="$${base}/code/css/d2h_messages.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_messages.js"></script>'
     ],
     'popper' => [
-        'require' => 'bootstrap'    ,
+        'require' => 'bootstrap',
         'html' => '
-            <link  href="$${base}/vendor/js/popper.js-1.14.3/docs/css/popper.css" rel="stylesheet">
-            <script src="$${base}/vendor/js/popper.js-1.14.3/dist/umd/popper.js"></script>'
+            <script src="$${base}/vendor/js/popper.js/dist/umd/popper.min.js"></script>'
     ],
     'd2h_sort' => [
         'require' => 'jquery',
         'html' => '
-            <link  href="$${base}/code/css/d2h_sort.css" rel="stylesheet">
+            <xxlink  href="$${base}/code/css/d2h_sort.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_sort.js"></script>'
     ],
     'd2h_values' => [
