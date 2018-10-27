@@ -1,7 +1,7 @@
 // Static
-var d2h_messages = (function ($) {
+var d2h_message = (function ($) {
     var _options = {
-        messageTime: 10000 
+        messageTime: 0 //10000 
     };
     
     function _getElement(elemSelector) {
@@ -12,28 +12,29 @@ var d2h_messages = (function ($) {
         }
     }
     
-    function _getInfoMessages(elemSelector) { 
+    function _getInfoMessage(elemSelector) { 
         var elem = _getElement(elemSelector),
-            response = $.data(elem, 'Data2Html_messages');
-            $(elem).addClass('d2h_has_messages')
+            response = $.data(elem, 'Data2Html_message');
+        $(elem).addClass('d2h_has_message')
         if (!response) {
             var fromId = $(elem).attr('data-d2h-from-id');
             if (fromId) {
                 var elemFrom = d2h_utils.getSingleElement('#' + fromId);
-                if (!$.data(elem, 'Data2Html_messages')) {
+                if (!$.data(elem, 'Data2Html_message')) {
                     _create(elemFrom);
-                    response = $.data(elem, 'Data2Html_messages');
+                    response = $.data(elem, 'Data2Html_message');
                 }
             } else {
-                response = _create(elem);
-                if (false && response) {
-                    $.error(
-                        "d2h_messages(_create()): Element " +
-                        d2h_utils.getElementPath(elem) +
-                        " is used without a 'data-d2h-messages' attribute!"
-                    );
-                }
+                _create($(elem).parent());
+                response = $.data(elem, 'Data2Html_message')
             }
+        }
+        if (!response) {
+            $.error(
+                "d2h_message(_create()): Element " +
+                d2h_utils.getElementPath(elem) +
+                " used without a 'data-d2h-message' attribute!"
+            );
         }
         return response;
     }
@@ -63,7 +64,7 @@ var d2h_messages = (function ($) {
                 $elemRef = $(selectorRef);
             } catch(e) {
                 $.error(
-                    "d2h_messages(_create()): Invalid jQuery selector \"" +
+                    "d2h_message(_create()): Invalid jQuery selector \"" +
                     selectorRef +
                     "\""
                 );
@@ -77,45 +78,44 @@ var d2h_messages = (function ($) {
             //      '#myId div' show messages refereed to first div on #myId and
             //      stores info messages on #myDiv
             var elemMessages = d2h_utils.getSingleElement(selectorRef.split(' ')[0]),
-                infoMessages = $.data(elemMessages, 'Data2Html_messages');
-            if (!infoMessages) {
-                infoMessages = {poppers: [], timers: []};
-                // Create the infoMessages object.
-                $.data(elemMessages, 'Data2Html_messages', infoMessages);   
+                infoMessage = $.data(elemMessages, 'Data2Html_message');
+            if (!infoMessage) {
+                infoMessage = {poppers: [], timers: []};
+                // Create the infoMessage object.
+                $.data(elemMessages, 'Data2Html_message', infoMessage);   
             }
             $(this).hide().html(
                     '<span></span>' +
-                    '<a href="#" class="close" aria-label="' + __('messages/close') + '">&times;</a>' +
-                    '<div class="popper__arrow" x-arrow></div>'
+                    '<a href="#" class="close" aria-label="' + __('message/close') + '">&times;</a>' +
+                    '<div class="d2h-message-arrow" x-arrow></div>'
                 )
-                .addClass('popper alert alert-dismissible');
+                .addClass('d2h-message');
             $('.close', this).on('click', function() {
                 _clear(elemMessages);
                 return false;
             });
             pos = pos ? pos : 'top-start';
-            infoMessages.poppers.push(
+            infoMessage.poppers.push(
                 new Popper(elemPopper, this, {
                     placement: pos,
                     boundariesElement: elemPopper.parentNode
                 })
             );
         });
-        return $.data(elemFrom, 'Data2Html_messages');
     }
     
     function _show(elemSelector, message, visualClass) {
-        var infoMessages = _getInfoMessages(elemSelector);
-        if (!infoMessages) {
+        var infoMessage = _getInfoMessage(elemSelector);
+        if (!infoMessage) {
             alert(message); // There is no element to show the message
         } else {
-            var _timers = infoMessages.timers;
+            var _timers = infoMessage.timers;
             // cancel previous timers
             while (_timers.length > 0) {
                 clearTimeout(_timers.pop());
             }
             // show all messages for a element
-            $.each(infoMessages.poppers, function() {
+            $.each(infoMessage.poppers, function() {
                 var $pElem = $(this.popper),
                     curClass = $pElem.attr('data-d2h-message-class');
                 $pElem
@@ -127,21 +127,23 @@ var d2h_messages = (function ($) {
                 }
                 this.update();
                 $pElem.show();
-                _timers.push(setTimeout(
-                    function() {
-                        $pElem.hide();
-                    },
-                    _options.messageTime
-                ));
+                if (_options.messageTime) {
+                    _timers.push(setTimeout(
+                        function() {
+                            $pElem.hide();
+                        },
+                        _options.messageTime
+                    ));
+                }
             });
         }
     }
     
     function _clear(elemSelector) {
-        var infoMessages = _getInfoMessages(elemSelector);
-        if (infoMessages) {
-            var timers = infoMessages.timers, 
-                poppers = infoMessages.poppers;
+        var infoMessage = _getInfoMessage(elemSelector);
+        if (infoMessage) {
+            var timers = infoMessage.timers, 
+                poppers = infoMessage.poppers;
             while (timers.length > 0) {
                 clearTimeout(timers.pop());
             }
@@ -159,19 +161,19 @@ var d2h_messages = (function ($) {
     
     return {
         success: function(elemSelector, message) {
-            _show(elemSelector, message, 'd2h-success');
+            _show(elemSelector, message, 'd2h-message-success');
         },
         warning: function(elemSelector, message) {
-            _show(elemSelector, message, 'd2h-warning');
+            _show(elemSelector, message, 'd2h-message-warning');
         },
         danger: function(elemSelector, message) {
-            _show(elemSelector, message, 'd2h-danger');
+            _show(elemSelector, message, 'd2h-message-danger');
         },
         info: function(elemSelector, message) {
-            _show(elemSelector, message, 'd2h-info');
+            _show(elemSelector, message, 'd2h-message-info');
         },
         clear: function(elemSelector) {
-            $('.d2h_has_messages', _getElement(elemSelector)).each(function() {
+            $('.d2h_has_message', _getElement(elemSelector)).each(function() {
                 _clear(this);
             });
         }

@@ -1,0 +1,111 @@
+/* Sizes */
+.d2h-message {opacity: 0.8;
+    border-radius: 3px;
+    border: solid;
+    border-width: 1px;
+    text-align: center;
+    padding: 3px;
+    width: 300px;
+    z-index: 1000;
+}
+.d2h-message .close {
+    padding: 3px;
+}
+.d2h-message .d2h-message-arrow{
+    width: 0;
+    height: 0;
+    border-style: solid;
+    position: absolute;
+    margin: 5px;
+}
+
+/* Placements */
+.d2h-message[x-placement^="top"] {
+    margin-bottom: 5px;
+}
+.d2h-message[x-placement^="top"] .d2h-message-arrow {
+    border-width: 5px 5px 0 5px;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    bottom: -5px;
+    left: calc(50% - 5px);
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.d2h-message[x-placement^="bottom"] {
+    margin-top: 5px;
+}
+.d2h-message[x-placement^="bottom"] .d2h-message-arrow {
+    border-width: 0 5px 5px 5px;
+    border-left-color: transparent;
+    border-right-color: transparent;
+    border-top-color: transparent;
+    top: -5px;
+    left: calc(50% - 5px);
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.d2h-message[x-placement^="right"] {
+    margin-left: 5px;
+}
+.d2h-message[x-placement^="right"] .d2h-message-arrow {
+    border-width: 5px 5px 5px 0;
+    border-left-color: transparent;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    left: -5px;
+    top: calc(50% - 5px);
+    margin-left: 0;
+    margin-right: 0;
+}
+.d2h-message[x-placement^="left"] {
+    margin-right: 5px;
+}
+.d2h-message[x-placement^="left"] .d2h-message-arrow {
+    border-width: 5px 0 5px 5px;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    right: -5px;
+    top: calc(50% - 5px);
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Colors */
+.d2h-message-success {
+    color: #3c763d;
+    background-color: #dff0d8;
+}
+.d2h-message-success,
+.d2h-message-success .d2h-message-arrow {
+    border-color: #aad4ab;
+}
+
+.d2h-message-warning {
+    color: #8a6d3b;
+    background-color: #fcf8e3;
+}
+.d2h-message-warning,
+.d2h-message-warning .d2h-message-arrow {
+    border-color: #d9c6a6;
+}
+
+.d2h-message-danger {
+    color: #a94442;
+    background-color: #f2dede;
+}
+.d2h-message-danger,
+.d2h-message-danger .d2h-message-arrow {
+    border-color: #dba4a3;
+}
+
+.d2h-message-info {
+    color: #31708f;
+    background-color: #d9edf7;
+}
+.d2h-message-info,
+.d2h-message-info .d2h-message-arrow {
+    border-color: #a0cade;
+}

@@ -1,4 +1,5 @@
 <?php die("It's uncooked!"); ?>
-<div class="checkbox">
-    <label>$${body} $${title}</label>
+<div class="custom-control custom-checkbox custom-control-inline">
+    $${body}
+    <label class="custom-control-label" for="$${id}">$${title}</label>
 </div>

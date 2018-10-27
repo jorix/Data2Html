@@ -18,8 +18,8 @@ return [
             'items' => [
                 [
                     'content-template' => 'button',
-                    'icon' => 'duplicate',
-                    'visualClassBody' => 'btn-default',
+                    'icon' => 'copy',
+                    'visualClassBody' => 'btn-outline-secondary',
                     'title' => '$Copy',
                     'description' => null,
                     'action' => 'show-copy'
@@ -27,7 +27,7 @@ return [
                 [
                     'content-template' => 'button',
                     'icon' => 'remove',
-                    'visualClassBody' => 'btn-danger',
+                    'visualClassBody' => 'btn-outline-danger',
                     'title' => '$Delete',
                     'description' => null,
                     'action' => 'show-delete'

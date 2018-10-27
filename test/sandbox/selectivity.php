@@ -6,10 +6,10 @@
     $result = $render->render([], ['html' => '$${require selectivity}']);
     $lang= 'ca';
 ?>
-<html lang="ca">
+<html lang="<?=$lang?>">
 <head>
 	<meta charset="UTF-8">
-	<title>sBox-selectivity</title>
+	<title>sBox: selectivity</title>
     
     <script src="../../demo/lang.js.php?lang=<?=$lang?>"></script>
     <?php echo $result->getSource(['base' => '../..', 'lang' => $lang]);?>

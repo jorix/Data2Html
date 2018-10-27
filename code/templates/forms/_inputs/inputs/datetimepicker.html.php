@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-$${include datetimepicker, d2h_server, d2h_messages}
+$${include datetimepicker, d2h_server, d2h_message}
 <span data-d2h-message="#$${id}"></span>
 <div class="input-group date" data-target-input="nearest" id="$${id}_div">
     <input type="text"

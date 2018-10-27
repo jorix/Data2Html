@@ -1,2 +1,2 @@
 <?php die("It's uncooked!"); ?>
-<div class="form-group"><label for="$${id}">$${title}</label>$${body}</div>
+<div class="form-group col-auto"><label for="$${id}">$${title}</label>$${body}</div>

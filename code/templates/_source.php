@@ -6,7 +6,7 @@ return [
             '
     ],
     'bootstrap' => [
-        'require' => 'jquery',
+        'require' => ['jquery', 'popper'],
         'html' => '
             <script src="$${base}/vendor/js/bootstrap/dist/js/bootstrap.min.js" ></script>
             <link  href="$${base}/vendor/js/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -28,6 +28,10 @@ return [
         'html' => '
             <link href="$${base}/vendor/js/font-awesome/css/font-awesome.min.css" rel="stylesheet">
         '
+    ],
+    'popper' => [
+        'html' => '
+            <script src="$${base}/vendor/js/popper.js/dist/umd/popper.min.js"></script>'
     ],
     'selectivity' => [
         'require' => ['jquery', 'bootstrap', 'd2h_server'],
@@ -74,17 +78,12 @@ return [
         'html' => '
             <script src="$${base}/code/js/d2h_display.js"></script>'
         ],
-    'd2h_messages' => [
-        'require' => ['jquery', 'popper'],
+    'd2h_message' => [
+        'require' => ['jquery', 'popper', 'bootstrap'],
         'include' => ['d2h_values', 'd2h_utils'],
         'html' => '
-            <xxxlink  href="$${base}/code/css/d2h_messages.css" rel="stylesheet">
-            <script src="$${base}/code/js/d2h_messages.js"></script>'
-    ],
-    'popper' => [
-        'require' => 'bootstrap',
-        'html' => '
-            <script src="$${base}/vendor/js/popper.js/dist/umd/popper.min.js"></script>'
+            <link  href="$${base}/code/css/d2h_message.css" rel="stylesheet">
+            <script src="$${base}/code/js/d2h_message.js"></script>'
     ],
     'd2h_sort' => [
         'require' => 'jquery',

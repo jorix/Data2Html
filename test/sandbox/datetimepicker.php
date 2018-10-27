@@ -6,10 +6,10 @@
     $result = $render->render([], ['html' => '$${require datetimepicker}']);
     $lang= 'ca';
 ?>
-<html lang="ca">
+<html lang="<?=$lang?>">
 <head>
 	<meta charset="UTF-8">
-	<title>date_time js checks</title>
+	<title>sBox: datetimepicker</title>
    
     <script src="../../demo/lang.js.php?lang=<?=$lang?>"></script>
     <?php echo $result->getSource(['base' => '../..', 'lang' => $lang]);?>

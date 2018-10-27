@@ -42,7 +42,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success d2h_dsp_update',
-                    'icon' => 'ok',
+                    'icon' => 'check',
                     'title' => '$Save',
                     'action' => 'save'
                 ],
@@ -50,7 +50,7 @@ return [
                     'layout-template' => 'bare',
                     'content-template' => 'button',
                     'visualClassBody' => 'btn-success d2h_dsp_insert',
-                    'icon' => 'ok',
+                    'icon' => 'check',
                     'title' => '$Create',
                     'action' => 'create'
                 ]

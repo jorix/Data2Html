@@ -270,14 +270,14 @@ var d2h_display = (function($) {
             case 'save': 
                 servElem.save({
                     errorSave: function(message) {
-                        d2h_messages.danger(servElem, __('display/save-error'));
+                        d2h_message.danger(servElem, __('display/save-error'));
                         return false;
                     },
                     afterSave: function(){
                         var gridServer = _displayObj.getServer('grid');
                         gridServer.loadGrid({
                             afterLoadGrid: function() {
-                                d2h_messages.success(
+                                d2h_message.success(
                                     _displayObj.show('grid'),
                                     __('display/saved')
                                 );
@@ -289,7 +289,7 @@ var d2h_display = (function($) {
             case 'create':
                 servElem.save({
                     errorSave: function(message) {
-                        d2h_messages.danger(servElem, __('display/create-error'));
+                        d2h_message.danger(servElem, __('display/create-error'));
                         return false;
                     },
                     afterSave: function(jsonData) {
@@ -301,7 +301,7 @@ var d2h_display = (function($) {
                             gridServer.loadGrid(); // To show new record in the grid
                             d2h_display.goFormAction(servElem, 'show-edit', keys, {
                                 after: function() {
-                                    d2h_messages.success(
+                                    d2h_message.success(
                                         servElem,
                                         __('display/created-leafs')
                                     );
@@ -310,7 +310,7 @@ var d2h_display = (function($) {
                         } else {
                             gridServer.loadGrid({
                                 afterLoadGrid: function() {
-                                    d2h_messages.success(
+                                    d2h_message.success(
                                         _displayObj.show('grid'),
                                         __('display/created')
                                     );
@@ -323,7 +323,7 @@ var d2h_display = (function($) {
             case 'delete':
                 servElem.delete({
                     errorDelete: function(message) {
-                        d2h_messages.danger(
+                        d2h_message.danger(
                             servElem,
                             __('display/delete-error')
                         );
@@ -333,7 +333,7 @@ var d2h_display = (function($) {
                         var gridServer = _displayObj.getServer('grid');
                         gridServer.loadGrid({
                             afterLoadGrid: function() {
-                                d2h_messages.warning(
+                                d2h_message.warning(
                                     _displayObj.show('grid'),
                                     __('display/deleted')
                                 );
@@ -343,7 +343,7 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-grid':
-                d2h_messages.clear(_displayObj.show('grid'));
+                d2h_message.clear(_displayObj.show('grid'));
                 break;
         }
     };
@@ -363,7 +363,7 @@ var d2h_display = (function($) {
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_dsp_delete,.d2h_dsp_insert', formElem).hide();
                         $('.d2h_dsp_update,.d2h_dsp_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('block'));
+                        d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -378,7 +378,7 @@ var d2h_display = (function($) {
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
                         $('.d2h_dsp_update,.d2h_dsp_insert', formElem).hide();
                         $('.d2h_dsp_delete,.d2h_dsp_move', formElem).show();
-                        d2h_messages.clear(_displayObj.show('block'));
+                        d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -393,7 +393,7 @@ var d2h_display = (function($) {
                         _trigger(formSelector, 'hideLeaves');
                         $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
                         $('.d2h_dsp_insert', formElem).show();
-                        d2h_messages.clear(_displayObj.show('block'));
+                        d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
                         }
@@ -405,7 +405,7 @@ var d2h_display = (function($) {
                 _trigger(formSelector, 'hideLeaves');
                 $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
                 $('.d2h_dsp_insert', formElem).show();
-                d2h_messages.clear(_displayObj.show('block'));
+                d2h_message.clear(_displayObj.show('block'));
                 if (_options.after) {
                     _options.after.call(this);
                 }
@@ -414,12 +414,12 @@ var d2h_display = (function($) {
     };
     
     d2h_display.showErrors = function(server, userErrors) {
-        d2h_messages.clear(server);
+        d2h_message.clear(server);
         if (Object.keys(userErrors).length > 0) {
             var iName;
             for (iName in userErrors) {
                 var $msg = $('[name=' + iName + ']', server.getElem());
-                d2h_messages.danger($msg, userErrors[iName].join('<br>'));
+                d2h_message.danger($msg, userErrors[iName].join('<br>'));
             }
             return true;
         } else {
