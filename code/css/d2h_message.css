@@ -4,12 +4,12 @@
     border: solid;
     border-width: 1px;
     text-align: center;
-    padding: 3px;
-    width: 300px;
+    padding: 3px 6px;
+    min-width: 50px;
     z-index: 1000;
 }
 .d2h-message .close {
-    padding: 3px;
+    padding: 0 3px 3px 3px;
 }
 .d2h-message .d2h-message-arrow{
     width: 0;
@@ -74,7 +74,8 @@
 }
 
 /* Colors */
-.d2h-message-success {
+.d2h-message-success,
+.d2h-message-success .close {
     color: #3c763d;
     background-color: #dff0d8;
 }
@@ -83,7 +84,8 @@
     border-color: #aad4ab;
 }
 
-.d2h-message-warning {
+.d2h-message-warning,
+.d2h-message-warning .close  {
     color: #8a6d3b;
     background-color: #fcf8e3;
 }
@@ -92,7 +94,8 @@
     border-color: #d9c6a6;
 }
 
-.d2h-message-danger {
+.d2h-message-danger,
+.d2h-message-danger .close  {
     color: #a94442;
     background-color: #f2dede;
 }
@@ -101,7 +104,8 @@
     border-color: #dba4a3;
 }
 
-.d2h-message-info {
+.d2h-message-info,
+.d2h-message-info .close  {
     color: #31708f;
     background-color: #d9edf7;
 }

@@ -67,6 +67,7 @@
         </div>
     </div>
     <script>
+        d2h_message.set({messageTime: 0}); // no auto clear
         d2h_message.success('#superBox1', 'Ok on sub div.sub');
         d2h_message.success('#box2', 'Two messages');
         d2h_message.warning('#box3', 'Colors of warning');

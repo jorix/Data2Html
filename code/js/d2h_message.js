@@ -1,7 +1,7 @@
 // Static
 var d2h_message = (function ($) {
     var _options = {
-        messageTime: 0 //10000 
+        messageTime: 10000 
     };
     
     function _getElement(elemSelector) {
@@ -176,6 +176,14 @@ var d2h_message = (function ($) {
             $('.d2h_has_message', _getElement(elemSelector)).each(function() {
                 _clear(this);
             });
+        },
+        set: function(options) {
+            if (options) {
+                var messageTime = parseInt(options.messageTime, 10);
+                if (!isNaN(messageTime)) {
+                    _options.messageTime = messageTime;
+                }
+            }
         }
     };
 })(jQuery);
