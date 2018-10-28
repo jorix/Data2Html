@@ -1,5 +1,5 @@
 <?php die("It's uncooked!"); ?>
-$${include selectivity, d2h_server, d2h_message}
+$${include selectivity-wrapper, d2h_message}
 <span data-d2h-message="#$${id}"></span>
 <div class="form-control selectivity-input"
     id="$${id}"

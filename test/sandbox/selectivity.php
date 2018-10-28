@@ -3,8 +3,26 @@
     require_once '_start-dev.php';
 
     $render = Data2Html\Handler::createRender();
-    $result = $render->render([], ['html' => '$${require selectivity}']);
+    $required = $render->render([], ['html' => '$${require selectivity-wrapper}']);
     $lang= 'ca';
+    
+    $template = ['html' =>
+        '<div class="form-group row">
+            <label for="$${example}" class="col-2  col-form-label">$${title}</label>
+            <div class="col-7">
+                <div id="$${example}" class="selectivity-input"></div>
+            </div>
+            <div class="col-3">
+                <input type="text" id="val-$${example}" class="form-control" placeholder="(result)" value="">
+            </div>
+            <script>
+            $("#$${example}").change(function () {
+                $("#val-$${example}").val(JSON.stringify($(this).selectivity("val")));
+            })
+            </script>
+        </div>
+        <hr>'
+    ];
 ?>
 <html lang="<?=$lang?>">
 <head>
@@ -12,152 +30,105 @@
 	<title>sBox: selectivity</title>
     
     <script src="../../demo/lang.js.php?lang=<?=$lang?>"></script>
-    <?php echo $result->getSource(['base' => '../..', 'lang' => $lang]);?>
+    <?php echo $required->getSource(['base' => '../..', 'lang' => $lang]);?>
 
 </head>
 <body>
     <br>
-    <div class="container section sec-1">
-        <div class="form-horizontal" >
-            <div class="form-group">
-                <label class="col-sm-2 control-label">$${title}</label>
-                <div class="col-sm-2">
-                    <input type="text" value="Abcd|"
-                        class="form-control">
-                </div>
-            </div>
-            <hr>
-                
-            <div class="form-group">
-                <label class="col-sm-2 control-label">static</label> 
-                <div class="col-sm-2">
-                    <div class="form-control-static">text</div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="col-sm-2 control-label">Single:
-                    <span id="to_example-1"></span>
-                </label>
-                <div class="col-sm-3">
-                    <div id="example-1" class="selectivity-input"></div>
-                </div>
-                <script>
-                $('#example-1').selectivity({
-                    allowClear: true,
+    <div class="row">
+        <div class="col-4 form-horizontal">
+            <?php 
+                echo $render->render(['example' => 'ex-1', 'title' => 'Single'], $template)->get();
+            ?>
+            <script>
+                $('#ex-1').selectivity({
                     items: [{id:'1', text:'Amsterdam'}, {id:2, text:'Antwerp'}/*, ...*/],
+                    allowClear: true,
                     placeholder: 'Selectec a city'
                 });
-                $('#example-1').change(function () {
-                    $('#to_example-1').text(
-                        JSON.stringify($(this).selectivity('val'))
-                    );
-                })
-                </script>
-            </div>
-            <hr>
-            <div class="form-group">
-                <label class="col-sm-2 control-label">Multiple:
-                    <span id="to_example-2"></span>
-                </label>
-                <div class="col-sm-2">
-                    <div id="example-2" class="selectivity-input"></div>
-                </div>
-                <script>
-                $('#example-2').selectivity({
-                    items: [{id:1, text:'Amsterdam'}, {id:2, text:'Antwerp'}/*, ...*/],
-                    multiple: true,
-                    placeholder: 'Type to search a city'
-                });
-                
-                $('#example-2').selectivity('val', [1, 2]);
-                $('#example-2').change(function () {
-                    $('#to_example-2').text(
-                        JSON.stringify($(this).selectivity('val'))
-                    );
-                })
-                </script>
-            </div>
-        </div>
-        
-		<div class="row"><hr>
-        Emails:
-            <span id="to_example-5"></span><br>
-            <div id="example-5" class="selectivity-input"></div>
-            <script>
-            $('#example-5').selectivity({
-                inputType: 'Email',
-                placeholder: 'Type or paste email addresses'
-            });
-            $('#example-5').change(function () {
-                $('#to_example-5').text(
-                    JSON.stringify($(this).selectivity('val'))
-                );
-            })
             </script>
-        </div>
-		<div class="row"><hr>
-        Ajax:
-            <span id="to_example-6"></span><br>
-            <div id="example-6" class="selectivity-input"></div>
-            <script>
-            $('#example-6').selectivity({
-                ajax: {
-                    url: 'https://api.github.com/search/repositories',
-                    minimumInputLength: 3,
-                    quietMillis: 250,
-                    params: function(term, offset) {
-                        // GitHub uses 1-based pages with 30 results, by default
-                        return { q: term, page: 1 + Math.floor(offset / 30) };
-                    },
-                    fetch: function(url, init, queryOptions) {
-                        return $.ajax(url).then(function(data) {
-                            return {
-                                results: $.map(data.items, function(item) {
-                                    return {
-                                        id: item.id,
-                                        text: item.name,
-                                        description: item.description
-                                    };
-                                }),
-                                more: (data.total_count > queryOptions.offset + data.items.length)
-                            };
-                        });
-                    }
-                },
-                placeholder: 'Search for a repository',
-                multiple: true,
-                templates: {
-                    resultItem: function(item) {
-                        return (
-                            '<div class="selectivity-result-item" data-item-id="' + item.id + '">' +
-                                '<b>' + escape(item.text) + '</b><br>' +
-                                item.description +
-                            '</div>'
-                        );
-                    }
-                }
-            });
-            </script>
-        </div>
-		<div class="row"><hr>
-        d2h_Ajax:
-            <span id="to_example-7"></span><br>
-            <div id="example-7" class="selectivity-input"></div>
-            <script>
-            
-            var selW = new selectivityWrapper($('#example-7'), {
-                url: '/Aixada/Data2Html/demo/_controller/_controller.php?model=aixada_ufs:list',
-                filterName: 'name_lk',
-                textName: 'uf_name'
-            });
-            // var aaa = selW.server().then(function(data) {
-                // var b = data.rows;
-            // });
-            
-            </script>
-        </div>
-	</div>
 
+            <?php 
+                echo $render->render(['example' => 'ex-2', 'title' => 'Multiple'], $template)->get();
+            ?>
+            <script>
+                $('#ex-2').selectivity({
+                    items: [{id:1, text:'Amsterdam'}, {id:2, text:'Antwerp'}/*, ...*/],
+                    allowClear: true,
+                    multiple: true,
+                    placeholder: 'Selectec a city'
+                });
+                $('#ex-2').selectivity('val', [1, 2]);
+            </script>
+            
+            <?php 
+                echo $render->render(['example' => 'ex-3', 'title' => 'emails'], $template)->get();
+            ?>
+            <script>
+                $('#ex-3').selectivity({
+                    inputType: 'Email',
+                    placeholder: 'Emails list'
+                });
+            </script>
+        
+            <?php 
+                echo $render->render(['example' => 'ex-4', 'title' => 'Ajax'], $template)->get();
+            ?>
+            <script>
+                $('#ex-4').selectivity({
+                    ajax: {
+                        url: 'https://api.github.com/search/repositories',
+                        minimumInputLength: 3,
+                        quietMillis: 250,
+                        params: function(term, offset) {
+                            // GitHub uses 1-based pages with 30 results, by default
+                            return { q: term, page: 1 + Math.floor(offset / 30) };
+                        },
+                        fetch: function(url, init, queryOptions) {
+                            return $.ajax(url).then(function(data) {
+                                return {
+                                    results: $.map(data.items, function(item) {
+                                        return {
+                                            id: item.id,
+                                            text: item.name,
+                                            description: item.description
+                                        };
+                                    }),
+                                    more: (data.total_count > queryOptions.offset + data.items.length)
+                                };
+                            });
+                        }
+                    },
+                    placeholder: 'Search for a repository',
+                    multiple: true,
+                    templates: {
+                        resultItem: function(item) {
+                            return (
+                                '<div class="selectivity-result-item" data-item-id="' + item.id + '">' +
+                                    '<b>' + escape(item.text) + '</b><br>' +
+                                    item.description +
+                                '</div>'
+                            );
+                        }
+                    }
+                });
+            </script>
+        </div>
+        <div class="col-4 form-horizontal">
+            <?php
+                echo $render
+                    ->render(['example' => 'exd-1', 'title' => 'd2h-Ajax'], $template)
+                    ->get('html');
+            ?>
+            <script>(function(){
+                new selectivityWrapper($('#exd-1'), {
+                    url: '/Aixada/Data2Html/demo/_controller/_controller.php?model=aixada_ufs:list',
+                    filterName: 'name_lk',
+                    textName: 'uf_name'
+                });
+            })();</script>
+            
+        </div>
+    </div>
 </body>
 </html>

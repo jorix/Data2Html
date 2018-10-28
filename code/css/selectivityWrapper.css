@@ -1,54 +1,31 @@
 .selectivity-input {
-    width: 100%;
-}
-xxx.selectivity-placeholder {
-    min-height: 24px;
-    padding: -4px 0;
-}
-.selectivity-single-select {
-    min-height: 22px;
-    border-radius: 3px;
-    padding: 3px 5px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-}
-.selectivity-caret,
-.selectivity-single-result-container {
-    top: 6px;
-}
-input.selectivity-single-select-input {
-    box-sizing: content-box; 
-    height: 22px;
-    padding: 0;
-    border-width: 0;
+  display: inline-block;
+  width: 100%;
+  min-height: calc(2.25rem + 2px);
+  padding: 0.375rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  xxxbackground-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
 .selectivity-multiple-input-container {
-    min-height: 18px;
-    border-radius: 3px;
-    padding: 2px 5px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
+    padding: 0;
+    min-height: 1.5rem;
+    background-color: transparent;
+    overflow: hidden;
+}
+input[type="text"].selectivity-multiple-input {
+    height: inherit;
 }
 .selectivity-multiple-selected-item {
     background: #ddd;
     color: #555;
     margin: 1px 2px;
     padding: 0 2px;
-    line-height: 26px;
-}
-
-.selectivity-single-selected-item-remove,
-.selectivity-multiple-selected-item-remove {
-    color: #888;
-    padding: 4px 5px;
-}
-.selectivity-multiple-result-container {
-    top: 6px;
-}
-input[type='text'].selectivity-multiple-input {
-    box-sizing: content-box; 
-    height: 22px;
-    padding: 3px 0;
-    border-width: 0;
+    line-height: 1.5;
 }

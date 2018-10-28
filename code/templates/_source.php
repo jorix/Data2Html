@@ -38,7 +38,12 @@ return [
         'include' => ['font-awesome'],
         'html' => '
             <link  href="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
-            <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.js" ></script>
+            <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.js" ></script>'
+    ],
+    'selectivity-wrapper' => [
+        'require' => ['selectivity', 'bootstrap'],
+        'include' => ['d2h_server'],
+        'html' => '
             <link  href="$${base}/code/css/selectivityWrapper.css" rel="stylesheet">
             <script src="$${base}/code/js/selectivityWrapper.js">
             <script>
@@ -88,7 +93,7 @@ return [
     'd2h_sort' => [
         'require' => 'jquery',
         'html' => '
-            <xxlink  href="$${base}/code/css/d2h_sort.css" rel="stylesheet">
+            <link  href="$${base}/code/css/d2h_sort.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_sort.js"></script>'
     ],
     'd2h_values' => [

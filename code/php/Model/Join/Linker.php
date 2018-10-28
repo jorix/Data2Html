@@ -596,7 +596,7 @@ class Linker
             if (array_key_exists('title', $origin)) {
                 $listItem['title'] = $origin['title'];
             }
-            if (!array_key_exists('description', $origin)) {
+            if (array_key_exists('description', $origin)) {
                 $listItem['description'] = $origin['description'];
             }
             $source['_items']['[list]'] = $listItem;
