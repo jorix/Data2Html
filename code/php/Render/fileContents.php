@@ -320,7 +320,7 @@ class FileContents
             $fileNameDebug = "config=>templateFolder[{$pathObj['conf-index']}]/\"{$filePath}\"";
             switch ($pathObj['extension']) {
             case '.html':
-                $content = InfoFile::readWrappedFile($fileName, get_called_class());
+                $content = InfoFile::readWrappedFile($fileName);
                 if (Config::debug()) {
                     $content = 
                         "\n<!-- debug-name=\"\$\${debug-name}\" level=\"\$\${_level}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[ -->\n" .
@@ -329,7 +329,7 @@ class FileContents
                 }
                 break;
             case '.js':
-                $content = InfoFile::readWrappedFile($fileName, get_called_class());
+                $content = InfoFile::readWrappedFile($fileName);
                 if (Config::debug()) {
                     $content = 
                         "\n// debug-name=\"\$\${debug-name}\" level=\"\$\${_level}\" id=\"\$\${id}\" - {$fileNameDebug} #\$\${_renderCount}# [[\n" .
@@ -338,10 +338,10 @@ class FileContents
                 }
                 break;
             case '.json':
-                $content = InfoFile::readJson($fileName, get_called_class());
+                $content = InfoFile::readJson($fileName);
                 break;
             case '.php':
-                $content = InfoFile::readPhp($fileName, get_called_class());
+                $content = InfoFile::readPhp($fileName);
                 break;
             default:
                 throw new \Exception("Extension \"{$pathObj['extension']}\" on definitions name \"{$fileName}\" is not supported.");

@@ -7,7 +7,7 @@
     modelFolder =       ../ax_models
     templateFolder[] =  ../../code/templates
     templateFolder[] =  ../custom/templates
-    templateSourceName = _source
+    templateSourceName = _require
     languages[ca] = ca,es,en
     languages[es] = es,en
 [db]

@@ -82,13 +82,20 @@ class Config
     private static function loadFile($file)
     {
         $config = null;
-        if (file_exists($file)) {
-            $config = parse_ini_file($file, true);
-        } elseif (file_exists($file . '.php')) {
-            $file .= '.php';
-            $config = parse_ini_file($file, true);
-        } else {
-            throw new \Exception("File \"{$file}\" does not exist");
+        $fileType = InfoFile::parseWrappedPath($file)['extension'];
+        switch ($fileType) {
+            case '.json':
+                $config = InfoFile::readJson($file);
+                break;
+            case '.php':
+                $config = InfoFile::readPhp($file);
+                break;
+            case '.ini':
+                $config = InfoFile::readIni($file);
+                break;
+            default:
+                throw new \Exception("File type \"{$fileType}\" is not supported (file: \"{$file}\" )");
+                break;
         }
         if ($config) {
             static::$config = array_replace_recursive(static::$config, $config);

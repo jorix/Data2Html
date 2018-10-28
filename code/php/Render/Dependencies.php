@@ -16,7 +16,7 @@ class Dependencies
     
     public function __construct()
     {
-        $this->templateSource = new Branch(Config::get('templateSourceName'));
+        $this->templateSource = new Branch(Config::get('template-require'));
     }
     
     public function getSource(Content $sources, $replaces = [])
@@ -65,7 +65,7 @@ class Dependencies
             $item = $this->templateSource->getItem($name);
             if (!$item) {
                 throw new DebugException(
-                    "Source name \"{$name}\" not exist on configured 'templateSourceName'."
+                    "Source name \"{$name}\" not exist on configured 'template-require'."
                 );
             }
             if (array_key_exists('require', $item)) {

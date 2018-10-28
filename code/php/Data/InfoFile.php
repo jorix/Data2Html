@@ -35,11 +35,17 @@ class InfoFile
         }
     }
     
+    public static function readIni($fileName)
+    {
+        $content = self::readWrappedFile($fileName);
+        if ($content === null) {
+            throw new \Exception("Error parsing ini file: \"{$fileName}\"");
+        }
+        return parse_ini_string($content, true);
+    }
+    
     public static function readJson($fileName)
     {
-        if (!file_exists($fileName)) {
-            throw new \Exception("File \"{$fileName}\" does not exist.");
-        }
         $content = self::readWrappedFile($fileName);
         if ($content === null) {
             throw new \Exception("Error parsing json file: \"{$fileName}\"");
@@ -62,7 +68,15 @@ class InfoFile
     public static function readWrappedFile($fileName)
     {
         if (!file_exists($fileName)) {
-            throw new \Exception("File \"{$fileName}\" does not exist.");
+            if (self::parseWrappedPath($fileName)['wrap'] === '') {
+                $fileNameWrap = $fileName . '.php';
+                if (!file_exists($fileName)) {
+                    throw new \Exception("File \"{$fileName}\" and  \"{$fileNameWrap}\" does not exist.");
+                }
+                $fileName = $fileNameWrap;
+            } else {
+                throw new \Exception("File \"{$fileName}\" does not exist.");
+            }
         }        
         $content = file_get_contents($fileName);
         $pathObj = self::parseWrappedPath($fileName);
@@ -95,7 +109,7 @@ class InfoFile
             $pathObj2 = self::parseWrappedPath(
                 $pathObj['dirname'] . $pathObj['filename']
             );
-            if ($pathObj2['extension'] && strpos('.html.js.json', $pathObj2['extension']) !== false) {
+            if ($pathObj2['extension'] && strpos('.html.js.json.ini', $pathObj2['extension']) !== false) {
                 $pathObj2['wrap'] = $pathObj['extension'];
                 $pathObj = $pathObj2;
             }
