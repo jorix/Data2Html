@@ -1,6 +1,6 @@
 <?php die("It's uncooked!"); ?>
-$${include d2h_server}
-<button class="btn $${visualClassBody}"
+$${include font-awesome}
+<button class="btn btn-sm $${visualClassBody}"
     title="$${title}"
     aria-label="$${title}"
     data-d2h-on="click:$${action}"

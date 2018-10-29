@@ -9,8 +9,8 @@
     PRIMARY KEY (emp_no)
 */
 $gender = [
-    'M' => 'Man',
-    'F' => 'Female'
+    'M' => '_{Man}',
+    'F' => '_{Female}'
 ];
 return [
     'table' => 'employees',

@@ -59,7 +59,7 @@ var d2h_server = (function ($) {
         defaults: {
             url: '',
             ajaxType: 'GET',
-            singleRequest: false,
+            singleRequest: false, // If is single request is immediate load and return a $.ajax
             auto: null
         },
         
@@ -108,6 +108,23 @@ var d2h_server = (function ($) {
                     this.on(evName, settings[evName]);
                 }
             }
+        },
+        
+        _initEnd: function(promises) {
+            // aditional calls
+            this.whenPromise(promises, function() {
+                // Issue of default value of a select:
+                //  * clearGrid after filter promises are done
+                this.clear();
+                
+                // Auto call
+                var autoCall = this.settings.auto;
+                if (autoCall) {
+                    this[autoCall].call(this, this.settings);
+                }
+            });
+            
+            this.trigger('created');  
         },
         
         set: function(options) {
@@ -244,6 +261,10 @@ var d2h_server = (function ($) {
                 this._rows = rows;
             }
             return this;
+        },
+        
+        clear: function() {
+            
         },
         
         server: function(_options) {
@@ -459,20 +480,7 @@ var d2h_server = (function ($) {
                 }
             }
             
-            // aditional calls
-            this.whenPromise(promises, function() {
-                // Issue of default value of a select:
-                //  * clearGrid after filter promises are done
-                this.clearGrid();
-                
-                // Auto call
-                var autoCall = this.settings.auto;
-                if (autoCall) {
-                    this[autoCall].call(this, this.settings);
-                }
-            });
-            
-            this.trigger('created');
+            this._initEnd(promises);
         },
         
         _initComponent: function(compomentName, selector) {
@@ -576,6 +584,9 @@ var d2h_server = (function ($) {
         },
 
         // Manage grid HTML
+        clear: function() {
+            this.clearGrid();
+        },
         clearGrid: function() {
             var $parentContainer = $(this._selectorRepeatParent, this.objElem);
             if ($parentContainer.length === 0) {
@@ -691,7 +702,7 @@ var d2h_server = (function ($) {
             });
                    
             // clearForm
-            var promises = null,
+            var _promises = null,
                 $subElements = $('[data-d2h]', this.objElem);
             if ($subElements.length > 0) {
                 _promises = [];
@@ -699,13 +710,8 @@ var d2h_server = (function ($) {
                     _promises.push(d2h_server(this).getPromise());
                 });
             }
-            this.whenPromise(promises, function() {
-                // Issue of default value of a select:
-                //  - clearForm after sub element promises are done.
-                this.clearForm();
-            });
             
-            this.trigger('created');
+            this._initEnd(_promises);
         },
         
         loadBlock: function(options) {
@@ -817,6 +823,10 @@ var d2h_server = (function ($) {
                 }
             });
             return this;
+        },
+        
+        clear: function() {
+            this.clearForm();
         },
         clearForm: function(options) {
             var allElements = true;

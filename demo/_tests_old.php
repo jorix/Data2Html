@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <?php
-    require_once("../code/php/Autoload.php");
-    Data2Html_Autoload::start(__DIR__, '_config/d2h_config.ini');
+    require_once '_start.php';
+    $lang= 'ca';
 ?>
-<html lang="ca">
+<html lang="<?=$lang?>">
 <head>
 	<meta charset="UTF-8">
 	<title>title</title>
@@ -11,7 +11,7 @@
 </head>
 <body>
     <?php 
-        $lang = new Data2Html_Lang('ca');
+        $lang = new Data2Html_Lang($lang);
         $lang->load('templates', Data2Html_Config::getForlder('templateFolder'));
         $lang->dump();
         echo $lang->_('lastor') . '<hr>';

@@ -122,9 +122,19 @@
             ?>
             <script>(function(){
                 new selectivityWrapper($('#exd-1'), {
-                    url: '/Aixada/Data2Html/demo/_controller/_controller.php?model=aixada_ufs:list',
-                    filterName: 'name_lk',
-                    textName: 'uf_name'
+                    url: '../../demo/_controller/_controller.php?model=empl_employees:list',
+                    filterName: 'last_name_lk'
+                });
+            })();</script>
+            
+            <?php
+                echo $render
+                    ->render(['example' => 'exd-2', 'title' => 'd2h-Ajax'], $template)
+                    ->get('html');
+            ?>
+            <script>(function(){
+                new selectivityWrapper($('#exd-2'), {
+                    url: '../../demo/_controller/_controller.php?model=empl_departments:list'
                 });
             })();</script>
             

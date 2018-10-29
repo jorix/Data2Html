@@ -70,7 +70,7 @@ class InfoFile
         if (!file_exists($fileName)) {
             if (self::parseWrappedPath($fileName)['wrap'] === '') {
                 $fileNameWrap = $fileName . '.php';
-                if (!file_exists($fileName)) {
+                if (!file_exists($fileNameWrap)) {
                     throw new \Exception("File \"{$fileName}\" and  \"{$fileNameWrap}\" does not exist.");
                 }
                 $fileName = $fileNameWrap;

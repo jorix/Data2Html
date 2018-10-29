@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <?php
-    require_once 'ax_start.php';
+    require_once '_start.php';
 
     $render = Data2Html\Handler::createRender();
     $result = $render->render(  

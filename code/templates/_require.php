@@ -38,7 +38,7 @@ return [
         'include' => ['font-awesome'],
         'html' => '
             <link  href="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
-            <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.js" ></script>'
+            <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.js" ></script>'
     ],
     'selectivity-wrapper' => [
         'require' => ['selectivity', 'bootstrap'],
