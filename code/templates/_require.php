@@ -1,9 +1,7 @@
 <?php
 return [
     'jquery' => [
-        'html' => '
-            <script src="$${base}/vendor/js/jquery/dist/jquery.min.js" ></script>
-            '
+        'html' => '<script src="$${base}/vendor/js/jquery/dist/jquery.min.js" ></script>'
     ],
     'bootstrap' => [
         'require' => ['jquery', 'popper'],
@@ -30,22 +28,44 @@ return [
         '
     ],
     'popper' => [
-        'html' => '
-            <script src="$${base}/vendor/js/popper.js/dist/umd/popper.min.js"></script>'
+        'html' => '<script src="$${base}/vendor/js/popper.js/dist/umd/popper.min.js"></script>'
     ],
     'selectivity' => [
-        'require' => ['jquery', 'bootstrap', 'd2h_server'],
+        'require' => ['jquery', 'bootstrap'],
         'include' => ['font-awesome'],
         'html' => '
             <link  href="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
             <script src="$${base}/vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.js" ></script>'
     ],
-    'selectivity-wrapper' => [
-        'require' => ['selectivity', 'bootstrap'],
-        'include' => ['d2h_server'],
+    'd2h_events' => [
+        'require' => ['d2h_events'],
+        'html' => '<script src="$${base}/code/js/d2h_events.js"></script>'
+    ],
+    'd2h_server' => [
+        'require' => ['jquery', 'd2h_events'],
+        'include' => ['d2h_values', 'd2h_utils'],
         'html' => '
-            <link  href="$${base}/code/css/selectivityWrapper.css" rel="stylesheet">
-            <script src="$${base}/code/js/selectivityWrapper.js">
+            <link  href="$${base}/code/css/d2h_server.css" rel="stylesheet">
+            <script src="$${base}/code/js/d2h_server.js"></script>'
+    ],
+    'd2h_serverBase' => [
+        'require' => ['d2h_server'],
+        'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverBase.js"></script>'
+    ],
+    'd2h_serverBlock' => [
+        'require' => ['d2h_serverBase'],
+        'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverBlock.js"></script>'
+    ],
+    'd2h_serverGrid' => [
+        'require' => ['d2h_serverBase'],
+        'include' => ['d2h_serverBlock'],
+        'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverGrid.js"></script>'
+    ],
+    'd2h_serverSelectivity' => [
+        'require' => ['selectivity', 'd2h_serverBase'],
+        'html' => '
+            <link  href="$${base}/code/css/d2h_serverSelectivity.css" rel="stylesheet">
+            <script src="$${base}/code/js/d2h_server/d2h_serverSelectivity.js">
             <script>
             var Selectivity_Locale = {
                 loading: "Loading...",
@@ -70,15 +90,8 @@ return [
             $.extend($.Selectivity.Locale, Selectivity_Locale);
             </script>'
     ],
-    'd2h_server' => [
-        'require' => ['jquery'],
-        'include' => ['d2h_values', 'd2h_utils'],
-        'html' => '
-            <link  href="$${base}/code/css/d2h_server.css" rel="stylesheet">
-            <script src="$${base}/code/js/d2h_server.js"></script>'
-        ],
     'd2h_display' => [
-        'require' => ['jquery'],
+        'require' => ['jquery', 'd2h_events'],
         'include' => ['d2h_values', 'd2h_utils'],
         'html' => '
             <script src="$${base}/code/js/d2h_display.js"></script>'

@@ -438,7 +438,7 @@ class Content
         $newSources = [];
         preg_match_all($pattern, $content, $matches);
         for ($i = 0, $count = count($matches[0]); $i < $count; $i++) {
-            $newSources[] = strtolower($matches[1][$i]);
+            $newSources[] = $matches[1][$i];
             $content = str_replace($matches[0][$i], '', $content);
         }
 

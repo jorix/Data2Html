@@ -22,7 +22,7 @@
     100% { transform: rotate(360deg); }
 }
 
-.d2h_formChanged, 
-.d2h_formChanged input{
+.d2h_changed, 
+.d2h_changed input{
     background-color: #fff8f8
 }

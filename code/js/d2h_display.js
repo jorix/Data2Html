@@ -1,5 +1,7 @@
 var d2h_display = (function($) {
     
+    var _events = new d2h_events('d2h_display');
+    
     // Class
     // -----
     var _displayClass = function(options) {
@@ -215,40 +217,16 @@ var d2h_display = (function($) {
     // --------------
     // We define our own system of events since we monitor events before
     // defining the object server.
-    var _events = {};
-    
-    var _on = function(onSelector, eventName, handlerFn) {
-        if (!_events[onSelector]) {
-            _events[onSelector] = {};
-        }
-        var eventsSel = _events[onSelector];
-        if (!eventsSel[eventName]) {
-            eventsSel[eventName] = 0;
-        }
-        eventsSel[eventName]++;
-        $(onSelector).on(
-            'd2h_dsp_' + eventName,
-            function() {
-                var args = [];
-                Array.prototype.push.apply(args, arguments);
-                args.shift();
-                return handlerFn.apply(null, args);
-            }
-        );
+    var _on = function(selector, eventName, handlerFn) {
+        return _events.on(selector, null, eventName, handlerFn);
     };
     
-    var _isEventUsed = function(onSelector, eventName) {
-        var eventsSel = _events[onSelector];
-        if (!eventsSel) {
-            return false;
-        } else {
-            return !!eventsSel[eventName];
-        }
+    var _eventIsUsed = function(selector, eventName) {
+        return _events.isUsed(selector, eventName);
     };
         
-    var _trigger = function(onSelector, eventName, args) {
-        console.log(onSelector + ': d2h_display[ ' +  eventName + ' ]', args);
-        return $(onSelector).triggerHandler('d2h_dsp_' + eventName, args);
+    var _trigger = function(selector, eventName, args) {
+        return _events.trigger(selector, eventName, args);
     };
     
     // Static public
@@ -297,7 +275,7 @@ var d2h_display = (function($) {
                             keys = jsonData.keys,
                             gridSelector = _displayObj.getSelector('grid');
                         gridServer.selectedKeys(keys);
-                        if (_isEventUsed(gridSelector, 'applyFormLeafKeys')) {
+                        if (_eventIsUsed(gridSelector, 'applyFormLeafKeys')) {
                             gridServer.loadGrid(); // To show new record in the grid
                             d2h_display.goFormAction(servElem, 'show-edit', keys, {
                                 after: function() {
@@ -389,7 +367,7 @@ var d2h_display = (function($) {
                 servElem.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
-                        servElem.clearForm({onlyWithDefault: true});
+                        servElem.clearBlock({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeaves');
                         $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
                         $('.d2h_dsp_insert', formElem).show();
@@ -401,7 +379,7 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-create':
-                servElem.clearForm();
+                servElem.clearBlock();
                 _trigger(formSelector, 'hideLeaves');
                 $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
                 $('.d2h_dsp_insert', formElem).show();

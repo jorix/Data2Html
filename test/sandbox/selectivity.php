@@ -3,7 +3,7 @@
     require_once '_start-dev.php';
 
     $render = Data2Html\Handler::createRender();
-    $required = $render->render([], ['html' => '$${require selectivity-wrapper}']);
+    $required = $render->render([], ['html' => '$${require d2h_serverSelectivity}']);
     $lang= 'ca';
     
     $template = ['html' =>
@@ -100,7 +100,7 @@
                         }
                     },
                     placeholder: 'Search for a repository',
-                    multiple: true,
+                    //multiple: true,
                     templates: {
                         resultItem: function(item) {
                             return (
@@ -120,24 +120,26 @@
                     ->render(['example' => 'exd-1', 'title' => 'd2h-Ajax'], $template)
                     ->get('html');
             ?>
-            <script>(function(){
-                new selectivityWrapper($('#exd-1'), {
+            <script>
+                d2h_server('#exd-1', {
+                   // placeholder: 'Test d2h-1',
                     url: '../../demo/_controller/_controller.php?model=empl_employees:list',
                     filterName: 'last_name_lk'
                 });
-            })();</script>
+            </script>
             
             <?php
                 echo $render
-                    ->render(['example' => 'exd-2', 'title' => 'd2h-Ajax'], $template)
+                    ->render(['example' => 'exd-2', 'title' => 'd2h-List'], $template)
                     ->get('html');
             ?>
-            <script>(function(){
-                new selectivityWrapper($('#exd-2'), {
+            <script> 
+                d2h_server('#exd-2', {
+                    // multiple: true,
+                    placeholder: 'Test d2h-2',
                     url: '../../demo/_controller/_controller.php?model=empl_departments:list'
                 });
-            })();</script>
-            
+            </script>
         </div>
     </div>
 </body>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+	<meta charset="UTF-8">
+	<title>sBox: selectivity-bare</title>
+    
+    <script src="../../demo/lang.js.php?lang=ca"></script>
+    <script src="../../vendor/js/jquery/dist/jquery.min.js" ></script>
+    <link  href="../../vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.min.css" rel="stylesheet">
+    <script src="../../vendor/js/selectivity/selectivity-3.1.0/selectivity-jquery.js" ></script>
+    <link href="../../vendor/js/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+</head>
+<body>
+    <br>
+    <div class="row">
+        <div class="col-4 form-horizontal">
+            <div class="form-group row">
+                <label for="ex-1" class="col-2  col-form-label">Single</label>
+                <div class="col-7">
+                    <div id="ex-1" class="selectivity-input"></div>
+                </div>
+                <div class="col-3">
+                    <input type="text" id="val-ex-1" class="form-control" placeholder="(result)" value="">
+                </div>
+                <script>
+                $("#ex-1").change(function () {
+                    $("#val-ex-1").val(JSON.stringify($(this).selectivity("val")));
+                })
+                </script>
+            </div>
+            <hr>
+            <script>
+                $('#ex-1').selectivity({
+                    items: [{id:'1', text:'Amsterdam'}, {id:2, text:'Antwerp'}/*, ...*/],
+                    allowClear: true,
+                    cccplaceholder: 'Selectec a city'
+                });
+            </script>
+
+            <div class="form-group row">
+                <label for="ex-2" class="col-2  col-form-label">Multiple</label>
+                <div class="col-7">
+                    <div id="ex-2" class="selectivity-input"></div>
+                </div>
+                <div class="col-3">
+                    <input type="text" id="val-ex-2" class="form-control" placeholder="(result)" value="">
+                </div>
+                <script>
+                $("#ex-2").change(function () {
+                    $("#val-ex-2").val(JSON.stringify($(this).selectivity("val")));
+                })
+                </script>
+            </div>
+            <hr>
+            <script>
+                $('#ex-2').selectivity({
+                    items: [{id:1, text:'Amsterdam'}, {id:2, text:'Antwerp'}/*, ...*/],
+                    allowClear: true,
+                    multiple: true,
+                    xxxplaceholder: 'Selectec a city'
+                });
+                $('#ex-2').selectivity('val', [1, 2]);
+            </script>
+            
+            <div class="form-group row">
+                <label for="ex-3" class="col-2  col-form-label">emails</label>
+                <div class="col-7">
+                    <div id="ex-3" class="selectivity-input"></div>
+                </div>
+                <div class="col-3">
+                    <input type="text" id="val-ex-3" class="form-control" placeholder="(result)" value="">
+                </div>
+                <script>
+                $("#ex-3").change(function () {
+                    $("#val-ex-3").val(JSON.stringify($(this).selectivity("val")));
+                })
+                </script>
+            </div>
+            <hr>
+            <script>
+                $('#ex-3').selectivity({
+                    inputType: 'Email',
+                    placeholder: 'Emails list'
+                });
+            </script>
+        
+            <div class="form-group row">
+                <label for="ex-4" class="col-2  col-form-label">Ajax</label>
+                <div class="col-7">
+                    <div id="ex-4" class="selectivity-input"></div>
+                </div>
+                <div class="col-3">
+                    <input type="text" id="val-ex-4" class="form-control" placeholder="(result)" value="">
+                </div>
+                <script>
+                $("#ex-4").change(function () {
+                    $("#val-ex-4").val(JSON.stringify($(this).selectivity("val")));
+                })
+                </script>
+            </div>
+            <hr>
+            <script>
+                $('#ex-4').selectivity({
+                    ajax: {
+                        url: 'https://api.github.com/search/repositories',
+                        minimumInputLength: 3,
+                        quietMillis: 250,
+                        params: function(term, offset) {
+                            // GitHub uses 1-based pages with 30 results, by default
+                            return { q: term, page: 1 + Math.floor(offset / 30) };
+                        },
+                        fetch: function(url, init, queryOptions) {
+                            return $.ajax(url).then(function(data) {
+                                return {
+                                    results: $.map(data.items, function(item) {
+                                        return {
+                                            id: item.id,
+                                            text: item.name,
+                                            description: item.description
+                                        };
+                                    }),
+                                    more: (data.total_count > queryOptions.offset + data.items.length)
+                                };
+                            });
+                        }
+                    },
+                    placeholder: 'Search for a repository',
+                    multiple: true,
+                    templates: {
+                        resultItem: function(item) {
+                            return (
+                                '<div class="selectivity-result-item" data-item-id="' + item.id + '">' +
+                                    '<b>' + escape(item.text) + '</b><br>' +
+                                    item.description +
+                                '</div>'
+                            );
+                        }
+                    }
+                });
+            </script>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,5 @@
 <?php die("It's uncooked!"); ?>
+$${include d2h_message}
 <span data-d2h-message="#$${id}"></span>
 <input type="checkbox"
     id="$${id}"

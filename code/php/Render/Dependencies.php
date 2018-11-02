@@ -59,13 +59,15 @@ class Dependencies
     }
     
     protected function addItem($name)
-    {   $isNew = !array_key_exists($name, $this->usedSources);
+    {
+        $isNew = !array_key_exists($name, $this->usedSources);
         if ($isNew) {
             $this->usedSources[$name] = true;
             $item = $this->templateSource->getItem($name);
             if (!$item) {
                 throw new DebugException(
-                    "Source name \"{$name}\" not exist on configured 'template-require'."
+                    "Source name \"{$name}\" not exist on configured 'template-require'.",
+                    $this->templateSource->__debugInfo()
                 );
             }
             if (array_key_exists('require', $item)) {

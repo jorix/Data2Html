@@ -19,11 +19,11 @@ return [
             $layout = 'bare';
         } elseif ($link && !$content) {
             $visualWidth = 40;
-            $content = 'selectivity-single-input';
+            $content = 'selectivity-input';
             $url = $render->getControllerUrl() . "model={$link}";
         } elseif ($list && !$content) {
             $visualWidth = 40;
-            $content = 'selectivity-single-input'; 
+            $content = 'selectivity-input'; 
         } elseif ($leaves) {
             $visualWidth = 999;
             $layout = 'no_label';
