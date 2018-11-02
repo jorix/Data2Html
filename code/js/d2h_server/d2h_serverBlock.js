@@ -16,6 +16,7 @@ var d2h_serverBlock = (function ($) {
         ],
         defaults: {
             type: 'block',
+            auto: 'clearBlock',
             classIsChanged: 'd2h_changed'
         },
         
@@ -179,6 +180,10 @@ var d2h_serverBlock = (function ($) {
             }
             d2h_values.putData(this, allElements);
             return this;
+        },
+        
+        hideBlock: function(options) {
+            $(this.objElem).hide();
         },
         
         showFormData: function(row) {
