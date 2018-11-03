@@ -7,31 +7,41 @@ var d2h_events = (function($) {
     var d2h_events =  function (prefix) {
         this.events = {};
         this.prefix = prefix;
-    }
+    };
+    
     d2h_events.prototype = {
         on: function(selector, scope, eventName, handlerFn) {
             var elem = d2h_utils.getSingleElement(selector),
-                elemId = '#' + elem.id,
+                _elemId = '#' + elem.id,
+                _prefix = this.prefix,
                 events = this.events;
-            if (!elemId) {
+            if (!_elemId) {
                 $.error(
                     "To use d2h_events the '" + 
                     d2h_utils.getElementPath(elem) + 
                     "' must be a id."
                 );
             }
-            if (!events[elemId]) {
-                events[elemId] = {};
+            if (!events[_elemId]) {
+                events[_elemId] = {};
             }
-            var elemEvents = events[elemId];
+            var elemEvents = events[_elemId];
             if (!elemEvents[eventName]) {
                 elemEvents[eventName] = 0;
             }
             elemEvents[eventName]++;
+            console.log(
+                'listen->', 
+                _elemId + ': ' + _prefix + '[ ' +  eventName + ' ]'
+            );
             $(elem).on(
-                this.prefix  + '_' + eventName,
+                _prefix  + '_' + eventName,
                 function() {
-                    console.log(elemId, eventName);
+                    console.log(
+                        'execute->', 
+                        _elemId + ': ' + _prefix + '[ ' +  eventName + ' ]', 
+                        args ? args : ''
+                    );
                     var args = [];
                     Array.prototype.push.apply(args, arguments);
                     args.shift();
@@ -53,9 +63,10 @@ var d2h_events = (function($) {
         },
             
         trigger: function(selector, eventName, args) {
-            var elem = d2h_utils.getSingleElement(selector);
+            var elem = d2h_utils.getSingleElement(selector),
+            elemId = '#' + elem.id;
             console.log(
-                '#' + elem.id + ': ' + this.prefix + '[ ' +  eventName + ' ]', 
+                elemId + ': ' + this.prefix + '[ ' +  eventName + ' ]', 
                 args ? args : ''
             );
             if (args) {

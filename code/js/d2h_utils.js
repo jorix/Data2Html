@@ -20,8 +20,6 @@ var d2h_utils = (function ($) {
                 try {
                     optionsEle = eval('[(' + dataD2h + ')]')[0];
                 } catch(e) {
-                    console.log(dataName);
-                    console.log(_getElementPath(objElem));
                     $.error(
                         "d2h_utils.getJsData(): " +
                         "jsData of attribute 'data-" + dataName + "' have a not valid js syntax on " + 
@@ -37,7 +35,7 @@ var d2h_utils = (function ($) {
     
     function _getElementPath(elem) {
         if (!elem) {
-            return "undefined";
+            return "`undefined or null`";
         }
         var selectorArr = [];
         if (elem.jquery) {

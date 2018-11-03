@@ -142,7 +142,8 @@ var d2h_display = (function($) {
          *      exist js code pending to execute)
          */
         loadGrid: function() {
-            var _elem = d2h_utils.getSingleElement(this.getSelector('grid'));
+            var _this = this,
+                _elem = d2h_utils.getSingleElement(this.getSelector('grid'));
             d2h_server.whenCreated(_elem, function() {
                 var server =  d2h_server(_elem);
                 server.loadGrid();
@@ -230,7 +231,7 @@ var d2h_display = (function($) {
 
     d2h_display.goGridAction = function(server, action) {
         var _displayObj = _get(server),
-            servElem = _displayObj.getServer('block');
+            blockServer = _displayObj.getServer('block');
         switch (action) {
             case 'read-previous':
             //TODO
@@ -239,9 +240,9 @@ var d2h_display = (function($) {
             //TODO
                 break;
             case 'save': 
-                servElem.save({
+                blockServer.save({
                     errorSave: function(message) {
-                        d2h_message.danger(servElem, __('display/save-error'));
+                        d2h_message.danger(blockServer, __('display/save-error'));
                         return false;
                     },
                     afterSave: function(){
@@ -258,9 +259,9 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'create':
-                servElem.save({
+                blockServer.save({
                     errorSave: function(message) {
-                        d2h_message.danger(servElem, __('display/create-error'));
+                        d2h_message.danger(blockServer, __('display/create-error'));
                         return false;
                     },
                     afterSave: function(jsonData) {
@@ -270,10 +271,10 @@ var d2h_display = (function($) {
                         gridServer.selectedKeys(keys);
                         if (_eventIsUsed(gridSelector, 'applyFormLeafKeys')) {
                             gridServer.loadGrid(); // To show new record in the grid
-                            d2h_display.goFormAction(servElem, 'show-edit', keys, {
+                            d2h_display.goFormAction(blockServer, 'show-edit', keys, {
                                 after: function() {
                                     d2h_message.success(
-                                        servElem,
+                                        blockServer,
                                         __('display/created-leafs')
                                     );
                                 }
@@ -292,10 +293,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'delete':
-                servElem.delete({
+                blockServer.delete({
                     errorDelete: function(message) {
                         d2h_message.danger(
-                            servElem,
+                            blockServer,
                             __('display/delete-error')
                         );
                         return false;
@@ -322,18 +323,18 @@ var d2h_display = (function($) {
     d2h_display.goFormAction = function(server, action, _keys, _options) {
         var _displayObj = _get(server),
             formSelector = _displayObj.getSelector('block'),
-            servElem = _displayObj.getServer('block'),
-            formElem = servElem.getElem();
+            blockServer = _displayObj.getServer('block'),
+            blockElem = blockServer.getElem();
         _options = _options ? _options : {};
         switch (action) {
             case 'show-edit':
-                servElem.loadBlock({
+                blockServer.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
-                        $('.d2h_dsp_delete,.d2h_dsp_insert', formElem).hide();
-                        $('.d2h_dsp_update,.d2h_dsp_move', formElem).show();
+                        $('.d2h_dsp_delete,.d2h_dsp_insert', blockElem).hide();
+                        $('.d2h_dsp_update,.d2h_dsp_move', blockElem).show();
                         d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -342,13 +343,13 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-delete':
-                servElem.loadBlock({
+                blockServer.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
                         _trigger(gridSelector, 'applyFormLeafKeys', [_keys]);
-                        $('.d2h_dsp_update,.d2h_dsp_insert', formElem).hide();
-                        $('.d2h_dsp_delete,.d2h_dsp_move', formElem).show();
+                        $('.d2h_dsp_update,.d2h_dsp_insert', blockElem).hide();
+                        $('.d2h_dsp_delete,.d2h_dsp_move', blockElem).show();
                         d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -357,13 +358,13 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-copy':
-                servElem.loadBlock({
+                blockServer.loadBlock({
                     keys: _keys,
                     afterLoadElement: function() {
-                        servElem.clearBlock({onlyWithDefault: true});
+                        blockServer.clearBlock({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeaves');
-                        $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
-                        $('.d2h_dsp_insert', formElem).show();
+                        $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', blockElem).hide();
+                        $('.d2h_dsp_insert', blockElem).show();
                         d2h_message.clear(_displayObj.show('block'));
                         if (_options.after) {
                             _options.after.call(this);
@@ -372,10 +373,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-create':
-                servElem.clearBlock();
+                blockServer.clearBlock();
                 _trigger(formSelector, 'hideLeaves');
-                $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', formElem).hide();
-                $('.d2h_dsp_insert', formElem).show();
+                $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', blockElem).hide();
+                $('.d2h_dsp_insert', blockElem).show();
                 d2h_message.clear(_displayObj.show('block'));
                 if (_options.after) {
                     _options.after.call(this);
