@@ -143,18 +143,11 @@ var d2h_display = (function($) {
          */
         loadGrid: function() {
             var _elem = d2h_utils.getSingleElement(this.getSelector('grid'));
-            var server = d2h_server(_elem, false);
-            if (server === null) {
-                var _this = this;
-                d2h_server.whenCreated(_elem, function() {
-                    var server =  d2h_server(_elem);
-                    server.loadGrid();
-                    _this.show('grid');
-                });
-            } else {
+            d2h_server.whenCreated(_elem, function() {
+                var server =  d2h_server(_elem);
                 server.loadGrid();
-                this.show('grid');
-            }
+                _this.show('grid');
+            });
         },
         
         show: function(name) {

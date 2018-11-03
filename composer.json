@@ -6,7 +6,6 @@
     "prefer-stable": true,
     "require": {
         "php": "^5.4 || ^7.0",
-        
         "oomphinc/composer-installers-extender": "^1.1",
         
         "npm-asset/jquery": "3.*",

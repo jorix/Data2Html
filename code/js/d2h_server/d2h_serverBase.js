@@ -86,7 +86,7 @@ var d2h_serverBase = (function ($) {
             }
             
             // Add pluguin
-            $.data(this.objElem, "Data2Html_data", this);
+            $.data(this.objElem, "Data2Html_server", this);
  
             // Register events
             this._events = {};
@@ -118,7 +118,7 @@ var d2h_serverBase = (function ($) {
                 }
             });
             
-            this.trigger('created', this.constructor.name);  
+            this.trigger('created', [this.constructor.name]);  
         },
         
         set: function(options) {

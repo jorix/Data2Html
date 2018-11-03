@@ -4,7 +4,7 @@ describe('d2h_values', function() {
         var div = testDiv_create({
             js: [
                 '/test/_work/lang-test.js.php',
-                '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
+                '/vendor/js/moment/min/moment-with-locales.js',
                 '/code/js/d2h_values.js'
             ]
         });
@@ -73,7 +73,7 @@ describe('d2h_values', function() {
                     var div = testDiv_create({
                         js: [
                             '/test/_work/lang-test.js.php?lang=es',
-                            '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
+                            '/vendor/js/moment/min/moment-with-locales.js',
                             '/code/js/d2h_values.js'
                         ]
                     });
@@ -82,7 +82,7 @@ describe('d2h_values', function() {
                     var div = testDiv_create({
                         js: [
                             '/test/_work/lang-test.js.php',
-                            '/external/js-date_time/moment-2.18.1/min/moment-with-locales.js',
+                            '/vendor/js/moment/min/moment-with-locales.js',
                             '/code/js/d2h_values.js'
                         ]
                     });

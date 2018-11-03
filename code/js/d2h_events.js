@@ -29,8 +29,9 @@ var d2h_events = (function($) {
             }
             elemEvents[eventName]++;
             $(elem).on(
-                this.prefix + eventName,
+                this.prefix  + '_' + eventName,
                 function() {
+                    console.log(elemId, eventName);
                     var args = [];
                     Array.prototype.push.apply(args, arguments);
                     args.shift();
@@ -57,7 +58,11 @@ var d2h_events = (function($) {
                 '#' + elem.id + ': ' + this.prefix + '[ ' +  eventName + ' ]', 
                 args ? args : ''
             );
-            return $(elem).triggerHandler(this.prefix + eventName, args);
+            if (args) {
+                return $(elem).triggerHandler(this.prefix + '_' + eventName, args);
+            } else {
+                return $(elem).triggerHandler(this.prefix + '_' + eventName);
+            }
         }
     };
 

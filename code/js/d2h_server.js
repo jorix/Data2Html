@@ -33,8 +33,8 @@ var d2h_server = (function ($) {
                 if (elemSelector === '#d2h_1_Grid_main') {
                     console.log(".");
                 }
-            if (!$.data(this, "Data2Html_data") ) {
-                // Create a data for "Data2Html_data"
+            if (!$.data(this, "Data2Html_server") ) {
+                // Create a data for "Data2Html_server"
                 var optionsEle = d2h_utils.getJsData(this, 'd2h');
                 if ((!optionsEle && !_options) || typeof optionsEle === 'string') {
                     if (_options === false) {
@@ -55,7 +55,7 @@ var d2h_server = (function ($) {
                     new d2h_serverGrid(this, opData);
                 }
             }
-            _response.push($.data(this, "Data2Html_data"));
+            _response.push($.data(this, "Data2Html_server"));
         });
         if (_response.length === 1) {
             return _response[0];
@@ -73,8 +73,13 @@ var d2h_server = (function ($) {
             return _events.trigger(selector, eventName, args);
         },
         
-        whenCreated: function(selector, handlerFn   ) {
-            return _events.on(selector, null, 'create', handlerFn);
+        whenCreated: function(selector, handlerFn) {
+            var server = $(selector).data('Data2Html_server');
+            if (server) {
+                handlerFn.call(null);
+            } else {
+                return _events.on(selector, null, 'create', handlerFn);
+            }
         }
     });
     

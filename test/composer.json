@@ -1,5 +1,25 @@
 {
-    "require-dev": {
+    "require": {
+        "php": "^5.4 || ^7.0",
+        "oomphinc/composer-installers-extender": "^1.1",
+        
+        "npm-asset/mocha": "5.*",
+        "npm-asset/chai": "^4.1",
+        
         "codeception/codeception": "^2.4"
-    }
+    },
+    
+    "extra": {
+        "installer-types": ["bower-asset", "npm-asset"],
+        "installer-paths": {
+            "vendor/js/{$name}/": ["type:bower-asset", "type:npm-asset"]
+        }
+    },
+    
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
 }
