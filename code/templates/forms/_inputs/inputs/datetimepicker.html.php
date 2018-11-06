@@ -9,6 +9,7 @@ $${include datetimepicker, d2h_message}
         placeholder="$${description}"
         name="$${name}"
         data-d2h-from-id="$${from-id}"
+        data-d2h-input="$${visual-attr}"
     >
     <div class="input-group-append"
         data-toggle="datetimepicker" 
@@ -17,3 +18,12 @@ $${include datetimepicker, d2h_message}
         <div class="input-group-text"><i class="fa fa-calendar"></i></div>
     </div>
 </div>
+<script>
+$(function () {
+    $('#$${id}_div').datetimepicker();
+    $('#$${id}_div input').click(function() {
+        $(this).datetimepicker('toggle');
+        return false;
+    });
+});
+</script>

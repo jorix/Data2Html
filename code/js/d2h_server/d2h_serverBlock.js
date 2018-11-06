@@ -32,8 +32,9 @@ var d2h_serverBlock = (function ($) {
                     return false;
                 });
             }
-            this.$('data-d2h-from-id').change(function() {
-                this.changedOn();
+            var _this = this;
+            this.$('[data-d2h-from-id]').change(function() {
+                _this.changedOn();
             });
                    
             // clearBlock
@@ -90,34 +91,22 @@ var d2h_serverBlock = (function ($) {
             });
             return this;
         },
-        
-        blockKeys: function(keys) {
-            if (arguments.length > 0) {
-                $(this.objElem).data('d2h-keys', JSON.stringify(keys));
-                return keys;
-            } else {
-                var sKeys = $(this.objElem).data('d2h-keys');
-                return (sKeys ? JSON.parse(sKeys) : '');
-            }
-        },
-        
+
         save: function(options) {
-            var data = d2h_values.validateServer(this),
+            var data = d2h_inputs.get(this.objElem, 'save'),
                 _settings = this.settings;
             if (data === false) {
                 return this;
             }
-            var d2h_oper,
-                d2hKeys = this.blockKeys();
-            if (d2hKeys) {
-                data['[keys]'] = d2hKeys;
+            var d2h_oper;
+            if (data['[keys]']) {
                 d2h_oper = 'update';
             } else {
                 d2h_oper = 'insert';
             }
             this._rows = null;
             this.server({
-                ajaxType: 'POST',	
+                ajaxType: 'POST',
                 data: {
                     d2h_oper: d2h_oper,
                     d2h_data: data
@@ -141,11 +130,13 @@ var d2h_serverBlock = (function ($) {
             return this;
         },
         'delete': function(options) {
-            var data = d2h_values.getData(this),
+            var data = d2h_inputs.get(this.objElem, 'delete'),
                 _settings = this.settings;
-            data['[keys]'] = this.blockKeys();
+            if (data === false) {
+                return this;
+            }
             this.server({
-                ajaxType: 'POST',	
+                ajaxType: 'POST',
                 data: {
                     d2h_oper: 'delete',
                     d2h_data: data
@@ -174,11 +165,7 @@ var d2h_serverBlock = (function ($) {
         },
         
         clearBlock: function(options) {
-            var allElements = true;
-            if (options) {
-                allElements = !options.onlyWithDefault;
-            }
-            d2h_values.putData(this, allElements);
+            d2h_inputs.clear(this.objElem, options ? options.onlyWithDefault : false);
             return this;
         },
         
@@ -187,7 +174,7 @@ var d2h_serverBlock = (function ($) {
         },
         
         showFormData: function(row) {
-            d2h_values.putData(this, row);
+            d2h_inputs.put(this.objElem, row);
             return this;
         }
     });

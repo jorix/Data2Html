@@ -160,7 +160,7 @@ var d2h_serverGrid = (function ($) {
                 data = {},
                 pageStart = 1;
             if (this.components.filter) {
-                var dataFilter = d2h_values.validateServer(this.components.filter);
+                var dataFilter = d2h_inputs.get(this.components.filter.getElem(), true);
                 if (dataFilter === false) {
                     this._rows = null;
                     this.clearGrid();
@@ -181,7 +181,7 @@ var d2h_serverGrid = (function ($) {
                 if (_add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
-                var aux = d2h_values.getData(this.components.page);
+                var aux = d2h_inputs.get(this.components.page.getElem(), false);
                 aux['pageStart'] = pageStart;
                 data['d2h_page'] = $.param(aux).replace(/&/g, '{and}');
             }
@@ -268,7 +268,7 @@ var d2h_serverGrid = (function ($) {
             }
             
             // repeat html
-            var repManager = new d2h_values.repeatHtml(this._repeatHtml, this._visualData);
+            var repManager = new d2h_template(this._repeatHtml, this._visualData);
             var _settings = this.settings,
                 rows = this._rows,
                 selectedKeys = JSON.stringify(this.selectedKeys());

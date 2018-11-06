@@ -1,7 +1,6 @@
 /**
  * 
  */
-
 var d2h_serverBase = (function ($) {
 
     var _initCounter = 0,
@@ -134,10 +133,6 @@ var d2h_serverBase = (function ($) {
             return this.objElem;
         },
         
-        getVisual: function() {
-            return this._visualData;
-        },       
-        
         $: function(selector, elem) {
             return $(selector, (elem ? elem : this.objElem))
                 .filter('[data-d2h-from-id=' + this.objElem.id + ']');
@@ -185,7 +180,11 @@ var d2h_serverBase = (function ($) {
                     var _function = _actions[_onAction[1]];
                     if (_function) {
                         $thisEle.on(_onAction[0], function(event) {
-                            console.log('#' + _container.getElem().id + ': ' + _onAction.join('->'));
+                            console.log(
+                                'execute->',
+                                '#' + _container.getElem().id + ': ' + 
+                                    _onAction.join('->')
+                            );
                             _function.apply(_container, [this, event]);
                             return false;
                         });

@@ -52,7 +52,7 @@ return [
             ],
             'filter' => [
                 'items' => [
-                    '%name', '=active', '=uf_id'
+                    '%name' => ['required'], '=active', '=uf_id'
                 ]
             ]
         ],

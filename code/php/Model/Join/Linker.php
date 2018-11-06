@@ -161,6 +161,7 @@ class Linker
         
     protected function makeItem($groupName, $tableAlias, $newRef, $item) {
         $item['tableAlias'] = $tableAlias;
+        $item['name'] = $newRef;
         
         //Check if item already exist
         $finalBaseName = $this->getRef($groupName, $tableAlias, $this->getRefBase($item));

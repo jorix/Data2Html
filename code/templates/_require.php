@@ -43,7 +43,7 @@ return [
     ],
     'd2h_server' => [
         'require' => ['jquery', 'd2h_events'],
-        'include' => ['d2h_values', 'd2h_utils'],
+        'include' => ['d2h_utils'],
         'html' => '
             <link  href="$${base}/code/css/d2h_server.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_server.js"></script>'
@@ -54,11 +54,12 @@ return [
     ],
     'd2h_serverBlock' => [
         'require' => ['d2h_serverBase'],
+        'include' => ['d2h_inputs'],
         'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverBlock.js"></script>'
     ],
     'd2h_serverGrid' => [
         'require' => ['d2h_serverBase'],
-        'include' => ['d2h_serverBlock'],
+        'include' => ['d2h_serverBlock', 'd2h_template'],
         'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverGrid.js"></script>'
     ],
     'd2h_serverSelectivity' => [
@@ -90,15 +91,26 @@ return [
             $.extend($.Selectivity.Locale, Selectivity_Locale);
             </script>'
     ],
+    'd2h_inputs' => [
+        'require' => ['jquery'],
+        'include' => ['d2h_message', 'd2h_utils'],
+        'html' => '
+            <script src="$${base}/code/js/d2h_inputs.js"></script>'
+    ],
+    'd2h_template' => [
+        'require' => ['jquery'],
+        'html' => '
+            <script src="$${base}/code/js/d2h_template.js"></script>'
+    ],
     'd2h_display' => [
         'require' => ['jquery', 'd2h_events'],
-        'include' => ['d2h_values', 'd2h_utils'],
+        'include' => ['d2h_utils'],
         'html' => '
             <script src="$${base}/code/js/d2h_display.js"></script>'
         ],
     'd2h_message' => [
         'require' => ['jquery', 'popper', 'bootstrap'],
-        'include' => ['d2h_values', 'd2h_utils'],
+        'include' => ['d2h_utils'],
         'html' => '
             <link  href="$${base}/code/css/d2h_message.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_message.js"></script>'
@@ -108,12 +120,6 @@ return [
         'html' => '
             <link  href="$${base}/code/css/d2h_sort.css" rel="stylesheet">
             <script src="$${base}/code/js/d2h_sort.js"></script>'
-    ],
-    'd2h_values' => [
-        'require' => 'jquery',
-        'html' => '
-            <script src="$${base}/code/js/d2h_values.js"></script>
-            '
     ],
     'd2h_utils' => [
         'require' => 'jquery',

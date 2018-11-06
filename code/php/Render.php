@@ -312,12 +312,11 @@ class Render
                 'title' => $vDx->getString('title'),
                 'description' => $vDx->getString('description'),
                 'format' => $vDx->getString('format'),
-                'type' => $vDx->getString('type'),
+                'visual-attr' => Set::getVisualAttr($v),
                 'icon' => $vDx->getString('icon'),
                 'visualClassLayout' => $vDx->getString('visualClassLayout'),
                 'visualClassBody' => $vDx->getString('visualClassBody'),
-                'action' => $vDx->getString('action'),
-                'validations' => implode(' ', $vDx->getArray('validations', []))
+                'action' => $vDx->getString('action')
                 ]
             );
             ++$renderCount;

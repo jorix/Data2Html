@@ -385,20 +385,6 @@ var d2h_display = (function($) {
         }
     };
     
-    d2h_display.showErrors = function(server, userErrors) {
-        d2h_message.clear(server);
-        if (Object.keys(userErrors).length > 0) {
-            var iName;
-            for (iName in userErrors) {
-                var $msg = $('[name=' + iName + ']', server.getElem());
-                d2h_message.danger($msg, userErrors[iName].join('<br>'));
-            }
-            return true;
-        } else {
-            return false;
-        }
-    };
-    
     // 
     return d2h_display;
 })(jQuery);

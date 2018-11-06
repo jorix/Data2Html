@@ -6,5 +6,6 @@ $${include d2h_message}
     id="$${id}"
     name="$${name}"
     data-d2h-from-id="$${from-id}"
+    data-d2h-input="$${visual-attr}"
     value=""
 >

@@ -1,38 +1,5 @@
 var d2h_utils = (function ($) {
     
-    function _getSingleElement(selector) {
-        var $elem = $(selector);
-        if (!selector || $elem.length !== 1) {
-            $.error(
-                "_singleElement(): Selector '" + selector +
-                "' has selected " + $elem.length +
-                " elements. Must select only one DOM element!"
-            );
-        }
-        return $elem[0];
-    }
-    
-    function _getJsData(objElem, dataName) {
-        var optionsEle,
-            dataD2h = $(objElem).data(dataName);
-        if (dataD2h) {
-            if (/^\{.*\}$/.test(dataD2h)) {
-                try {
-                    optionsEle = eval('[(' + dataD2h + ')]')[0];
-                } catch(e) {
-                    $.error(
-                        "d2h_utils.getJsData(): " +
-                        "jsData of attribute 'data-" + dataName + "' have a not valid js syntax on " + 
-                        _getElementPath(objElem)
-                    );
-                }
-            } else {
-                optionsEle = dataD2h;
-            }
-        }
-        return optionsEle;
-    }
-    
     function _getElementPath(elem) {
         if (!elem) {
             return "`undefined or null`";
@@ -66,8 +33,39 @@ var d2h_utils = (function ($) {
     }
     
     return {
-        getSingleElement: _getSingleElement,
-        getJsData: _getJsData,
+        getSingleElement: function(selector) {
+            var $elem = $(selector);
+            if (!selector || $elem.length !== 1) {
+                $.error(
+                    "d2h_utils.singleElement(): Selector '" + selector +
+                    "' has selected " + $elem.length +
+                    " elements. Must select only one DOM element!"
+                );
+            }
+            return $elem[0];
+        },
+        
+        getJsData: function(objElem, dataName) {
+            var optionsEle,
+                dataD2h = $(objElem).data(dataName);
+            if (dataD2h) {
+                if (/^\{.*\}$/.test(dataD2h)) {
+                    try {
+                        optionsEle = eval('[(' + dataD2h + ')]')[0];
+                    } catch(e) {
+                        $.error(
+                            "d2h_utils.getJsData(): " +
+                            "jsData of attribute 'data-" + dataName + "' have a not valid js syntax on " + 
+                            _getElementPath(objElem)
+                        );
+                    }
+                } else {
+                    optionsEle = dataD2h;
+                }
+            }
+            return optionsEle;
+        },
+        
         getElementPath: _getElementPath
     };
 })(jQuery);

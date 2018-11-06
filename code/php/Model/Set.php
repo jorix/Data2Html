@@ -107,7 +107,7 @@ abstract class Set
     ];
     
     private static $visualWords = array(
-        'display', 'format', 'list', 'size', 'title', 'type', 'validations', 'default', 'db'
+        'name', 'display', 'format', 'list', 'size', 'type', 'validations', 'default'
     );
     
     public function __construct(
@@ -658,18 +658,22 @@ abstract class Set
         foreach ($lkItems as $k => $v) {
             if (!Lot::getItem('_instrumental', $v)) {
                 if (!is_int($k)) {
-                    $item = [];
-                    $visualItems[$k] = &$item;
-                    foreach (self::$visualWords as $w) {
-                        if (array_key_exists($w, $v)) {
-                            $item[$w] = $v[$w];
-                        }
-                    }
-                    unset($item);
+                    $visualItems[$k] = self::getVisualAttr($v);
                 }
             }
         }
         return $visualItems;
+    }
+    
+    public static function getVisualAttr($item)
+    {
+        $vAttr = [];
+        foreach (self::$visualWords as $w) {
+            if (array_key_exists($w, $item)) {
+                $vAttr[$w] = $item[$w];
+            }
+        }
+        return $vAttr;
     }
     
     // -----------------------

@@ -10,8 +10,6 @@ return array(
             'action' => 'read-page'
         ),
         'pageSize' => array(
-            'layout-template' => 'bare',
-            'title' => '__{page-size} altre __{next-page}',
             'content-template' => 'text-input',
             'default' => 10,
             'type' => 'integer'
