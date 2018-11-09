@@ -372,6 +372,7 @@ abstract class Set
                     }
                 }
             }
+            $v['name'] = $k;
             if (array_key_exists('key', $v)) {
                 $keys[$k] = [];
             }

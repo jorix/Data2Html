@@ -172,7 +172,7 @@ var d2h_inputs = (function ($) {
                 _data[visualAttr.name] = validation.data;
                 if (action && validation.errors) {
                     _isOk = false;
-                    d2h_message.danger($(this.id, elemBlock), validation.errors.join('<br>'));
+                    d2h_message.danger($(this), validation.errors.join('<br>'));
                 }
             });
             
@@ -197,11 +197,9 @@ var d2h_inputs = (function ($) {
             _putKeys(elemBlock, '');
             $('[data-d2h-from-id="' + elemBlock.id + '"]', elemBlock).each(function() {
                 var visualAttr = _getVisual(this);
-                if (onlyWithDefault) {
-                    if (visualAttr['default'] !== undefined) {
-                        _putVal(this, visualAttr['default'], visualAttr.type);
-                    };
-                } else {
+                if (visualAttr['default'] !== undefined) {
+                    _putVal(this, visualAttr['default'], visualAttr.type);
+                } else if (!onlyWithDefault) {
                     _putVal(this, '', visualAttr.type);
                 }
             });

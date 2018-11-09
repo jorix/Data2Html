@@ -81,6 +81,8 @@ var d2h_serverBase = (function ($) {
                 this._visualData = d2h_utils.getJsData(objElem, 'd2h-visual');
             }
             if (settings.actions) {
+                var objOnAntion = $(objElem).attr('data-d2h-on');
+                
                 this.listen(objElem, settings.actions);
             }
             
@@ -173,13 +175,11 @@ var d2h_serverBase = (function ($) {
         listen: function(handlerEle, _actions) {
             var _container = this._container;
             // Scope handlerEle
-            var _fnAction = function() {
-                var $thisEle = $(this),
-                    _onAction = $thisEle.data('d2h-on').split(':');
+            var _fnActionOn = function(_onAction) {
                 if (_onAction.length === 2) {
                     var _function = _actions[_onAction[1]];
                     if (_function) {
-                        $thisEle.on(_onAction[0], function(event) {
+                        $(this).on(_onAction[0], function(event) {
                             console.log(
                                 'execute->',
                                 '#' + _container.getElem().id + ': ' + 
@@ -190,16 +190,28 @@ var d2h_serverBase = (function ($) {
                         });
                     }
                 }
-            };
+            };    
             // all sub-elements
-            this.$('[data-d2h-on]', handlerEle).each(
-                function() {
-                    _fnAction.call(this);
-                }
-            );
+            this.$('[data-d2h-on]', handlerEle).each(function() {
+                _fnActionOn.call(this, $(this).data('d2h-on').split(':'));
+            });
+            
             // self element
-            if ($(handlerEle).attr('data-d2h-on')) {
-                _fnAction.call(handlerEle);
+            var handlerOnAction = $(handlerEle).attr('data-d2h-on');
+            if (handlerOnAction) {
+                var _OnActionHandl = handlerOnAction.split(':');
+                if (
+                    handlerEle.id === this.objElem.id &&
+                    _OnActionHandl[0] === 'change'
+                ) {
+                    // force change to sub inputs into into objElem as handler.
+                    console.log(this.objElem.id);
+                    this.$('[data-d2h-input]').each(function() {
+                        _fnActionOn.call(this, _OnActionHandl);
+                    });
+                } else {
+                    _fnActionOn.call(handlerEle, _OnActionHandl);
+                }
             }
         },
         
