@@ -60,7 +60,9 @@ return [
         
         $replaces = [];
         $replaces['url'] = $url;
-        if ($visualWidth > 0) {
+        if ($visualWidth <= 0) {
+            $replaces['visual-width'] = 'auto';
+        } else {
             $visualWidth = ($visualWidth + 10) / 15; // to bootstrap width.
             if ($visualWidth < 2) {
                 $visualWidth = ceil($visualWidth);

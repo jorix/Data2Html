@@ -15,11 +15,11 @@ var d2h_inputs = (function ($) {
     var _putVal = function(elem, data, dataType) {
         var $elem = $(elem);
         if ($elem.attr('type') === 'checkbox') {
-            return $elem.prop('checked', data);
+            $elem.prop('checked', data);
         } else if ($elem.hasClass('selectivity-input')) {
-            return $elem.selectivity('val', _toVal(data, dataType));
+            d2h_server(elem).putValues(_toVal(data, dataType));
         } else {
-            return $elem.val(_toVal(data, dataType));
+            $elem.val(_toVal(data, dataType));
         }
     };
     

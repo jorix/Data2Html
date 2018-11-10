@@ -157,6 +157,13 @@ var d2h_serverBase = (function ($) {
             }
         },
         
+        then: function(doneFn) {
+            var _this = this;
+            this.promise = $.when(this.promise).then(function() {
+                doneFn.call(_this);
+            });
+        },
+        
         whenPromise: function(promises, doneFn) {
             if (promises) {
                 if (!$.isArray(promises)) { // cast to array

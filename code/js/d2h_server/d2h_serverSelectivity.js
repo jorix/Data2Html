@@ -81,9 +81,10 @@ var d2h_serverSelectivity = (function ($) {
                     _key0 = Object.keys(rows[0])[0];
                 }
                 return $.map(rows, function(item) {
+                    // Use values as string
                     return {
-                        id: item['[keys]'][0],
-                        text: item[_key0]
+                        id: item['[keys]'][0] + '',
+                        text: item[_key0] + ''
                     };
                 });
             }
@@ -105,6 +106,12 @@ var d2h_serverSelectivity = (function ($) {
             }).then(function(data) {
                 var items = _this.transformRows(data.rows);
                 $(_objElem).selectivity('setOptions', {'items': items});
+            });
+        },
+        
+        putValues: function(values) {
+            this.then(function() {
+                $(this.objElem).selectivity('val', values + '');
             });
         }
     });

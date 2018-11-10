@@ -133,11 +133,14 @@
                     ->render(['example' => 'exd-2', 'title' => 'd2h-List'], $template)
                     ->get('html');
             ?>
+            <button onclick=" $('#exd-2').selectivity('val', 'd002'); return false;">Put "d002"</button>
             <script> 
                 d2h_server('#exd-2', {
                     // multiple: true,
                     placeholder: 'Test d2h-2',
                     url: '../../demo/_controller/_controller.php?model=empl_departments:list'
+                }).then(function() {
+                    $('#exd-2').selectivity('val', "d002")
                 });
             </script>
         </div>
