@@ -3,7 +3,7 @@ function d2h_sort() {
     this._init.apply(this, arguments);
 }
 d2h_sort.prototype = {
-    _init: function(dataObj, sortSelector) {
+    _init: function(gridServer, sortSelector) {
         var $sort = $(sortSelector);
         if ($sort.length !== 1) {
             $.error(
@@ -12,10 +12,10 @@ d2h_sort.prototype = {
                 "  elements. Must select only one element!"
             );
         }
-        this.dataObj = dataObj;
+        this.gridServer = gridServer;
         this.sortElem = $sort[0];
         
-        var dataElem = this.dataObj.getElem();
+        var dataElem = this.gridServer.getElem();
         $.data(dataElem, "Data2Html_sort", this);
         
         var _this = this;
@@ -23,16 +23,16 @@ d2h_sort.prototype = {
             var _sortName = $(this).attr('data-d2h-sort');
             $('.d2h_sortIco_no, .d2h_sortIco_desc', this).on('click', function() {
                 _this.show(_sortName);
-                _this.dataObj.loadGrid();
+                _this.gridServer.load();
             });
             $('.d2h_sortIco_asc', this).on('click', function() {
                 _this.show('!' + _sortName);
-                _this.dataObj.loadGrid();
+                _this.gridServer.load();
             });
         });
     },
     show: function(sort) {
-        var dataElem = this.dataObj.getElem();
+        var dataElem = this.gridServer.getElem();
         $('.d2h_sort_asc, .d2h_sort_desc', dataElem)
             .removeClass('d2h_sort_asc d2h_sort_desc')
             .addClass('d2h_sort_no');
@@ -47,7 +47,7 @@ d2h_sort.prototype = {
                 case '+': case '<':
                     sortName = sort.substr(1);
                     break;
-                case '$': // ERROR on server template
+                case '$': // ERROR on gridServer template
                     return this;
             }
             $('[data-d2h-sort=' + sortName + ']', dataElem)
@@ -60,9 +60,9 @@ d2h_sort.prototype = {
 };
 
 // Static
-d2h_sort.create = function(dataObj, sortSelector) {
-    return new this(dataObj, sortSelector);
+d2h_sort.create = function(gridServer, sortSelector) {
+    return new this(gridServer, sortSelector);
 };
-d2h_sort.show = function(dataObj, sort) {
-    return $.data(dataObj.getElem(), "Data2Html_sort").show(sort);
+d2h_sort.show = function(gridServer, sort) {
+    return $.data(gridServer.getElem(), "Data2Html_sort").show(sort);
 };

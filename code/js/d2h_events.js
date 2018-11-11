@@ -30,10 +30,10 @@ var d2h_events = (function($) {
                 elemEvents[eventName] = 0;
             }
             elemEvents[eventName]++;
-            console.log(
-                'listen->', 
-                _elemId + ': ' + _prefix + '[ ' +  eventName + ' ]'
-            );
+            // console.log(
+                // 'listen->', 
+                // _elemId + ': ' + _prefix + '[ ' +  eventName + ' ]'
+            // );
             $(elem).on(
                 _prefix  + '_' + eventName,
                 function() {
@@ -65,10 +65,10 @@ var d2h_events = (function($) {
         trigger: function(selector, eventName, args) {
             var elem = d2h_utils.getSingleElement(selector),
             elemId = '#' + elem.id;
-            console.log(
-                elemId + ': ' + this.prefix + '[ ' +  eventName + ' ]', 
-                args ? args : ''
-            );
+            // console.log(
+                // elemId + ': ' + this.prefix + '[ ' +  eventName + ' ]', 
+                // args ? args : ''
+            // );
             if (args) {
                 return $(elem).triggerHandler(this.prefix + '_' + eventName, args);
             } else {

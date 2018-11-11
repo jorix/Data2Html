@@ -1,5 +1,6 @@
 var d2h_display = (function($) {
     
+    var _DATA_COMPONENT = "Data2Html_display";
     var _events = new d2h_events('d2h_display');
     
     // Class
@@ -82,15 +83,15 @@ var d2h_display = (function($) {
                             _on(branch,
                                 'applyFormLeafKeys',  
                                 function(branchKeys) {
-                                    var grid = _this.getServer('grid'),
-                                        filter = grid.getComponent('filter');
+                                    var gridServer = _this.getServer('grid'),
+                                        filter = gridServer.getComponent('filter');
                                     _applyKeys(filter, branchKeys);
                                     // save branch keys on grid
-                                    grid.branchKeys(branchKeys);
+                                    gridServer.branchKeys(branchKeys);
                                     if (branchKeys) {
-                                        grid.loadGrid();
+                                        gridServer.load();
                                     } else {
-                                        grid.clearGrid();
+                                        gridServer.clear();
                                     }
                                     _this.show('grid');
                                 }
@@ -143,10 +144,9 @@ var d2h_display = (function($) {
          */
         loadGrid: function() {
             var _this = this,
-                _elem = d2h_utils.getSingleElement(this.getSelector('grid'));
-            d2h_server.whenCreated(_elem, function() {
-                var server =  d2h_server(_elem);
-                server.loadGrid();
+                _gridElem = d2h_utils.getSingleElement(this.getSelector('grid'));
+            d2h_server.whenCreated(_gridElem, function() {
+                d2h_server(_gridElem).load();
                 _this.show('grid');
             });
         },
@@ -247,7 +247,7 @@ var d2h_display = (function($) {
                     },
                     afterSave: function(){
                         var gridServer = _displayObj.getServer('grid');
-                        gridServer.loadGrid({
+                        gridServer.load({
                             afterLoadGrid: function() {
                                 d2h_message.success(
                                     _displayObj.show('grid'),
@@ -270,7 +270,7 @@ var d2h_display = (function($) {
                             gridSelector = _displayObj.getSelector('grid');
                         gridServer.selectedKeys(keys);
                         if (_eventIsUsed(gridSelector, 'applyFormLeafKeys')) {
-                            gridServer.loadGrid(); // To show new record in the grid
+                            gridServer.load(); // To show new record in the grid
                             d2h_display.goFormAction(blockServer, 'show-edit', keys, {
                                 after: function() {
                                     d2h_message.success(
@@ -280,7 +280,7 @@ var d2h_display = (function($) {
                                 }
                             });
                         } else {
-                            gridServer.loadGrid({
+                            gridServer.load({
                                 afterLoadGrid: function() {
                                     d2h_message.success(
                                         _displayObj.show('grid'),
@@ -303,7 +303,7 @@ var d2h_display = (function($) {
                     },
                     afterDelete: function(){
                         var gridServer = _displayObj.getServer('grid');
-                        gridServer.loadGrid({
+                        gridServer.load({
                             afterLoadGrid: function() {
                                 d2h_message.warning(
                                     _displayObj.show('grid'),
@@ -328,7 +328,7 @@ var d2h_display = (function($) {
         _options = _options ? _options : {};
         switch (action) {
             case 'show-edit':
-                blockServer.loadBlock({
+                blockServer.load({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
@@ -343,7 +343,7 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-delete':
-                blockServer.loadBlock({
+                blockServer.load({
                     keys: _keys,
                     afterLoadElement: function() {
                         var gridSelector = _displayObj.getSelector('grid');
@@ -358,10 +358,10 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-copy':
-                blockServer.loadBlock({
+                blockServer.load({
                     keys: _keys,
                     afterLoadElement: function() {
-                        blockServer.clearBlock({onlyWithDefault: true});
+                        blockServer.clear({onlyWithDefault: true});
                         _trigger(formSelector, 'hideLeaves');
                         $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', blockElem).hide();
                         $('.d2h_dsp_insert', blockElem).show();
@@ -373,7 +373,7 @@ var d2h_display = (function($) {
                 });
                 break;
             case 'show-create':
-                blockServer.clearBlock();
+                blockServer.clear();
                 _trigger(formSelector, 'hideLeaves');
                 $('.d2h_dsp_update,.d2h_dsp_delete,.d2h_dsp_move', blockElem).hide();
                 $('.d2h_dsp_insert', blockElem).show();

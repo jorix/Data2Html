@@ -16,7 +16,6 @@ var d2h_serverBlock = (function ($) {
         ],
         defaults: {
             type: 'block',
-            auto: 'clearBlock',
             classIsChanged: 'd2h_changed'
         },
         
@@ -24,20 +23,25 @@ var d2h_serverBlock = (function ($) {
             d2h_serverBase.prototype._init.apply(this, [objElem, container, options]);
             
             // prevent submit
-            var formEle = this.objElem,
-                _settings = this.settings,
-                $formEle = $(formEle);
-            if (formEle.tagName === 'FORM')  {
-                $formEle.on('submit', function() {
+            var blockElem = this.objElem,
+                _blockElemId = blockElem.id,
+                $blockElem = $(blockElem);
+            if (blockElem.tagName === 'FORM')  {
+                $blockElem.on('submit', function() {
                     return false;
                 });
             }
             var _this = this;
             this.$('[data-d2h-from-id]').change(function() {
-                _this.changedOn();
+                if (!_this.silentChange) {
+                    console.log(
+                        'execute-> #' + _blockElemId + ': change->changedOn()'
+                    );
+                    _this.changedOn();
+                }
             });
                    
-            // clearBlock
+            // clear
             var _promises = null,
                 $subElements = $('[data-d2h]', this.objElem);
             if ($subElements.length > 0) {
@@ -57,7 +61,12 @@ var d2h_serverBlock = (function ($) {
             $(this.objElem).removeClass(this.settings.classIsChanged);
         },
         
-        loadBlock: function(options) {
+        clear: function(options) {
+            d2h_inputs.clear(this.objElem, options ? options.onlyWithDefault : false);
+            return this;
+        },
+        
+        load: function(options) {
             if (!options || !options.keys) {
                 $.error("d2h_server: Can't load form data without 'keys' option.");
             }
@@ -79,7 +88,7 @@ var d2h_serverBlock = (function ($) {
                         if (this._rows.length > 0) {
                             this.showFormData(this._rows[0]);
                         } else {
-                            this.clearBlock();
+                            this.clear();
                         }
                     },
                     "afterLoadElement",
@@ -129,6 +138,7 @@ var d2h_serverBlock = (function ($) {
             });
             return this;
         },
+        
         'delete': function(options) {
             var data = d2h_inputs.get(this.objElem, 'delete'),
                 _settings = this.settings;
@@ -157,15 +167,6 @@ var d2h_serverBlock = (function ($) {
                     this.changedOff();
                 }
             });
-            return this;
-        },
-        
-        clear: function() {
-            this.clearBlock();
-        },
-        
-        clearBlock: function(options) {
-            d2h_inputs.clear(this.objElem, options ? options.onlyWithDefault : false);
             return this;
         },
         

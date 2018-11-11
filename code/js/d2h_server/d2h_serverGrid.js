@@ -12,7 +12,7 @@ var d2h_serverGrid = (function ($) {
         events: ["beforeLoadGrid", "errorLoadGrid", "afterLoadGrid"],
         defaults: {
             type: 'grid',
-            auto: 'loadGrid',
+            auto: 'load',
             repeat: '.d2h_repeat',
             pageSize: 0, //default results per page
             
@@ -153,7 +153,7 @@ var d2h_serverGrid = (function ($) {
             return this.components[compomentName];
         },
         
-        loadGrid: function(options) {
+        load: function(options) {
             var _settings= this.settings,
                 sortSelector = _settings.sort,
                 _add = false,
@@ -161,9 +161,9 @@ var d2h_serverGrid = (function ($) {
                 pageStart = 1;
             if (this.components.filter) {
                 var dataFilter = d2h_inputs.get(this.components.filter.getElem(), true);
-                if (dataFilter === false) {
+                if (dataFilter === false) { // Exist filter validations errors.
                     this._rows = null;
-                    this.clearGrid();
+                    this.clear();
                     return this;
                 }
                 data['d2h_filter'] = $.param(dataFilter).replace(/&/g, '{and}');
@@ -185,6 +185,7 @@ var d2h_serverGrid = (function ($) {
                 aux['pageStart'] = pageStart;
                 data['d2h_page'] = $.param(aux).replace(/&/g, '{and}');
             }
+            console.log('load-> #' + this.objElem.id, ++this._loadCount, data);
             this.server({
                 ajaxType: 'GET',
                 data: data,
@@ -215,9 +216,6 @@ var d2h_serverGrid = (function ($) {
 
         // Manage grid HTML
         clear: function() {
-            this.clearGrid();
-        },
-        clearGrid: function() {
             var $parentContainer = $(this._selectorRepeatParent, this.objElem);
             if ($parentContainer.length === 0) {
                 $parentContainer = $(this.objElem);
@@ -254,7 +252,7 @@ var d2h_serverGrid = (function ($) {
         },
         
         showGrid: function () {
-            this.clearGrid();
+            this.clear();
             
             var $parentContainer = $(this._selectorRepeatParent, this.objElem),
                 $lastItem = null;
