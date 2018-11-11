@@ -1,6 +1,6 @@
 var d2h_display = (function($) {
     
-    var _DATA_COMPONENT = "Data2Html_display";
+    var _COMPONENT_NAME = "Data2Html_display";
     var _events = new d2h_events('d2h_display');
     
     // Class
@@ -116,7 +116,7 @@ var d2h_display = (function($) {
                     "d2h_display.add(): If selector must be a plain object or a string!"
                 );
             }
-            $.data(d2h_utils.getSingleElement(selector), "Data2Html_display", this);
+            $.data(d2h_utils.getSingleElement(selector), _COMPONENT_NAME, this);
             this._selectors[name] = selector;
             return this;
         },
@@ -197,7 +197,7 @@ var d2h_display = (function($) {
             elem = serverSelector.getElem();
             elemSelector = 'd2h_server(#' + elem.id + ')';
         }
-        var displayObj = $.data(elem, "Data2Html_display");
+        var displayObj = $.data(elem, _COMPONENT_NAME);
         if (!displayObj) {
             $.error(
                 "_get(): '" + elemSelector + 

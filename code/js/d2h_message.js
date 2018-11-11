@@ -1,5 +1,8 @@
 // Static
 var d2h_message = (function ($) {
+    
+    var _COMPONENT_NAME = 'Data2Html_message';
+    
     var _options = {
         messageTime: 10000 
     };
@@ -14,19 +17,19 @@ var d2h_message = (function ($) {
     
     function _getInfoMessage(elemSelector) { 
         var elem = _getElement(elemSelector),
-            response = $.data(elem, 'Data2Html_message');
+            response = $.data(elem, _COMPONENT_NAME);
         $(elem).addClass('d2h_has_message')
         if (!response) {
             var fromId = $(elem).attr('data-d2h-from-id');
             if (fromId) {
                 var elemFrom = d2h_utils.getSingleElement('#' + fromId);
-                if (!$.data(elem, 'Data2Html_message')) {
+                if (!$.data(elem, _COMPONENT_NAME)) {
                     _create(elemFrom);
-                    response = $.data(elem, 'Data2Html_message');
+                    response = $.data(elem, _COMPONENT_NAME);
                 }
             } else {
                 _create($(elem).parent());
-                response = $.data(elem, 'Data2Html_message')
+                response = $.data(elem, _COMPONENT_NAME)
             }
         }
         if (!response) {
@@ -78,11 +81,11 @@ var d2h_message = (function ($) {
             //      '#myId div' show messages refereed to first div on #myId and
             //      stores info messages on #myDiv
             var elemMessages = d2h_utils.getSingleElement(selectorRef.split(' ')[0]),
-                infoMessage = $.data(elemMessages, 'Data2Html_message');
+                infoMessage = $.data(elemMessages, _COMPONENT_NAME);
             if (!infoMessage) {
                 infoMessage = {poppers: [], timers: []};
                 // Create the infoMessage object.
-                $.data(elemMessages, 'Data2Html_message', infoMessage);   
+                $.data(elemMessages, _COMPONENT_NAME, infoMessage);   
             }
             $(this).hide().html(
                     '<span></span>' +

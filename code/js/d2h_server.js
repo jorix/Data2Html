@@ -6,6 +6,7 @@ jQuery.ajaxSetup({ cache: false });
 
 var d2h_server = (function ($) {
     
+    var _COMPONENT_NAME = "Data2Html_server";
     var _events = new d2h_events('d2h_server');
     
     /**
@@ -30,7 +31,7 @@ var d2h_server = (function ($) {
         }
         var _response = [];
         $elem.each(function() {
-            if (!$.data(this, 'Data2Html_server') ) {
+            if (!$.data(this, _COMPONENT_NAME) ) {
                 // Create a data for 'Data2Html_server'
                 var optionsEle = d2h_utils.getJsData(this, 'd2h');
                 if ((!optionsEle && !_options) || typeof optionsEle === 'string') {
@@ -52,7 +53,7 @@ var d2h_server = (function ($) {
                     new d2h_serverGrid(this, opData);
                 }
             }
-            _response.push($.data(this, 'Data2Html_server'));
+            _response.push($.data(this, _COMPONENT_NAME));
         });
         if (_response.length === 1) {
             return _response[0];
@@ -62,6 +63,8 @@ var d2h_server = (function ($) {
     };
     
     $.extend(d2h_server, {
+        COMPONENT_NAME: _COMPONENT_NAME,
+        
         on: function(selector, scope, eventName, handlerFn) {
             return _events.on(selector, scope, eventName, handlerFn);
         },
@@ -71,7 +74,7 @@ var d2h_server = (function ($) {
         },
         
         whenCreated: function(selector, handlerFn) {
-            var server = $(selector).data('Data2Html_server');
+            var server = $(selector).data(_COMPONENT_NAME);
             if (server) {
                 handlerFn.call(null);
             } else {

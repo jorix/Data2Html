@@ -83,7 +83,7 @@ var d2h_serverBase = (function ($) {
             }
             
             // Add pluguin
-            $.data(this.objElem, "Data2Html_server", this);
+            $.data(this.objElem, d2h_server.COMPONENT_NAME, this);
  
         },
         
