@@ -116,7 +116,7 @@ class SqlEdit
     public function getUpdate($values)
     {
         if (!array_key_exists('where', $this->result)) {
-            throw new DebugException("Keys are required, use checkSingleRow() before getUpdate().",
+            throw new DebugException("Keys are required using getUpdate().",
                 $this->result
             );
         }
@@ -138,15 +138,15 @@ class SqlEdit
                 'result' => $this->result
             ]);
         }
-        return "UPDATE {$this->result['table']}
-                    SET " . implode(",\n", $assigns) . "
-                    WHERE {$this->result['where']}";
+        return "UPDATE {$this->result['table']}" .
+               "\nSET\n  " . implode(",\n  ", $assigns) . 
+               "\nWHERE {$this->result['where']}";
     }
 
     public function getDelete()
     {
         if (!array_key_exists('where', $this->result)) {
-            throw new DebugException("Keys are required, use checkSingleRow() before getDelete().",
+            throw new DebugException("Keys are required using getDelete().",
                 $this->result
             );
         }

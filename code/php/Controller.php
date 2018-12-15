@@ -67,6 +67,7 @@ class Controller
                 if (isset($playerNames['block'])) {
                     $lkForm = $model->getLinkedBlock($playerNames['block']);
                     return $this->opReadForm($lkForm, $r->get('d2h_keys'));
+
                 } elseif (isset($playerNames['grid'])) {
                     $lkGrid = $model->getLinkedGrid($playerNames['grid']);
 
@@ -80,9 +81,9 @@ class Controller
                         $r->getArray('d2h_filter')
                     );
                     $sqlObj->addSort($r->getString('d2h_sort'));
+                    $page = $r->getLot('d2h_page', []);
                     
                     // Response
-                    $page = $r->getLot('d2h_page', []);
                     return $this->opRead(
                         $sqlObj->getSelect(),
                         $lkGrid->getColumns(),
@@ -102,25 +103,8 @@ class Controller
                     header('HTTP/1.0 401 Validation errors');
                     die(To::json($validation));
                 }
-                $values = $validation['data'];
-                $newId = $this->opInsert($lkElem, $values);
+                return $this->opInsert($lkElem, $validation['data']);
                 
-                // Get new keys
-                $lkItems = $lkElem->getLinkedItems();
-                $keyNames = $lkElem->getLinkedKeys();
-                $keys = [];
-                foreach($keyNames as $k => $v) {
-                    if (Lot::getItem([$k, 'key'], $lkItems) === 'autoKey') {
-                        $keys[] = $newId + 0;
-                    } else {
-                        $keys[] = $values[$k];
-                    }
-                }
-                
-                // Response record
-                $response['keys'] = $keys;
-                break;
-
             case 'update':
                 $val = new Validate('ca');
                 $lkElem = $model->getLinkedBlock($playerNames['block']);
@@ -134,22 +118,21 @@ class Controller
                     header('HTTP/1.0 401 Validation errors');
                     die(To::json($validation));
                 }
-                $this->opUpdate($lkElem, $validation['data'], $keys);
-                break;
-
+                return $this->opUpdate($lkElem, $validation['data'], $keys);
+                
             case 'delete':
                 $postValues = Lot::getItem('d2h_data', $postData);
                 $keys = Lot::getItem('[keys]', $postValues);
                 unset($postValues['[keys]']);
-                $this->opDelete($model->getLinkedBlock($playerNames['block']), $postValues, $keys);
-                break;
-
+                return  $this->opDelete(
+                    $model->getLinkedBlock($playerNames['block']),
+                    $postValues,
+                    $keys
+                );
+                
             default:
                 throw new DebugException("Oper '{$oper}' is not defined");
-                break;
         }
-        $response['success'] = 1;
-        return $response;
     }
     
     /**
@@ -311,59 +294,61 @@ class Controller
 
     protected function opInsert($lkSet, &$values)
     {
-        $newId = null;
-        
         // Transaction
+        $response = ['success' => false];
         $this->db->startTransaction();
         try {
-            $result = $lkSet->dbInsert($this->db, $values, $newId);
+            $response = $lkSet->dbInsert($this->db, $values);
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
             die(To::json(DebugException::toArray($e)));
         }
-        if ($result === false) {
+        if ($response['success']) {
+            $this->db->commit();
+        } else {
             $this->db->rollback();
-            return false;
         }
-        $this->db->commit();
-
-        return $newId;
+        return $response;
     }
     
     protected function opUpdate($lkSet, &$values, $keys)
     {
         // Transaction
+        $response = ['success' => false];
         $this->db->startTransaction();
         try {
-            $result = $lkSet->dbUpdate($this->db, $values, $keys);
+            $response = $lkSet->dbUpdate($this->db, $values, $keys);
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
             die(To::json(DebugException::toArray($e)));
         }
-        if ($result === false) {
+        if ($response['success']) {
+            $this->db->commit();
+        } else {
             $this->db->rollback();
-            return false;
         }
-        $this->db->commit();
+        return $response;
     }
     
     protected function opDelete($lkSet, &$values, $keys)
     {
         // Transaction
+        $response = ['success' => false];
         $this->db->startTransaction();
         try {
-            $result = $lkSet->dbDelete($this->db, $values, $keys);
+            $response = $lkSet->dbDelete($this->db, $values, $keys);
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
             die(To::json(DebugException::toArray($e)));
         }
-        if ($result === false) {
+        if ($response['success']) {
+            $this->db->commit();
+        } else {
             $this->db->rollback();
-            return false;
         }
-        $this->db->commit();
+        return $response;
     }
 }

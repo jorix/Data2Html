@@ -3,6 +3,8 @@ namespace Data2Html\Model\Join;
 
 use Data2Html\Handler;
 use Data2Html\Model\Set;
+use Data2Html\Data\Lot;
+use Data2Html\Config;
 use Data2Html\Controller\SqlEdit;
 
 class LinkedSet
@@ -117,43 +119,129 @@ class LinkedSet
     // -----------------------
     // Database management
     // -----------------------
-    public function dbInsert($db, &$values, &$newId)
+    public function dbInsert($db, &$values)
     {
-        if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
-            return false;
+        $response = ['success' => false];
+        if (Config::debug()) {
+            $debugResponse = ['action' => 'dbInsert'];
+        } else {
+            $debugResponse = false;
         }
-        $sqlObj = new SqlEdit($db, $this);
-        $db->execute($sqlObj->getInsert($values));
-        $newId = $db->lastInsertId();
-        
-        $this->callbackEvent('afterInsert', $db, $values, $newId);
-        return true;
+        if ($this->callbackEvent('beforeInsert', $db, $values) === false) {
+            $response['success'] = false;
+            if ($debugResponse) {
+                $debugResponse['beforeInsert'] = [
+                    'response' => false,
+                    'values' => $values,
+                ];
+            }
+        } else {
+            $sqlObj = new SqlEdit($db, $this);
+            $sql = $sqlObj->getInsert($values);
+            $db->execute($sql);
+            $newId = $db->lastInsertId();
+            // Get new keys
+            $lkItems = $this->getLinkedItems();
+            $keyNames = $this->getLinkedKeys();
+            $keys = [];
+            foreach($keyNames as $k => $v) {
+                if (Lot::getItem([$k, 'key'], $lkItems) === 'autoKey') {
+                    $keys[] = $newId + 0;
+                } else {
+                    $keys[] = $values[$k];
+                }
+            }
+            $response['keys'] = $keys;
+            
+            if ($debugResponse) {
+                $debugResponse['sql'] = explode("\n", $sql);
+            }
+
+            $this->callbackEvent('afterInsert', $db, $values, $newId);
+            $response['success'] = true;
+        }
+        if ($debugResponse) {
+            $response['debug'] = $debugResponse;
+        }
+        return $response;
     }
     
     public function dbUpdate($db, &$values, $keys)
     {
-        if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
-            return false;
+        $response = ['success' => false];
+        if (Config::debug()) {
+            $debugResponse = [
+                'action' => 'dbUpdate',
+                'keys' => $keys
+            ];
+        } else {
+            $debugResponse = false;
         }
-        $sqlObj = new SqlEdit($db, $this);
-        $sqlObj->checkSingleRow($keys);
-        $db->execute($sqlObj->getUpdate($values));
+        // before update
+        if ($this->callbackEvent('beforeUpdate', $db, $values, $keys) === false) {
+            $response['success'] = false;
+            if ($debugResponse) {
+                $debugResponse['beforeUpdate'] = [
+                    'response' => false,
+                    'values' => $values,
+                ];
+            }
+        } else {
+            $sqlObj = new SqlEdit($db, $this);
+            $sqlObj->checkSingleRow($keys);
+            $sql = $sqlObj->getUpdate($values);
+            $db->execute($sql);
+            if ($debugResponse) {
+                $debugResponse['sql'] = explode("\n", $sql);
+            }
+            $this->callbackEvent('afterUpdate', $db, $values, $keys);
+            $response['success'] = true;
+        }
         
-        $this->callbackEvent('afterUpdate', $db, $values, $keys);
-        return true;
+        if ($debugResponse) {
+            $response['debug'] = $debugResponse;
+        }
+        return $response;
     }
 
     public function dbDelete($db, &$values, $keys)
     {
-        if ($this->callbackEvent('beforeDelete', $db, $values, $keys) === false) {
-            return false;
+        $response = ['success' => false];
+        if (Config::debug()) {
+            $debugResponse = [
+                'action' => 'dbUpdate',
+                'keys' => $keys
+            ];
+        } else {
+            $debugResponse = false;
         }
-        $sqlObj = new SqlEdit($db, $this);
-        $sqlObj->checkSingleRow($keys);
-        $db->execute($sqlObj->getDelete($values));
+        // before Delete
+        if ($this->callbackEvent('beforeDelete', $db, $values, $keys) === false) {
+            $response['success'] = false;
+            if ($debugResponse) {
+                $debugResponse['beforeDelete'] = [
+                    'response' => false,
+                    'values' => $values,
+                ];
+            }
+        } else {
+            $sqlObj = new SqlEdit($db, $this);
+            $sqlObj->checkSingleRow($keys);
+            $sql = $sqlObj->getDelete($values);
+            $db->execute($sql);
+            
+            if ($debugResponse) {
+                $debugResponse['sql'] = explode("\n", $sql);
+            }
+            // after delete
+            $this->callbackEvent('afterDelete', $db, $values, $keys);
+            $response['success'] = true;
+        }
         
-        $this->callbackEvent('afterDelete', $db, $values, $keys);
-        return true;
+        if ($debugResponse) {
+            $response['debug'] = $debugResponse;
+        }
+        return $response;
     }
     
     protected function callbackEvent($eventName, $db, &$values) // arguments may be 3 or 4, depends of the event
