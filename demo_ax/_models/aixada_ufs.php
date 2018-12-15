@@ -58,7 +58,8 @@ return [
             'items' => ['active', 'uf_name', 'created', 'mentor_name'],
             'filter' => [
                 'items' => [
-                    '%name', '=active', 
+                    '%name',
+                    '=active',
                     '=mentor_uf' => ['link' => 'aixada_ufs:mentors', 'default' => 14]
                 ]
             ]

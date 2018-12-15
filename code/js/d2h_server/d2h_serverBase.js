@@ -54,7 +54,6 @@ var d2h_serverBase = (function ($) {
         status: null,
         promise: null,
         objElem: null, // The DOM element
-        silentChange: false,
         _container: null,  
         _loadCount: 0,       
         _initId: 0,
@@ -202,7 +201,7 @@ var d2h_serverBase = (function ($) {
             };    
             // all sub-elements
             this.$('[data-d2h-on]', handlerEle).each(function() {
-                _fnActionOn.call(this, $(this).data('d2h-on').split(':'));
+                _fnActionOn.call(this, $(this).attr('data-d2h-on').split(':'));
             });
             
             // self element
@@ -214,7 +213,6 @@ var d2h_serverBase = (function ($) {
                     _OnActionHandl[0] === 'change'
                 ) {
                     // force change to sub inputs into into objElem as handler.
-                    console.log(this.objElem.id);
                     this.$('[data-d2h-input]').each(function() {
                         _fnActionOn.call(this, _OnActionHandl);
                     });

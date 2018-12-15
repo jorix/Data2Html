@@ -111,7 +111,8 @@ var d2h_serverSelectivity = (function ($) {
         
         putValues: function(values) {
             this.then(function() {
-                $(this.objElem).selectivity('val', values + '');
+                $(this.objElem).selectivity('val', values + '', {triggerChange: false});
+                $(this.objElem).selectivity('rerenderSelection');
             });
         }
     });

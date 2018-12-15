@@ -33,12 +33,10 @@ var d2h_serverBlock = (function ($) {
             }
             var _this = this;
             this.$('[data-d2h-from-id]').change(function() {
-                if (!_this.silentChange) {
-                    console.log(
-                        'execute-> #' + _blockElemId + ': change->changedOn()'
-                    );
-                    _this.changedOn();
-                }
+                console.log(
+                    'execute-> #' + _blockElemId + ': change->changedOn(#' + this.id + ')'
+                );
+                _this.changedOn();
             });
                    
             // clear
@@ -50,7 +48,6 @@ var d2h_serverBlock = (function ($) {
                     _promises.push(d2h_server(this).getPromise());
                 });
             }
-            
             this._initEnd(_promises);
         },
         
