@@ -209,7 +209,7 @@ class LinkedSet
         $response = ['success' => false];
         if (Config::debug()) {
             $debugResponse = [
-                'action' => 'dbUpdate',
+                'action' => 'dbDelete',
                 'keys' => $keys
             ];
         } else {

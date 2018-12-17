@@ -54,7 +54,7 @@ class Lang
         if (array_key_exists($key, $this->literals)) {
             return $this->literals[$key];
         } else {
-            return "??{{$key}}";
+            return "__({$key})";
         }
     }
     
@@ -105,7 +105,7 @@ class Lang
                 if (literals[key]) {
                     return literals[key];
                 } else {
-                    return '??{' + key + '}';
+                    return '__(' + key + ')';
                 }
             };
                 

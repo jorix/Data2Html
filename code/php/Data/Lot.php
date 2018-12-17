@@ -120,14 +120,13 @@ class Lot
 
     public function getDate(
         $itemKey,
-        $default = null,
-        $input_format = 'Y-m-d H:i:s'
+        $default = null
     ) {
         $val = $this->get($itemKey, $default);
         if (is_null($val) && is_null($default) ) {
             return null;
         }
-        return Parse::date($val, $default, $input_format, $this->strict);
+        return Parse::date($val, $default, $this->strict);
     }
         
     public function getArray($itemKey, $default = null)

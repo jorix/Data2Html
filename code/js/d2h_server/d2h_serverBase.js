@@ -307,9 +307,14 @@ var d2h_serverBase = (function ($) {
                         console.log(errorMessage, jsonError);
                     } catch (e) {}
                     if (jsonError['user-errors']) {
-                        if (d2h_display.showErrors(_this, jsonError['user-errors'])) {
-                            return false;
+                        var userErrors = jsonError['user-errors'];
+                        for (var k in userErrors) {
+                            d2h_message.danger(
+                                _this.$('[data-d2h-name="' + k + '"]'),
+                                userErrors[k]
+                            );
                         }
+                        return false;
                     }
                     if (errorArray) {
                         for (var i = 0, l = errorArray.length; i < l; i++) {

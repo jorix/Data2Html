@@ -7,7 +7,7 @@ $${include datetimepicker, d2h_message}
         id="$${id}"
         data-target="#$${id}_div"
         placeholder="$${description}"
-        name="$${name}"
+        data-d2h-name="$${name}"
         data-d2h-from-id="$${from-id}"
         data-d2h-input="$${visual-attr}"
     >

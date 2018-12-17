@@ -3,6 +3,7 @@ namespace Data2Html\Controller;
 
 use Data2Html\Lang;
 use Data2Html\Data\Lot;
+use Data2Html\Data\Parse;
 
 class Validate
 {
@@ -30,89 +31,48 @@ class Validate
         if (is_string($value)) {
             $value = trim($value);
         }
-        if ($value === '' || $value === null) {
+        if ($value === '' || $value === null) { // Verify a Null value
             $finalVal = null;
             // required
             if (Lot::getItem(['validations', 'required'], $visual, false)) {
                 $messages[] = $this->__('validate/required');
             }
+        } else if(isset($visual['type'])) { // Verify a typed Not null value
+            switch ($visual['type']) {
+                case 'boolean':
+                    $finalVal = Parse::boolean($value);
+                    if ($finalVal === null) {
+                        $messages[] = $this->__('validate/not-boolean');
+                    }
+                    break;
+                case 'date':
+                case 'datetime':
+                    $finalVal = Parse::date($value);
+                    if ($finalVal === null) {
+                        $messages[] = $this->__('validate/not-date');
+                    }
+                    break;
+                case 'float':
+                case 'number':
+                    $finalVal = Parse::number($value);
+                    if ($finalVal === null) {
+                        $messages[] = $this->__('validate/not-number');
+                    }
+                    break;
+                case 'integer':
+                    $finalVal = Parse::integer($value);
+                    if ($finalVal === null) {
+                        $messages[] = $this->__('validate/not-integer');
+                    }
+                    break;
+                default:
+                    $finalVal = $value;
+            }
         } else {
             $finalVal = $value;
         }
-            // else if ($messages.length === 0) {
-                // switch ($visual.type) {
-                    // case undefined:
-                        // $finalVal = $value;
-                        // break;
-                        
-                    // case 'boolean':
-                        // if(/^(true|1|-1)$/.test($value)) {
-                            // $finalVal = true;
-                        // } else if(/^(false|0)$/.test($value)) {
-                            // $finalVal = false;
-                        // } else {
-                            // $finalVal = null;
-                            // $messages.push(__('validate/not-boolean'));
-                        // }
-                        // break;
-                        
-                    // case 'date':
-                    // case 'datetime':
-                        // $finalVal = $value;
-                        // break;
-                         // date = moment($value, 'L LT', true);
-                        // if (!date.isValid()) {
-                            // throw "tipus no ??????";
-                        // }
-                        // $finalVal = date.format();
-                        // break;
-                        
-                    // case 'float':
-                    // case 'number':
-                    // case 'integer':
-                         // decSep = __('global/decimal-separator');
-                        // if (decSep.length !== 1) {
-                            // decSep = '.';
-                        // }
-                         // valList = $value.split(decSep);
-                        // switch (decSep) {
-                            // case ',':
-                                // valList[0] = valList[0].replace(/\./g, '');
-                                // break;
-                            // case '.':
-                                // valList[0] = valList[0].replace(/,/g, '');
-                                // break;
-                            // default:
-                                // throw "Lang['global/decimal-separator'] = '" + decSep + "' is not valid";
-                        // }
-                        // $value = valList.join('.');
-                        // if(!/^[+-]?\d+\.?\d*$/.test($value) &&
-                           // !/^[+-]?\d*\.?\d+$/.test($value)) {
-                            // $messages.push(__('validate/not-number'));
-                        // }
-                        // if ($visual.type !== 'integer') {
-                            // $finalVal = parseFloat($value);
-                        // } else {                            When integer only zeros as decimals are allowed
-                            // if(!/^[+-]?\d+\.?0*$/.test($value)&&
-                               // !/^[+-]?\d*\.?0+$/.test($value)) {
-                                // $messages.push(__('validate/not-integer'));
-                            // }
-                            // $finalVal = parseInt($value, 10);
-                        // }
-                        // break;
-                        
-                    // case 'string':
-                        // $finalVal = $value;
-                        // break;
-                    
-                    // case 'text':
-                        // $finalVal = $value;
-                        // break;
-                        
-                    // default:
-                        // throw "Type '" + $visual.type + "' is not supported";
-                // }
-            // }
+        if (count($messages) === 0) { // Other validations
+        }
             
         // Make the response
         $response = ['value' => $finalVal];

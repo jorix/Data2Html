@@ -118,6 +118,6 @@ class Mysqli extends \Data2Html\Db
     
     public function toDate($val)
     {
-        return Parse::date($val, null, 'Y-m-d H:i:s');
+        return Parse::date($val); // 'Y-m-d H:i:s'
     }
 }

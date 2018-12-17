@@ -4,7 +4,7 @@ $${include d2h_message}
 <input type="text" class="form-control"
     placeholder="$${description}"
     id="$${id}"
-    name="$${name}"
+    data-d2h-name="$${name}"
     data-d2h-from-id="$${from-id}"
     data-d2h-input="$${visual-attr}"
     value=""

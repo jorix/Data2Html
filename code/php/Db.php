@@ -138,8 +138,7 @@ abstract class Db
                 break;
             case 'date':
             case 'datetime':
-            // $d->setTimezone(new DateTimeZone("UTC"));
-                $date = Parse::date($value, null, 'Y-m-d\TH:i:sP');
+                $date = Parse::date($value);
                 if ($date) {
                     $r = $this->dateToSql($date);
                 } else {
@@ -171,7 +170,12 @@ abstract class Db
                 break;
             case 'date':
             case 'datetime':
-                $r = $this->toDate($v);
+                $date = $this->toDate($v);
+                if ($date) {
+                    $r = $date->format('Y-m-d H:i:s');
+                } else {
+                    $r = null;
+                }
                 break;
             default:
                 throw new \Exception("`{$type}` is not defined.");

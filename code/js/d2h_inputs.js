@@ -52,13 +52,13 @@ var d2h_inputs = (function ($) {
         if (typeof val === 'string') {
             val = val.trim();
         }
-        if (val === '' || val === null) {
+        if (val === '' || val === null) { // Verify a Null value
             finalData = null;
             // required
             if (visualAttr.validations && visualAttr.validations.required) {
                 messages.push(__('validate/required'));
             }
-        } else if (messages.length === 0) {
+        } else { // Verify a Not null value
             switch (visualAttr.type) {
                 case undefined:
                     finalData = val;
@@ -81,7 +81,8 @@ var d2h_inputs = (function ($) {
                     break;
                     var date = moment(val, 'L LT', true);
                     if (!date.isValid()) {
-                        throw "tipus no ??????";
+                        finalData = null;
+                        messages.push(__('validate/not-date'));
                     }
                     finalData = date.format();
                     break;
@@ -133,6 +134,8 @@ var d2h_inputs = (function ($) {
                     throw "Type '" + visualAttr.type + "' is not supported";
             }
         }
+        if (messages.length === 0) { // Other validations
+        }
         
         // Make the response
         var response = {data: finalData};
@@ -172,7 +175,7 @@ var d2h_inputs = (function ($) {
                 _data[visualAttr.name] = validation.data;
                 if (action && validation.errors) {
                     _isOk = false;
-                    d2h_message.danger($(this), validation.errors.join('<br>'));
+                    d2h_message.danger(this, validation.errors);
                 }
             });
             

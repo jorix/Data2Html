@@ -107,11 +107,17 @@ var d2h_message = (function ($) {
         });
     }
     
-    function _show(elemSelector, message, visualClass) {
+    function _show(elemSelector, _messages, visualClass) {
         var infoMessage = _getInfoMessage(elemSelector);
         if (!infoMessage) {
-            alert(message); // There is no element to show the message
+            if ($.isArray(_messages)) {
+                _messages = _messages.join('\n');
+            }
+            alert(messages); // There is no element to show the messages
         } else {
+            if ($.isArray(_messages)) {
+                _messages = _messages.join('<br>');
+            }
             var _timers = infoMessage.timers;
             // cancel previous timers
             while (_timers.length > 0) {
@@ -125,8 +131,8 @@ var d2h_message = (function ($) {
                     .removeClass(curClass)
                     .attr('data-d2h-message-class', visualClass)
                     .addClass(visualClass);
-                if (message) {
-                    $('span', $pElem).text(message);
+                if (_messages) {
+                    $('span', $pElem).html(_messages);
                 }
                 this.update();
                 $pElem.show();

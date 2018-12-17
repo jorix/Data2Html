@@ -5,7 +5,7 @@ $${include d2h_message}
     id="$${id}"
     title="$${description}"
     class="custom-control-input"
-    name="$${name}"
+    data-d2h-name="$${name}"
     data-d2h-from-id="$${from-id}"
     data-d2h-input="$${visual-attr}"
     value="1"

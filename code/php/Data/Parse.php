@@ -19,7 +19,7 @@ class Parse
                 return Parse::string($value, $default, $strict);
             case 'date':
             case 'datetime':
-                return Parse::date($value, $default, 'Y-m-d H:i:s', $strict);
+                return Parse::date($value, $default, $strict);
             case '[integer]':
                 return Parse::integerArray($value, $default, $strict);
             case '[string]':
@@ -131,25 +131,61 @@ class Parse
     public static function date(
         $value,
         $default = null,
-        $input_format = 'Y-m-d H:i:s',
         $strict = false
     ) {
-        $d = date_parse_from_format($input_format, $value);
-        if ($d['error_count'] !== 0) {
+        $input_format = '';
+        if (is_string($value)) {
+            switch (strlen($value)) {
+                case 10:
+                    $input_format = 'Y-m-d';
+                    break;
+                case 16:
+                    $input_format = 'Y-m-d H:i';
+                    break;
+                case 19:
+                    $input_format = 'Y-m-d H:i:s';
+                    break;
+                case 21:
+                case 22:
+                case 23:
+                case 24:
+                case 25:
+                case 26:
+                    $input_format = 'Y-m-d H:i:s.u';
+                    break;
+                
+            }
+        }
+        if (!$input_format) {
             if ($strict) {
-                throw new \Exception(
-                    "Value `{$value}` is not a date."
+                throw new DebugException(
+                    "Is not a valid format date.", [
+                        'value' => $value
+                    ]
                 );
             }
             if ($default === null) {
                 return null;
             }
-            return self::date($default, null, $input_format, $strict);
+            return self::date($default, null, $strict);
         }
-        $date = new DateTime();
-        $date->setDate($d['year'], $d['month'], $d['day']);
-        $date->setTime($d['hour'], $d['minute'], $d['second']);
-        return $date;
+        
+        $d = date_parse_from_format($input_format, $value);
+        if ($d['error_count'] !== 0) {
+            if ($strict) {
+                throw new DebugException(
+                    "Value '{$value}' is not a date.", [
+                        'format' => $input_format,
+                        'date_parse_from_format' => $d
+                    ]
+                );
+            }
+            if ($default === null) {
+                return null;
+            }
+            return self::date($default, null, $strict);
+        }
+        return DateTime::createFromFormat($input_format, $value);
     }
 
         
