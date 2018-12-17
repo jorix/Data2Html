@@ -133,6 +133,9 @@ class Parse
         $default = null,
         $strict = false
     ) {
+        if ($value instanceof \DateTime) {
+            return $value;
+        }
         $input_format = '';
         if (is_string($value)) {
             switch (strlen($value)) {

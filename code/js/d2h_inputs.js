@@ -78,13 +78,12 @@ var d2h_inputs = (function ($) {
                 case 'date':
                 case 'datetime':
                     finalData = val;
-                    break;
                     var date = moment(val, 'L LT', true);
                     if (!date.isValid()) {
                         finalData = null;
                         messages.push(__('validate/not-date'));
                     }
-                    finalData = date.format();
+                    finalData = date.format('YYYY-MM-DD HH:mm:ss');
                     break;
                     
                 case 'float':

@@ -163,11 +163,11 @@ class Controller
         $lkColumns = $lkSet->getLinkedItems();
         $resTypes = [];
         $dbTypes = [];
-        $values = [];
+        $asValues = [];
         $valuePatterns = [];
         $useList = [];
         $addValue = function($depth, $keyItem, $lkItem)
-                    use(&$addValue, $lkColumns, &$values, &$valuePatterns) {
+                    use(&$addValue, $lkColumns, &$asValues, &$valuePatterns) {
             if ($depth > 10) {
                 throw new DebugException(
                     "Possible circular reference in \"{$keyItem}\" valuePatterns.",
@@ -180,14 +180,14 @@ class Controller
                     $ref = $v['final-base'];
                     $matchItem = $lkColumns[$ref];
                     if (array_key_exists('value', $matchItem) && 
-                        !array_key_exists($ref, $values)
+                        !array_key_exists($ref, $asValues)
                     ) {
                         $addValue($depth+1, $ref, $matchItem);
                     }
                 }
                 $valuePatterns[$keyItem] = $patterns;
             }
-            $values[$keyItem] = $lkItem['value'];
+            $asValues[$keyItem] = $lkItem['value'];
         };
         foreach ($lkColumns as $k => $v) {
             $itemDx->set($v);
@@ -221,8 +221,8 @@ class Controller
             unset($v);
             
             $valueRow = [];
-            foreach ($values as $k => $v) {
-                $valueRow[$k] = $values[$k];
+            foreach ($asValues as $k => $v) {
+                $valueRow[$k] = $asValues[$k];
                 if (array_key_exists($k, $valuePatterns)) {
                     $allIsNull = true;
                     foreach ($valuePatterns[$k] as $kk => $vv) {
@@ -273,7 +273,7 @@ class Controller
             $response['debug'] = array(
                 'sql' => explode("\n", $query),
                 'keys' => $lkSet->getLinkedKeys(),
-                'values' => $values,
+                'as-values' => $asValues,
                 'value-patterns' => $valuePatterns
             );
         }

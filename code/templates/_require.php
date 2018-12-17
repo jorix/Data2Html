@@ -50,6 +50,7 @@ return [
     ],
     'd2h_serverBase' => [
         'require' => ['d2h_server'],
+        'include' => ['d2h_message'],
         'html' => '<script src="$${base}/code/js/d2h_server/d2h_serverBase.js"></script>'
     ],
     'd2h_serverBlock' => [
