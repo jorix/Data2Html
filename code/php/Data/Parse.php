@@ -188,7 +188,7 @@ class Parse
             }
             return self::date($default, null, $strict);
         }
-        return DateTime::createFromFormat($input_format, $value);
+        return \DateTime::createFromFormat($input_format, $value);
     }
 
         
