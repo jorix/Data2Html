@@ -1,5 +1,6 @@
 <?php die("It's uncooked!"); ?>
 $${include datetimepicker, d2h_message}
+$${require d2h_utils}
 <span data-d2h-message="#$${id}"></span>
 <div class="input-group date" data-target-input="nearest" id="$${id}_div">
     <input type="text"
@@ -20,6 +21,19 @@ $${include datetimepicker, d2h_message}
 </div>
 <script>
 $(function () {
-    $('#$${id}_div').datetimepicker();
+    var visual = d2h_utils.getJsData($('#$${id}'), 'd2h-input'),
+        format = '';
+    switch (visual.type) {
+        case 'datetime':
+            format = 'L LT';
+            break;
+        case 'date':
+            format = 'L';
+            break;
+        case 'time':
+            format = 'LT';
+            break;
+    }
+    $('#$${id}_div').datetimepicker({format: format});
 });
 </script>

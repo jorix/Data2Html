@@ -26,12 +26,12 @@ var d2h_inputs = (function ($) {
     var _toVal = function(val, dataType) {
         switch (dataType) {
             case 'datetime':
-                if (val === null || val === '[now]') {
+                if (val === null || val === 'now') {
                     return '';
                 }
                 return moment(val).format('L LT');
             case 'date':
-                if (val === null || val === '[now]') {
+                if (val === null || val === 'now') {
                     return '';
                 }
                 return moment(val).format('L');
@@ -78,7 +78,16 @@ var d2h_inputs = (function ($) {
                 case 'date':
                 case 'datetime':
                     finalData = val;
-                    var date = moment(val, 'L LT', true);
+                    var formatDate = '';
+                    switch (visualAttr.type) {
+                        case 'datetime':
+                            formatDate = 'L LT';
+                            break;
+                        case 'date':
+                            formatDate = 'L';
+                            break;
+                    }
+                    var date = moment(val, formatDate, true);
                     if (!date.isValid()) {
                         finalData = null;
                         messages.push(__('validate/not-date'));
