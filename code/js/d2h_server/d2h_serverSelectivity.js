@@ -15,7 +15,7 @@ var d2h_serverSelectivity = (function ($) {
             this.defaults = {
                 // When single request is immediate load and return a $.ajax
                 singleRequest: true, 
-                pageSize: 200
+                pageSize: 250
             };
             var selectivityOptions = {
                 allowClear: true,
@@ -30,8 +30,8 @@ var d2h_serverSelectivity = (function ($) {
                         params: function(term, offset) {
                             var response = {};
                             response[
-                                'd2h_page=pageSize=' + options.pageSize + 
-                                '&d2h_filter=' + options.filterName
+                                'pageSize=' + options.pageSize + 
+                                '&' + options.filterName
                             ] = term;
                             return response;
                         },
@@ -83,7 +83,7 @@ var d2h_serverSelectivity = (function ($) {
                 return $.map(rows, function(item) {
                     // Use values as string
                     return {
-                        id: item['[keys]'][0] + '',
+                        id: item['_keys_'][0] + '',
                         text: item[_key0] + ''
                     };
                 });
@@ -94,9 +94,9 @@ var d2h_serverSelectivity = (function ($) {
             var sortSelector = this.settings.sort,
                 data = {};
             if (sortSelector) {
-                data['d2h_sort'] = $(sortSelector, this.objElem).val();
+                data.sort = $(sortSelector, this.objElem).val();
             }
-            data['d2h_page'] = {pageSize: 250};
+            data.pageSize = this.defaults.pageSize;
             
             var _objElem = this.getElem(),
                 _this = this;

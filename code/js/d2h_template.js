@@ -70,8 +70,8 @@ var d2h_template = (function ($) {
                 var replItem = __replaces[i],
                     iName = replItem.name.replace(' ', ''),
                     val;
-                if (iName === '[keys]') {
-                    val = row['[keys]'];
+                if (iName === '_keys_') {
+                    val = row['_keys_'];
                     if (replItem.repl.indexOf('|') > 0 && val.length === 1) {
                         // When pattern ${[keys] | } force scalar if is possible
                         rowKeys = val[0]; // (val[0] === null ? '{null}' : val[0]);

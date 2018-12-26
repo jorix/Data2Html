@@ -169,7 +169,7 @@ var d2h_inputs = (function ($) {
             
             // keys
             var sKeys = $(elemBlock).data('d2h-keys');
-            _data['[keys]'] = (sKeys ? JSON.parse(sKeys) : '');
+            _data['_keys_'] = (sKeys ? JSON.parse(sKeys) : '');
             
             // clear errors
             if (action) {
@@ -192,7 +192,7 @@ var d2h_inputs = (function ($) {
         },
 
         put: function(elemBlock, _data) {
-            _putKeys(elemBlock, _data['[keys]']);
+            _putKeys(elemBlock, _data['_keys_']);
             $('[data-d2h-from-id="' + elemBlock.id + '"]', elemBlock).each(function() {
                 var visualAttr = _getVisual(this),
                     tagName = visualAttr.name;

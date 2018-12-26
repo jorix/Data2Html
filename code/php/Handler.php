@@ -31,8 +31,8 @@ class Handler
         try {
             $payerNames = self::parseRequest($request);
             $model = self::getModel($payerNames['model']);
-            $controller = new Controller($model);
-            Response::json($controller->manage($request));
+            $controller = new Controller();
+            Response::json($controller->manage($model, $request));
         } catch(\Exception $e) {
             // Message to user
             // header('HTTP/1.1 409 Conflict');

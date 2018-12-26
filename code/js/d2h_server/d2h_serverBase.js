@@ -267,10 +267,19 @@ var d2h_serverBase = (function ($) {
             if (!_options) {
                 _options = {};
             }
+            // Url
+            var url = _options.url ? _options.url :  _settings.url;
+            if (_options.action) {
+                if (url.indexOf('?') < 0) {
+                    url += '?action=' + _options.action;
+                } else {
+                     url += '&action=' + _options.action;
+                }
+            }
             var ajaxOptions = {
                 dataType: "json",
                 type: _options.ajaxType,
-                url: _options.url ? _options.url :  _settings.url,
+                url: url,
                 data: _options.ajaxType === 'GET' ? _options.data : JSON.stringify(_options.data),
                 beforeSend: function(jqXHR, settings) {
                     var response = true

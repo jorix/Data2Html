@@ -88,7 +88,7 @@ class Validate
         if ($visualData) {
             $iName;
             foreach ($inputData as $iName => $v) {
-                if ($iName === '[keys]') {
+                if ($iName === '_keys_') {
                     $outputData[$iName] = $v;
                 } else {
                     $valItem = $this->validateValue(

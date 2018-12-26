@@ -65,12 +65,12 @@ var d2h_serverBlock = (function ($) {
         
         load: function(options) {
             if (!options || !options.keys) {
-                $.error("d2h_server: Can't load form data without 'keys' option.");
+                $.error("d2h_server: Can't load block data without 'keys' option.");
             }
             var _settings = this.settings;
             this.server({
                 ajaxType: 'GET',
-                data: {d2h_keys: options.keys},
+                data: {_keys_: options.keys},
                 before: [
                     "beforeLoadElement",
                     options && options.beforeLoadElement
@@ -104,19 +104,11 @@ var d2h_serverBlock = (function ($) {
             if (data === false) {
                 return this;
             }
-            var d2h_oper;
-            if (data['[keys]']) {
-                d2h_oper = 'update';
-            } else {
-                d2h_oper = 'insert';
-            }
             this._rows = null;
-            this.server({
+            this.server({                
                 ajaxType: 'POST',
-                data: {
-                    d2h_oper: d2h_oper,
-                    d2h_data: data
-                },
+                action: (data['_keys_'] ? 'update' : 'insert'),
+                data: data,
                 before: [
                     "beforeSave",
                     options && options.beforeSave

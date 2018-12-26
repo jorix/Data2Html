@@ -4,6 +4,7 @@ namespace Data2Html\Controller;
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Db;
+use Data2Html\Config;
 use Data2Html\Model\Join\LinkedSet;
 
 class SqlSelect
@@ -178,9 +179,12 @@ class SqlSelect
                 continue;
             }
             if (!array_key_exists($k, $filterItems)) {
-                throw new DebugException("Requested filter field '{$k}' not found on filter definition.",
-                    $filterItems
-                );
+                if (Config::debug()) {
+                    throw new DebugException("Requested filter field '{$k}' not found on filter definition.",
+                        $filterItems
+                    );
+                }
+                continue;
             }
             $itemDx->set($filterItems[$k]);
             $refDb = $itemDx->getString('final-db');

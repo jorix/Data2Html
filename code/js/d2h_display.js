@@ -73,7 +73,7 @@ var d2h_display = (function($) {
                     var _applyKeys = function(server, branchKeys) {
                             if (!server) { return; }
                             for (var i = 0, l = _leafKeys.length; i < l; i++) {
-                                server.$('[name=' + _leafKeys[i] + ']').val(
+                                server.$('[data-d2h-name=' + _leafKeys[i] + ']').val(
                                     (branchKeys ? branchKeys[i] : '')
                                 );
                             }

@@ -10,7 +10,7 @@ $${include d2h_message, d2h_serverGrid}
         <input type="hidden" id="$${id}_lastKeys" value="">
         <table class="table table-sm table-striped table-hover">
             <thead><tr>$${head}</tr></thead>
-            <tbody><tr class="clickable" data-d2h-keys="${[keys]}" data-d2h-on="click:show-edit">$${body}</tr></tbody>
+            <tbody><tr class="clickable" data-d2h-keys="${_keys_}" data-d2h-on="click:show-edit">$${body}</tr></tbody>
             $${page ? [[
             <tfoot><tr>
                 <td colspan="$${colCount}">

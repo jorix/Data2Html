@@ -47,7 +47,7 @@ var d2h_serverGrid = (function ($) {
             // Check repeat selector
             var $itemRepeat = $(settings.repeat, gridEle);
             if ($itemRepeat.length == 0) {
-                $.error("d2h_server: Can not initialize DOM object '" +
+                $.error("d2h_serverGrid: Can not initialize DOM object '" +
                     d2h_utils.getElementPath(gridEle) +
                     "': Does not contain a '" +
                     settings.repeat +
@@ -55,7 +55,7 @@ var d2h_serverGrid = (function ($) {
                 );
             }
             if ($itemRepeat.length > 1) {
-                $.error("d2h_server: Can not initialize DOM object '" +
+                $.error("d2h_serverGrid: Can not initialize DOM object '" +
                     d2h_utils.getElementPath(gridEle) +
                     "': Contains more than one '" +
                     settings.repeat +
@@ -67,7 +67,7 @@ var d2h_serverGrid = (function ($) {
             $itemRepeat.addClass(iClassRepeat);
             var $parentContainer = $itemRepeat.parent();
             if ($(this._selectorRepeatParent, gridEle).length > 0) {
-                $.error("d2h_server: Can not initialize DOM object '" +
+                $.error("d2h_serverGrid: Can not initialize DOM object '" +
                     d2h_utils.getElementPath(gridEle) +
                     "': Contains selector '" +
                     this._selectorRepeatParent +
@@ -76,7 +76,7 @@ var d2h_serverGrid = (function ($) {
             }
             $parentContainer.addClass(iClassRepeatParent);
             if ($(this._selectorRepeat, $parentContainer).length > 1) {
-                $.error("d2h_server: Can not initialize DOM object '" +
+                $.error("d2h_serverGrid: Can not initialize DOM object '" +
                     d2h_utils.getElementPath($parentContainer[0]) +
                     "': Contains more than one '" +
                     this._selectorRepeat +
@@ -117,7 +117,7 @@ var d2h_serverGrid = (function ($) {
             if ($.isArray(selector)) {
                 if (selector.length < 1 || selector.length > 2) {
                     $.error(
-                        "d2h_server: Can not initialize component '" + 
+                        "d2h_serverGrid: Can not initialize component '" + 
                         compomentName +
                         "'. When selector is array must have 1 or 2 items!"
                     );
@@ -140,7 +140,7 @@ var d2h_serverGrid = (function ($) {
                 return;
             } else if ($elem.length !== 1) {
                 $.error(
-                    "d2h_server: Selector '" + selector +
+                    "d2h_serverGrid: Selector '" + selector +
                     "' has selected " + $elem.length +
                     " elements. Must select only one element!"
                 );
@@ -157,19 +157,17 @@ var d2h_serverGrid = (function ($) {
             var _settings= this.settings,
                 sortSelector = _settings.sort,
                 _add = false,
-                data = {},
-                pageStart = 1;
+                data = {};
             if (this.components.filter) {
-                var dataFilter = d2h_inputs.get(this.components.filter.getElem(), true);
-                if (dataFilter === false) { // Exist filter validations errors.
+                var data = d2h_inputs.get(this.components.filter.getElem(), true);
+                if (data === false) { // Exist filter validations errors.
                     this._rows = null;
                     this.clear();
                     return this;
                 }
-                data['d2h_filter'] = $.param(dataFilter).replace(/&/g, '{and}');
             }
             if (sortSelector) {
-                data['d2h_sort'] = $(sortSelector, this.objElem).val();
+                data['sort'] = $(sortSelector, this.objElem).val();
             }
             
             if (options && options.add) {
@@ -178,12 +176,13 @@ var d2h_serverGrid = (function ($) {
                 this._rows = null;
             }
             if (this.components.page) {
+                var pageStart = 1;
                 if (_add) {
                     pageStart = this._rows ? this._rows.length + 1 : 1;
                 }
                 var aux = d2h_inputs.get(this.components.page.getElem(), false);
-                aux['pageStart'] = pageStart;
-                data['d2h_page'] = $.param(aux).replace(/&/g, '{and}');
+                data.pageStart = pageStart;
+                data.pageSize = aux.pageSize;
             }
             console.log('load-> #' + this.objElem.id, ++this._loadCount, data);
             this.server({
@@ -272,7 +271,7 @@ var d2h_serverGrid = (function ($) {
                 selectedKeys = JSON.stringify(this.selectedKeys());
             for (var i = 0, l = rows.length; i < l; i++) {
                 var row = rows[i],
-                    rowKeys = JSON.stringify(row['[keys]']);
+                    rowKeys = JSON.stringify(row['_keys_']);
                 if ($lastItem) {
                     $lastItem.after(repManager.apply(row));
                 } else {

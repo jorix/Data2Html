@@ -5,6 +5,7 @@ use Data2Html\Config;
 use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
+use Data2Html\Data\Parse;
 use Data2Html\Model\Set;
 use Data2Html\Controller\SqlSelect;
 use Data2Html\Controller\Validate;
@@ -15,35 +16,21 @@ class Controller
 {
     use \Data2Html\Debug;
     
-    protected $model;
     protected $db;
-    public function __construct($model)
+    public function __construct()
     {
         // Data base
         $this->db = Db::create(Config::getSection('db'));
-
-        $this->model = $model;
     }
     
-    public function manage($request)
+    public function manage($model, $request)
     {
         $postData = [];
         $serverMethod = $_SERVER['REQUEST_METHOD'];
         switch ($serverMethod) {
             case 'GET':
-                foreach($request as $key => $val) {
-                    if (is_array($val)) {
-                        $postData[$key] = $val;
-                    } elseif (strpos($val, '=') !== false) {
-                        parse_str(str_replace('{and}', '&', $val), $reqArr);
-                        $postData[$key] = $reqArr;
-                    } else {
-                        $postData[$key] = $val;
-                    }
-                }
                 break;
             case 'POST':
-                //$the_request = &$_POST;
                 $postData = json_decode(file_get_contents("php://input"), true);
                 break;
             default:
@@ -51,52 +38,54 @@ class Controller
                     "Server method {$serverMethod} is not supported."
                 );
         }
-        return $this->oper($request, $postData);
+        return $this->action($model, Lot::getItem('action', $request, ''), $request, $postData);
     }
     
-    protected function oper($request, $postData)
+    protected function action($model, $action, $request, $postData)
     {
-        $model = $this->model;
-        $r = new Lot($postData);
-        $oper = $r->getString('d2h_oper', '');
         $playerNames = Handler::parseRequest($request);
+        self::extractValue('model', $request);
+        self::extractValue('debug', $request);
+        self::extractValue('_', $request);
+        
         $response = [];
-        switch ($oper) {
+        switch ($action) {
             case '':
-            case 'read':
                 if (isset($playerNames['block'])) {
-                    $lkForm = $model->getLinkedBlock($playerNames['block']);
-                    return $this->opReadForm($lkForm, $r->get('d2h_keys'));
-
+                    return $this->opReadForm(
+                        $model->getLinkedBlock($playerNames['block']),
+                        self::extractValue('_keys_', $request, 'array')
+                    );
                 } elseif (isset($playerNames['grid'])) {
+                    $r = new Lot($request);
                     $lkGrid = $model->getLinkedGrid($playerNames['grid']);
 
-                    // Prepare sql
-                    $sqlObj = new SqlSelect(
-                        $this->db,
-                        $lkGrid->getColumns()
+                    // Extract Page
+                    $pageStart = self::extractValue('pageStart', $request, 'integer', 1);
+                    $pageSize = self::extractValue('pageSize', $request, 'integer', 0);
+                    
+                    // Create a sql select
+                    $sqlObj = new SqlSelect($this->db, $lkGrid->getColumns());
+                    // Extract Sort to add to sql
+                    $sqlObj->addSort(
+                        self::extractValue('sort', $request, 'string')
                     );
-                    $sqlObj->addFilter(
-                        $lkGrid->getFilter(),
-                        $r->getArray('d2h_filter')
-                    );
-                    $sqlObj->addSort($r->getString('d2h_sort'));
-                    $page = $r->getLot('d2h_page', []);
+                    // Filter (the rest) to sql
+                    $sqlObj->addFilter($lkGrid->getFilter(), $request);
                     
                     // Response
                     return $this->opRead(
                         $sqlObj->getSelect(),
                         $lkGrid->getColumns(),
-                        $page->getInteger('pageStart', 1),
-                        $page->getInteger('pageSize', 0)
+                        $pageStart,
+                        $pageSize
                     );
                 }
             case 'insert':
-                $val = new Validate('ca');
                 $lkElem = $model->getLinkedBlock($playerNames['block']);
-                $postValues = Lot::getItem('d2h_data', $postData);
+                $val = new Validate('ca');
                 $validation = $val->validateData(
-                    $postValues,
+                    $postData,
                     Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
@@ -106,12 +95,11 @@ class Controller
                 return $this->opInsert($lkElem, $validation['data']);
                 
             case 'update':
-                $val = new Validate('ca');
+                $keys = self::extractValue('_keys_', $postData, 'array');
                 $lkElem = $model->getLinkedBlock($playerNames['block']);
-                $postValues = Lot::getItem('d2h_data', $postData);
-                $keys = Lot::getItem('[keys]', $postValues);
+                $val = new Validate('ca');
                 $validation = $val->validateData(
-                    $postValues,
+                    $postData,
                     Set::getVisualItems($lkElem->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
@@ -121,18 +109,31 @@ class Controller
                 return $this->opUpdate($lkElem, $validation['data'], $keys);
                 
             case 'delete':
-                $postValues = Lot::getItem('d2h_data', $postData);
-                $keys = Lot::getItem('[keys]', $postValues);
-                unset($postValues['[keys]']);
+                $keys = self::extractValue('_keys_', $postData, 'array');
                 return  $this->opDelete(
                     $model->getLinkedBlock($playerNames['block']),
-                    $postValues,
+                    $postData,
                     $keys
                 );
                 
             default:
-                throw new DebugException("Oper '{$oper}' is not defined");
+                throw new DebugException("Action '{$action}' is not defined");
         }
+    }
+    
+    protected static function extractValue($key, &$array, $type = '', $default = null)
+    {
+        if (array_key_exists($key, $array)) {
+            if ($type) {
+                $response = Parse::value($array[$key], $type, $default, true);
+            } else {
+                $response = $array[$key];
+            }
+            unset($array[$key]);
+        } else {
+            $response = $default;
+        }
+        return $response;
     }
     
     /**
@@ -263,7 +264,7 @@ class Controller
             foreach ($keyNames as $k) {
                 $dataKeys[] = $dbRow[$k];
             }
-            $resRow['[keys]'] = $dataKeys;
+            $resRow['_keys_'] = $dataKeys;
             $rows[] = $resRow;
         }
         $this->db->closeQuery($result);
