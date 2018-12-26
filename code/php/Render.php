@@ -57,7 +57,7 @@ class Render
                 'title' => $lkGrid->getAttributeUp('title'),
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
-                    "model={$model->getModelName()}:{$gridName}",
+                    "grid={$model->getModelName()}:{$gridName}",
                 'sort' => $lkGrid->getSort()
             ];
             // Page
@@ -118,7 +118,7 @@ class Render
                     '_level' => -1,
                     'title' => $lkForm->getAttributeUp('title'),
                     'url' => $this->getControllerUrl() .
-                         "model={$model->getModelName()}&block={$formName}&"
+                         "block={$model->getModelName()}:{$formName}&"
                 ],
                 $itemReplaces
             );

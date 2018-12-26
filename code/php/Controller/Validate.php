@@ -37,7 +37,7 @@ class Validate
             if (Lot::getItem(['validations', 'required'], $visual, false)) {
                 $messages[] = $this->__('validate/required');
             }
-        } else if(isset($visual['type'])) { // Verify a typed Not null value
+        } elseif (isset($visual['type'])) { // Verify a typed Not null value
             switch ($visual['type']) {
                 case 'boolean':
                     $finalVal = Parse::boolean($value);

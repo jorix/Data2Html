@@ -99,33 +99,29 @@ class Handler
 
     public static function parseRequest($request) 
     {
-        if (!array_key_exists('model', $request)) {
+        if (array_key_exists('block', $request)) {
+            $elements = explode(':', $request['block']);
+            return [
+                'model' => $elements[0],
+                'block' => count($elements) > 1 ? $elements[1] : ''
+            ];
+        } elseif (array_key_exists('grid', $request)) {
+            $elements = explode(':', $request['grid']);
+            return [
+                'model' => $elements[0],
+                'grid' => count($elements) > 1 ? $elements[1] : ''
+            ];
+        } else {
             throw new DebugException(
-                'The URL parameter `?model=` is not set.',
+                'The URL parameter `?block=`  or `?grid=` is not set.',
                 $request
             );
         }
-        if (array_key_exists('block', $request)) {
-            // as ['model' => 'model_name', 'block' => 'form_name']
-            $response = array('model' => $request['model']);
-            $response['block'] = $request['block'];
-        } elseif (array_key_exists('grid', $request)) {
-            // as ['model' => 'model_name', 'grid' => 'grid_name'}
-            $response = array('model' => $request['model']);
-            $response['grid'] = $request['grid'];
-        } else {
-            // as {'model' => 'model_name:grid_name'}
-            $elements = explode(':', $request['model']);
-            $response = array('model' => $elements[0]);
-            $response['grid'] = count($elements) > 1 ? $elements[1] : '';
-        }
-        return $response;
-        
     }
     public static function parseLinkText($linkText) 
     {
         try {
-            parse_str('model=' . $linkText, $reqArr);
+            parse_str('grid=' . $linkText, $reqArr);
             return self::parseRequest($reqArr);
         } catch(\Exception $e) {
             throw new \Exception("Link \"{$linkText}\" can't be parsed.");

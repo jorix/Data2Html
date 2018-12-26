@@ -45,6 +45,8 @@ class Controller
     {
         $playerNames = Handler::parseRequest($request);
         self::extractValue('model', $request);
+        self::extractValue('grid', $request);
+        self::extractValue('block', $request);
         self::extractValue('debug', $request);
         self::extractValue('_', $request);
         

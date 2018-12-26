@@ -18,7 +18,7 @@ class InfoFile
                 if($i > 1) {
                     $i -= 2;
                 }
-            } else if ($path[$i + 1] === '.') {
+            } elseif ($path[$i + 1] === '.') {
                 array_splice($path, $i + 1, 1);
             }
         }

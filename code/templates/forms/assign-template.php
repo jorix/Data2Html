@@ -20,7 +20,7 @@ return [
         } elseif ($link && !$content) {
             $visualWidth = 40;
             $content = 'selectivity-input';
-            $url = $render->getControllerUrl() . "model={$link}";
+            $url = $render->getControllerUrl() . "grid={$link}";
         } elseif ($list && !$content) {
             $visualWidth = 40;
             $content = 'selectivity-input'; 
@@ -28,7 +28,7 @@ return [
             $visualWidth = 999;
             $layout = 'no_label';
             $content = 'edit-leaves';
-            $url = $render->getControllerUrl() . "model={$leaves}";
+            $url = $render->getControllerUrl() . "grid={$leaves}";
         } elseif ($type) {
             switch ($type) {
                 case 'boolean':
