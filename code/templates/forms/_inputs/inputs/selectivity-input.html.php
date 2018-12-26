@@ -6,5 +6,5 @@ $${include d2h_serverSelectivity, d2h_message}
     data-d2h-name="$${name}"
     data-d2h-from-id="$${from-id}"
     data-d2h-input="$${visual-attr}"
-    $${url ? [[data-d2h="{url:'$${url}'}"]]}
+    $${url ? [[data-d2h="{url:'$${url}'}"]]:[[data-d2h="{}"]]}
 ></div>

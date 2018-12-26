@@ -11,6 +11,8 @@ var d2h_serverSelectivity = (function ($) {
     $.extend(d2h_serverSelectivity.prototype, d2h_serverBase.prototype, {
         _init: function(objElem, options) {
             
+            var dataInput = d2h_utils.getJsData(objElem, 'd2h-input');
+            
             // Prepare options
             this.defaults = {
                 // When single request is immediate load and return a $.ajax
@@ -60,6 +62,16 @@ var d2h_serverSelectivity = (function ($) {
                 });
             } else if (options.url) {
                 options['auto'] = 'load';
+            }
+            
+            // List of items form properties on data-d2h-input
+            if (dataInput.list) {
+                var list = dataInput.list,
+                    items = [];
+                for (var key in list) {
+                  items.push({id:key, text:list[key]});
+                }
+                $.extend(selectivityOptions, {items: items});
             }
             
             // Create server
