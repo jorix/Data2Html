@@ -13,6 +13,7 @@ return [
     'items' => [
         'dept_no' => [
             'key',
+            'title' => '_{departament}',
             'string' => 4
         ],
         'dept_name' => [

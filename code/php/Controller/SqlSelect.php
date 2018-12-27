@@ -118,7 +118,8 @@ class SqlSelect
                         $i++;
                     }
                     $from .= 
-                        "\n left join " . $this->db->putAlias($k, $v['table']) . 
+                        "\n " . $v['join-type'] .
+                            " join " . $this->db->putAlias($k, $v['table']) . 
                         "\n   on " . implode("\n   and ", $onKeys);
                 }
             }

@@ -38,7 +38,7 @@ var d2h_serverSelectivity = (function ($) {
                             return response;
                         },
                         minimumInputLength: 3,
-                        XXXquietMillis: 250,
+                        quietMillis: 250,
                         fetch: function(currentUrl, init, queryOptions) {
                             return _this.server({
                                 url: currentUrl

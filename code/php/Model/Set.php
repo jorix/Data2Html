@@ -69,6 +69,7 @@ abstract class Set
         'key'       => ['options' => ['autoKey', 'key']],
         'level'     => 'integer',
         'leaves'    => 'string',
+        'bridge'    => 'string',
         'link'      => 'string|null',
         'list'      => 'assocArray',
         'items'     => 'array',

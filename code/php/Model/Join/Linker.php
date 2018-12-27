@@ -207,22 +207,7 @@ class Linker
             }
         }
         
-        // Default attributes
-        if (array_key_exists('base', $item) &&
-            !array_key_exists('title', $item)
-        ) {
-            $item['title'] = $item['base'];
-        }
-        if (array_key_exists('db', $item) &&
-            !array_key_exists('title', $item)
-        ) {
-            $item['title'] = $item['db'];
-        }
-        if (!array_key_exists('description', $item) &&
-            array_key_exists('title', $item)
-        ) {
-            $item['description'] = $item['title'];
-        }
+        // Set final-db
         if (array_key_exists('db', $item)) {
             $tableAliasDb = $item['tableAlias'];
             $db = $item['db'];
@@ -242,6 +227,33 @@ class Linker
             }
         }
                     
+        // Force read linked model (uses final-db)
+        if (array_key_exists('link', $item) || array_key_exists('list', $item)) {
+            $this->prepareToAlias(
+                $groupName, 
+                $tableAlias,
+                $newRef,
+                Lot::getItem('link', $item),
+                Lot::getItem('list', $item)
+            );
+        }
+        
+        // Default attributes
+        if (array_key_exists('base', $item) &&
+            !array_key_exists('title', $item)
+        ) {
+            $item['title'] = $item['base'];
+        }
+        if (array_key_exists('db', $item) &&
+            !array_key_exists('title', $item)
+        ) {
+            $item['title'] = $item['db'];
+        }
+        if (!array_key_exists('description', $item) &&
+            array_key_exists('title', $item)
+        ) {
+            $item['description'] = $item['title'];
+        }
         if (array_key_exists('value', $item)) {
             // Parse patterns as: $${name} | $${link[name]}
             $matches = null;
@@ -405,15 +417,8 @@ class Linker
                 $isLinked = false;
                 if (array_key_exists('link', $baseItems[$baseLink])) {
                     $linkedWith = $baseItems[$baseLink]['link'];
-                    $playerNames = Handler::parseLinkText($linkedWith);
-                    if (!array_key_exists('grid', $playerNames)) {
-                        throw new \Exception(
-                            "Link \"{$linkedWith}\" without a grid name."
-                        );
-                    }
                     $linkedTo[$match] += [
-                        'linkedWith-model' => $playerNames['model'],
-                        'linkedWith-grid' => $playerNames['grid']
+                        'linkedWith-grid' => $baseItems[$baseLink]['link']
                     ];
                     $isLinked = true;
                 } 
@@ -431,6 +436,42 @@ class Linker
         return $linkedTo;
     }
     
+    protected function prepareToAlias(
+        $groupName,
+        $fromAlias,
+        $fromBaseLinkName,
+        $linkedWith,
+        $ListWith
+    ) {
+        $toAlias = $this->getRefAlias($fromAlias, $fromBaseLinkName);
+        if (!$toAlias) {
+            if ($linkedWith) {
+                $playerNames = Handler::parseLinkText($linkedWith);
+                if (!array_key_exists('grid', $playerNames)) {
+                    throw new \Exception(
+                        "Link \"{$linkedWith}\" without a grid name."
+                    );
+                }
+                $model = Handler::getModel($playerNames['model']);
+                $grid = $model->getGridColumns($playerNames['grid']);
+                if ($grid->getAttribute('summary')) {
+                    throw new DebugException(
+                        "Is not possible link with a summary grid", [
+                            'groupName' => $groupName, 
+                            'fromAlias' => $fromAlias, 
+                            'fromBaseLinkName' => $fromBaseLinkName,
+                            'linkedWith' => $linkedWith
+                    ]);
+                }
+                $toAlias = $this->addTable($fromAlias, $fromBaseLinkName, $grid);
+            }
+            if ($ListWith) {
+                $toAlias = $this->addListItem($groupName, $fromAlias, $fromBaseLinkName);
+            }
+        }
+        return $toAlias;
+    }
+    
     protected function obtainItemByLinkedTo($groupName, $fromAlias, $linkedToInfo)
     {
         if (!isset($linkedToInfo['fromBaseLinkName'])) {
@@ -439,30 +480,14 @@ class Linker
                 [$groupName, $fromAlias, $linkedToInfo]
             );
         }
-        $fromBaseLinkName = $linkedToInfo['fromBaseLinkName'];
-        $toAlias = $this->getRefAlias($fromAlias, $fromBaseLinkName);
-        if (!$toAlias) {
-            $modelName = Lot::getItem('linkedWith-model', $linkedToInfo);
-            if ($modelName) {
-                $model = Handler::getModel($modelName);
-                $grid = $model->getGridColumns($linkedToInfo['linkedWith-grid']);
-                if ($grid->getAttribute('summary')) {
-                    throw new DebugException(
-                        "Is not possible link with a summary grid",
-                        [
-                            $groupName, $fromAlias, $linkedToInfo,
-                            $modelName . ':' . $linkedToInfo['linkedWith-grid']
-                        ]
-                    );
-                }
-                $toAlias = $this->addTable($fromAlias, $fromBaseLinkName, $grid);
-            }
-            if (array_key_exists('linkedWith-list', $linkedToInfo)) {
-                $toAlias = $this->addListItem($groupName, $fromAlias, $fromBaseLinkName);
-            }
-        }
-        $item = $this->getOriginItem($toAlias, $linkedToInfo['toBaseItemName']);
-        return $item;
+        $toAlias = $this->prepareToAlias(
+            $groupName,
+            $fromAlias,
+            $linkedToInfo['fromBaseLinkName'],
+            Lot::getItem('linkedWith-grid', $linkedToInfo),
+            Lot::getItem('linkedWith-list', $linkedToInfo)
+        );
+        return $this->getOriginItem($toAlias, $linkedToInfo['toBaseItemName']);
     }
     
     protected function getOriginItem($tableAlias, $baseName)
@@ -500,6 +525,7 @@ class Linker
         $tableSource = [
             'from-final-db'=> null,
             'table' =>  $set->getTableName(),
+            'join-type' => null,
             'keys' => null
         ];
         $source = [
@@ -543,15 +569,19 @@ class Linker
             
             // Get attributes from origin keys for link field
             $formFinalDb = [];
+            $areRequired = true;
             $i = 0;
             foreach (array_keys($keys) as $k) {
                 $finalBaseItem = &$this->items[$groupName][$finalBaseNames[$i]];
                 self::applyAttibutes($source['_base'][$k], $finalBaseItem, ['key']);
                 $formFinalDb[] = Lot::getItem('final-db', $finalBaseItem);
+                $areRequired = $areRequired &&
+                    Lot::getItem(['validations', 'required'], $finalBaseItem, false);
                 unset($finalBaseItem);
                 $i++;
             }
             $tableSource['from-final-db'] = $formFinalDb;
+            $tableSource['join-type'] = ($areRequired ? 'inner' : 'left');
         }
         return $toAlias;
     }

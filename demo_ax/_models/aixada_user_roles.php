@@ -40,6 +40,7 @@ return [
         'main' => [
             'filter' => ['items' => ['[]role']],
             'items' => ['user_login', 'role_desc']
-        ]
+        ],
+        'list' => ['items' =>  ['user_login']]
     ]
 ];
