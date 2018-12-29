@@ -172,7 +172,7 @@ abstract class Db
             case 'datetime':
                 $date = $this->toDate($v);
                 if ($date) {
-                    $r = $date->format('Y-m-d H:i:s');
+                    $r = $date->format('Y-m-d H:i:s'); // TODO use 'Y-m-d\TH:i:s'
                 } else {
                     $r = null;
                 }

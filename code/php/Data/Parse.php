@@ -172,7 +172,6 @@ class Parse
             }
             return self::date($default, null, $strict);
         }
-        
         $d = date_parse_from_format($input_format, $value);
         if ($d['error_count'] !== 0) {
             if ($strict) {
@@ -188,7 +187,13 @@ class Parse
             }
             return self::date($default, null, $strict);
         }
-        return \DateTime::createFromFormat($input_format, $value);
+        $date = \DateTime::createFromFormat($input_format, $value);
+        switch ($input_format) {
+            case 'Y-m-d':
+                $date->setTime(0, 0);
+                break;
+        }
+        return $date;
     }
 
         

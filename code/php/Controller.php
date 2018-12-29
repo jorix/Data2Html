@@ -54,7 +54,7 @@ class Controller
         switch ($action) {
             case '':
                 if (isset($playerNames['block'])) {
-                    return $this->opReadForm(
+                    return $this->opReadBlock(
                         $model->getLinkedBlock($playerNames['block']),
                         self::extractValue('_keys_', $request, 'array')
                     );
@@ -141,13 +141,20 @@ class Controller
     /**
      * Execute a query and return the array result.
      */
-    protected function opReadForm($lkForm, $keys)
+    protected function opReadBlock($lkForm, $keys)
     {
         $sqlObj = new SqlSelect($this->db, $lkForm);
         $sqlObj->addFilterByKeys($keys);
         
         // Response
-        return $this->opRead($sqlObj->getSelect(), $lkForm, 1, 1);
+        $result = $this->opRead($sqlObj->getSelect(), $lkForm, 1, 2);
+        if (count($result['rows']) !== 1) {
+            throw new DebugException("Read block must select one row!", [
+                'keys' => $keys,
+                'result' => $result
+            ]);
+        } 
+        return $result;
     }
     
     

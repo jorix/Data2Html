@@ -229,13 +229,18 @@ class Linker
                     
         // Force read linked model (uses final-db)
         if (array_key_exists('link', $item) || array_key_exists('list', $item)) {
-            $this->prepareToAlias(
+            $toAlias = $this->prepareToAlias(
                 $groupName, 
                 $tableAlias,
-                $newRef,
+                $this->getRefBase($item),
                 Lot::getItem('link', $item),
                 Lot::getItem('list', $item)
             );
+            $keys = $this->tableSources[$toAlias]['keys'];
+            foreach ($keys as $k => $v) {
+                $lkItem = $this->getOriginItem($toAlias, $k);
+            }
+            self::applyAttibutes($lkItem, $item);
         }
         
         // Default attributes
