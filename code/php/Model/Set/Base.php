@@ -3,7 +3,7 @@ namespace Data2Html\Model\Set;
 
 class Base extends \Data2Html\Model\Set
 {
-    protected $attributeNames = array(
+    protected $attributeNames = [
         'grids' => false,
         'blocks' => false,
         'table' => 'string',
@@ -14,15 +14,19 @@ class Base extends \Data2Html\Model\Set
         'afterUpdate' => 'function',
         'beforeDelete' => 'function',
         'afterDelete' => 'function'
-    );
-    protected $keywords = array(
-        'sortBy' => null
-    );
+    ];
+    protected $keywords = [
+        'sortBy' => null,
+        'db-items' => null
+    ];
 
     protected function beforeAddItem(&$key, &$field)
     {
         // set default for sortBy 
         if (!array_key_exists('sortBy', $field)) {
+            if (isset($field['db-items'])) {
+                $field['db'] = null;
+            }
             if (isset($field['db'])) {
                 $field['sortBy'] = $key;
             }

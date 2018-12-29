@@ -85,22 +85,21 @@ class LinkedSet
         return $this->linker->getKeys();
     }
     
-    public function searchItemByLink($linkModelName)
+    public function searchLinkOfBranch($branchModelName)
     {
         $items = $this->getLinkedItems();
         foreach ($items as $k => $v) {
             if (array_key_exists('link', $v)) {
-                if (Handler::parseLinkText($v['link'])['model'] === $linkModelName) {
+                if (Handler::parseLinkText($v['link'])['model'] === $branchModelName) {
                     return  $v;
                 }
             }
         }
         throw new \Data2Html\DebugException(
-            "Link to model '{$linkModelName}' not found in set.",
-            [
-                $this->__debugInfo()
-            ]
-        );
+            "Link of branch '{$branchModelName}' not found leaves items of set.", [
+                'links' => $this->getLinkedFrom(),
+                'items' => $items
+        ]);
     }
     
     public function searchItemNameByDb($dbIntemName)

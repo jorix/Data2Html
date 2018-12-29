@@ -56,7 +56,7 @@ return function($replaces) {
         $branch = $replaces['branch'];
         $itemToLink = $model
             ->getLinkedBlock($branch['block'])
-            ->searchItemByLink($branch['model']);
+            ->searchLinkOfBranch($branch['model']);
         $itemDbToLink = \Data2Html\Data\Lot::getItem('db', $itemToLink);
         
         $branchModel = \Data2Html\Handler::getModel($branch['model']);

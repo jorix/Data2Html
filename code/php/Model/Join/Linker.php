@@ -103,11 +103,13 @@ class Linker
     protected static function getRefBase($item)
     {
         $baseName = null;
-        if (array_key_exists('base', $item)) {
+        if (isset($item['base'])) {
             $baseName = $item['base'];
-        } elseif (array_key_exists('db', $item)) {
+        } elseif (isset($item['db-items'])) {
+            $baseName = $item['name'];
+        } elseif (isset($item['db'])) {
             $baseName = $item['db'];
-        } elseif (array_key_exists('value', $item)) {
+        } elseif (isset($item['value'])) {
             $baseName = 'v[' . $item['value'] . ']';
         }
         return $baseName;
@@ -282,7 +284,7 @@ class Linker
             }
         }
         
-        if (array_key_exists('sortBy', $item) && $item['sortBy']) {
+        if (isset($item['sortBy'])) {
             // Do links
             $linkedTo = [];
             $sortBy = &$item['sortBy']['items'];
@@ -562,22 +564,38 @@ class Linker
         
         $groupName = 'main';
         if ($toAlias !== 'T0') {
-            $this->refAlias[$fromAlias][$fromBaseLinkName] = $toAlias;
 
+            $this->refAlias[$fromAlias][$fromBaseLinkName] = $toAlias;
             // TODO: multi key on $baseLinkNames
-            $baseLinkNames = [$fromBaseLinkName];
+            $baseLinkNames = Lot::getItem(
+                [$fromAlias, '_base', $fromBaseLinkName, 'db-items'],
+                $this->sources
+            );
+            if (!$baseLinkNames) {
+                $baseLinkNames = [$fromBaseLinkName];
+            }
             
-            $finalBaseNames = [];
+            $originBaseNames = [];
             foreach($baseLinkNames as $v) {
-                $finalBaseNames[] = $this->makeVirtualItemByBase($groupName, $fromAlias, $v);
+                $originBaseNames[] = $this->makeVirtualItemByBase($groupName, $fromAlias, $v);
             }
             
             // Get attributes from origin keys for link field
-            $formFinalDb = [];
-            $areRequired = true;
+            if (count($originBaseNames) !== count($keys)) {
+                throw new DebugException(
+                    "Linked origin db-names and destination keys has a different number of fields.", [
+                    'Origin fromAlias' => $fromAlias,
+                    'Origin db-names' => $originBaseNames,
+                    'Destination keys' => $keys,
+                    'tableSource' => $tableSource,
+                    'debugInfo' => $this->__debugInfo()
+                ]);
+            }
             $i = 0;
+            $areRequired = true;
+            $formFinalDb = [];
             foreach (array_keys($keys) as $k) {
-                $finalBaseItem = &$this->items[$groupName][$finalBaseNames[$i]];
+                $finalBaseItem = &$this->items[$groupName][$originBaseNames[$i]];
                 self::applyAttibutes($source['_base'][$k], $finalBaseItem, ['key']);
                 $formFinalDb[] = Lot::getItem('final-db', $finalBaseItem);
                 $areRequired = $areRequired &&
