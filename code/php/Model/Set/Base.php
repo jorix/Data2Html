@@ -26,6 +26,7 @@ class Base extends \Data2Html\Model\Set
         if (!array_key_exists('sortBy', $field)) {
             if (isset($field['db-items'])) {
                 $field['db'] = null;
+                $field['sortBy'] = null;
             }
             if (isset($field['db'])) {
                 $field['sortBy'] = $key;

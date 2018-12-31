@@ -584,6 +584,7 @@ class Linker
             if (count($originBaseNames) !== count($keys)) {
                 throw new DebugException(
                     "Linked origin db-names and destination keys has a different number of fields.", [
+                    'from' => [$fromAlias, $fromBaseLinkName],
                     'Origin fromAlias' => $fromAlias,
                     'Origin db-names' => $originBaseNames,
                     'Destination keys' => $keys,
