@@ -253,6 +253,23 @@ abstract class Set
     {
         return $this->setItems;
     }
+       
+    public function getSetItem($baseName)
+    {
+        // Get item
+        if (array_key_exists($baseName, $this->setItems)) {
+            return $this->setItems[$baseName];
+        } elseif (
+            $this->baseSet &&
+            array_key_exists($baseName, $this->baseSet->getItems())
+        ) {
+            return $this->baseSet->getItems()[$baseName];
+        }
+        throw new debugException(
+            "Item \"{$baseName}\" not found on set.",
+            $this->__debugInfo()
+        );
+    }
     
     public function getKeys()
     {
@@ -345,7 +362,7 @@ abstract class Set
                             "Defining field \"{$k}\", `base` \"{$base}\" was not found."
                         );
                     }
-                    $this->applyBase($baseItems[$base], $v);
+                    $this->applyBase($v, $baseItems[$base]);
                 }
             }
             
@@ -379,6 +396,7 @@ abstract class Set
             }
         }
         unset($v);
+        
         $keySelf = $this->getAttributeUp('keys');
         if ($keySelf) {
             $keys = $keySelf;
@@ -413,13 +431,14 @@ abstract class Set
         }
     }
     
-    private function applyBase($baseField, &$field)
+    private function applyBase(&$field, $baseField)
     {
         if (array_key_exists('base', $baseField) &&
             array_key_exists('base', $field)
         ) {
             unset($field['base']);
         }
+        unset($baseField['key']);
         $this->beforeApplyBase($baseField, $field);
         $field = array_replace_recursive([], $baseField, $field);
     }

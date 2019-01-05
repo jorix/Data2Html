@@ -1,10 +1,10 @@
 <?php
-namespace Data2Html\Model\Join;
+namespace Data2Html\Model\Link;
 
 use Data2Html\Model\Set\Filter;
-use Data2Html\Model\Set\Grid;
-use Data2Html\Model\Join\Linker;
-use Data2Html\Model\Join\LinkedSet;
+use Data2Html\Model\Set\Columns;
+use Data2Html\Model\Link\Linker;
+use Data2Html\Model\Link\LinkedSet;
 
 class LinkedGrid
 {
@@ -14,11 +14,10 @@ class LinkedGrid
     protected $columns = null;
     protected $filter = null;
     
-    public function __construct(Linker $linker, Grid $grid)
+    public function __construct(Columns $columns)
     {
-        $this->linker = $linker;
-        $this->columns = new LinkedSet($linker, $grid);
-        
+        $this->linker = new Linker($columns);
+        $this->columns = new LinkedSet($columns, $this->linker);
     }
     
     public function __debugInfo()
@@ -32,7 +31,7 @@ class LinkedGrid
     
     public function addFilter(Filter $filter)
     {
-        $this->filter = new LinkedSet($this->linker, $filter, 'filter');
+        $this->filter = new LinkedSet($filter, $this->linker);
     }
     
     public function getId()
@@ -40,14 +39,14 @@ class LinkedGrid
         return $this->columns->getId();
     }
 
-    public function getAttributeUp($attributeKeys, $default = null)
+    public function getAttributeUp($attributeKeys, $default = null, $verifyName = true)
     {
-        return $this->columns->getAttributeUp($attributeKeys, $default);
+        return $this->columns->getAttributeUp($attributeKeys, $default, $verifyName);
     }
     
-    public function getAttribute($attributeKeys, $default = null)
+    public function getAttribute($attributeKeys, $default = null, $verifyName = true)
     {
-        return $this->columns->getAttribute($attributeKeys, $default);
+        return $this->columns->getAttribute($attributeKeys, $default, $verifyName);
     }
 
     public function getColumns()

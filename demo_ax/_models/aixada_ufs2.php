@@ -28,7 +28,7 @@ return [
         'mentor_name' =>  [
             'title' => 'UF mentora',
             'base' => 'mentor_uflk[uf_name]',
-            'sortBy' => ['mentor_uflk[name]', 'mentor_uflk']
+            'sortBy' => ['mentor_uflk[name]', 'mentor_uf']
         ],
     ],
     'beforeInsert' => function ($set, $db, &$values) {

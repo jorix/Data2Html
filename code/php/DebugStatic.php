@@ -4,7 +4,7 @@ namespace Data2Html;
 use Data2Html\Data\To;
 
 trait DebugStatic {   
-    public static function dump($value = '{$self}') {
+    public static function staticDump($value = '{$self}') {
         if (!Config::debug()) {
             echo "Debug mode is not active, activate it to make a dump!";
             return;

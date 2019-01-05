@@ -42,7 +42,10 @@ return [
             'sort' => 'mentor_name',
             'summary' => true,
             'items' => ['mentor_name', 'mentor_uf' => ['key']],
-            'filter' => ['items' => ['=active']],
+            'filter' => ['items' => [
+                'q' => ['base' => '%mentor_uf[name]'],
+                '=active'
+            ]],
         ],
         'account' => [
             'items' => [

@@ -1,10 +1,11 @@
 <?php
-namespace Data2Html\Model\Join;
+namespace Data2Html\Model\Link;
 
 use Data2Html\Handler;
 use Data2Html\Model\Set;
 use Data2Html\Data\Lot;
 use Data2Html\Config;
+use Data2Html\DebugException;
 use Data2Html\Controller\SqlEdit;
 
 class LinkedSet
@@ -12,33 +13,45 @@ class LinkedSet
     use \Data2Html\Debug;
    
     // Internal use
-    private $linkName;
     private $linker;
     private $set;
+    private $items;
+    private $refItems;
     
-    public function __construct(Linker $linker, Set $set, $linkName = '')
+    public function __construct(Set $set, Linker $linker = null)
     {
-        if (!$linkName) {
-            $linkName = 'main';
-        } 
-        $this->linker = $linker;
         $this->set = $set;
-        $this->linkName = $linkName;
-        $linker->linkUp($linkName, $set);
+        if (!$linker) {
+            $this->linker = new Linker($set);
+            $this->items = $this->linker->getItems();
+        } else {
+            $this->linker = $linker;
+            $this->items = $this->linker->getItems($set);
+        }
+        $this->refItems = [];
+        
+        $items = &$this->items;
+        foreach ($items as $k => &$item) {
+            $this->parseItem($item);
+        }
+        $keys = $this->linker->getKeys();
+        foreach ($keys as $k => $v) {
+            $this->makeItem($this->linker->getSourceItem('T0', $k));
+        }
     }
 
     public function __debugInfo()
     {
         return [
-            'linkName' => $this->linkName,
             'set-info' => $this->set->__debugInfo()['set-info'],
             'attributes' => $this->set->__debugInfo()['attributes'],
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
-            'setItems' => $this->getLinkedItems(),
-            'linker' => $this->linker->__debugInfo()
+            'items' => $this->getLinkedItems(),
+            'refItems' => $this->refItems
         ];
     }
+    
     // -----------------------
     // Methods from set
     // -----------------------
@@ -77,7 +90,7 @@ class LinkedSet
     
     public function getLinkedItems()
     {
-        return $this->linker->getItems($this->linkName);
+        return $this->items;
     }
 
     public function getLinkedKeys()
@@ -87,7 +100,7 @@ class LinkedSet
     
     public function searchLinkOfBranch($branchModelName)
     {
-        $items = $this->getLinkedItems();
+        $items = $this->items;
         foreach ($items as $k => $v) {
             if (array_key_exists('link', $v)) {
                 if (Handler::parseLinkText($v['link'])['model'] === $branchModelName) {
@@ -115,6 +128,141 @@ class LinkedSet
         return false;
     }
     
+    // -----------------------
+    // Parse links
+    // -----------------------
+    protected function parseItem(&$item) {
+        $linker = $this->linker;
+        $initialTableAlias = $item['table-alias'];
+        $linkedTo = $linker->parseLinkedName($initialTableAlias, Lot::getItem('base', $item));
+        if ($linkedTo) {
+            $lkItem = $linker->getSourceItem($linkedTo['toTableAlias'], $linkedTo['toBaseName']);
+            unset($item['base']);
+            unset($item['table-item']);
+            unset($item['table-alias']);
+            Linker::applyAttibutes($item, $lkItem);
+            if (Lot::getItem('linkedWith-list', $v)) {
+                $item['link-list'] =
+                    $this->tableSources[$lkAlias]['from-list'];
+            }
+            if (Config::debug()) {
+                $item['debug-linkedTo'] = $linkedTo;
+            }
+        }
+        if (isset($item['base'])) {
+            $this->refItems[$item['table-alias']][$item['base']] = $item['name'];
+        } else {
+            $this->refItems[$item['table-alias']][$item['name']] = $item['name'];
+        }
+        
+        // Default attributes
+        if (array_key_exists('base', $item) &&
+            !array_key_exists('title', $item)
+        ) {
+            $item['title'] = $item['base'];
+        }
+        if (array_key_exists('db', $item) &&
+            !array_key_exists('title', $item)
+        ) {
+            $item['title'] = $item['db'];
+        }
+        if (!array_key_exists('description', $item) &&
+            array_key_exists('title', $item)
+        ) {
+            $item['description'] = $item['title'];
+        }
+        
+        // Parse value patterns
+        if (array_key_exists('value', $item)) {
+            // Parse patterns as: $${name} | $${link[name]}
+            $matches = null;
+            preg_match_all(Set::GetPatternValueTemplate(), $item['value'], $matches);
+            $tItems = [];
+            if (count($matches[0]) > 0) {
+                if (!array_key_exists('type', $item)) {
+                    $item['type'] = 'string';
+                }
+                for ($i = 0; $i < count($matches[0]); $i++) {
+                    $linkedTo = $linker->parseLinkedName($initialTableAlias, $matches[1][$i]);
+                    if (!$linkedTo) {
+                        $valueItem = $linker->getSourceItem(
+                            $initialTableAlias,
+                            $matches[1][$i]
+                        );
+                    } else {
+                        $valueItem = $linker->getSourceItem(
+                            $linkedTo['toTableAlias'],
+                            $linkedTo['toBaseName']
+                        );
+                    }
+                    $valueItemName = $this->makeItem($valueItem);
+                    if (!$valueItemName || preg_match('/^\w$/', $valueItemName)) {
+                        throw new DebugException(
+                            "Internal error",
+                            [$tableAlias, $valueItemName, $valueItem]
+                        );
+                    }
+                    $tItems[$matches[0][$i]] = [
+                        'base' => $matches[1][$i],
+                        'final-base' => $valueItemName
+                    ];
+                }
+                $item['value-patterns'] = $tItems;
+            }
+        }
+        
+        if (isset($item['sortBy'])) {
+            // Change key if it is a linkedTo
+            $sortBy = &$item['sortBy']['items'];
+            foreach ($sortBy as $k => &$v) {
+                $linkedTo = $linker->parseLinkedName($initialTableAlias, $k);
+                if ($linkedTo) {
+                    $sortItem = $linker->getSourceItem(
+                        $linkedTo['toTableAlias'],
+                        $linkedTo['toBaseName']
+                    );
+                } else {
+                    $sortItem = $linker->getSourceItem($initialTableAlias, $k);
+                }
+                if (!isset($sortItem['table-item'])) {
+                    throw new DebugException(
+                        "Don't use a item without db in a sortBy.", [
+                            'item' => $item,
+                            $k => $sortItem
+                    ]);
+                }
+                $v['table-item'] = $sortItem['table-item'];
+            }
+        }
+    }
+        
+    protected function makeItem($item) {
+        $tableAlias = $item['table-alias'];
+        $baseName = Lot::getItem('base', $item);
+        if (!$baseName) {
+            $baseName = $item['name'];
+        }
+        $oldName = Lot::getItem([$tableAlias, $baseName], $this->refItems);
+        if ($oldName) {
+            if (array_key_exists($oldName, $this->items)) {
+                return $oldName;
+            }
+            $newName = $oldName;
+        }  else {
+            if ($tableAlias === 'T0') {
+                $newName = $baseName;
+            } else {
+                $newName = $tableAlias . '_' . $baseName;
+            }   
+        }
+            
+        $item['name'] = $newName;
+        $item['_instrumental'] = true;
+        $this->parseItem($item);
+        $this->items[$newName] = $item;
+        return $newName;
+    }
+
     // -----------------------
     // Database management
     // -----------------------

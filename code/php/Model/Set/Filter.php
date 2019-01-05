@@ -47,7 +47,6 @@ class Filter extends \Data2Html\Model\Set
                     if (self::startsWith($base, $k)) {
                         $field['base'] = substr($base, strlen($k));
                         $field['check'] = $v;
-                        $key = $field['base'] . '_' . $v;
                         break;
                     }
                 }
@@ -60,6 +59,7 @@ class Filter extends \Data2Html\Model\Set
         ) {
             $key = $field['base'] . '_' . strtolower($field['check']);
         }
+        $key = str_replace(['[', ']'], '_', $key);
         return true;
     }
     

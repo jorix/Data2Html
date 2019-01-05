@@ -1,7 +1,7 @@
 <?php
 namespace Data2Html\Model\Set;
 
-class Grid extends \Data2Html\Model\Set
+class Columns extends \Data2Html\Model\Set
 {
     protected $attributeNames = array(
         'block-name' => 'string',

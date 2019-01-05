@@ -12,11 +12,11 @@ use Data2Html\DebugException;
 use Data2Html\Data\InfoFile;
 use Data2Html\Model\Set\Base;
 use Data2Html\Model\Set\Block;
-use Data2Html\Model\Set\Grid;
+use Data2Html\Model\Set\Columns;
 use Data2Html\Model\Set\Filter;
-use Data2Html\Model\Join\Linker;
-use Data2Html\Model\Join\LinkedSet;
-use Data2Html\Model\Join\LinkedGrid;
+use Data2Html\Model\Link\Linker;
+use Data2Html\Model\Link\LinkedSet;
+use Data2Html\Model\Link\LinkedGrid;
 
 class Model
 {
@@ -32,7 +32,7 @@ class Model
     private $id = '';
     private $baseSet = null;
     private $grids = [];
-    private $unlinkedGrids = [];
+    private $unlinkedColumns = [];
     private $blocks = [];
     
     /**
@@ -85,31 +85,31 @@ class Model
         return $this->baseSet;
     }
     
-    public function getGridColumns($gridName)
+    public function getColumns($gridName)
     {
-        if (!array_key_exists($gridName, $this->unlinkedGrids)) {
-            $this->unlinkedGrids[$gridName] = new Grid(
+        if (!array_key_exists($gridName, $this->unlinkedColumns)) {
+            $this->unlinkedColumns[$gridName] = new Columns(
                 $this,
                 $gridName,
                 $this->getSetDefs('grids', $gridName),
                 $this->getBase()
             );
         }    
-        return $this->unlinkedGrids[$gridName];
+        return $this->unlinkedColumns[$gridName];
     }
     
-    public function getLinkedGrid($gridName = '', $doLink = true)
+    public function getLinkedGrid($gridName, $doLink = true)
     {
         if (!$gridName) {
             $gridName = 'main';
         }
         $gridDef = $this->getSetDefs('grids', $gridName);
         if (!array_key_exists($gridName, $this->grids)) {
-            $grid = new Grid($this, $gridName, $gridDef, $this->baseSet);
+            $columns = new Columns($this, $gridName, $gridDef, $this->baseSet);
             if (!$doLink) { // Only to test or debug use
-                return $grid;
+                return $columns;
             }
-            $linkedGrid = new LinkedGrid(new Linker(), $grid);
+            $linkedGrid = new LinkedGrid($columns);
             if (isset($gridDef['filter'])) {
                 $linkedGrid->addFilter(
                     new Filter($this, $gridName, $gridDef['filter'], $this->baseSet)
@@ -135,7 +135,7 @@ class Model
             if (!$doLink) { // Only to test or debug use
                 return $block;
             }
-            $this->blocks[$blockName] = new LinkedSet(new Linker(), $block);
+            $this->blocks[$blockName] = new LinkedSet($block);
         }    
         return $this->blocks[$blockName];
     }

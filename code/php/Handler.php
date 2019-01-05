@@ -103,13 +103,13 @@ class Handler
             $elements = explode(':', $request['block']);
             return [
                 'model' => $elements[0],
-                'block' => count($elements) > 1 ? $elements[1] : ''
+                'block' => count($elements) > 1 ? $elements[1] : 'main'
             ];
         } elseif (array_key_exists('grid', $request)) {
             $elements = explode(':', $request['grid']);
             return [
                 'model' => $elements[0],
-                'grid' => count($elements) > 1 ? $elements[1] : ''
+                'grid' => count($elements) > 1 ? $elements[1] : 'main'
             ];
         } else {
             throw new DebugException(

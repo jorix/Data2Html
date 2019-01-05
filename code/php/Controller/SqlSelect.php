@@ -5,7 +5,7 @@ use Data2Html\DebugException;
 use Data2Html\Data\Lot;
 use Data2Html\Db;
 use Data2Html\Config;
-use Data2Html\Model\Join\LinkedSet;
+use Data2Html\Model\Link\LinkedSet;
 
 class SqlSelect
 {
@@ -23,7 +23,9 @@ class SqlSelect
         
         $this->result['select'] = $this->getSelectItems($lkColumns);
         if ($this->result['select'] === '') {
-            throw new \Exception("No data base fields defined.");
+            throw new DebugException("No data base fields defined.", [
+                $lkColumns
+            ]);
         }
         if ($linkedSet->getAttribute('summary', null, false)) {
             $this->result['group-by'] = $this->getGroupByItems($lkColumns);
@@ -78,11 +80,11 @@ class SqlSelect
     
     protected function getSelectItems($lkFields)
     {
-        $textFields = array();
+        $textFields = [];
         foreach ($lkFields as $k => $v) {
-            $refDb = Lot::getItem('final-db', $v);
-            if ($refDb && !Lot::getItem('_virtual', $v, false)) {
-                array_push($textFields,  $this->db->putAlias($k, $refDb));
+            $refDb = Lot::getItem('table-item', $v);
+            if ($refDb) {
+                $textFields[] = $this->db->putAlias($k, $refDb);
             }
         }
         return implode(', ', $textFields);
@@ -93,7 +95,7 @@ class SqlSelect
     {
         $textFields = array();
         foreach ($lkFields as $k => $v) {
-            $refDb = Lot::getItem('final-db', $v);
+            $refDb = Lot::getItem('table-item', $v);
             if ($refDb && !Lot::getItem('_virtual', $v, false)) {
                 array_push($textFields,  $refDb);
             }
@@ -105,16 +107,16 @@ class SqlSelect
     {
         $from = '';
         foreach ($tableSources as $k => $v) {
-            if($k === 'T0') {
-                $from .= $this->db->putAlias($k, $v['table']);
+            if ($from === '') { // Firsts table
+                $from = $this->db->putAlias($k, $v['table']);
             } else {
-                $keys = $v['keys'];
+                $keys = $v['table-keys'];
                 if ($keys) {
-                    $fromFinalDb = $v['from-final-db'];
+                    $originTableItems = $v['origin-table-items'];
                     $i = 0;
                     $onKeys = [];
                     foreach ($keys as $vv) {
-                        $onKeys[] = $fromFinalDb[$i] . " = " . $vv['final-db'];
+                        $onKeys[] = $originTableItems[$i] . " = " . $vv['table-item'];
                         $i++;
                     }
                     $from .= 
@@ -145,7 +147,7 @@ class SqlSelect
         $c = array();
         foreach ($request as $v) {
             $baseName = $baseKeys[$ix];
-            $refDb = $keys[$baseName]['final-db'];
+            $refDb = $keys[$baseName]['table-item'];
             if ($v === '' || $v === null) {
                 array_push($c, "{$refDb} is null");
             } else {
@@ -188,7 +190,7 @@ class SqlSelect
                 continue;
             }
             $itemDx->set($filterItems[$k]);
-            $refDb = $itemDx->getString('final-db');
+            $refDb = $itemDx->getString('table-item');
             $check = $itemDx->getString('check');
             $type = $itemDx->getString('type', 'string');
             if (
@@ -265,7 +267,7 @@ class SqlSelect
         }
         $c = array();
         foreach ($sortBy as $v) {
-            $item = $v['final-db'];
+            $item = $v['table-item'];
             if ($v['order'] * $order < 0) {
                 $item .= ' desc';
             }

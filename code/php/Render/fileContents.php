@@ -19,7 +19,7 @@ class FileContents
     {
         $response = [];
         foreach(self::$templateContents as $k => $v) {
-            $response[$k] = $v[0][0 ];
+            $response[$k] = $v[0][0];
         }
         return $response;
     }
