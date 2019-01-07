@@ -1,6 +1,8 @@
 <?php
 namespace Data2Html\Model\Set;
 
+Use \Data2Html\Data\Lot;
+
 class Filter extends \Data2Html\Model\Set
 {
     protected $keywords = array('check' => 'string');
@@ -63,10 +65,10 @@ class Filter extends \Data2Html\Model\Set
         return true;
     }
     
-    protected function beforeApplyBase($baseField, &$field)
+    protected function beforeApplyBase(&$field, $baseField)
     {
-        if (array_key_exists('validations', $baseField) &&
-            array_key_exists('required', $baseField['validations'])
+        if (Lot::getItem(['validations', 'required'], $baseField) === true &&
+            Lot::getItem(['validations', 'required'], $field) !== true
         ) {
             $field['validations']['required'] = false;
         } 
@@ -86,7 +88,7 @@ class Filter extends \Data2Html\Model\Set
         return true;
     }
     
-    protected function parseSortBy($sortBy, $baseItems) {
-        return null;
+    protected function parseSortBy(&$sortBy) {
+        $sortBy = null;
     }
 }

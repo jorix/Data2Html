@@ -13,7 +13,7 @@ trait DebugStatic {
             echo "<h2>Dump static class: " . get_class() . "</h2>\n<pre>";
             echo To::php(self::__debugStaticInfo());
         } else {
-            echo "<h2>Dump value on: " . 
+            echo "<h2>Dump static value in: " . 
                 get_class() . "</h2>\n<pre>";
             echo To::php($value);
         }

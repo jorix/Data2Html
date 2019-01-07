@@ -76,7 +76,7 @@ abstract class Set
         'name'      => 'string',
         'size'      => '[integer]',
         
-        // from form
+        // from block
         'layout-template' => 'string',
         'content-template' => 'string',
         'icon' => 'string',
@@ -283,7 +283,7 @@ abstract class Set
     {
         return true;
     }
-    protected function beforeApplyBase($baseField, &$field)
+    protected function beforeApplyBase(&$field, $baseField)
     {
         return true;
     }
@@ -292,22 +292,23 @@ abstract class Set
         return true;
     }
 
-    // Overwrite this function to `{ return null; }` to ignore sortBy.
-    protected function parseSortBy($sortBy, $baseItems) {
-        if (!is_array($sortBy)) {
+    // Overwrite this function as `{ $sortBy = null; }` to ignore sortBy.
+    protected function parseSortBy(&$sortBy) {
+        if (is_array($sortBy) && array_key_exists('items', $sortBy)) {// Already parsed 
+            return; // is already parsed
+        } elseif ($sortBy === null || (is_array($sortBy) && count($sortBy) === 0)) {
+            $sortBy = null;
+            return; // is already parsed
+        } elseif (is_string($sortBy)) {
             $sortBy = [$sortBy];
-        } elseif ( // Already parsed 
-            array_key_exists('items', $sortBy) && (
-                count($sortBy) === 1 || 
-                (count($sortBy) === 2 && array_key_exists('linkedTo', $sortBy))
-            )
-        ) {
-            return $sortBy; // return as is already parsed
+        } elseif (!is_array($sortBy)) {
+            throw new debugException("Item with a invalid sortBy.", [
+                'sortBy' => $sortBy
+            ]);
         }
         
         // Create a empty parsed sort
-        $sortByNew = ['linkedTo' => [], 'items' => []];
-        
+        $sortByNew = ['items' => []];
         foreach ($sortBy as $baseName) {
             $order = 1;
             foreach ($this->sortByStartToOrder as $k => $v) {
@@ -317,24 +318,12 @@ abstract class Set
                     break;
                 }
             }
-            if (!self::is_linkedTo($baseName) &&
-                !array_key_exists($baseName, $this->setItems) &&
-                !array_key_exists($baseName, $baseItems)
-            ) {
-                throw new DebugException(
-                    "Defining sortBy \"{$baseName}\", item and base was not found.",
-                    $sortBy
-                );
-            }
             $sortByNew['items'][$baseName] = [
                 'base' => $baseName,
                 'order' => $order
             ];
         }
-        if (count($sortByNew['linkedTo']) === 0) {
-            unset($sortByNew['linkedTo']);
-        }
-        return $sortByNew;
+        $sortBy = $sortByNew;
     }
 
     // -----------------------
@@ -353,46 +342,12 @@ abstract class Set
         
         $keys = [];
         foreach ($this->setItems as $k => &$v) {
-            if (array_key_exists('base', $v)) {
-                $base = $v['base'];
-                unset($v['db']);
-                if (!self::is_linkedTo($base)) {
-                    if (!array_key_exists($base, $baseItems)) {
-                        throw new DebugException(
-                            "Defining field \"{$k}\", `base` \"{$base}\" was not found."
-                        );
-                    }
-                    $this->applyBase($v, $baseItems[$base]);
-                }
-            }
-            
-            if (array_key_exists('sortBy', $v) && $v['sortBy']) {              
-                $sortByNew = $this->parseSortBy($v['sortBy'], $baseItems);
-                if ($sortByNew) {
-                    $v['sortBy'] = $sortByNew;
-                } else {
-                    unset($v['sortBy']);
-                }
-            }
-            
-            // Matches values
-            if (array_key_exists('value-patterns', $v)) {
-                foreach ($v['value-patterns'] as $kk => $vv) {
-                    $base = $vv['base'];
-                    if (!array_key_exists($base, $this->setItems) &&
-                        !array_key_exists($base, $baseItems) &&
-                        !array_key_exists($base, $linkedTo)
-                    ) {
-                        throw new DebugException(
-                            "On template \"{$kk}\", the \"{$base}\" is not a base or link.",
-                            $this->setItems
-                        );
-                    }
-                }
-            }
             $v['name'] = $k;
             if (array_key_exists('key', $v)) {
                 $keys[$k] = [];
+            }
+            if (isset($v['sortBy'])) {              
+                $this->parseSortBy($v['sortBy']);
             }
         }
         unset($v);
@@ -431,16 +386,30 @@ abstract class Set
         }
     }
     
-    private function applyBase(&$field, $baseField)
+    public function applyBaseItem(&$toItem, $fromItem, $except = null)
     {
-        if (array_key_exists('base', $baseField) &&
-            array_key_exists('base', $field)
-        ) {
-            unset($field['base']);
+        $exceptOrigin = ['key'];
+        foreach($exceptOrigin as $v) {
+            if (array_key_exists($v, $toItem)) {
+                unset($fromItem[$v]);
+            }
         }
-        unset($baseField['key']);
-        $this->beforeApplyBase($baseField, $field);
-        $field = array_replace_recursive([], $baseField, $field);
+        if ($except) {
+            foreach((array)$except as $v) {
+                unset($fromItem[$v]);
+            }
+        }
+        unset($toItem['base']);
+        if (!isset($toItem['db'])) { // When is null
+            unset($toItem['db']);
+        }
+        $this->beforeApplyBase($toItem, $fromItem);
+        $toItem = array_replace([], $fromItem, $toItem);
+        if (array_key_exists('validations', $fromItem)) {
+            // Apply new validatirs in $fromItem
+            $toItem['validations'] = 
+                array_replace([], $fromItem['validations'], $toItem['validations']);
+        }
     }
     
     private static function is_linkedTo($baseName)
@@ -479,7 +448,7 @@ abstract class Set
             !array_key_exists('value', $field) && 
             !array_key_exists('base', $field) &&
             !array_key_exists('leaves', $field) &&
-            !array_key_exists('db', $field)
+            !array_key_exists('db-items', $field)
         ) {
             $db = $fieldName;
         }
@@ -494,7 +463,7 @@ abstract class Set
                 if (is_array($vv)) {
                     throw new DebugException("Field \"{$fieldName}\" is an array.", $field);
                 } elseif (array_key_exists($vv, $alias)) {
-                    $this->applyAlias($field, $fieldName, $pField, null, $alias[$vv]);
+                    $this->applyAliasWord($field, $fieldName, $pField, null, $alias[$vv]);
                 } else {
                     throw new DebugException(
                         "Alias \"{$vv}\" on field \"{$fieldName}\" is not supported."
@@ -503,7 +472,7 @@ abstract class Set
             } else {
                 if ($kk === $this->subItemsKey) { continue; }
                 if (array_key_exists($kk, $alias) && !array_key_exists($kk, $words)) {
-                    $this->applyAlias($field, $fieldName, $pField, $vv, $alias[$kk]);
+                    $this->applyAliasWord($field, $fieldName, $pField, $vv, $alias[$kk]);
                 } else {
                     $this->applyWord($field, $fieldName, $pField, $kk, $vv);
                 }
@@ -539,7 +508,7 @@ abstract class Set
         return [$pKey, $pField];
     }
     
-    private function applyAlias($iField, $fieldName, &$pField, $aliasValue, $toWord)
+    private function applyAliasWord($iField, $fieldName, &$pField, $aliasValue, $toWord)
     {
         foreach ($toWord as $k => $v) {
             if (is_string($v) && self::startsWith($v, '$${}')) {

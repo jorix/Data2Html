@@ -48,7 +48,8 @@ class LinkedSet
             'links' => $this->getLinkedFrom(),
             'keys' => $this->getLinkedKeys(),
             'items' => $this->getLinkedItems(),
-            'refItems' => $this->refItems
+            'refItems' => $this->refItems,
+            'linked-sources' => $this->linker->__debugInfo()['sources']
         ];
     }
     
@@ -133,14 +134,22 @@ class LinkedSet
     // -----------------------
     protected function parseItem(&$item) {
         $linker = $this->linker;
-        $initialTableAlias = $item['table-alias'];
-        $linkedTo = $linker->parseLinkedName($initialTableAlias, Lot::getItem('base', $item));
+        
+        $iniValueTableAlias = null;
+        $iniSortByTableAlias = null;
+        if (array_key_exists('value', $item)) {
+            $iniValueTableAlias = $item['table-alias'];
+        }
+        if (array_key_exists('sortBy', $item)) {
+            $iniSortByTableAlias = $item['table-alias'];
+        }
+        
+        $linkedTo = $linker->parseLinkedName($item['table-alias'], Lot::getItem('base', $item));
         if ($linkedTo) {
             $lkItem = $linker->getSourceItem($linkedTo['toTableAlias'], $linkedTo['toBaseName']);
-            unset($item['base']);
-            unset($item['table-item']);
             unset($item['table-alias']);
-            Linker::applyAttibutes($item, $lkItem);
+            unset($item['table-item']);
+            $this->set->applyBaseItem($item, $lkItem);
             if (Lot::getItem('linkedWith-list', $v)) {
                 $item['link-list'] =
                     $this->tableSources[$lkAlias]['from-list'];
@@ -171,6 +180,10 @@ class LinkedSet
         ) {
             $item['description'] = $item['title'];
         }
+        if (!array_key_exists('sortBy', $item) && isset($item['db'])) {
+            $item['sortBy'] = $item['name'];
+            $this->set->parseSortBy($item['sortBy']);
+        }
         
         // Parse value patterns
         if (array_key_exists('value', $item)) {
@@ -183,10 +196,13 @@ class LinkedSet
                     $item['type'] = 'string';
                 }
                 for ($i = 0; $i < count($matches[0]); $i++) {
-                    $linkedTo = $linker->parseLinkedName($initialTableAlias, $matches[1][$i]);
+                    $linkedTo = $linker->parseLinkedName(
+                        $iniValueTableAlias ? $iniValueTableAlias : $item['table-alias'],
+                        $matches[1][$i]
+                    );
                     if (!$linkedTo) {
                         $valueItem = $linker->getSourceItem(
-                            $initialTableAlias,
+                            $item['table-alias'],
                             $matches[1][$i]
                         );
                     } else {
@@ -214,21 +230,25 @@ class LinkedSet
         if (isset($item['sortBy'])) {
             // Change key if it is a linkedTo
             $sortBy = &$item['sortBy']['items'];
+            $sortByTableAlias = $iniSortByTableAlias ? 
+                $iniSortByTableAlias :
+                $item['table-alias'];
             foreach ($sortBy as $k => &$v) {
-                $linkedTo = $linker->parseLinkedName($initialTableAlias, $k);
+                $linkedTo = $linker->parseLinkedName($sortByTableAlias, $k);
                 if ($linkedTo) {
                     $sortItem = $linker->getSourceItem(
                         $linkedTo['toTableAlias'],
                         $linkedTo['toBaseName']
                     );
                 } else {
-                    $sortItem = $linker->getSourceItem($initialTableAlias, $k);
+                    $sortItem = $linker->getSourceItem($sortByTableAlias, $k);
                 }
                 if (!isset($sortItem['table-item'])) {
                     throw new DebugException(
                         "Don't use a item without db in a sortBy.", [
                             'item' => $item,
-                            $k => $sortItem
+                            $k => $sortItem,
+                            $linkedTo
                     ]);
                 }
                 $v['table-item'] = $sortItem['table-item'];

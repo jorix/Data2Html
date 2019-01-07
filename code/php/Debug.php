@@ -13,7 +13,7 @@ trait Debug {
             echo "<h2>Dump class: " . get_class($this) . "</h2>\n<pre>";
             echo To::php($this->__debugInfo());
         } else {
-            echo "<h2>Dump value on: " . 
+            echo "<h2>Dump value in: " . 
                 get_class($this) . "</h2>\n<pre>";
             echo To::php($value);
         }

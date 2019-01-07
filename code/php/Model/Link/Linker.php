@@ -46,7 +46,7 @@ class Linker
         if (!$set) {
             return $this->sources['T0']['_items'];
         } else { 
-            return self::parseLinkedItems($set, 'T0');
+            return self::parseLinkedItems($set, $this->sources['T0']['_base'], 'T0');
         }
     }
     
@@ -109,30 +109,24 @@ class Linker
         return $lkItem;
     }
     
-    public static function applyAttibutes(&$toItem, $fromItem, $except = null) {
-        $exceptOrigin = ['table-alias', 'key', 'sortBy', 'value', 'value-patterns'];
-        foreach($exceptOrigin as $v) {
-            if (array_key_exists($v, $toItem)) {
-                unset($fromItem[$v]);
-            }
-        }
-        if ($except) {
-            foreach((array)$except as $v) {
-                unset($fromItem[$v]);
-            }
-        }
-        $toItem = array_replace_recursive([], $fromItem, $toItem);
-    }
-    
     // -----------------------
     // Internal procedures
     // -----------------------
-    protected static function parseLinkedItems(Set $set, $tableAlias)
+    protected static function parseLinkedItems(Set $set, $baseItems, $tableAlias)
     {
         $items = $set->getItems();
         foreach ($items as $k => &$v) {
+            if (array_key_exists('base', $v)) {
+                $base = $v['base'];
+                if ($k !== $base && array_key_exists($base, $items)) {
+                    $set->applyBaseItem($v, $items[$base]);
+                } elseif ($baseItems && array_key_exists($base, $baseItems)) {
+                    $set->applyBaseItem($v, $baseItems[$base]);
+                }
+            }
+            
             if (isset($v['link'])) {
-                $linkedSet = self::getColumns($v['link']);
+                $linkedSet = self::getColumnsSet($v['link']);
                 $linkedKeys = $linkedSet->getKeys();
                 if (isset($v['db-items'])) {
                     $originItems = $v['db-items'];
@@ -151,7 +145,7 @@ class Linker
                     }
                     $i = 0;
                     foreach ($linkedKeys as $kk => $vv) {
-                        self::applyAttibutes(
+                        $set->applyBaseItem(
                             $items[$originItems[$i]], 
                             $linkedSet->getSetItem($kk)
                         );
@@ -177,7 +171,7 @@ class Linker
                 $toAlias = $this->addTable(
                     $fromAlias, 
                     $fromBaseName, 
-                    self::getColumns($item['link'])
+                    self::getColumnsSet($item['link'])
                 );
             }
             if (isset($item['list'])) {
@@ -187,7 +181,7 @@ class Linker
         return $toAlias;
     }
     
-    protected static function getColumns($linkedWith)
+    protected static function getColumnsSet($linkedWith)
     {
         $playerNames = Handler::parseLinkText($linkedWith);
         if (!array_key_exists('grid', $playerNames)) {
@@ -221,9 +215,9 @@ class Linker
             'table-keys' => null
         ];
         $source = [
-            '_base' => self::parseLinkedItems($set->getBase(), $toAlias),
-            '_items' => self::parseLinkedItems($set, $toAlias)
+            '_base' => self::parseLinkedItems($set->getBase(), null, $toAlias)
         ];
+        $source['_items'] = self::parseLinkedItems($set, $source['_base'], $toAlias);
         
         // Set
         $this->tableSources[$toAlias] = &$tableSource;
