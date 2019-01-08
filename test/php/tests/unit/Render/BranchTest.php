@@ -8,42 +8,40 @@ class BranchTest extends \Codeception\Test\Unit
     // Tests
     public function testBranch()
     {
-        // NOTE: $this->tester->expectException not fails if no exception is throw, oops!
+        // Test if a exception is throw.
         try {
             $fail = false;
             new Branch(null);
         } catch (\Exception $e) { $fail = true; }
-        $this->assertTrue($fail, 'Exception is throw when construct argument is not a array');
+        $this->assertTrue($fail, 'Exception is throw when construct argument is not a string or array');
             
         // Dummy branch
         $br = new Branch(['a' => [
-            'b' => [
-                'c' => 'file',
-                'd' => []
-            ]
+            'b' => ['c' => 'file', 'd' => []]
         ]]);
-        // Retrieve a existing branch: Expend response as sub-branch
-        // $expected = ['keys' => ['a','b'],'tree' => ['c' => 'file','d' => []]]; 
-        // $this->assertEquals($rJson,
-            // $br->getBranch(['a', 'b'],true)->__debugInfo(),
-            // 'Get nested branch.'
-        // );
-        // $this->assertEquals($rJson,
-            // $br->getBranch('a')->getBranch('b')->__debugInfo(),
-            // 'Get recursive branch.'
-        // );
+        // Retrieve a existing branch: Extend response as sub-branch
+        $expected = [
+            'keys' => ['a','b'],
+            'tree' => ['c' => 'file', 'd' => []]
+        ]; 
+        $this->assertEquals($expected,
+            $br->getBranch(['a', 'b'],true)->__debugInfo(),
+            'Get nested branch.'
+        );
+        $this->assertEquals($expected,
+            $br->getBranch('a')->getBranch('b')->__debugInfo(),
+            'Get recursive branch.'
+        );
 
-        // Retrieve a not existing branch.', function() use ($br) {
-        // try {
-            // $fail = false;
-            // $br->getBranch('?');
-        // } catch (\Exception $e) { $fail = true; }
-            // $this->assertTrue($fail, 'Exception is throw');
-            
-            // $this->assertNull(
-                // $br->getBranch('?', false),
-                // 'Not existing branch if is not required is null.'
-            // );
-        // });
+        // Retrieve a not existing branch
+        try {
+            $fail = false;
+            $br->getBranch('?');
+        } catch (\Exception $e) { $fail = true; }
+        $this->assertTrue($fail, 'Exception is throw');
+        $this->assertNull(
+            $br->getBranch('?', false),
+            'Not existing branch if is not required is null.'
+        );
     }
 }
