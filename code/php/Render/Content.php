@@ -194,10 +194,12 @@ class Content
             '/[a-z][\w-]*\s*=\s*\"\$\$\{([a-z_][\w\-]*)(|\s*\|\s*.*?)\}\"/i',
             $replaces,
             function($matchItem, $format, $value) { // $encodeFn
-                if ($value !== '') {
+                if ($value || $value === 0 || $value === false) {
                     $posEq = strpos($matchItem, '=');
                     if (is_array($value)) {
                         $value = str_replace('"', "'", To::json($value));
+                    } elseif ($value === false) {
+                        $value = 'false';
                     }
                     return substr($matchItem, 0, $posEq) . '="' . 
                         htmlspecialchars(

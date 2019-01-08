@@ -15,5 +15,5 @@
     [ ] Posar valor quan hi ha un end-of-rows
     
 [ ] Test PHP
-    [ ] Arraglar errors nous
+    [x] Arraglar errors nous
     [ ] Preperar tets de linker

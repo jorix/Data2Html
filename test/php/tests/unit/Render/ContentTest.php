@@ -71,27 +71,39 @@ class ContentTest extends \Codeception\Test\Unit
         $renderHtml->setAccessible(true);
         
         $this->assertEquals('>xy<', 
-            $renderHtml->invoke(null, '>$${a}<', ['a' => 'xy']),
+            $renderHtml->invoke(null, ['a' => 'xy'], '>$${a}<'),
             'Simple replace'
         );
         $this->assertEquals('<span some ="null">', 
-            $renderHtml->invoke(null, '<span some = "$${a}">', ['a' => 'null']),
-            'Replace a scalar on attribute'
+            $renderHtml->invoke(null, ['a' => 'null'], '<span some = "$${a}">'),
+            'Replace a scalar on attribute (NOTE: spaces affter `=` are removed)'
         );
-        $this->assertEquals('<span some ="{\'is\':\'null\'}">', 
-            $renderHtml->invoke(null, '<span some = "$${a}">', ['a' => ['is' => 'null']]),
-            'Replace a array on attribute'
+        $this->assertEquals('<span some="0">', 
+            $renderHtml->invoke(null, ['a' => 0], '<span some="$${a}">'),
+            'Replace 0 on attribute'
+        );
+        $this->assertEquals('<span some="false">', 
+            $renderHtml->invoke(null, ['a' => false], '<span some="$${a}">'),
+            'Replace false on attribute'
+        );
+        $this->assertEquals("<span some =\"{'is':'null'}\">", 
+            $renderHtml->invoke(null, ['a' => ['is' => 'null']], '<span some = "$${a}">'),
+            'Replace a array as pseudo-json on attribute'
         );
         $this->assertEquals('<span >', 
-            $renderHtml->invoke(null, '<span some = "$${a}">', ['a' => null]),
+            $renderHtml->invoke(null, ['a' => ''], '<span some = "$${a}">'),
             'Remove attribute if is empty'
         );
+        $this->assertEquals('<span >', 
+            $renderHtml->invoke(null, ['a' => null], '<span some = "$${a}">'),
+            'Remove attribute if is null'
+        );
         $this->assertEquals('-<span>yes</span>-', 
-            $renderHtml->invoke(null, '-$${a?[[<span>$${a}</span>]]:[[<no>]]}-', ['a' => 'yes']),
+            $renderHtml->invoke(null, ['a' => 'yes'], '-$${a?[[<span>$${a}</span>]]:[[<no>]]}-'),
             'Conditional html'
         );
         $this->assertEquals('-<no>-', 
-            $renderHtml->invoke(null, '-$${a?[[<span>$${a}</span>]]:[[<no>]]}-', ['a' => null]),
+            $renderHtml->invoke(null, ['a' => null], '-$${a?[[<span>$${a}</span>]]:[[<no>]]}-'),
             'Conditional with null replacement on html uses else content'
         ); 
         $htmlLf = '$${_level-0?[[
@@ -100,11 +112,11 @@ class ContentTest extends \Codeception\Test\Unit
             <span>body</span>
         ]]}';
         $this->assertEquals('<td class="class">body</td>', 
-            trim($renderHtml->invoke(null, $htmlLf, ['_level-0' => true])),
+            trim($renderHtml->invoke(null, ['_level-0' => true], $htmlLf)),
             'Conditional html whith line feed whith true'
         );
         $this->assertEquals('<span>body</span>', 
-            trim($renderHtml->invoke(null, $htmlLf, ['_level-0' => false])),
+            trim($renderHtml->invoke(null, ['_level-0' => false], $htmlLf)),
             'Conditional html whith line feed whith false'
         );
     }
@@ -117,31 +129,31 @@ class ContentTest extends \Codeception\Test\Unit
         $renderJs->setAccessible(true);
         
         $this->assertEquals('xx = "xy";', 
-            $renderJs->invoke(null, 'xx = $${a};', ['a' => 'xy']),
+            $renderJs->invoke(null, ['a' => 'xy'], 'xx = $${a};'),
             'Simple replace as string'
         );
         $this->assertEquals('xx = 123;', 
-            $renderJs->invoke(null, 'xx = $${a};', ['a' => 123]),
+            $renderJs->invoke(null, ['a' => 123], 'xx = $${a};'),
             'Simple replace as number'
         );
         $this->assertEquals('xx = {"is":"null"};', 
-            $renderJs->invoke(null, 'xx = $${a};', ['a' => ['is' => 'null']]),
+            $renderJs->invoke(null, ['a' => ['is' => 'null']], 'xx = $${a};'),
             'Simple replace as array'
         );
         $this->assertEquals('var xx = "data and more text";', 
-            $renderJs->invoke(null, 'var xx = "$${a} and more text";', ['a' => 'data']),
+            $renderJs->invoke(null, ['a' => 'data'], 'var xx = "$${a} and more text";'),
             'Replace on start string'
         );
         $this->assertEquals('var xx = "#data-id";', 
-            $renderJs->invoke(null, 'var xx = "#$${a}-id";', ['a' => 'data']),
+            $renderJs->invoke(null, ['a' => 'data'], 'var xx = "#$${a}-id";'),
             'Replace on start string as css id'
         );
         $this->assertEquals('var xx = 0;', 
-            $renderJs->invoke(null, 'var xx = $${a?[[$${a}]]:[[false]]};', ['a' => 0]),
+            $renderJs->invoke(null, ['a' => 0], 'var xx = $${a?[[$${a}]]:[[false]]};'),
             'Conditional js'
         );
         $this->assertEquals('var xx = false;', 
-            $renderJs->invoke(null, 'var xx = $${a?[[$${a}]]:[[false]]};', ['a' => null]),
+            $renderJs->invoke(null, ['a' => null], 'var xx = $${a?[[$${a}]]:[[false]]};'),
             'Conditional with null replacement on js uses else content'
         );
     }
@@ -157,13 +169,13 @@ class ContentTest extends \Codeception\Test\Unit
         $this->assertEquals(' $${a}  $${b}  $${c} ', 
             $extractSource->invokeArgs(null, [
                 'require',
-                ' $${a} $${require Alpha} $${b} $${require epsilon, alpha, beta} $${c} ',
+                ' $${a} $${require Alpha} $${b} $${require epsilon, Alpha, beta} $${c} ',
                 &$requires
             ]),
             'Correct requires are obtained'
         );
         $this->assertEquals(
-            ['omega' => true, 'alpha' => true, 'epsilon' => true, 'beta' => true],
+            ['omega' => true, 'Alpha' => true, 'epsilon' => true, 'beta' => true],
             $requires,
             'Correct requires are obtained and all names are in lower case'
         );
