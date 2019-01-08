@@ -21,9 +21,11 @@ class Filter extends \Data2Html\Model\Set
     {
         if (is_string($field)) {
             if (is_string($key)) {
+                // For example as: 'field_name' => 'EQ'
                 $field = ['base' => $key, 'check' => $field];
                 $key = $key . '_' . $field;
             } else {
+                // For example as: '=field_name'
                 foreach ($this->startToChk as $k => $v) {
                     if (self::startsWith($field, $k)) {
                         $field = array(

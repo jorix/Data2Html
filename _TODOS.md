@@ -4,7 +4,7 @@
 
 [ ] Reescriure Linker: proves finals
     [ ] Provar incompatibilitat base,db,db-items,value
-    [ ] Provar multiple bases i posibles confusions am `name`
+    [ ] Provar multiple bases i posibles confusions amb `name`
     [ ] Sort per defecte, veure:
             http://localhost:88/Aixada/Data2Html_c/demo/_controller/_dump_model.php?grid=empl_dept_emp
     [ ] revisar sortBy vinculat i no vinculat.

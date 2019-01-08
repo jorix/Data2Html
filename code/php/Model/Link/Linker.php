@@ -16,6 +16,12 @@ class Linker
     protected $tableCount = 0;
     protected $tableSources = [];
     protected $sources = [];
+    
+    // To parse link
+    protected static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i';
+    protected static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
+        // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
+    
 
     public function __construct(Set $set)
     {
@@ -50,10 +56,15 @@ class Linker
         }
     }
     
+    public static function getPatternValueTemplate()
+    {
+        return self::$patternValueTemplate;
+    }
+    
     public function parseLinkedName($tableAlias, $baseName)
     {
         $matches = null;
-        preg_match_all(Set::getPatternLinked(), $baseName, $matches);
+        preg_match_all(self::$patternLinked, $baseName, $matches);
         if (count($matches[0]) === 0) {
             return null;
         }

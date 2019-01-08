@@ -30,10 +30,6 @@ abstract class Set
     private $keys = null;
 
     // To parse
-    private static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i';
-        // fields as: link_name[field_name]
-    private static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
-        // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     private $baseAttributeNames = [
         'title' => 'string',
         'options' => 'array',
@@ -167,17 +163,6 @@ abstract class Set
     {
         return $this->id;
     }    
-  
-    public static function getPatternLinked()
-    {
-        return self::$patternLinked;
-    }
-    
-    public static function getPatternValueTemplate()
-    {
-        return self::$patternValueTemplate;
-    }
-    
     
     public function __debugInfo()
     {
@@ -412,26 +397,11 @@ abstract class Set
         }
     }
     
-    private static function is_linkedTo($baseName)
-    {
-        $matches = null;
-        preg_match_all(self::$patternLinked, $baseName, $matches);
-        return (count($matches[0]) > 0);
-    }
-    
     private function parseItem($level, $fieldName, $field)
     {
         
         if (is_string($field)) {
-            if (substr($field, 0, 1) === '=') {
-                $field = ['value' => substr($field, 1)];
-            } elseif ($this->baseSet || self::is_linkedTo($field)) {
-                $field = ['base' => $field];
-            } else {
-                throw new DebugException(
-                    "Invalid \"{$field}\" on field \"{$fieldName}\"."
-                );
-            }
+            $field = ['base' => $field];
         } elseif(is_array($field) && 
             $this->baseSet &&
             is_string($fieldName) &&

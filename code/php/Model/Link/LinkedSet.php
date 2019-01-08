@@ -189,7 +189,7 @@ class LinkedSet
         if (array_key_exists('value', $item)) {
             // Parse patterns as: $${name} | $${link[name]}
             $matches = null;
-            preg_match_all(Set::GetPatternValueTemplate(), $item['value'], $matches);
+            preg_match_all(Linker::getPatternValueTemplate(), $item['value'], $matches);
             $tItems = [];
             if (count($matches[0]) > 0) {
                 if (!array_key_exists('type', $item)) {
