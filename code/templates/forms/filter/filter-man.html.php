@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include d2h_serverBlock}
 <div class="row" >
     <form id="$${id}" class="form-inline" 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>Dump model</title>
@@ -8,17 +8,14 @@
     <div class="container">
     <?php
         require_once '../_start.php';
-    
         try {
-            $payerNames = \Data2Html\Handler::parseRequest($_REQUEST);
-            $doLink = (\Data2Html\Data\Lot::GetItem('link', $_REQUEST, 'true') !== 'false');
+            $doLink = (!isset($_REQUEST['link']) || $_REQUEST['link'] !== 'false');
+            $pNames = \Data2Html\Model\Models::parseRequest($_REQUEST);
             
-            $model = \Data2Html\Handler::getModel($payerNames['model']);
-            // $model->dump();
-            if (array_key_exists('block', $payerNames)) {
-                $obj = $model->getLinkedBlock($payerNames['block'], $doLink);
+            if (array_key_exists('block', $pNames)) {
+                $obj = \Data2Html\Model\Models::linkBlock($pNames['model'], $pNames['block'], $doLink);
             } else {
-                $obj = $model->getLinkedGrid($payerNames['grid'], $doLink);
+                $obj = \Data2Html\Model\Models::linkGrid($pNames['model'], $pNames['grid'], $doLink);
             }
             $obj->dump();
         } catch(Exception $e) {

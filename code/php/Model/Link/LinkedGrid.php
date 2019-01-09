@@ -49,7 +49,7 @@ class LinkedGrid
         return $this->columns->getAttribute($attributeKeys, $default, $verifyName);
     }
 
-    public function getColumns()
+    public function getLinkedColumns()
     {
         return $this->columns;
     }

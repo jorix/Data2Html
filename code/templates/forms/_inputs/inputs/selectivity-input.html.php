@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include d2h_serverSelectivity, d2h_message}
 <span data-d2h-message="#$${id}"></span>
 <div class="selectivity-input"

@@ -3,8 +3,8 @@ namespace Data2Html\Model\Link;
 
 use Data2Html\DebugException;
 use Data2Html\Config;
-use Data2Html\Handler;
 use Data2Html\Model\Set;
+use Data2Html\Model\Models;
 use Data2Html\Data\Lot;
 
 class Linker
@@ -137,7 +137,7 @@ class Linker
             }
             
             if (isset($v['link'])) {
-                $linkedSet = self::getColumnsSet($v['link']);
+                $linkedSet = Models::parseUrlColumns('grid=' . $v['link']);
                 $linkedKeys = $linkedSet->getKeys();
                 if (isset($v['db-items'])) {
                     $originItems = $v['db-items'];
@@ -182,7 +182,7 @@ class Linker
                 $toAlias = $this->addTable(
                     $fromAlias, 
                     $fromBaseName, 
-                    self::getColumnsSet($item['link'])
+                    Models::parseUrlColumns('grid=' . $item['link'])
                 );
             }
             if (isset($item['list'])) {
@@ -190,19 +190,6 @@ class Linker
             }
         }
         return $toAlias;
-    }
-    
-    protected static function getColumnsSet($linkedWith)
-    {
-        $playerNames = Handler::parseLinkText($linkedWith);
-        if (!array_key_exists('grid', $playerNames)) {
-            throw new \Exception(
-                "Link \"{$linkedWith}\" without a grid name."
-            );
-        }
-        $modelName = $playerNames['model'];
-        $model = Handler::getModel($modelName);
-        return $model->getColumns($playerNames['grid']);
     }
     
     protected function addTable($fromAlias, $fromBaseName, $set) {

@@ -12,7 +12,7 @@ class Autoload
     public static function start()
     {
         if (version_compare(PHP_VERSION, '5.4.0', '<')) {
-            die('<b>At least PHP 5.4 or PHP7 is required to run Data2Html</b>');
+            exit('<b>At least PHP 5.4 or PHP7 is required to run Data2Html</b>');
         }
         self::$codeFolder = __DIR__ . DIRECTORY_SEPARATOR;
         spl_autoload_register('self::load');

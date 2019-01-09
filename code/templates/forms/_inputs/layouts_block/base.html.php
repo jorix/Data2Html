@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${label-width = 2}
 $${_level-0?[[
     <div class="form-group row">

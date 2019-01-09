@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${_level-0?[[
 <div class="form-group row">
     $${body}

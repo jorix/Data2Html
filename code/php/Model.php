@@ -22,8 +22,6 @@ class Model
 {
     use \Data2Html\Debug;
     
-    protected $modelName = '';
-    
     // original definitions
     private $definitions = null;
     private static $idModelCount = 0;
@@ -49,12 +47,10 @@ class Model
         $this->id = 'd2h_' . ++self::$idModelCount;
         
         if ($modelName) {
-            $this->modelName = $modelName;
             $this->definitions = InfoFile::readPhp(
                 Config::getForlder('modelFolder') . DIRECTORY_SEPARATOR . $modelName . '.php'
             );
         } else {
-            $this->modelName = '[empty]';
             $this->definitions = [];
         }
         $this->baseSet = new Base(
@@ -73,11 +69,6 @@ class Model
     public function getId()
     {
         return $this->id;
-    }
-    
-    public function getModelName()
-    {
-        return $this->modelName;
     }
     
     public function getBase()

@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include font-awesome}
 <button class="btn btn-sm $${visualClassBody}"
     title="$${title}"

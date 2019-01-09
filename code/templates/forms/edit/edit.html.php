@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include d2h_message, d2h_serverBlock}
 <div class="form-row" id="$${id}">
     <div data-d2h-message="{for:'#$${id} .form-horizontal', position:'top-start'}"></div>

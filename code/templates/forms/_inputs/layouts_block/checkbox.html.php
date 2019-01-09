@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${body-width = 2}
 $${_level-0?[[
     $${label-width = 2}

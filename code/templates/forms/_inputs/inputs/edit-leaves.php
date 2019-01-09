@@ -7,22 +7,18 @@ return function($replaces) {
             $replaces
         );
     }
-    $urlRequest = null;
-    parse_str($urlParts[1], $urlRequest);
-    
-    $modelNames = \Data2Html\Handler::parseRequest($urlRequest);
+    $modelNames = \Data2Html\Model\Models::parseUrl($urlParts[1]);
     $rx = new \Data2Html\Data\Lot($modelNames, true); // Required
     
     $modelName = $rx->getString('model');
-    $model = \Data2Html\Handler::getModel($modelName);
     $gridName = $rx->getString('grid', 'main');
     
-    $grid = $model->getLinkedGrid($gridName);
+    $grid = \Data2Html\Model\Models::linkGrid($modelName, $gridName);
     $blockName = $grid->getAttribute('block-name', 'main');
     $templateGridName = $grid->getAttribute('template', 'edit-grid-paged');
     
-    $form = $model->getLinkedBlock($blockName);
-    $templateFormName = $form->getAttribute('template', 'forms/edit/edit');
+    $block = \Data2Html\Model\Models::linkBlock($modelName, $blockName);
+    $templateFormName = $block->getAttribute('template', 'forms/edit/edit');
     
     $itemReplaces = [
         'branch' => [
@@ -35,11 +31,11 @@ return function($replaces) {
     $render = \Data2Html\Handler::createRender();
     
     // Grid
-    $result = $render->renderGrid($model, $gridName, $templateGridName, $itemReplaces);
+    $result = $render->renderGrid($modelName, $gridName, $templateGridName, $itemReplaces);
     $idGrid = $result->get('id');
         
-    // Block of edit form
-    $resultBlock = $render->renderBlock($model, $blockName, $templateFormName, $itemReplaces);
+    // Block of edit
+    $resultBlock = $render->renderBlock($modelName, $blockName, $templateFormName, $itemReplaces);
     $idForm = $resultBlock->get('id');
     $result->add($resultBlock);
     
@@ -54,16 +50,17 @@ return function($replaces) {
     // Put display options of branch
     if (array_key_exists('branch', $replaces)) {
         $branch = $replaces['branch'];
-        $itemToLink = $model
-            ->getLinkedBlock($branch['block'])
+        $itemToLink =  
+            \Data2Html\Model\Models::linkBlock($modelName, $branch['block'])
             ->searchLinkOfBranch($branch['model']);
         $itemDbToLink = \Data2Html\Data\Lot::getItem('db', $itemToLink);
         
-        $branchModel = \Data2Html\Handler::getModel($branch['model']);
         $filterItemNames = $grid->getFilter()->searchItemNameByDb($itemDbToLink);
-        $formItemNames = $form->searchItemNameByDb($itemDbToLink);
+        $formItemNames = $block->searchItemNameByDb($itemDbToLink);
 
-        $displayOptions['branch'] = '#' . $branchModel->getLinkedGrid($branch['grid'])->getId();
+        $displayOptions['branch'] = '#' . 
+            \Data2Html\Model\Models::linkGrid($branch['model'], $branch['grid'])
+            ->getId();
         $displayOptions['items']['grid']['leafKeys'] = $filterItemNames;
         $displayOptions['items']['block']['leafKeys'] = $formItemNames;
     }

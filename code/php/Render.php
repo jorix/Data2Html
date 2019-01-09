@@ -6,6 +6,7 @@ use Data2Html\Data\Lot;
 use Data2Html\Render\Branch;
 use Data2Html\Render\Content;
 use Data2Html\Model\Set;
+use Data2Html\Model\Models;
 use Data2Html\Model\Set\Includes as SetIncludes;
 
 class Render
@@ -37,27 +38,27 @@ class Render
         } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
-            exit();
+            exit;
         }
     }
     
-    public function renderGrid($model, $gridName, $templateName, $itemReplaces = null)
+    public function renderGrid($modelName, $gridName, $templateName, $itemReplaces = null)
     {
         try {
             $templateBranch = new Branch($templateName);
             if (!$gridName) {
                 $gridName = 'main';
             }
-            $lkGrid = $model->getLinkedGrid($gridName);
+            $lkGrid = Models::linkGrid($modelName, $gridName);
             $gridId = $lkGrid->getId();
            
             $replaces = [
-                'debug-name' => "{$model->getModelName()}@grid={$gridName}",
+                'debug-name' => "{$modelName}@grid={$gridName}",
                 '_level' => -1,
                 'title' => $lkGrid->getAttributeUp('title'),
                 'id' => $gridId,
                 'url' => $this->getControllerUrl() .
-                    "grid={$model->getModelName()}:{$gridName}",
+                    "grid={$modelName}:{$gridName}",
                 'sort' => $lkGrid->getSort()
             ];
             // Page
@@ -69,7 +70,7 @@ class Render
                     $templateBranch->getBranch('page', false),
                     null,
                     [
-                        'debug-name' => "{$model->getModelName()}@grid-page={$gridName}",
+                        'debug-name' => "{$modelName}@grid-page={$gridName}",
                         '_level' => -1
                     ]
                 );
@@ -84,7 +85,7 @@ class Render
                     $templateBranch->getBranch('filter', false),
                     $lkFilter->getLinkedItems(),
                     [
-                        'debug-name' => "{$model->getModelName()}@grid-filter={$gridName}",
+                        'debug-name' => "{$modelName}@grid-filter={$gridName}",
                         '_level' => -1,
                         'title' => $lkFilter->getAttributeUp('title')
                     ]
@@ -94,31 +95,31 @@ class Render
             return $this->renderGridSet(
                 $gridId,
                 $templateBranch->getBranch('grid'),
-                $lkGrid->getColumns()->getLinkedItems(),
+                $lkGrid->getLinkedColumns()->getLinkedItems(),
                 $replaces
             );
         } catch(\Exception $e) {
             // Message to user            
             echo DebugException::toHtml($e);
-            exit();
+            exit;
         }
     }
     
-    public function renderBlock($model, $formName, $templateName, $itemReplaces = null)
+    public function renderBlock($modelName, $blockName, $templateName, $itemReplaces = null)
     {
         try {
-            $lkForm = $model->getLinkedBlock($formName);
+            $lkForm = Models::linkBlock($modelName, $blockName);
             
             return $this->renderBlockSet(
                 $lkForm->getId(),
                 new Branch($templateName),
                 $lkForm->getLinkedItems(),
                 [
-                    'debug-name' => "{$model->getModelName()}@block={$formName}",
+                    'debug-name' => "{$modelName}@block={$blockName}",
                     '_level' => -1,
                     'title' => $lkForm->getAttributeUp('title'),
                     'url' => $this->getControllerUrl() .
-                         "block={$model->getModelName()}:{$formName}&"
+                         "block={$modelName}:{$blockName}&"
                 ],
                 $itemReplaces
             );

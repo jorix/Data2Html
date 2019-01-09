@@ -1,8 +1,8 @@
 <?php
 namespace Data2Html\Model\Link;
 
-use Data2Html\Handler;
 use Data2Html\Model\Set;
+use Data2Html\Model\Models;
 use Data2Html\Data\Lot;
 use Data2Html\Config;
 use Data2Html\DebugException;
@@ -104,7 +104,7 @@ class LinkedSet
         $items = $this->items;
         foreach ($items as $k => $v) {
             if (array_key_exists('link', $v)) {
-                if (Handler::parseLinkText($v['link'])['model'] === $branchModelName) {
+                if (Models::parseUrl('grid=' . $v['link'])['model'] === $branchModelName) {
                     return  $v;
                 }
             }

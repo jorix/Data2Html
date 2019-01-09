@@ -1,3 +1,3 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 ${$${name} | $${format}}
     

@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include datetimepicker, d2h_message}
 $${require d2h_utils}
 <span data-d2h-message="#$${id}"></span>

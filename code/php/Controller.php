@@ -7,10 +7,9 @@ use Data2Html\Data\Lot;
 use Data2Html\Data\To;
 use Data2Html\Data\Parse;
 use Data2Html\Model\Set;
+use Data2Html\Model\Models;
 use Data2Html\Controller\SqlSelect;
 use Data2Html\Controller\Validate;
-
-use Data2Html\Handler;
 
 class Controller
 {
@@ -23,7 +22,7 @@ class Controller
         $this->db = Db::create(Config::getSection('db'));
     }
     
-    public function manage($model, $request)
+    public function manage($request)
     {
         $postData = [];
         $serverMethod = $_SERVER['REQUEST_METHOD'];
@@ -38,12 +37,12 @@ class Controller
                     "Server method {$serverMethod} is not supported."
                 );
         }
-        return $this->action($model, Lot::getItem('action', $request, ''), $request, $postData);
+        return $this->action(Lot::getItem('action', $request, ''), $request, $postData);
     }
     
-    protected function action($model, $action, $request, $postData)
+    protected function action($action, $request, $postData)
     {
-        $playerNames = Handler::parseRequest($request);
+        $pNames = Models::parseRequest($request);
         self::extractValue('model', $request);
         self::extractValue('grid', $request);
         self::extractValue('block', $request);
@@ -53,21 +52,21 @@ class Controller
         $response = [];
         switch ($action) {
             case '':
-                if (isset($playerNames['block'])) {
+                if (isset($pNames['block'])) {
                     return $this->opReadBlock(
-                        $model->getLinkedBlock($playerNames['block']),
+                        Models::linkBlock($pNames['model'], $pNames['block']),
                         self::extractValue('_keys_', $request, 'array')
                     );
-                } elseif (isset($playerNames['grid'])) {
+                } elseif (isset($pNames['grid'])) {
                     $r = new Lot($request);
-                    $lkGrid = $model->getLinkedGrid($playerNames['grid']);
+                    $lkGrid = Models::linkGrid($pNames['model'], $pNames['grid']);
 
                     // Extract Page
                     $pageStart = self::extractValue('pageStart', $request, 'integer', 1);
                     $pageSize = self::extractValue('pageSize', $request, 'integer', 0);
                     
                     // Create a sql select
-                    $sqlObj = new SqlSelect($this->db, $lkGrid->getColumns());
+                    $sqlObj = new SqlSelect($this->db, $lkGrid->getLinkedColumns());
                     // Extract Sort to add to sql
                     $sqlObj->addSort(
                         self::extractValue('sort', $request, 'string')
@@ -78,42 +77,42 @@ class Controller
                     // Response
                     return $this->opRead(
                         $sqlObj->getSelect(),
-                        $lkGrid->getColumns(),
+                        $lkGrid->getLinkedColumns(),
                         $pageStart,
                         $pageSize
                     );
                 }
             case 'insert':
-                $lkElem = $model->getLinkedBlock($playerNames['block']);
+                $lkBlock = Models::linkBlock($pNames['model'], $pNames['block']);
                 $val = new Validate('ca');
                 $validation = $val->validateData(
                     $postData,
-                    Set::getVisualItems($lkElem->getLinkedItems())
+                    Set::getVisualItems($lkBlock->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
-                    die(To::json($validation));
+                    exit(To::json($validation));
                 }
-                return $this->opInsert($lkElem, $validation['data']);
+                return $this->opInsert($lkBlock, $validation['data']);
                 
             case 'update':
                 $keys = self::extractValue('_keys_', $postData, 'array');
-                $lkElem = $model->getLinkedBlock($playerNames['block']);
+                $lkBlock = Models::linkBlock($pNames['model'], $pNames['block']);
                 $val = new Validate('ca');
                 $validation = $val->validateData(
                     $postData,
-                    Set::getVisualItems($lkElem->getLinkedItems())
+                    Set::getVisualItems($lkBlock->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
                     header('HTTP/1.0 401 Validation errors');
-                    die(To::json($validation));
+                    exit(To::json($validation));
                 }
-                return $this->opUpdate($lkElem, $validation['data'], $keys);
+                return $this->opUpdate($lkBlock, $validation['data'], $keys);
                 
             case 'delete':
                 $keys = self::extractValue('_keys_', $postData, 'array');
                 return  $this->opDelete(
-                    $model->getLinkedBlock($playerNames['block']),
+                     Models::linkBlock($pNames['model'], $pNames['block']),
                     $postData,
                     $keys
                 );
@@ -312,7 +311,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(DebugException::toArray($e)));
+            exit(To::json(DebugException::toArray($e)));
         }
         if ($response['success']) {
             $this->db->commit();
@@ -332,7 +331,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(DebugException::toArray($e)));
+            exit(To::json(DebugException::toArray($e)));
         }
         if ($response['success']) {
             $this->db->commit();
@@ -352,7 +351,7 @@ class Controller
         } catch (\Exception $e) {
             $this->db->rollback();
             header('HTTP/1.0 401 Database error');
-            die(To::json(DebugException::toArray($e)));
+            exit(To::json(DebugException::toArray($e)));
         }
         if ($response['success']) {
             $this->db->commit();

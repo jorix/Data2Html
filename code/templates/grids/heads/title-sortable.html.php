@@ -1,4 +1,4 @@
-<?php die("It's uncooked!"); ?>
+<?php exit("It's uncooked!"); ?>
 $${include d2h_server, d2h_sort}
 <span data-d2h-sort="$${name}" class="d2h_sort_no">$${title}
     <a href="#" title="_{sort-up}"   class="d2h_sortIco_asc"><i  class="fa fa-sort-up"></i></a>
