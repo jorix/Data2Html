@@ -7,8 +7,6 @@ use Data2Html\Data\InfoFile;
 use Data2Html\Data\Lot;
 use Data2Html\Data\Parse;
 use Data2Html\Data\To;
-
-use Data2Html\Model;
  
 abstract class Set
 {
@@ -22,6 +20,7 @@ abstract class Set
 
     // Private generic
     private $id = '';
+    private static $idCount = 0;
     private $fNamePrefix = '';
     private $fNameCount = 0;
     
@@ -107,22 +106,30 @@ abstract class Set
         'name', 'display', 'format', 'list', 'size', 'type', 'validations', 'default'
     );
     
-    public function __construct(
-        Model $model,
-        $setName,
-        $defs,
-        $baseSet = null
-    ) { 
-        if (!is_array($defs)) {
-            throw new DebugException("Definitions must be a associative array.", $defs);
-        }
+    public function __construct($setName, $defs, Set\Base $baseSet = null) { 
         $setTypeName = str_replace('Data2Html\\Model\\Set\\', '', get_class($this));
+        if ($defs === null) {
+            throw new DebugException(
+                "Definitions of '{$setName}' for a '{$setTypeName}' not exists."
+            );
+        }
+        if (!is_array($defs)) {
+            throw new DebugException(
+                "Definitions must be a associative array.",
+                $defs
+            );
+        }
+        
+        // Set prefix and id
+        if (!$baseSet) {
+            $this->id = 'd2h_' . ++self::$idCount;
+        } else {
+            $this->id = $baseSet->getId() . '_' . $setTypeName;
+        }
         $this->fNamePrefix = 'd2h_' . $setTypeName;
         if ($setName) {
             $this->fNamePrefix .= '_' . $setName;
-            $this->id = $model->getId()  . '_' . $setTypeName . '_' . $setName;
-        } else {
-            $this->id = $model->getId() . $setTypeName;
+            $this->id .= '_' . $setName;
         }
         
         $this->attributeNames = array_replace(
@@ -431,7 +438,11 @@ abstract class Set
         foreach ($field as $kk => $vv) {
             if (is_int($kk)) {
                 if (is_array($vv)) {
-                    throw new DebugException("Field \"{$fieldName}\" is an array.", $field);
+                    throw new DebugException("Field \"{$fieldName}\" is an array.", [
+                        'level' => $level, 
+                        'fieldName' => $fieldName,
+                        'field' => $field
+                    ]);
                 } elseif (array_key_exists($vv, $alias)) {
                     $this->applyAliasWord($field, $fieldName, $pField, null, $alias[$vv]);
                 } else {

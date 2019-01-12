@@ -1,19 +1,22 @@
 <?php
 return [
-    'items' => [
+    'head-items' => [
         [
-            'head-item' => [
-                'items' => [
-                    [
-                        'content-template' => 'button',
-                        'icon' => 'plus',
-                        'visualClassBody' => 'btn-success',
-                        'title' => '$Add',
-                        'description' => '$Add',
-                        'action' => 'show-create'
-                    ]
+            'content-template' => 'html-empty',
+            'items' => [
+                [
+                    'content-template' => 'button',
+                    'icon' => 'plus',
+                    'visualClassBody' => 'btn-success',
+                    'title' => '$Add',
+                    'description' => '$Add',
+                    'action' => 'show-create'
                 ]
-            ],
+            ]
+        ]
+    ],
+    'body-items' => [
+        [ // One item whit all buttons
             'content-template' => 'html-empty',
             'items' => [
                 [

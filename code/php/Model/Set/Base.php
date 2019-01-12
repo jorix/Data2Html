@@ -3,6 +3,8 @@ namespace Data2Html\Model\Set;
 
 class Base extends \Data2Html\Model\Set
 {
+    protected $modelName;
+    
     protected $attributeNames = [
         'grids' => false,
         'blocks' => false,
@@ -20,6 +22,11 @@ class Base extends \Data2Html\Model\Set
         'db-items' => null
     ];
 
+    public function __construct($modelName, $defs) {
+        $this->modelName = $modelName;
+        parent::__construct('', $defs);
+    }
+        
     protected function beforeAddItem(&$key, &$field)
     {
         // set default for sortBy 

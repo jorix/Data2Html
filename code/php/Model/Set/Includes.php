@@ -1,31 +1,22 @@
 <?php
 namespace Data2Html\Model\Set;
 
-use Data2Html\Model;
+use Data2Html\DebugException;
 
 class Includes extends \Data2Html\Model\Set
 {
-    protected $keywords = array(
-        'head-item' => 'array'        
-    );
-    
-    private $alternativeItem = null;
-
-    public function __construct(
-        $model,
-        $setName,
-        $defs,
-        $alternativeItem = null
-    ) {
-        $this->alternativeItem = $alternativeItem;
-        parent::__construct(new Model(''), $setName, $defs);
-    }
-    
-    protected function beforeParseItem(&$key, &$field)
+    public function __construct($setName, $defs, $itemsName)
     {
-        if ($this->alternativeItem && array_key_exists($this->alternativeItem, $field)) {
-            $field = $field[$this->alternativeItem];
+        if (!is_string($itemsName) || !array_key_exists($itemsName, $defs)) {
+            throw new DebugException(
+                "'itemsName' argument must be a string and exist on 'defs'.", [
+                'itemsName' => $itemsName,
+                'defs' => $defs
+            ]);
         }
-        return true;
+        parent::__construct(
+            $setName . '_' . str_replace($itemsName, '-', '_'),
+            ['items' => $defs[$itemsName]]
+        );
     }
 }

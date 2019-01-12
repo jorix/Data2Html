@@ -1,7 +1,7 @@
 <?php
 namespace Data2Html\Model\Set;
 
-Use \Data2Html\Data\Lot;
+Use Data2Html\Data\Lot;
 
 class Filter extends \Data2Html\Model\Set
 {

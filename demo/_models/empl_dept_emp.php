@@ -33,7 +33,7 @@ return [
     'blocks' => [
         'main' => [
             'items' => ['emp_no', 'dept_no', 'from_date',
-//            'dept_name',
+            'dept_name',
             'to_date']
         ]
     ]

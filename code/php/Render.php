@@ -148,18 +148,18 @@ class Render
         $itemReplaces['from-id'] = $bodyReplaces['id'];
         list($thead, $renderCount) = $this->renderFlatSet(
             array_merge(
-                $this->parseIncludeItems('startItems', $templateBranch, 'head-item'),
+                $this->parseIncludeItems('startItems', $templateBranch, 'head-items'),
                 $columns,
-                $this->parseIncludeItems('endItems', $templateBranch, 'head-item')
+                $this->parseIncludeItems('endItems', $templateBranch, 'head-items')
             ),
             $templateBranch->getBranch('heads'),
             $itemReplaces
         );
         list($tbody) = $this->renderFlatSet(
             array_merge(
-                $this->parseIncludeItems('startItems', $templateBranch),
+                $this->parseIncludeItems('startItems', $templateBranch, 'body-items'),
                 $columns,
-                $this->parseIncludeItems('endItems', $templateBranch)
+                $this->parseIncludeItems('endItems', $templateBranch, 'body-items')
             ),
             $templateBranch->getBranch('cells'),
             $itemReplaces
@@ -342,13 +342,13 @@ class Render
     protected function parseIncludeItems(
         $setName,
         Branch $templateBranch,
-        $alternativeItem = null
+        $alternativeItem = 'items'
     ) {
         $items = $templateBranch->getTemplate($setName, false);
         if (!$items) {
             return [];
         } else {
-            $tempModel = new SetIncludes(null, $setName, $items, $alternativeItem);
+            $tempModel = new SetIncludes($setName, $items, $alternativeItem);
             return $tempModel->getItems();
         }
     }

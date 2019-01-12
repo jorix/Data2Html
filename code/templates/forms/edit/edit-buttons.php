@@ -1,7 +1,7 @@
 <?php
 return [
     'items' => [
-        [
+        [ // One item whit all buttons
             'layout-template' => 'no_label',
             'content-template' => 'html-empty',
             'items' => [    

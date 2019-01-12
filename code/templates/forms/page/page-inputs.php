@@ -1,7 +1,7 @@
 <?php
-return array(
-    'items' => array(
-        array(
+return [
+    'items' => [
+        [
             'layout-template' => 'no_label',
             'content-template' => 'button',
             'visual-size' => 0,
@@ -9,21 +9,21 @@ return array(
             'title' => '__{refresh-page}',
             'description' => null,
             'action' => 'read-page'
-        ),
-        'pageSize' => array(
+        ],
+        'pageSize' => [
             'layout-template' => 'no_label',
             'content-template' => 'text-input',
             'integer' => 2,
             'default' => 10,
             'type' => 'integer'
-        ),
-        array(
+        ],
+        [
             'layout-template' => 'no_label',
             'content-template' => 'button',
             'visual-size' => 0,
             'icon' => 'forward',
             'title' => '__{next-page}',
             'action' => 'next-page'
-        )
-    )
-);
+        ]
+    ]
+];
