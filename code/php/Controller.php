@@ -147,7 +147,7 @@ class Controller
         
         // Response
         $result = $this->opRead($sqlObj->getSelect(), $lkBlock, 1, 1);
-        if (count($result['rows']) !== 1) {
+        if (count($result['rows']) !== 1 || $result['moreRows']) {
             throw new DebugException("Read block must select one row!", [
                 'keys' => $keys,
                 'result' => $result
@@ -299,10 +299,10 @@ class Controller
         if (true) {
             $response['rows'] = $rows;
         } else {
-            $response += array(
+            $response += [
                 'dataCols' => array_keys($resTypes),
                 'rowsAsArray' => 'TODO'
-            );
+            ];
         }
         return $response;
     }
