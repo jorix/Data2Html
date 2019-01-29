@@ -146,10 +146,24 @@ class LinkedSet
         
         $linkedTo = $linker->parseLinkedName($item['table-alias'], Lot::getItem('base', $item));
         if ($linkedTo) {
-            $lkItem = $linker->getSourceItem($linkedTo['toTableAlias'], $linkedTo['toBaseName']);
-            unset($item['table-alias']);
-            unset($item['table-item']);
-            $this->set->applyBaseItem($item, $lkItem);
+            $iniLinkTableAlias = $item['table-alias'];
+            // Linked with a item link
+            if ($linkedTo['toBaseName']) {
+                unset($item['table-alias']);
+                unset($item['table-item']);
+                $this->set->applyBaseItem(
+                    $item, 
+                    $linker->getSourceItem($linkedTo['toTableAlias'], $linkedTo['toBaseName'])
+                );
+            }
+            // Linked with a item list (a item could have both link methods)
+            $lkItem = $linker->getSourceItem($linkedTo['toTableAlias'], '[list]', false);
+            if ($lkItem) {
+                $this->set->applyBaseItem($item, $lkItem);
+                $item['list-item'] = $this->makeItem(
+                    $linker->getSourceItem($iniLinkTableAlias, $linkedTo['fromBaseName'])
+                );
+            }
             if (Lot::getItem('linkedWith-list', $v)) {
                 $item['link-list'] =
                     $this->tableSources[$lkAlias]['from-list'];
@@ -220,7 +234,7 @@ class LinkedSet
                     }
                     $tItems[$matches[0][$i]] = [
                         'base' => $matches[1][$i],
-                        'final-base' => $valueItemName
+                        'table-item' => $valueItemName
                     ];
                 }
                 $item['value-patterns'] = $tItems;

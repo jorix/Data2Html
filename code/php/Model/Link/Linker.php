@@ -89,7 +89,7 @@ class Linker
                 $linkedTo = [
                     'debug-match' => $match,
                     'debug-fromTableAlias' => $tableAlias,
-                    'debug-fromBaseName' => $baseLink,
+                    'fromBaseName' => $baseLink,
                     'toTableAlias' => $toAlias,
                     'toBaseName' => $matches[2][$i]
                 ];
@@ -98,7 +98,7 @@ class Linker
         return $linkedTo;
     }
 
-    public function getSourceItem($tableAlias, $baseName)
+    public function getSourceItem($tableAlias, $baseName, $required = true)
     {
         // Get item
         $l = $this->sources[$tableAlias];
@@ -107,13 +107,10 @@ class Linker
             $lkItem = $l['_items'][$baseName];
         } elseif (array_key_exists($baseName, $l['_base'])) {
             $lkItem = $l['_base'][$baseName];
-        } elseif (array_key_exists('[list]', $l['_items'])) {
-            $baseName = '[list]';
-            $lkItem = $l['_items'][$baseName];
         }
-        if (!$lkItem) {
+        if (!$lkItem && $required) {
             throw new debugException(
-                "Item \"{$baseName}\" not found on 'items' and 'base'.",
+                "Item \"{$tableAlias}\".\"{$baseName}\" not found on 'items' or 'base'.",
                 $l
             );
         }
@@ -283,43 +280,31 @@ class Linker
             $source = &$this->sources[$toAlias];
         } else {
             // Create new alias
-            $isNew = true;
             $toAlias = 'T' . $this->tableCount;
             $this->tableCount++;
-            
-            $tableSource = [
-                'origin-dbItems'=> null,
-                'table' =>  null,
-                'keys' => null
-            ];
+            $tableSource = [];
             $source = [
-                '_items' => [],
-                '_base' => []
+                '_base' => [],
+                '_items' => []
             ];
             $this->tableSources[$toAlias] = &$tableSource;
             $this->sources[$toAlias] = &$source;
             $this->linkedAlias[$fromAlias][$fromBaseName] = $toAlias;
         }
-        return $toAlias;
         // Add origin list as item
-        $finalBaseName =
-            $this->makeInstrumentalItemByBase($groupName, $fromAlias, $fromBaseName);
-        $tableSource['from-list'] = $finalBaseName;
-        $origin = $this->items[$groupName][$finalBaseName];
-        if ($isNew) {
-            $listItem = [
-                'table-alias' => $toAlias,
-                'type' => 'string'
-            ];
-            if (array_key_exists('title', $origin)) {
-                $listItem['title'] = $origin['title'];
-            }
-            if (array_key_exists('description', $origin)) {
-                $listItem['description'] = $origin['description'];
-            }
-            $source['_items']['[list]'] = $listItem;
+        $origin = $this->getSourceItem($fromAlias, $fromBaseName);
+        $tableSource['list-base'] = $fromBaseName;
+        $listItem = [
+            'type' => 'string',
+            'table-alias' => $toAlias
+        ];
+        if (array_key_exists('title', $origin)) {
+            $listItem['title'] = $origin['title'];
         }
-        
+        if (array_key_exists('description', $origin)) {
+            $listItem['description'] = $origin['description'];
+        }
+        $source['_items']['[list]'] = $listItem;
         return $toAlias;
     }
     

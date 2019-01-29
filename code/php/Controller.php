@@ -140,13 +140,13 @@ class Controller
     /**
      * Execute a query and return the array result.
      */
-    protected function opReadBlock($lkForm, $keys)
+    protected function opReadBlock($lkBlock, $keys)
     {
-        $sqlObj = new SqlSelect($this->db, $lkForm);
+        $sqlObj = new SqlSelect($this->db, $lkBlock);
         $sqlObj->addFilterByKeys($keys);
         
         // Response
-        $result = $this->opRead($sqlObj->getSelect(), $lkForm, 1, 2);
+        $result = $this->opRead($sqlObj->getSelect(), $lkBlock, 1, 1);
         if (count($result['rows']) !== 1) {
             throw new DebugException("Read block must select one row!", [
                 'keys' => $keys,
@@ -164,7 +164,9 @@ class Controller
     {
         try {
             $pageSize = intval($pageSize);
+            $pageSizePlus = $pageSize ? $pageSize + 1 : 0;
             $pageStart = intval($pageStart);
+            
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         };
@@ -185,8 +187,9 @@ class Controller
             }
             $patterns = Lot::getItem('value-patterns', $lkItem);
             if ($patterns) {
+                // Nested patters
                 foreach ($patterns as $v) {
-                    $ref = $v['final-base'];
+                    $ref = $v['table-item'];
                     $matchItem = $lkColumns[$ref];
                     if (array_key_exists('value', $matchItem) && 
                         !array_key_exists($ref, $asValues)
@@ -208,11 +211,10 @@ class Controller
             if ($itemDx->getString('db')) {
                 $dbTypes[$k] = $type;
             }
-            $finalList = $itemDx->getString('link-list');
-            if ($finalList) {
+            if (isset($v['list-item'])) {
                 $useList[$k] = [
-                    'base' => $finalList,
-                    'list' => Lot::getItem([$finalList, 'list'], $lkColumns)
+                    '_listItem' => $v['list-item'],
+                    '_listValues' => $lkColumns[$v['list-item']]['list'],
                 ];
             }
             if (array_key_exists('value', $v)) {
@@ -222,8 +224,13 @@ class Controller
         // Read rs
         $keyNames = array_keys($lkSet->getLinkedKeys());
         $rows = [];
-        $result = $this->db->queryPage($query, $pageStart, $pageSize);
+        $more = false;
+        $result = $this->db->queryPage($query, $pageStart, $pageSizePlus);
         while ($dbRow = $this->db->fetch($result)) {
+            if (count($rows) >= $pageSize) {
+                $more = true;
+                break;
+            }
             foreach ($dbRow as $k => &$v) {
                 $v = $this->db->toValue($v, $dbTypes[$k]);
             }
@@ -235,7 +242,7 @@ class Controller
                 if (array_key_exists($k, $valuePatterns)) {
                     $allIsNull = true;
                     foreach ($valuePatterns[$k] as $kk => $vv) {
-                        $ref = $vv['final-base'];
+                        $ref = $vv['table-item'];
                         if (array_key_exists($ref, $dbRow)) {
                             $value = $dbRow[$ref];
                         } elseif (array_key_exists($ref, $valueRow)) {
@@ -262,10 +269,8 @@ class Controller
                     $resRow[$k] = $valueRow[$k];
                 } 
                 if (array_key_exists($k, $useList) && !isset($resRow[$k])) {
-                    $useListItem = &$useList[$k];
-                    $val = $dbRow[$useListItem['base']];
-                    $resRow[$k] = Lot::getItem($val, $useListItem['list'], $val);
-                    unset($useListItem);
+                    $val = $dbRow[$useList[$k]['_listItem']];
+                    $resRow[$k] = Lot::getItem($val, $useList[$k]['_listValues'], $val);
                 }
             }
             $dataKeys = [];
@@ -286,10 +291,11 @@ class Controller
                 'value-patterns' => $valuePatterns
             );
         }
-        $response += array(
+        $response += [
             'pageStart' => $pageStart,
-            'pageSize' => $pageSize
-        );
+            'pageSize' => $pageSize,
+            'moreRows' => $more
+        ];
         if (true) {
             $response['rows'] = $rows;
         } else {

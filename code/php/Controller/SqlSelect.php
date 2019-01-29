@@ -13,7 +13,7 @@ class SqlSelect
     
     protected $db;
     protected $linkedSet;
-    protected $result = array();
+    protected $result = [];
 
     public function __construct(Db $db, LinkedSet $linkedSet) {
         $this->db = $db;
@@ -110,8 +110,8 @@ class SqlSelect
             if ($from === '') { // Firsts table
                 $from = $this->db->putAlias($k, $v['table']);
             } else {
-                $keys = $v['table-keys'];
-                if ($keys) {
+                if (isset($v['table-keys'])) {
+                    $keys = $v['table-keys'];
                     $originTableItems = $v['origin-table-items'];
                     $i = 0;
                     $onKeys = [];

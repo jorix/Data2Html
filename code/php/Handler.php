@@ -2,7 +2,6 @@
 namespace Data2Html;
 
 use Data2Html\DebugException;
-use Data2Html\Controller\SqlSelect;
 use Data2Html\Model\Models;
 use Data2Html\Data\Lot;
 use Data2Html\Data\To;
