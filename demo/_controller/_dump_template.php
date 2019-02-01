@@ -10,7 +10,7 @@
     require_once '../_start.php';
 
     try {
-        $templates = new \Data2Html\Render\Branch($_REQUEST['templateName']);
+        $templates = new \Data2Html\Render\Branch($_REQUEST['template']);
         $templates->dump();
         \Data2Html\Render\FileContents::dump();
     } catch(Exception $e) {

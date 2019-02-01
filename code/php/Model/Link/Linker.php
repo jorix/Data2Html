@@ -18,8 +18,8 @@ class Linker
     protected $sources = [];
     
     // To parse link
-    protected static $patternLinked = '/(\b[a-z]\w*)\[\s*(\w*)\s*\]/i';
-    protected static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|\d+)\]|[a-z][\w\-]*)\}/i';
+    protected static $patternLinked = '/([a-z]\w*)\[\s*([a-z]\w*|)\s*\]/i';
+    protected static $patternValueTemplate = '/\$\$\{([a-z]\w*|[a-z]\w*\[([a-z]\w*|)\])\}/i';
         // template as: $${base_name} or $${link_name[field_name]} or $${tow-word}
     
 
@@ -153,6 +153,12 @@ class Linker
                     }
                     $i = 0;
                     foreach ($linkedKeys as $kk => $vv) {
+                        if (!array_key_exists($originItems[$i], $items)) {
+                            throw new DebugException("Item not exist.", [
+                                $originItems[$i],
+                                $items
+                            ]);
+                        }
                         $set->applyBaseItem(
                             $items[$originItems[$i]], 
                             $linkedSet->getSetItem($kk)

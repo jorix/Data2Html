@@ -15,6 +15,10 @@ abstract class Set
     protected $attributeNames = [];
     protected $wordsAlias = [];
     protected $keywords = [];
+    
+    // TODO: move patters base here!
+    // protected static $patternLinked = '[a-z]\w*\[\s*([a-z]\w*|)\s*\]';
+    // protected static $patternName = '[a-z]\w*';
 
     protected $setItems = null;
 
@@ -65,7 +69,7 @@ abstract class Set
         'level'     => 'integer',
         'leaves'    => 'string',
         'bridge'    => 'string',
-        'link'      => 'string|null',
+        'link'      => 'string',
         'list'      => 'assocArray',
         'items'     => 'array',
         'name'      => 'string',
@@ -364,9 +368,25 @@ abstract class Set
             if ($this->beforeParseItem($fieldName, $v)) {
                 list($pName, $pField) = $this->parseItem($level, $fieldName, $v);
                 if ($this->beforeAddItem($pName, $pField)) {
+                    if (!preg_match ('/^[a-z]\w*$/i', $pName)) {
+                        throw new DebugException(
+                            'Identification after parse must be a word starting with a letter.', [
+                                'parsed identification' => $pName,
+                                'parsed item' => $pField
+                        ]); 
+                    }
+                    if (isset($pField['base']) &&
+                        !preg_match ('/^([a-z]\w*|[a-z]\w*\[\s*([a-z]\w*|)\s*\])*$/i', $pField['base'])
+                    ) {
+                        throw new DebugException(
+                            "Base of '{$pName}' after parse a item must be a word starting with a letter or a link as 'name_link[name_linked]'.", [
+                                'parsed item' => $pField
+                        ]); 
+                    }
                     $this->setItems[$pName] = $pField; // Add the ITEM!
                 }
             }
+
             // Parse sub-items
             if (is_array($v) && array_key_exists($this->subItemsKey, $v)) {
                 $this->parseSetItems(
@@ -380,6 +400,12 @@ abstract class Set
     
     public function applyBaseItem(&$toItem, $fromItem, $except = null)
     {
+        if (!is_array($toItem)) {
+            throw new DebugException("\$toItem is null.", [
+                'toItem' => $toItem,
+                'fromItem' => $fromItem
+            ]);
+        }
         $exceptOrigin = ['key'];
         foreach($exceptOrigin as $v) {
             if (array_key_exists($v, $toItem)) {
@@ -424,6 +450,7 @@ abstract class Set
         } elseif (!is_int($fieldName) && 
             !array_key_exists('value', $field) && 
             !array_key_exists('base', $field) &&
+            !array_key_exists('bridge', $field) && 
             !array_key_exists('leaves', $field) &&
             !array_key_exists('db-items', $field)
         ) {

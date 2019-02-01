@@ -19,16 +19,19 @@ return [
         'active'    => ['key', 'boolean', 'required', 'default' => true],
         'created'   => ['datetime', 'format' => 'dd-MM-yyyy', 'default' => '[now]'],
         'mentor_uf' => [],
-        'mentor_uflk' => [
+        'mentor_ufk' => [
             'link' => 'aixada_ufs2:list',
             'db-items' => ['mentor_uf', 'active'],
-            'list' => [2 => 'dewswi', 3 => 'trisdewswi'] // with values not found
+           // 'list' => [2 => 'dewswi', 3 => 'trisdewswi'] // with values not found
         ],
         //'members'   => ['leaves' => 'aixada_members:uf_members'],
         'mentor_name' =>  [
             'title' => 'UF mentora',
-            'base' => 'mentor_uflk[uf_name]',
-            'sortBy' => ['mentor_uflk[name]', 'mentor_uf']
+            'base' => 'mentor_ufk[uf_name]',
+            'sortBy' => [
+                // 'mentor_ufk[name]',
+                'mentor_uf'
+            ]
         ],
     ],
     'beforeInsert' => function ($set, $db, &$values) {
@@ -61,8 +64,7 @@ return [
             'filter' => [
                 'items' => [
                     '%name',
-                    '=active',
-                    '=mentor_uflk' => ['link' => 'aixada_ufs2:mentors', 'default' => 14]
+                    '=active'
                 ]
             ]
         ]

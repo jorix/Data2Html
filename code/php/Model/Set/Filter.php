@@ -29,6 +29,7 @@ class Filter extends \Data2Html\Model\Set
                 foreach ($this->startToChk as $k => $v) {
                     if (self::startsWith($field, $k)) {
                         $field = array(
+                            // Base without the comparator
                             'base' => substr($field, strlen($k)),
                             'check' => $v
                         );
@@ -48,7 +49,14 @@ class Filter extends \Data2Html\Model\Set
             if (array_key_exists('base', $field)) {
                 $base = $field['base'];
                 foreach ($this->startToChk as $k => $v) {
+                    // For example as: '=field_name' => [...] 
+                    //              or 'field_name' => [base => '=base_name']
                     if (self::startsWith($base, $k)) {
+                        if (self::startsWith($key, $k)) {
+                            // Remove comparator also from identification
+                            $key = substr($key, strlen($k));
+                        }
+                        // Remove comparator from the base
                         $field['base'] = substr($base, strlen($k));
                         $field['check'] = $v;
                         break;

@@ -28,9 +28,9 @@ return [
             'string' => 16,
             'required'
         ],
-        // 'departments' => [
-            // 'bridge' => 'empl_dept_emp'
-        // ],
+        'departments' => [
+            'bridge' => 'empl_dept_emp'
+        ],
         'full_name' => [
             'value' => '$${last_name}, $${first_name}',
             'sortBy' => ['last_name', 'first_name']
@@ -58,7 +58,7 @@ return [
     ],
     'blocks' => [
         'main' => [
-            'items' => ['emp_no', 'first_name', 'last_name', 'birth_date', 'gender']
+            'items' => ['emp_no', 'first_name', 'last_name', 'birth_date', 'gender', 'departments']
         ]
     ]
 ];
