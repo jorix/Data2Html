@@ -100,6 +100,11 @@ class Linker
 
     public function getSourceItem($tableAlias, $baseName, $required = true)
     {
+        if (!$tableAlias) {
+            throw new debugException('$baseName without table alias.',
+                [$tableAlias, $baseName, $required]
+            );
+        }
         // Get item
         $l = $this->sources[$tableAlias];
         $lkItem = null;
@@ -137,7 +142,7 @@ class Linker
                 $linkedSet = Models::parseUrlColumns('grid=' . $v['link']);
                 $linkedKeys = $linkedSet->getKeys();
                 if (isset($v['db-items'])) {
-                    $originItems = $v['db-items'];
+                    $originItems = array_keys($v['db-items']['items']);
                 } else {
                     $originItems = [$k];
                 }
@@ -154,15 +159,18 @@ class Linker
                     $i = 0;
                     foreach ($linkedKeys as $kk => $vv) {
                         if (!array_key_exists($originItems[$i], $items)) {
-                            throw new DebugException("Item not exist.", [
-                                $originItems[$i],
-                                $items
-                            ]);
+                            if (!isset($v['db-items'])) {
+                                throw new DebugException("Item not exist.", [
+                                    $originItems[$i],
+                                    $items
+                                ]);
+                            }
+                        } else {
+                            $set->applyBaseItem(
+                                $items[$originItems[$i]], 
+                                $linkedSet->getSetItem($kk)
+                            );
                         }
-                        $set->applyBaseItem(
-                            $items[$originItems[$i]], 
-                            $linkedSet->getSetItem($kk)
-                        );
                         $i++;
                     }
                 }
@@ -245,7 +253,7 @@ class Linker
             
             $sourceItem = $this->getSourceItem($toAlias, $fromBaseName);
             if (isset($sourceItem['db-items'])) {
-                $fromBaseNames = $sourceItem['db-items'];
+                $fromBaseNames = array_keys($sourceItem['db-items']['items']);
             } else {
                 $fromBaseNames = [$fromBaseName];
             }

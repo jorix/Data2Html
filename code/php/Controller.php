@@ -172,16 +172,19 @@ class Controller
         };
         $itemDx = new Lot();
         $lkColumns = $lkSet->getLinkedItems();
-        $resTypes = [];
-        $dbTypes = [];
-        $asValues = [];
-        $valuePatterns = [];
-        $useList = [];
+        $_responseTypes = [];
+        $_dbTypes = [];
+        $_listItems = [];
+        $_listValues = [];
+        $_dbItems = [];
+        $_valueItems = [];
+        $_valuePatterns = [];
+        
         $addValue = function($depth, $keyItem, $lkItem)
-                    use(&$addValue, $lkColumns, &$asValues, &$valuePatterns) {
+                    use(&$addValue, $lkColumns, &$_valueItems, &$_valuePatterns) {
             if ($depth > 10) {
                 throw new DebugException(
-                    "Possible circular reference in \"{$keyItem}\" valuePatterns.",
+                    "Possible circular reference in \"{$keyItem}\" _valuePatterns.",
                     $lkItem
                 );
             }
@@ -192,30 +195,36 @@ class Controller
                     $ref = $v['table-item'];
                     $matchItem = $lkColumns[$ref];
                     if (array_key_exists('value', $matchItem) && 
-                        !array_key_exists($ref, $asValues)
+                        !array_key_exists($ref, $_valueItems)
                     ) {
                         $addValue($depth+1, $ref, $matchItem);
                     }
                 }
-                $valuePatterns[$keyItem] = $patterns;
+                $_valuePatterns[$keyItem] = $patterns;
             }
-            $asValues[$keyItem] = $lkItem['value'];
+            $_valueItems[$keyItem] = $lkItem['value'];
         };
+        
         foreach ($lkColumns as $k => $v) {
             $itemDx->set($v);
             $type = $itemDx->getString('type', 'string');
             $types[$k] = $type;
             if (!$itemDx->getBoolean('_instrumental')) {
-                $resTypes[$k] = $type;
+                $_responseTypes[$k] = $type;
             }
             if ($itemDx->getString('db')) {
-                $dbTypes[$k] = $type;
+                $_dbTypes[$k] = $type;
             }
             if (isset($v['list-item'])) {
-                $useList[$k] = [
-                    '_listItem' => $v['list-item'],
-                    '_listValues' => $lkColumns[$v['list-item']]['list'],
-                ];
+                $_listItems[$k] = $v['list-item'];
+                $_listValues[$k] = $lkColumns[$v['list-item']]['list'];
+            }
+            if (isset($v['db-items'])) {
+                $names = [];
+                foreach ($v['db-items']['items'] as $vv) {
+                    $names[] = $vv['table-item'];
+                }
+                $_dbItems[$k] = $names;
             }
             if (array_key_exists('value', $v)) {
                 $addValue(0, $k, $v);
@@ -232,16 +241,16 @@ class Controller
                 break;
             }
             foreach ($dbRow as $k => &$v) {
-                $v = $this->db->toValue($v, $dbTypes[$k]);
+                $v = $this->db->toValue($v, $_dbTypes[$k]);
             }
             unset($v);
             
             $valueRow = [];
-            foreach ($asValues as $k => $v) {
-                $valueRow[$k] = $asValues[$k];
-                if (array_key_exists($k, $valuePatterns)) {
+            foreach ($_valueItems as $k => $v) {
+                $valueRow[$k] = $_valueItems[$k];
+                if (array_key_exists($k, $_valuePatterns)) {
                     $allIsNull = true;
-                    foreach ($valuePatterns[$k] as $kk => $vv) {
+                    foreach ($_valuePatterns[$k] as $kk => $vv) {
                         $ref = $vv['table-item'];
                         if (array_key_exists($ref, $dbRow)) {
                             $value = $dbRow[$ref];
@@ -262,15 +271,22 @@ class Controller
                 }
             }
             $resRow = [];
-            foreach ($resTypes as $k => $v) {
-                if (array_key_exists($k, $dbTypes)) {
+            foreach ($_responseTypes as $k => $v) {
+                if (array_key_exists($k, $_dbTypes)) {
                     $resRow[$k] = $dbRow[$k];
                 } elseif (array_key_exists($k, $valueRow)) {
                     $resRow[$k] = $valueRow[$k];
-                } 
-                if (array_key_exists($k, $useList) && !isset($resRow[$k])) {
-                    $val = $dbRow[$useList[$k]['_listItem']];
-                    $resRow[$k] = Lot::getItem($val, $useList[$k]['_listValues'], $val);
+                } elseif (array_key_exists($k, $_dbItems)) {
+                    $resItem = [];
+                    foreach ($_dbItems[$k] as $vv) {
+                        $resItem[] = $dbRow[$vv];
+                    }
+                    $resRow[$k] = $resItem;
+                }
+                
+                if (array_key_exists($k, $_listItems) && !isset($resRow[$k])) {
+                    $val = $dbRow[$_listItems[$k]];
+                    $resRow[$k] = Lot::getItem($val, $_listValues[$k], $val);
                 }
             }
             $dataKeys = [];
@@ -287,8 +303,8 @@ class Controller
             $response['debug'] = array(
                 'sql' => explode("\n", $query),
                 'keys' => $lkSet->getLinkedKeys(),
-                'as-values' => $asValues,
-                'value-patterns' => $valuePatterns
+                'as-values' => $_valueItems,
+                'value-patterns' => $_valuePatterns
             );
         }
         $response += [
@@ -300,7 +316,7 @@ class Controller
             $response['rows'] = $rows;
         } else {
             $response += [
-                'dataCols' => array_keys($resTypes),
+                'dataCols' => array_keys($_responseTypes),
                 'rowsAsArray' => 'TODO'
             ];
         }

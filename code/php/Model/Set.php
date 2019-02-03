@@ -289,8 +289,12 @@ abstract class Set
     }
 
     // Overwrite this function as `{ $sortBy = null; }` to ignore sortBy.
-    protected function parseSortBy(&$sortBy) {
-        if (is_array($sortBy) && array_key_exists('items', $sortBy)) {// Already parsed 
+    protected function parseSortBy(&$sortBy)
+    {
+        if (is_array($sortBy) &&
+            array_key_exists('items', $sortBy) &&
+            is_array($sortBy['items'])
+        ) { // Already parsed 
             return; // is already parsed
         } elseif ($sortBy === null || (is_array($sortBy) && count($sortBy) === 0)) {
             $sortBy = null;
@@ -321,6 +325,34 @@ abstract class Set
         }
         $sortBy = $sortByNew;
     }
+    
+    protected function parseItemArray(&$itemArray)
+    {
+        if (is_array($itemArray) && 
+            array_key_exists('items', $itemArray) &&
+            is_array($itemArray['items'])
+        ) { // Already parsed 
+            return; // is already parsed
+        } elseif ($itemArray === null || (is_array($itemArray) && count($itemArray) === 0)) {
+            $itemArray = null;
+            return; // is already parsed
+        } elseif (is_string($itemArray)) {
+            $itemArray = [$itemArray];
+        } elseif (!is_array($itemArray)) {
+            throw new debugException("Item with a invalid itemArray.", [
+                'itemArray' => $itemArray
+            ]);
+        }
+        
+        // Create a empty parsed sort
+        $itemArrayNew = ['items' => []];
+        foreach ($itemArray as $baseName) {
+            $itemArrayNew['items'][$baseName] = [
+                'base' => $baseName
+            ];
+        }
+        $itemArray = $itemArrayNew;
+    }
 
     // -----------------------
     // Internal
@@ -344,6 +376,9 @@ abstract class Set
             }
             if (isset($v['sortBy'])) {              
                 $this->parseSortBy($v['sortBy']);
+            }
+            if (isset($v['db-items'])) {              
+                $this->parseItemArray($v['db-items']);
             }
         }
         unset($v);

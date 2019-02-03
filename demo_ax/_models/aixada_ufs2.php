@@ -60,7 +60,9 @@ return [
         ],
         'main' => [
             'template' => 'edit-grid-paged',
-            'items' => ['active', 'uf_name', 'created', 'mentor_name'],
+            'items' => ['active', 'uf_name', 'created', 'mentor_name',
+                'mentor_ufk'
+            ],
             'filter' => [
                 'items' => [
                     '%name',

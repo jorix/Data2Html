@@ -164,19 +164,31 @@ class LinkedSet
                     $linker->getSourceItem($iniLinkTableAlias, $linkedTo['fromBaseName'])
                 );
             }
-            if (Lot::getItem('linkedWith-list', $v)) {
-                $item['link-list'] =
-                    $this->tableSources[$lkAlias]['from-list'];
-            }
             if (Config::debug()) {
                 $item['debug-linkedTo'] = $linkedTo;
             }
         }
+        
+        // Parse 'db-items'
+        if (isset($item['db-items'])) {
+            foreach ($item['db-items']['items'] as $k => &$v) {
+                $lkItem = $linker->getSourceItem($item['table-alias'], $k);
+                if ($lkItem) {
+                    $v['table-item'] = $this->makeItem(
+                        $linker->getSourceItem($item['table-alias'], $k)
+                    );
+                }
+            }
+            unset($v);
+        }
+        
+        // Set refItems
         if (isset($item['base'])) {
             $this->refItems[$item['table-alias']][$item['base']] = $item['name'];
         } else {
             $this->refItems[$item['table-alias']][$item['name']] = $item['name'];
         }
+
         
         // Default attributes
         if (array_key_exists('base', $item) &&
