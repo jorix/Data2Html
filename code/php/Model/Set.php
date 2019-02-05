@@ -128,6 +128,7 @@ abstract class Set
         if (!$baseSet) {
             $this->id = 'd2h_' . ++self::$idCount;
         } else {
+            $this->baseSet = $baseSet;
             $this->id = $baseSet->getId() . '_' . $setTypeName;
         }
         $this->fNamePrefix = 'd2h_' . $setTypeName;
@@ -146,7 +147,6 @@ abstract class Set
         $this->keywords = array_replace(
             $this->baseKeywords, $this->keywords
         );
-        $this->baseSet = $baseSet;
         
         // Read defs
         $this->attributes = [];
@@ -173,6 +173,11 @@ abstract class Set
     public function getId()
     {
         return $this->id;
+    }    
+    
+    public function getModelName()
+    {
+        return $this->baseSet ? $this->baseSet->getModelName() : null;
     }    
     
     public function __debugInfo()

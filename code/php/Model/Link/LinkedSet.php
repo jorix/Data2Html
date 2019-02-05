@@ -56,6 +56,11 @@ class LinkedSet
     // -----------------------
     // Methods from set
     // -----------------------
+    public function getModelName()
+    {
+        return $this->set->getModelName();
+    }  
+    
     public function getId()
     {
         return $this->set->getId();

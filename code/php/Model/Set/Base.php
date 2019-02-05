@@ -26,7 +26,12 @@ class Base extends \Data2Html\Model\Set
         $this->modelName = $modelName;
         parent::__construct('', $defs);
     }
-        
+    
+    public function getModelName()
+    {
+        return $this->modelName;
+    }
+    
     protected function beforeAddItem(&$key, &$field)
     {
         // set default for sortBy 

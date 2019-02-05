@@ -34,6 +34,11 @@ class LinkedGrid
         $this->filter = new LinkedSet($filter, $this->linker);
     }
     
+    public function getModelName()
+    {
+        return $this->columns->getModelName();
+    }  
+    
     public function getId()
     {
         return $this->columns->getId();
