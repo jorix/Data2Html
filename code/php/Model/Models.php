@@ -42,16 +42,18 @@ class Models
         if (!array_key_exists($gridName, $modelGrids)) {
             $gridDef = Lot::getItem(['_defs', 'grids', $gridName], $model);
             $columns = new Set\Columns($gridName, $gridDef, $model['_base']);
+            $filter = null;
+            if (isset($gridDef['filter'])) {
+                $filter =  new Set\Filter($gridName, $gridDef['filter'], $model['_base']);
+            }
             if (!$doLink) { // Only to test or debug use
                 return $columns;
             }
             $linkedGrid = new Link\LinkedGrid($columns);
-            if (isset($gridDef['filter'])) {
-                $linkedGrid->addFilter(
-                    new Set\Filter($gridName, $gridDef['filter'], $model['_base'])
-                );
+            if ($filter) {
+                $linkedGrid->addFilter($filter);
             }
-           $modelGrids[$gridName] = $linkedGrid;
+            $modelGrids[$gridName] = $linkedGrid;
         }    
         return $modelGrids[$gridName];
     }

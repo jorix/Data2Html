@@ -8,10 +8,8 @@ return function($replaces) {
         );
     }
     $modelNames = \Data2Html\Model\Models::parseUrl($urlParts[1]);
-    $rx = new \Data2Html\Data\Lot($modelNames, true); // Required
-    
-    $modelName = $rx->getString('model');
-    $gridName = $rx->getString('grid', 'main');
+    $modelName = $modelNames['model'];
+    $gridName = $modelNames['grid'];
     
     $grid = \Data2Html\Model\Models::linkGrid($modelName, $gridName);
     $blockName = $grid->getAttribute('block-name', 'main');
