@@ -236,7 +236,7 @@ class Controller
         $more = false;
         $result = $this->db->queryPage($query, $pageStart, $pageSizePlus);
         while ($dbRow = $this->db->fetch($result)) {
-            if (count($rows) >= $pageSize) {
+            if ($pageSize && count($rows) >= $pageSize) {
                 $more = true;
                 break;
             }
