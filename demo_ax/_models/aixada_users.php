@@ -36,6 +36,7 @@ return [
             'title' => 'Created',
             'datetime'
         ],
+        'roles' => ['bridge' => 'aixada_user_roles']
     ],
     'grids' => [
         'list' => [
@@ -60,7 +61,8 @@ return [
                 'login',
                 'password',
                 'email',
-                'member_id'
+                'member_id',
+                'roles'
             ]
         ]
     ]

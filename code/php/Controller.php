@@ -58,28 +58,9 @@ class Controller
                         self::extractValue('_keys_', $request, 'array')
                     );
                 } elseif (isset($pNames['grid'])) {
-                    $r = new Lot($request);
-                    $lkGrid = Models::linkGrid($pNames['model'], $pNames['grid']);
-
-                    // Extract Page
-                    $pageStart = self::extractValue('pageStart', $request, 'integer', 1);
-                    $pageSize = self::extractValue('pageSize', $request, 'integer', 0);
-                    
-                    // Create a sql select
-                    $sqlObj = new SqlSelect($this->db, $lkGrid->getLinkedColumns());
-                    // Extract Sort to add to sql
-                    $sqlObj->addSort(
-                        self::extractValue('sort', $request, 'string')
-                    );
-                    // Filter (the rest) to sql
-                    $sqlObj->addFilter($lkGrid->getFilter(), $request);
-                    
-                    // Response
-                    return $this->opRead(
-                        $sqlObj->getSelect(),
-                        $lkGrid->getLinkedColumns(),
-                        $pageStart,
-                        $pageSize
+                    return $this->opReadGrid(
+                        Models::linkGrid($pNames['model'], $pNames['grid']),
+                        $request
                     );
                 }
             case 'insert':
@@ -130,7 +111,6 @@ class Controller
             } else {
                 $response = $array[$key];
             }
-            unset($array[$key]);
         } else {
             $response = $default;
         }
@@ -140,10 +120,33 @@ class Controller
     /**
      * Execute a query and return the array result.
      */
+    protected function opReadGrid($lkGrid, $request)
+    {
+        $lkSet = $lkGrid->getLinkedColumns();
+        
+        // Create a sql select
+        $sqlObj = new SqlSelect($this->db, $lkSet);
+        // Extract Sort to add to sql
+        $sqlObj->sortByName(self::extractValue('sort', $request, 'string'));
+        // Filter (the rest) to sql
+        $sqlObj->filterByRequest($lkGrid->getFilter(), $request);
+        
+        // Response
+        return $this->opRead(
+            $sqlObj->getSelect(),
+            $lkSet,
+            self::extractValue('pageStart', $request, 'integer', 1),
+            self::extractValue('pageSize', $request, 'integer', 0)
+        );
+    }
+
+    /**
+     * Execute a query and return the array result.
+     */
     protected function opReadBlock($lkBlock, $keys)
     {
         $sqlObj = new SqlSelect($this->db, $lkBlock);
-        $sqlObj->addFilterByKeys($keys);
+        $sqlObj->filterByKeys($keys);
         
         // Response
         $result = $this->opRead($sqlObj->getSelect(), $lkBlock, 1, 1);
@@ -153,6 +156,20 @@ class Controller
                 'result' => $result
             ]);
         } 
+        return $result;
+    }
+    
+    /**
+     * Execute a query and return the array result.
+     */
+    protected function opReadBridge($lkGrid, $values)
+    {
+        $lkSet = $lkGrid->getLinkedColumns();
+        $sqlObj = new SqlSelect($this->db, $lkSet);
+        $sqlObj->filterByValues($values);
+        
+        // Response
+        $result = $this->opRead($sqlObj->getSelect(), $lkSet);
         return $result;
     }
     
@@ -172,11 +189,11 @@ class Controller
         };
         $itemDx = new Lot();
         $lkColumns = $lkSet->getLinkedItems();
-        $_responseTypes = [];
-        $_dbTypes = [];
-        $_listItems = [];
-        $_listValues = [];
+        $_responseItems = [];
         $_dbItems = [];
+        $_listItems = [];
+        $_dbMultiItems = [];
+        $_bridgeItems = [];
         $_valueItems = [];
         $_valuePatterns = [];
         
@@ -210,21 +227,26 @@ class Controller
             $type = $itemDx->getString('type', 'string');
             $types[$k] = $type;
             if (!$itemDx->getBoolean('_instrumental')) {
-                $_responseTypes[$k] = $type;
+                $_responseItems[$k] = $type;
             }
             if ($itemDx->getString('db')) {
-                $_dbTypes[$k] = $type;
+                $_dbItems[$k] = $type;
+            }
+            if (isset($v['bridge'])) {
+                $_bridgeItems[$k] = $v['bridge'];
             }
             if (isset($v['list-item'])) {
-                $_listItems[$k] = $v['list-item'];
-                $_listValues[$k] = $lkColumns[$v['list-item']]['list'];
+                $_listItems[$k] = [
+                    $v['list-item'],
+                    $lkColumns[$v['list-item']]['list']
+                ];
             }
             if (isset($v['db-items'])) {
                 $names = [];
                 foreach ($v['db-items']['items'] as $vv) {
                     $names[] = $vv['table-item'];
                 }
-                $_dbItems[$k] = $names;
+                $_dbMultiItems[$k] = $names;
             }
             if (array_key_exists('value', $v)) {
                 $addValue(0, $k, $v);
@@ -241,7 +263,7 @@ class Controller
                 break;
             }
             foreach ($dbRow as $k => &$v) {
-                $v = $this->db->toValue($v, $_dbTypes[$k]);
+                $v = $this->db->toValue($v, $_dbItems[$k]);
             }
             unset($v);
             
@@ -270,23 +292,29 @@ class Controller
                     }
                 }
             }
+            
             $resRow = [];
-            foreach ($_responseTypes as $k => $v) {
-                if (array_key_exists($k, $_dbTypes)) {
+            foreach ($_responseItems as $k => $v) {
+                if (array_key_exists($k, $_dbItems)) {
                     $resRow[$k] = $dbRow[$k];
                 } elseif (array_key_exists($k, $valueRow)) {
                     $resRow[$k] = $valueRow[$k];
-                } elseif (array_key_exists($k, $_dbItems)) {
+                } elseif (array_key_exists($k, $_dbMultiItems)) {
                     $resItem = [];
-                    foreach ($_dbItems[$k] as $vv) {
+                    foreach ($_dbMultiItems[$k] as $vv) {
                         $resItem[] = $dbRow[$vv];
                     }
                     $resRow[$k] = $resItem;
+                } elseif (array_key_exists($k, $_bridgeItems)) {
+                    // Pending to close $result only when $pageSize === 1
+                    $resRow[$k] = [
+                        $_bridgeItems[$k]['bridge-item'] => $dbRow[$keyNames[0]]
+                    ]; 
                 }
                 
                 if (array_key_exists($k, $_listItems) && !isset($resRow[$k])) {
-                    $val = $dbRow[$_listItems[$k]];
-                    $resRow[$k] = Lot::getItem($val, $_listValues[$k], $val);
+                    $val = $dbRow[$_listItems[$k][0]];
+                    $resRow[$k] = Lot::getItem($val, $_listItems[$k][1], $val);
                 }
             }
             $dataKeys = [];
@@ -297,6 +325,14 @@ class Controller
             $rows[] = $resRow;
         }
         $this->db->closeQuery($result);
+        
+        if ($pageSize === 1) {
+            $resRow =& $rows[0];
+            foreach ($_bridgeItems as $k => $v) {
+                $resRow[$k] = $this->opReadBridge($v['bridge-grid'], ($resRow[$k]));
+            }
+            unset($resRow);
+        }
         
         $response = [];
         if (Config::debug()) {
@@ -316,7 +352,7 @@ class Controller
             $response['rows'] = $rows;
         } else {
             $response += [
-                'dataCols' => array_keys($_responseTypes),
+                'dataCols' => array_keys($_responseItems),
                 'rowsAsArray' => 'TODO'
             ];
         }

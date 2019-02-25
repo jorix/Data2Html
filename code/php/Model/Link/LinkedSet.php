@@ -187,6 +187,16 @@ class LinkedSet
             unset($v);
         }
         
+        if (isset($item['bridge']) && is_string($item['bridge'])) {
+            $pComp = Models::parseUrl('grid=' . $item['bridge']);
+            $bridge = Models::linkGrid($pComp['model'], $pComp['grid']);
+            $bItem = $bridge->getLinkedColumns()->searchLinkOfBranch($this->set->getModelName());
+            $item['bridge'] = [
+                'bridge-grid' => $bridge,
+                'bridge-item' => $bItem['name']
+            ];
+        }
+        
         // Set refItems
         if (isset($item['base'])) {
             $this->refItems[$item['table-alias']][$item['base']] = $item['name'];

@@ -33,20 +33,28 @@ class SqlSelect
         $this->result['from'] = $this->getFrom($linkedSet->getLinkedFrom());
     }
     
-    public function addFilter($filter, $filterReq = null)
+    public function filterByRequest($filter, $filterReq = null)
     {
         if ($filter) {
             $this->result['where'] = $this->getWhere($filter->getLinkedItems(), $filterReq);
         }
     }
         
-    public function addFilterByKeys($keysReq = null)
+    public function filterByKeys($keysReq = null)
     {
         if ($keysReq) {
             $this->result['where'] = $this->getWhereByKeys($keysReq);
         }
-    }    
-    public function addSort($sortReq = null)
+    }
+    
+    public function filterByValues($values)
+    {
+        if ($values) {
+            $this->result['where'] = $this->getWhereByValues($values);
+        }
+    }
+    
+    public function sortByName($sortReq = null)
     {
         if ($sortReq === 'undefined') {
             $sortReq = null;
@@ -144,7 +152,7 @@ class SqlSelect
         $lkColumns = $this->linkedSet->getLinkedItems();
         $baseKeys = array_keys($keys);
         $ix = 0;
-        $c = array();
+        $c = [];
         foreach ($request as $v) {
             $baseName = $baseKeys[$ix];
             $refDb = $keys[$baseName]['table-item'];
@@ -152,7 +160,7 @@ class SqlSelect
                 array_push($c, "{$refDb} is null");
             } else {
                 if (!array_key_exists('type', $lkColumns[$baseName])) {
-                    throw new DebugException("Requested key withot type.", [
+                    throw new DebugException("Requested key without type.", [
                         'baseName' => $baseName,
                         'item' => $lkColumns[$baseName]
                     ]);
@@ -162,6 +170,29 @@ class SqlSelect
                 array_push($c, "{$refDb} = {$r}");
             }
             $ix++;
+        }
+        return implode(' and ', $c);
+    }
+    
+    protected function getWhereByValues($values)
+    {
+        $lkColumns = $this->linkedSet->getLinkedItems();
+        $c = [];
+        foreach ($values as $baseName => $v) {
+            $refDb = $lkColumns[$baseName]['table-item'];
+            if ($v === '' || $v === null) {
+                array_push($c, "{$refDb} is null");
+            } else {
+                if (!array_key_exists('type', $lkColumns[$baseName])) {
+                    throw new DebugException("Requested without type.", [
+                        'baseName' => $baseName,
+                        'item' => $lkColumns[$baseName]
+                    ]);
+                }
+                $type = $lkColumns[$baseName]['type'];
+                $r = $this->db->toSql($v, $type);
+                array_push($c, "{$refDb} = {$r}");
+            }
         }
         return implode(' and ', $c);
     }
@@ -182,11 +213,6 @@ class SqlSelect
                 continue;
             }
             if (!array_key_exists($k, $filterItems)) {
-                if (Config::debug()) {
-                    throw new DebugException("Requested filter field '{$k}' not found on filter definition.",
-                        $filterItems
-                    );
-                }
                 continue;
             }
             $itemDx->set($filterItems[$k]);

@@ -58,7 +58,9 @@ return [
     ],
     'blocks' => [
         'main' => [
-            'items' => ['emp_no', 'first_name', 'last_name', 'birth_date', 'gender', 'departments']
+            'items' => ['emp_no', 'first_name', 'last_name', 'birth_date', 'gender', 
+                'departments'
+            ]
         ]
     ]
 ];
