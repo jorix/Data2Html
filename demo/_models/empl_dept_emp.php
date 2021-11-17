@@ -28,6 +28,10 @@ return [
                 'items' => ['=dept_no']
             ],
             'items' => ['dept_name', 'emp_name']
+        ],
+        'bridge_emp' => [
+            'sort' => 'dept_name',
+            'items' => ['dept_no']
         ]
     ],
     'blocks' => [

@@ -1,6 +1,5 @@
 #### Data2Html
-- by Xavier Mamano [crushedmix](https://github.com/crushedmix)
-- Copyright (c) 2019 by crushedmix
+- Copyright (c) 2019 by Xavier Mamano
 
 Available for use under the [MIT License](http://en.wikipedia.org/wiki/MIT_License)
 

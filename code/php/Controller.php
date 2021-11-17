@@ -71,6 +71,9 @@ class Controller
                     Set::getVisualItems($lkBlock->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
+                    if (!Config::debug()) {
+                        ob_clean();
+                    }
                     header('HTTP/1.0 401 Validation errors');
                     exit(To::json($validation));
                 }
@@ -85,6 +88,9 @@ class Controller
                     Set::getVisualItems($lkBlock->getLinkedItems())
                 );
                 if (count($validation['user-errors']) > 0) {
+                    if (!Config::debug()) {
+                        ob_clean();
+                    }
                     header('HTTP/1.0 401 Validation errors');
                     exit(To::json($validation));
                 }
@@ -368,6 +374,9 @@ class Controller
             $response = $lkSet->dbInsert($this->db, $values);
         } catch (\Exception $e) {
             $this->db->rollback();
+            if (!Config::debug()) {
+                ob_clean();
+            }
             header('HTTP/1.0 401 Database error');
             exit(To::json(DebugException::toArray($e)));
         }
@@ -388,6 +397,9 @@ class Controller
             $response = $lkSet->dbUpdate($this->db, $values, $keys);
         } catch (\Exception $e) {
             $this->db->rollback();
+            if (!Config::debug()) {
+                ob_clean();
+            }
             header('HTTP/1.0 401 Database error');
             exit(To::json(DebugException::toArray($e)));
         }
@@ -408,6 +420,9 @@ class Controller
             $response = $lkSet->dbDelete($this->db, $values, $keys);
         } catch (\Exception $e) {
             $this->db->rollback();
+            if (!Config::debug()) {
+                ob_clean();
+            }
             header('HTTP/1.0 401 Database error');
             exit(To::json(DebugException::toArray($e)));
         }
